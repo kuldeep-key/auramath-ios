@@ -105,8 +105,15 @@ class LessonViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Opens the sheet that matches where an "I know it" answer is up to, so a
+  /// dismissed "check one part" reopens as itself.
   void openKnowIt() {
-    knowPrompt = KnowPrompt.answer;
+    knowPrompt = switch (_state.knowFlow) {
+      KnowFlow.askingWhat => KnowPrompt.whatAsked,
+      KnowFlow.checkingPart => KnowPrompt.checkPart,
+      KnowFlow.checkingTotal => KnowPrompt.checkTotal,
+      KnowFlow.none => KnowPrompt.answer,
+    };
     notifyListeners();
   }
 

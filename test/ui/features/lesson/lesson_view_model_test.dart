@@ -114,6 +114,24 @@ void main() {
     vm.dispose();
   });
 
+  test('reopening I know it mid-flow asks the same question again', () async {
+    final vm = await makeVm();
+    await vm.send(const Started());
+    vm.openKnowIt();
+    await vm.answer(300);
+    vm.closeKnowIt();
+    vm.openKnowIt();
+    expect(vm.knowPrompt, KnowPrompt.checkPart);
+    await vm.answer(79);
+    vm.closeKnowIt();
+    vm.openKnowIt();
+    expect(vm.knowPrompt, KnowPrompt.checkTotal);
+    await vm.answer(265);
+    expect(vm.state.step, LessonStep.solved);
+    expect(vm.state.wrong, 0);
+    vm.dispose();
+  });
+
   test('solving gives the badge and the next problem', () async {
     final vm = await makeVm();
     await vm.send(const Started());

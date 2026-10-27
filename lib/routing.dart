@@ -23,7 +23,9 @@ GoRouter buildRouter({
     GoRoute(
       path: '/lesson/:problemId',
       builder: (context, state) => _LessonRoute(
-        key: ValueKey(state.pathParameters['problemId']),
+        // The whole URI: each visit carries its own `?s=`, so going to the
+        // same problem again still builds a fresh lesson.
+        key: ValueKey(state.uri.toString()),
         problemId: state.pathParameters['problemId']!,
         sessions: sessions,
         pack: pack,
@@ -74,6 +76,6 @@ class _LessonRouteState extends State<_LessonRoute> {
   Widget build(BuildContext context) => LessonFlow(
     vm: _vm,
     onHome: () => context.go('/'),
-    onFinished: (next) => context.go('/lesson/$next'),
+    onFinished: (next) => context.go('/lesson/$next?s=${_uuid.v4()}'),
   );
 }

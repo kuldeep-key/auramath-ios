@@ -536,6 +536,14 @@ StepResult _findB(
         state: _sideLesson(counted, LessonStep.findB),
         decisions: [Coach('cmp.regrouping', slots), OpenSideLesson(side)],
       );
+    case Mistake.carry:
+      return (
+        state: _sideLesson(counted, LessonStep.findB),
+        decisions: [
+          Coach('cmp.carry', slots),
+          const OpenSideLesson(SideLesson.addWithCarry),
+        ],
+      );
     case Mistake.oppositeOp:
       final r = wrongMove('cmp.opposite');
       return (

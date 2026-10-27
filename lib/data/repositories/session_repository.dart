@@ -27,7 +27,7 @@ class SessionRepository {
 
   /// 2 s, doubling, capped at 30 s.
   static Duration retryDelay(int failures) =>
-      Duration(seconds: math.min(30, 2 * math.pow(2, failures - 1).toInt()));
+      Duration(seconds: math.min(30, 2 << math.min(failures - 1, 4)));
 
   Future<void> record(
     String sessionId,

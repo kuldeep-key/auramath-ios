@@ -224,6 +224,25 @@ void main() {
     expect(r.state.step, LessonStep.solved);
   });
 
+  test('283 on shorter (forgot the carry) opens add-with-carry', () {
+    final r = run(shorter, [
+      const Started(),
+      const BarADrawn(),
+      const BarBPlaced(),
+      const BarBSized(Relation.taller),
+      const PieceDropped(Piece.gap, Target.gapSlot),
+      const PieceDropped(Piece.total, Target.totalSlot),
+      const OpChosen(Op.add),
+      const NumberEntered(283),
+    ]);
+    expect(r.decisions, contains(coach('cmp.carry')));
+    expect(
+      r.decisions.whereType<OpenSideLesson>().single.kind,
+      SideLesson.addWithCarry,
+    );
+    expect(r.state.step, LessonStep.sideLesson);
+  });
+
   test('undo from placeGap returns to sizeB', () {
     final r = run(lemon, [...toFindB.take(4), const Undo()]);
     expect(r.state.step, LessonStep.sizeB);

@@ -14,6 +14,11 @@ void main() {
     );
   });
 
+  test('retryDelay stays 30 s after many failures', () {
+    expect(SessionRepository.retryDelay(63).inSeconds, 30);
+    expect(SessionRepository.retryDelay(100).inSeconds, 30);
+  });
+
   test('a recorded event is sent', () async {
     final db = await memoryOutbox();
     final api = FakeApi();
