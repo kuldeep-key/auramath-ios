@@ -1,0 +1,187 @@
+{
+  "name": "lemon_clean",
+  "pack": {
+    "version": "test-1",
+    "timers": {
+      "pulseMs": 15000,
+      "glowMs": 25000,
+      "handMs": 40000,
+      "stillMs": 60000
+    },
+    "hints": [
+      "cmp.hint1",
+      "cmp.hint2",
+      "cmp.hint3"
+    ],
+    "badges": {
+      "tree": {
+        "name": "Tree Detective",
+        "says": "Cracked a tree case by drawing it."
+      },
+      "asker": {
+        "name": "Brave Asker",
+        "says": "Asked for help and kept going."
+      }
+    },
+    "lines": {
+      "cmp.right": "Yes! {v} {u}!"
+    },
+    "problems": [
+      {
+        "id": "lemon",
+        "a": {
+          "name": "Lemon tree",
+          "pic": "🍋",
+          "value": 186
+        },
+        "b": {
+          "name": "Fig tree",
+          "pic": "🌳"
+        },
+        "diff": 107,
+        "big": "a",
+        "unit": "cm",
+        "ask": "total",
+        "text": "text",
+        "say": "say",
+        "next": {
+          "fast": "shorter",
+          "helped": "mango",
+          "easier": "easier"
+        }
+      },
+      {
+        "id": "shorter",
+        "a": {
+          "name": "Lemon tree",
+          "pic": "🍋",
+          "value": 186
+        },
+        "b": {
+          "name": "Fig tree",
+          "pic": "🌳"
+        },
+        "diff": 107,
+        "big": "b",
+        "unit": "cm",
+        "ask": "total",
+        "text": "text",
+        "say": "say",
+        "next": {
+          "fast": "shorter",
+          "helped": "mango",
+          "easier": "easier"
+        }
+      },
+      {
+        "id": "mango",
+        "a": {
+          "name": "Lemon tree",
+          "pic": "🍋",
+          "value": 152
+        },
+        "b": {
+          "name": "Fig tree",
+          "pic": "🌳"
+        },
+        "diff": 68,
+        "big": "a",
+        "unit": "cm",
+        "ask": "total",
+        "text": "text",
+        "say": "say",
+        "next": {
+          "fast": "shorter",
+          "helped": "mango",
+          "easier": "easier"
+        }
+      },
+      {
+        "id": "easier",
+        "a": {
+          "name": "Lemon tree",
+          "pic": "🍋",
+          "value": 254
+        },
+        "b": {
+          "name": "Fig tree",
+          "pic": "🌳"
+        },
+        "diff": 132,
+        "big": "a",
+        "unit": "cm",
+        "ask": "b",
+        "text": "text",
+        "say": "say",
+        "next": {
+          "fast": "shorter",
+          "helped": "mango",
+          "easier": "easier"
+        }
+      }
+    ]
+  },
+  "problemId": "lemon",
+  "inputs": [
+    {
+      "type": "started"
+    },
+    {
+      "type": "barADrawn"
+    },
+    {
+      "type": "barBPlaced"
+    },
+    {
+      "type": "barBSized",
+      "rel": "shorter"
+    },
+    {
+      "type": "pieceDropped",
+      "piece": "gap",
+      "target": "gapSlot"
+    },
+    {
+      "type": "pieceDropped",
+      "piece": "total",
+      "target": "totalSlot"
+    },
+    {
+      "type": "opChosen",
+      "op": "subtract"
+    },
+    {
+      "type": "numberEntered",
+      "value": 79
+    },
+    {
+      "type": "numberEntered",
+      "value": 265
+    }
+  ],
+  "expect": {
+    "step": "solved",
+    "decisions": [
+      {
+        "type": "coach",
+        "lineId": "cmp.right",
+        "slots": {
+          "a": "lemon tree",
+          "b": "fig tree",
+          "B": "Fig tree",
+          "av": "186",
+          "d": "107",
+          "u": "cm",
+          "rel": "shorter",
+          "v": "79"
+        }
+      },
+      {
+        "type": "solved",
+        "by": "draw",
+        "badgeId": "tree",
+        "nextProblemId": "shorter"
+      }
+    ]
+  }
+}
