@@ -1,0 +1,75 @@
+{
+  "version": "sample-1",
+  "timers": {"pulseMs": 15000, "glowMs": 25000, "handMs": 40000, "stillMs": 60000},
+  "hints": ["cmp.hint1", "cmp.hint2", "cmp.hint3", "cmp.hint4", "cmp.hint5", "cmp.hint6"],
+  "badges": {
+    "tree": {"name": "Tree Detective", "says": "Cracked a tree case by drawing it."},
+    "asker": {"name": "Brave Asker", "says": "Asked for help and kept going."}
+  },
+  "lines": {
+    "cmp.drawA": "Drag a bar up here.",
+    "cmp.sizeB": "Taller or shorter? Show it with the {b} bar.",
+    "cmp.sizeBWrong": "Read it again. Is the {b} taller or shorter?",
+    "cmp.gapWrong": "Is the {b} {d} {u} tall, or {d} {u} {rel}?",
+    "cmp.totalWrong": "Total goes under both bars.",
+    "cmp.opWrong": "Would a taller tree have a longer bar or a shorter bar?",
+    "cmp.right": "Yes! {v} {u}!",
+    "cmp.regrouping": "Look at the ones. Let us see.",
+    "cmp.opposite": "Look at your bars. Is the {b} longer or shorter?",
+    "cmp.tryAgain": "Not yet. Try that sum again.",
+    "cmp.carry": "Check the ones. Let us see.",
+    "cmp.recheck": "Check your sum again.",
+    "cmp.addBoth": "Not yet. Add both bars.",
+    "cmp.partRight": "{B} is right! Now check your adding.",
+    "cmp.drawIt": "Let us draw it. Which tree is taller?",
+    "cmp.twoBars": "We need two bars. Let us draw.",
+    "cmp.takeYourTime": "Take your time.",
+    "cmp.showMeHow": "Let's try a smaller one together.",
+    "cmp.hint1": "What height is the {a}?",
+    "cmp.hint2": "Make it reach {av} {u}.",
+    "cmp.hint3": "Good! Now what is the height of the {b}?",
+    "cmp.hint4": "Is the {b} taller or shorter?",
+    "cmp.hint5": "{d} taller or shorter?",
+    "cmp.hint6": "Sit with a grown-up and try it together.",
+    "side.takeAcrossTen": "The ten splits into ten ones.",
+    "side.addWithCarry": "Bundle ten ones into a ten, and carry it."
+  },
+  "problems": [
+    {
+      "id": "lemon",
+      "a": {"name": "Lemon tree", "pic": "🍋", "value": 186},
+      "b": {"name": "Fig tree", "pic": "🌳"},
+      "diff": 107, "big": "a", "unit": "cm", "ask": "total",
+      "text": "The lemon tree is 186 cm tall. It is 107 cm taller than the fig tree. How tall are both trees together?",
+      "say": "The lemon tree is 186 centimetres tall. It is 107 centimetres taller than the fig tree. How tall are both trees together?",
+      "next": {"fast": "shorter", "helped": "mango", "easier": "easier"}
+    },
+    {
+      "id": "shorter",
+      "a": {"name": "Lemon tree", "pic": "🍋", "value": 186},
+      "b": {"name": "Fig tree", "pic": "🌳"},
+      "diff": 107, "big": "b", "unit": "cm", "ask": "total",
+      "text": "The lemon tree is 186 cm tall. It is 107 cm shorter than the fig tree. How tall are both trees together?",
+      "say": "The lemon tree is 186 centimetres tall. It is 107 centimetres shorter than the fig tree. How tall are both trees together?",
+      "next": {"fast": "mango", "helped": "mango", "easier": "easier"}
+    },
+    {
+      "id": "mango",
+      "a": {"name": "Mango tree", "pic": "🥭", "value": 152},
+      "b": {"name": "Guava tree", "pic": "🍐"},
+      "diff": 68, "big": "a", "unit": "cm", "ask": "total",
+      "text": "The mango tree is 152 cm tall. It is 68 cm taller than the guava tree. How tall are both trees together?",
+      "say": "The mango tree is 152 centimetres tall. It is 68 centimetres taller than the guava tree. How tall are both trees together?",
+      "next": {"fast": "shorter", "helped": "easier", "easier": "easier"}
+    },
+    {
+      "id": "easier",
+      "a": {"name": "Lemon tree", "pic": "🍋", "value": 254},
+      "b": {"name": "Fig tree", "pic": "🌳"},
+      "diff": 132, "big": "a", "unit": "cm", "ask": "b",
+      "text": "The lemon tree is 254 cm tall. The fig tree is 132 cm shorter. How tall is the fig tree?",
+      "say": "The lemon tree is 254 centimetres tall. The fig tree is 132 centimetres shorter. How tall is the fig tree?",
+      "next": {"fast": "lemon", "helped": "mango", "easier": "mango"}
+    }
+  ]
+}
