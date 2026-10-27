@@ -193,7 +193,7 @@ class _BarBoardState extends State<BarBoard> {
                 base,
                 bw,
                 hA,
-                _zone(_Zone.barA, Bar(color: AuraColors.yellow)),
+                _zone(_Zone.barA, const Bar(color: AuraColors.yellow)),
               ),
               at(
                 xA - 20,
