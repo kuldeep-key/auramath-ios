@@ -23,6 +23,9 @@ abstract final class AuraColors {
   static const keypadBg = Color(0xFFD1D5DB);
   static const keyShadow = Color(0xFF898A8D);
   static const keyText = Color(0xFF111111);
+
+  /// The inset shade along a bar's base (black at 12 %).
+  static const barShade = Color(0x1F000000);
 }
 
 abstract final class AuraRadii {
