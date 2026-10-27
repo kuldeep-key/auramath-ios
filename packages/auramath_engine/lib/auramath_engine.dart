@@ -2,6 +2,7 @@
 /// randomness it was not given. Same inputs, same outputs.
 library;
 
+export 'src/lesson.dart';
 export 'src/mistakes.dart';
 export 'src/pack.dart';
 export 'src/problem.dart';

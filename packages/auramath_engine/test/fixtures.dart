@@ -19,11 +19,15 @@ Map<String, Object?> problemJson(
   'next': {'fast': 'shorter', 'helped': 'mango', 'easier': 'easier'},
 };
 
-final lemon = ComparisonProblem.fromJson(problemJson('lemon', a: 186, diff: 107));
+final lemon = ComparisonProblem.fromJson(
+  problemJson('lemon', a: 186, diff: 107),
+);
 final shorter = ComparisonProblem.fromJson(
   problemJson('shorter', a: 186, diff: 107, big: 'b'),
 );
-final mango = ComparisonProblem.fromJson(problemJson('mango', a: 152, diff: 68));
+final mango = ComparisonProblem.fromJson(
+  problemJson('mango', a: 152, diff: 68),
+);
 final easier = ComparisonProblem.fromJson(
   problemJson('easier', a: 254, diff: 132, ask: 'b'),
 );
@@ -38,7 +42,10 @@ Map<String, Object?> packJson() => {
   },
   'hints': ['cmp.hint1', 'cmp.hint2', 'cmp.hint3'],
   'badges': {
-    'tree': {'name': 'Tree Detective', 'says': 'Cracked a tree case by drawing it.'},
+    'tree': {
+      'name': 'Tree Detective',
+      'says': 'Cracked a tree case by drawing it.',
+    },
     'asker': {'name': 'Brave Asker', 'says': 'Asked for help and kept going.'},
   },
   'lines': {'cmp.right': 'Yes! {v} {u}!'},
