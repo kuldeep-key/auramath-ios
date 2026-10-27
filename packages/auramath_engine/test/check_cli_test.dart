@@ -34,7 +34,7 @@ void main() {
 
   test('a colliding problem exits 1', () async {
     final (code, out) = await check(
-      jsonEncode(problemJson('x', a: 11, diff: 1)),
+      jsonEncode(problemJson('x', a: 33, diff: 21)),
     );
     expect(code, 1);
     expect((jsonDecode(out) as Map)['collision'], isTrue);

@@ -21,31 +21,38 @@ int? dropCarry(int x, int y) => (x % 10) + (y % 10) >= 10 ? x + y - 10 : null;
 
 int reverseDigits(int n) => int.parse(n.toString().split('').reversed.join());
 
-/// Every wrong answer to "find b" that maps to a known mistake.
-Map<int, Mistake> findBRoutes(ComparisonProblem p) {
+/// Every way a child can get "find b" wrong, with the number it gives. A
+/// slip that happens to give the right answer (no regrouping needed, a
+/// palindrome) cannot happen in this problem, so it is left out.
+List<(int, Mistake)> _mistakes(ComparisonProblem p) {
   final a = p.aValue, d = p.diff;
-  if (p.big == BigSide.a) {
-    return {
-      noBorrow(a, d): Mistake.regrouping,
-      a + d: Mistake.oppositeOp,
-      d: Mistake.gapAsHeight,
-      reverseDigits(p.bValue): Mistake.swappedDigits,
-    };
-  }
-  return {
-    ?dropCarry(a, d): Mistake.carry,
-    a - d: Mistake.oppositeOp,
-    d: Mistake.gapAsHeight,
-    reverseDigits(p.bValue): Mistake.swappedDigits,
-  };
+  final all = p.big == BigSide.a
+      ? [
+          (noBorrow(a, d), Mistake.regrouping),
+          (a + d, Mistake.oppositeOp),
+          (d, Mistake.gapAsHeight),
+          (reverseDigits(p.bValue), Mistake.swappedDigits),
+        ]
+      : [
+          if (dropCarry(a, d) case final carry?) (carry, Mistake.carry),
+          (a - d, Mistake.oppositeOp),
+          (d, Mistake.gapAsHeight),
+          (reverseDigits(p.bValue), Mistake.swappedDigits),
+        ];
+  return [
+    for (final m in all)
+      if (m.$1 != p.bValue) m,
+  ];
 }
 
-/// True when two mistakes give the same number, or a mistake gives the right
-/// answer: the app could not tell which help to give.
+/// Every wrong answer to "find b" that maps to a known mistake.
+Map<int, Mistake> findBRoutes(ComparisonProblem p) => {
+  for (final (n, m) in _mistakes(p)) n: m,
+};
+
+/// True when two mistakes give the same number: the app could not tell which
+/// help to give, so the problem must not ship.
 bool hasCollision(ComparisonProblem p) {
-  final a = p.aValue, d = p.diff;
-  final numbers = p.big == BigSide.a
-      ? [noBorrow(a, d), a + d, d, reverseDigits(p.bValue)]
-      : [?dropCarry(a, d), a - d, d, reverseDigits(p.bValue)];
-  return numbers.toSet().length != numbers.length || numbers.contains(p.bValue);
+  final numbers = [for (final (n, _) in _mistakes(p)) n];
+  return numbers.toSet().length != numbers.length;
 }
