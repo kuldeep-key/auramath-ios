@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  auramath_engine:
+    path: packages/auramath_engine
 
 dev_dependencies:
   flutter_test:
