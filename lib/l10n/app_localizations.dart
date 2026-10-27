@@ -100,6 +100,18 @@ abstract class AppLocalizations {
   /// **'Got it, let\'s draw'**
   String get gotItLetsDraw;
 
+  /// No description provided for @hearItAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Hear it again'**
+  String get hearItAgain;
+
+  /// No description provided for @todaysCase.
+  ///
+  /// In en, this message translates to:
+  /// **'Here\'s today\'s case. Listen first.'**
+  String get todaysCase;
+
   /// No description provided for @iKnowIt.
   ///
   /// In en, this message translates to:
@@ -172,6 +184,24 @@ abstract class AppLocalizations {
   /// **'Case cracked!'**
   String get caseCracked;
 
+  /// No description provided for @youSolvedIt.
+  ///
+  /// In en, this message translates to:
+  /// **'You solved the case!'**
+  String get youSolvedIt;
+
+  /// No description provided for @newBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'New badge!'**
+  String get newBadge;
+
+  /// No description provided for @addToSash.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my sash'**
+  String get addToSash;
+
   /// No description provided for @yourBadge.
   ///
   /// In en, this message translates to:
@@ -202,6 +232,18 @@ abstract class AppLocalizations {
   /// **'Back to the problem'**
   String get backToProblem;
 
+  /// No description provided for @howCanIHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'How can I help?'**
+  String get howCanIHelp;
+
+  /// No description provided for @pickOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick one.'**
+  String get pickOne;
+
   /// No description provided for @aHint.
   ///
   /// In en, this message translates to:
@@ -217,7 +259,7 @@ abstract class AppLocalizations {
   /// No description provided for @anEasierOne.
   ///
   /// In en, this message translates to:
-  /// **'An easier one'**
+  /// **'Something easier'**
   String get anEasierOne;
 
   /// No description provided for @stillThere.
@@ -231,6 +273,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'I\'m still thinking'**
   String get stillThinking;
+
+  /// No description provided for @askTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Both together?'**
+  String get askTotal;
+
+  /// No description provided for @askB.
+  ///
+  /// In en, this message translates to:
+  /// **'How tall is the {name}?'**
+  String askB(String name);
+
+  /// No description provided for @whatAsked.
+  ///
+  /// In en, this message translates to:
+  /// **'What does the question ask?'**
+  String get whatAsked;
+
+  /// No description provided for @checkSumAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your sum again.'**
+  String get checkSumAgain;
+
+  /// No description provided for @checkOnePart.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s check one part.'**
+  String get checkOnePart;
+
+  /// No description provided for @partRight.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is right!'**
+  String partRight(String name);
+
+  /// No description provided for @nowCheckAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'Now check your adding.'**
+  String get nowCheckAdding;
+
+  /// No description provided for @sideTakeAcrossTen.
+  ///
+  /// In en, this message translates to:
+  /// **'Take away across a ten'**
+  String get sideTakeAcrossTen;
+
+  /// No description provided for @sideAddWithCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding with a carry'**
+  String get sideAddWithCarry;
 }
 
 class _AppLocalizationsDelegate

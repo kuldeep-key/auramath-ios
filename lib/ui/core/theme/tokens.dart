@@ -24,6 +24,9 @@ abstract final class AuraColors {
   static const keyShadow = Color(0xFF898A8D);
   static const keyText = Color(0xFF111111);
 
+  /// Dims the screen behind a lesson sheet (navy at 40 %).
+  static const scrim = Color(0x660F2A73);
+
   /// The inset shade along a bar's base (black at 12 %).
   static const barShade = Color(0x1F000000);
 }

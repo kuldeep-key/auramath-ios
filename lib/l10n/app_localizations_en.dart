@@ -12,6 +12,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gotItLetsDraw => 'Got it, let\'s draw';
 
   @override
+  String get hearItAgain => 'Hear it again';
+
+  @override
+  String get todaysCase => 'Here\'s today\'s case. Listen first.';
+
+  @override
   String get iKnowIt => 'I know it';
 
   @override
@@ -48,6 +54,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get caseCracked => 'Case cracked!';
 
   @override
+  String get youSolvedIt => 'You solved the case!';
+
+  @override
+  String get newBadge => 'New badge!';
+
+  @override
+  String get addToSash => 'Add to my sash';
+
+  @override
   String get yourBadge => 'Your badge';
 
   @override
@@ -63,17 +78,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backToProblem => 'Back to the problem';
 
   @override
+  String get howCanIHelp => 'How can I help?';
+
+  @override
+  String get pickOne => 'Pick one.';
+
+  @override
   String get aHint => 'A hint';
 
   @override
   String get showMeHow => 'Show me how';
 
   @override
-  String get anEasierOne => 'An easier one';
+  String get anEasierOne => 'Something easier';
 
   @override
   String get stillThere => 'Still there?';
 
   @override
   String get stillThinking => 'I\'m still thinking';
+
+  @override
+  String get askTotal => 'Both together?';
+
+  @override
+  String askB(String name) {
+    return 'How tall is the $name?';
+  }
+
+  @override
+  String get whatAsked => 'What does the question ask?';
+
+  @override
+  String get checkSumAgain => 'Check your sum again.';
+
+  @override
+  String get checkOnePart => 'Let\'s check one part.';
+
+  @override
+  String partRight(String name) {
+    return '$name is right!';
+  }
+
+  @override
+  String get nowCheckAdding => 'Now check your adding.';
+
+  @override
+  String get sideTakeAcrossTen => 'Take away across a ten';
+
+  @override
+  String get sideAddWithCarry => 'Adding with a carry';
 }
