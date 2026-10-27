@@ -22,6 +22,7 @@ abstract final class AuraColors {
   static const coral = Color(0xFFFF7A59);
   static const keypadBg = Color(0xFFD1D5DB);
   static const keyShadow = Color(0xFF898A8D);
+  static const keyText = Color(0xFF111111);
 }
 
 abstract final class AuraRadii {
