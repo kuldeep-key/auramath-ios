@@ -78,6 +78,24 @@ final class Undo extends LessonInput {
   const Undo();
 }
 
+/// "I know it": the child types the answer without finishing the drawing.
+final class KnowIt extends LessonInput {
+  const KnowIt(this.value);
+  final int value;
+}
+
+/// The answer to "let's check one part": the value of b.
+final class PartChecked extends LessonInput {
+  const PartChecked(this.value);
+  final int value;
+}
+
+/// The total, after a right part.
+final class KnowTotalChecked extends LessonInput {
+  const KnowTotalChecked(this.value);
+  final int value;
+}
+
 // ------------------------------------------------------------- decisions
 
 /// What the engine decided. The app shows it; it never decides itself.
@@ -106,6 +124,26 @@ final class OpenSideLesson extends Decision {
   final SideLesson kind;
 }
 
+/// The child gave b when the question asks for both together.
+final class AskWhatQuestionAsks extends Decision {
+  const AskWhatQuestionAsks();
+}
+
+/// A near miss: check the sum again, not a re-teach (Figma J17).
+final class OpenRecheck extends Decision {
+  const OpenRecheck();
+}
+
+/// "Let's check one part": ask for b on its own.
+final class CheckOnePart extends Decision {
+  const CheckOnePart();
+}
+
+/// Not yet: start drawing it out.
+final class DrawIt extends Decision {
+  const DrawIt();
+}
+
 final class Solved extends Decision {
   const Solved(this.by, this.badgeId, this.nextProblemId);
   final SolvedBy by;
@@ -114,6 +152,9 @@ final class Solved extends Decision {
 }
 
 // ----------------------------------------------------------------- state
+
+/// Where an "I know it" answer is up to.
+enum KnowFlow { none, askingWhat, checkingPart, checkingTotal }
 
 class LessonState {
   const LessonState({
@@ -129,6 +170,7 @@ class LessonState {
     this.hintsUsed = 0,
     this.sideLessonRan = false,
     this.returnStep,
+    this.knowFlow = KnowFlow.none,
   });
 
   final LessonStep step;
@@ -143,6 +185,7 @@ class LessonState {
   final int hintsUsed;
   final bool sideLessonRan;
   final LessonStep? returnStep;
+  final KnowFlow knowFlow;
 
   LessonState copyWith({
     LessonStep? step,
@@ -157,6 +200,7 @@ class LessonState {
     int? hintsUsed,
     bool? sideLessonRan,
     LessonStep? returnStep,
+    KnowFlow? knowFlow,
   }) => LessonState(
     step: step ?? this.step,
     barA: barA ?? this.barA,
@@ -170,6 +214,7 @@ class LessonState {
     hintsUsed: hintsUsed ?? this.hintsUsed,
     sideLessonRan: sideLessonRan ?? this.sideLessonRan,
     returnStep: returnStep ?? this.returnStep,
+    knowFlow: knowFlow ?? this.knowFlow,
   );
 
   List<Object?> get _fields => [
@@ -185,6 +230,7 @@ class LessonState {
     hintsUsed,
     sideLessonRan,
     returnStep,
+    knowFlow,
   ];
 
   @override
@@ -280,23 +326,40 @@ StepResult step(
         ]);
       }
       if (value == dropCarry(p.aValue, p.bValue)) {
-        return to(
-          s.copyWith(
-            step: LessonStep.sideLesson,
-            returnStep: LessonStep.findTotal,
-            sideLessonRan: true,
-          ),
-          [
-            Coach('cmp.carry', slots),
-            const OpenSideLesson(SideLesson.addWithCarry),
-          ],
-        );
+        return to(_sideLesson(s, LessonStep.findTotal), [
+          Coach('cmp.carry', slots),
+          const OpenSideLesson(SideLesson.addWithCarry),
+        ]);
       }
       if ((value - p.total).abs() <= 10) return wrongMove('cmp.recheck');
       return wrongMove('cmp.addBoth');
 
     case (LessonStep.sideLesson, SideLessonDone()):
       return to(s.copyWith(step: s.returnStep));
+
+    case (_, KnowIt(:final value))
+        when _boardSteps.contains(s.step) &&
+            (s.knowFlow == KnowFlow.none || s.knowFlow == KnowFlow.askingWhat):
+      return _knowIt(p, s, value);
+
+    case (_, PartChecked(:final value))
+        when s.knowFlow == KnowFlow.checkingPart:
+      return _partChecked(p, s, value, slots);
+
+    case (_, KnowTotalChecked(:final value))
+        when s.knowFlow == KnowFlow.checkingTotal:
+      if (value == p.total) {
+        return to(
+          s.copyWith(step: LessonStep.solved, knowFlow: KnowFlow.none),
+          [_solved(p, s, SolvedBy.know)],
+        );
+      }
+      if (value == dropCarry(p.aValue, p.bValue)) {
+        return to(_sideLesson(s, s.step), [
+          const OpenSideLesson(SideLesson.addWithCarry),
+        ]);
+      }
+      return to(s, [Coach('cmp.recheck', slots)]);
 
     case (_, Undo()):
       return _undo(p, s);
@@ -333,16 +396,11 @@ StepResult _findB(
   final side = p.big == BigSide.a
       ? SideLesson.takeAcrossTen
       : SideLesson.addWithCarry;
-  LessonState toSide(LessonState from) => from.copyWith(
-    step: LessonStep.sideLesson,
-    returnStep: LessonStep.findB,
-    sideLessonRan: true,
-  );
 
   switch (findBRoutes(p)[value]) {
     case Mistake.regrouping:
       return (
-        state: toSide(counted),
+        state: _sideLesson(counted, LessonStep.findB),
         decisions: [Coach('cmp.regrouping', slots), OpenSideLesson(side)],
       );
     case Mistake.oppositeOp:
@@ -356,7 +414,7 @@ StepResult _findB(
       final next = r.state.copyWith(findBWrong: misses);
       if (misses >= 2) {
         return (
-          state: toSide(next),
+          state: _sideLesson(next, LessonStep.findB),
           decisions: [...r.decisions, OpenSideLesson(side)],
         );
       }
@@ -403,3 +461,102 @@ Map<String, String> _slots(ComparisonProblem p) => {
   'u': p.unit,
   'rel': p.big == BigSide.a ? 'shorter' : 'taller',
 };
+
+const _boardSteps = {
+  LessonStep.drawA,
+  LessonStep.placeB,
+  LessonStep.sizeB,
+  LessonStep.placeGap,
+  LessonStep.placeTotal,
+  LessonStep.chooseOp,
+  LessonStep.findB,
+  LessonStep.findTotal,
+};
+
+LessonState _sideLesson(LessonState s, LessonStep back) => s.copyWith(
+  step: LessonStep.sideLesson,
+  returnStep: back,
+  sideLessonRan: true,
+  knowFlow: KnowFlow.none,
+);
+
+/// Back to an empty board to draw it out.
+LessonState _drawIt(LessonState s) => LessonState(
+  step: LessonStep.drawA,
+  wrong: s.wrong + 1,
+  findBWrong: s.findBWrong,
+  hintsUsed: s.hintsUsed,
+  sideLessonRan: s.sideLessonRan,
+);
+
+StepResult _knowIt(ComparisonProblem p, LessonState s, int value) {
+  if (p.ask == Ask.b) {
+    if (value == p.bValue) {
+      return (
+        state: s.copyWith(step: LessonStep.solved, knowFlow: KnowFlow.none),
+        decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
+      );
+    }
+    return (state: _drawIt(s), decisions: const [DrawIt()]);
+  }
+  if (value == p.total) {
+    return (
+      state: s.copyWith(step: LessonStep.solved, knowFlow: KnowFlow.none),
+      decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
+    );
+  }
+  if (value == p.bValue) {
+    return (
+      state: s.copyWith(knowFlow: KnowFlow.askingWhat),
+      decisions: const [AskWhatQuestionAsks()],
+    );
+  }
+  if ((value - p.total).abs() <= 10 && value != dropCarry(p.aValue, p.bValue)) {
+    return (
+      state: s.copyWith(knowFlow: KnowFlow.none),
+      decisions: const [OpenRecheck()],
+    );
+  }
+  return (
+    state: s.copyWith(knowFlow: KnowFlow.checkingPart),
+    decisions: const [CheckOnePart()],
+  );
+}
+
+StepResult _partChecked(
+  ComparisonProblem p,
+  LessonState s,
+  int value,
+  Map<String, String> slots,
+) {
+  if (value == p.bValue) {
+    return (
+      state: s.copyWith(knowFlow: KnowFlow.checkingTotal),
+      decisions: [Coach('cmp.partRight', slots)],
+    );
+  }
+  final a = p.aValue, d = p.diff;
+  final counted = s.copyWith(wrong: s.wrong + 1);
+  if (p.big == BigSide.a && value == noBorrow(a, d)) {
+    return (
+      state: _sideLesson(counted, s.step),
+      decisions: const [OpenSideLesson(SideLesson.takeAcrossTen)],
+    );
+  }
+  if (p.big == BigSide.a && value == a + d) {
+    return (
+      state: _drawIt(s),
+      decisions: [Coach('cmp.drawIt', slots), const DrawIt()],
+    );
+  }
+  if (value == d) {
+    return (
+      state: _drawIt(s),
+      decisions: [Coach('cmp.twoBars', slots), const DrawIt()],
+    );
+  }
+  if (value == reverseDigits(p.bValue)) {
+    return (state: counted, decisions: const [OpenRecheck()]);
+  }
+  return (state: _drawIt(s), decisions: const [DrawIt()]);
+}
