@@ -96,6 +96,25 @@ final class KnowTotalChecked extends LessonInput {
   final int value;
 }
 
+final class HintTaken extends LessonInput {
+  const HintTaken();
+}
+
+final class ShowMeHowTaken extends LessonInput {
+  const ShowMeHowTaken();
+}
+
+final class EasierTaken extends LessonInput {
+  const EasierTaken();
+}
+
+/// How long the child has gone without a move. The app sends it on a timer;
+/// the engine has no clock of its own.
+final class QuietFor extends LessonInput {
+  const QuietFor(this.ms);
+  final int ms;
+}
+
 // ------------------------------------------------------------- decisions
 
 /// What the engine decided. The app shows it; it never decides itself.
@@ -144,6 +163,41 @@ final class DrawIt extends Decision {
   const DrawIt();
 }
 
+final class ShowHint extends Decision {
+  const ShowHint(this.lineId);
+  final String lineId;
+}
+
+/// Every hint is used: offer the worked example.
+final class SuggestShowMeHow extends Decision {
+  const SuggestShowMeHow();
+}
+
+final class SwitchProblem extends Decision {
+  const SwitchProblem(this.problemId);
+  final String problemId;
+}
+
+/// Quiet child, first nudge: Help me pulses.
+final class PulseHelp extends Decision {
+  const PulseHelp();
+}
+
+/// Quiet child: the next piece glows.
+final class GlowPiece extends Decision {
+  const GlowPiece();
+}
+
+/// Quiet child: a hand shows the move once.
+final class ShowHand extends Decision {
+  const ShowHand();
+}
+
+/// Quiet child: "Still there?"
+final class AskStillThere extends Decision {
+  const AskStillThere();
+}
+
 final class Solved extends Decision {
   const Solved(this.by, this.badgeId, this.nextProblemId);
   final SolvedBy by;
@@ -171,6 +225,7 @@ class LessonState {
     this.sideLessonRan = false,
     this.returnStep,
     this.knowFlow = KnowFlow.none,
+    this.quietLevel = 0,
   });
 
   final LessonStep step;
@@ -187,6 +242,9 @@ class LessonState {
   final LessonStep? returnStep;
   final KnowFlow knowFlow;
 
+  /// How many quiet-child thresholds have fired since the last move (0–4).
+  final int quietLevel;
+
   LessonState copyWith({
     LessonStep? step,
     bool? barA,
@@ -201,6 +259,7 @@ class LessonState {
     bool? sideLessonRan,
     LessonStep? returnStep,
     KnowFlow? knowFlow,
+    int? quietLevel,
   }) => LessonState(
     step: step ?? this.step,
     barA: barA ?? this.barA,
@@ -215,6 +274,7 @@ class LessonState {
     sideLessonRan: sideLessonRan ?? this.sideLessonRan,
     returnStep: returnStep ?? this.returnStep,
     knowFlow: knowFlow ?? this.knowFlow,
+    quietLevel: quietLevel ?? this.quietLevel,
   );
 
   List<Object?> get _fields => [
@@ -231,6 +291,7 @@ class LessonState {
     sideLessonRan,
     returnStep,
     knowFlow,
+    quietLevel,
   ];
 
   @override
@@ -262,6 +323,78 @@ StepResult step(
   LessonState s,
   LessonInput input,
 ) {
+  if (input is QuietFor) return _quiet(pack, p, s, input.ms);
+  final r = _boardSteps.contains(s.step) ? _help(pack, p, s, input) : null;
+  final moved = r ?? _move(p, s, input);
+  final accepted = !identical(moved.state, s) || moved.decisions.isNotEmpty;
+  if (!accepted || moved.state.quietLevel == 0) return moved;
+  return (
+    state: moved.state.copyWith(quietLevel: 0),
+    decisions: moved.decisions,
+  );
+}
+
+/// Replays saved inputs from the start: how a lesson resumes.
+LessonState replay(
+  Pack pack,
+  ComparisonProblem p,
+  Iterable<LessonInput> inputs,
+) => inputs.fold(initialState(), (s, i) => step(pack, p, s, i).state);
+
+StepResult? _help(
+  Pack pack,
+  ComparisonProblem p,
+  LessonState s,
+  LessonInput input,
+) {
+  switch (input) {
+    case HintTaken():
+      final used = s.hintsUsed + 1;
+      final hints = pack.hintLineIds;
+      return (
+        state: s.copyWith(hintsUsed: used),
+        decisions: [
+          if (used <= hints.length)
+            ShowHint(hints[used - 1])
+          else
+            const SuggestShowMeHow(),
+        ],
+      );
+    case ShowMeHowTaken():
+      return (
+        state: s.copyWith(hintsUsed: s.hintsUsed + 1),
+        decisions: [Coach('cmp.showMeHow', _slots(p))],
+      );
+    case EasierTaken():
+      return (state: s, decisions: [SwitchProblem(p.next.easier)]);
+    default:
+      return null;
+  }
+}
+
+StepResult _quiet(Pack pack, ComparisonProblem p, LessonState s, int ms) {
+  if (!_boardSteps.contains(s.step)) return (state: s, decisions: const []);
+  final t = pack.timers;
+  final level = [
+    t.pulseMs,
+    t.glowMs,
+    t.handMs,
+    t.stillMs,
+  ].where((threshold) => ms >= threshold).length;
+  if (level <= s.quietLevel) return (state: s, decisions: const []);
+  final decisions = <Decision>[
+    for (var l = s.quietLevel + 1; l <= level; l++)
+      ...switch (l) {
+        1 => const [PulseHelp()],
+        2 => [const GlowPiece(), Coach('cmp.takeYourTime', _slots(p))],
+        3 => const [ShowHand()],
+        _ => const [AskStillThere()],
+      },
+  ];
+  return (state: s.copyWith(quietLevel: level), decisions: decisions);
+}
+
+StepResult _move(ComparisonProblem p, LessonState s, LessonInput input) {
   final slots = _slots(p);
   StepResult to(LessonState next, [List<Decision> d = const []]) =>
       (state: next, decisions: d);
