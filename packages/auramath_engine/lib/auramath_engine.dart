@@ -3,6 +3,7 @@
 library;
 
 export 'src/codec.dart';
+export 'src/contract.dart';
 export 'src/lesson.dart';
 export 'src/mistakes.dart';
 export 'src/pack.dart';
