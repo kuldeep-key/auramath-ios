@@ -1,3 +1,4 @@
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:test/test.dart';
 
 import 'fixtures.dart';
@@ -20,5 +21,17 @@ void main() {
 
   test('easier asks for the fig tree, 122', () {
     expect(easier.bValue, 122);
+  });
+
+  test('lineSlots gives every slot a coach line can use', () {
+    expect(lineSlots(lemon), {
+      'a': 'lemon tree',
+      'b': 'fig tree',
+      'B': 'Fig tree',
+      'av': '186',
+      'd': '107',
+      'u': 'cm',
+      'rel': 'shorter',
+    });
   });
 }

@@ -222,7 +222,7 @@ class LessonState {
     this.wrongRow = 0,
     this.findBWrong = 0,
     this.hintsUsed = 0,
-    this.sideLessonRan = false,
+    this.sideLessons = 0,
     this.returnStep,
     this.knowFlow = KnowFlow.none,
     this.quietLevel = 0,
@@ -238,7 +238,10 @@ class LessonState {
   final int wrongRow;
   final int findBWrong;
   final int hintsUsed;
-  final bool sideLessonRan;
+
+  /// Side lessons run this session; tutor policy allows [maxSideLessons].
+  final int sideLessons;
+  bool get sideLessonRan => sideLessons > 0;
   final LessonStep? returnStep;
   final KnowFlow knowFlow;
 
@@ -256,7 +259,7 @@ class LessonState {
     int? wrongRow,
     int? findBWrong,
     int? hintsUsed,
-    bool? sideLessonRan,
+    int? sideLessons,
     LessonStep? returnStep,
     KnowFlow? knowFlow,
     int? quietLevel,
@@ -271,7 +274,7 @@ class LessonState {
     wrongRow: wrongRow ?? this.wrongRow,
     findBWrong: findBWrong ?? this.findBWrong,
     hintsUsed: hintsUsed ?? this.hintsUsed,
-    sideLessonRan: sideLessonRan ?? this.sideLessonRan,
+    sideLessons: sideLessons ?? this.sideLessons,
     returnStep: returnStep ?? this.returnStep,
     knowFlow: knowFlow ?? this.knowFlow,
     quietLevel: quietLevel ?? this.quietLevel,
@@ -288,7 +291,7 @@ class LessonState {
     wrongRow,
     findBWrong,
     hintsUsed,
-    sideLessonRan,
+    sideLessons,
     returnStep,
     knowFlow,
     quietLevel,
@@ -363,7 +366,7 @@ StepResult? _help(
     case ShowMeHowTaken():
       return (
         state: s.copyWith(hintsUsed: s.hintsUsed + 1),
-        decisions: [Coach('cmp.showMeHow', _slots(p))],
+        decisions: [Coach('cmp.showMeHow', lineSlots(p))],
       );
     case EasierTaken():
       return (state: s, decisions: [SwitchProblem(p.next.easier)]);
@@ -386,7 +389,7 @@ StepResult _quiet(Pack pack, ComparisonProblem p, LessonState s, int ms) {
     for (var l = s.quietLevel + 1; l <= level; l++)
       ...switch (l) {
         1 => const [PulseHelp()],
-        2 => [const GlowPiece(), Coach('cmp.takeYourTime', _slots(p))],
+        2 => [const GlowPiece(), Coach('cmp.takeYourTime', lineSlots(p))],
         3 => const [ShowHand()],
         _ => const [AskStillThere()],
       },
@@ -395,7 +398,7 @@ StepResult _quiet(Pack pack, ComparisonProblem p, LessonState s, int ms) {
 }
 
 StepResult _move(ComparisonProblem p, LessonState s, LessonInput input) {
-  final slots = _slots(p);
+  final slots = lineSlots(p);
   StepResult to(LessonState next, [List<Decision> d = const []]) =>
       (state: next, decisions: d);
   StepResult right(LessonState next, [List<Decision> d = const []]) =>
@@ -458,7 +461,7 @@ StepResult _move(ComparisonProblem p, LessonState s, LessonInput input) {
           _solved(p, s, SolvedBy.draw),
         ]);
       }
-      if (value == dropCarry(p.aValue, p.bValue)) {
+      if (value == dropCarry(p.aValue, p.bValue) && _canSide(s)) {
         return to(_sideLesson(s, LessonStep.findTotal), [
           Coach('cmp.carry', slots),
           const OpenSideLesson(SideLesson.addWithCarry),
@@ -484,10 +487,10 @@ StepResult _move(ComparisonProblem p, LessonState s, LessonInput input) {
       if (value == p.total) {
         return to(
           s.copyWith(step: LessonStep.solved, knowFlow: KnowFlow.none),
-          [_solved(p, s, SolvedBy.know)],
+          [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
         );
       }
-      if (value == dropCarry(p.aValue, p.bValue)) {
+      if (value == dropCarry(p.aValue, p.bValue) && _canSide(s)) {
         return to(_sideLesson(s, s.step), [
           const OpenSideLesson(SideLesson.addWithCarry),
         ]);
@@ -530,7 +533,8 @@ StepResult _findB(
       ? SideLesson.takeAcrossTen
       : SideLesson.addWithCarry;
 
-  switch (findBRoutes(p)[value]) {
+  final route = findBRoutes(p)[value];
+  switch (_canSide(s) || route == Mistake.oppositeOp ? route : null) {
     case Mistake.regrouping:
       return (
         state: _sideLesson(counted, LessonStep.findB),
@@ -553,7 +557,7 @@ StepResult _findB(
     default:
       final r = wrongMove('cmp.tryAgain');
       final next = r.state.copyWith(findBWrong: misses);
-      if (misses >= 2) {
+      if (misses == 2 && _canSide(s)) {
         return (
           state: _sideLesson(next, LessonStep.findB),
           decisions: [...r.decisions, OpenSideLesson(side)],
@@ -593,7 +597,8 @@ Solved _solved(ComparisonProblem p, LessonState s, SolvedBy by) {
   );
 }
 
-Map<String, String> _slots(ComparisonProblem p) => {
+/// The values a pack line's {slots} are filled with for problem [p].
+Map<String, String> lineSlots(ComparisonProblem p) => {
   'a': p.a.name.toLowerCase(),
   'b': p.b.name.toLowerCase(),
   'B': p.b.name,
@@ -614,10 +619,16 @@ const _boardSteps = {
   LessonStep.findTotal,
 };
 
+/// Tutor policy `side_lessons.max_per_session`; past it the child gets the
+/// step's usual help instead.
+const maxSideLessons = 2;
+
+bool _canSide(LessonState s) => s.sideLessons < maxSideLessons;
+
 LessonState _sideLesson(LessonState s, LessonStep back) => s.copyWith(
   step: LessonStep.sideLesson,
   returnStep: back,
-  sideLessonRan: true,
+  sideLessons: s.sideLessons + 1,
   knowFlow: KnowFlow.none,
 );
 
@@ -627,7 +638,7 @@ LessonState _drawIt(LessonState s) => LessonState(
   wrong: s.wrong + 1,
   findBWrong: s.findBWrong,
   hintsUsed: s.hintsUsed,
-  sideLessonRan: s.sideLessonRan,
+  sideLessons: s.sideLessons,
 );
 
 StepResult _knowIt(ComparisonProblem p, LessonState s, int value) {
@@ -678,7 +689,7 @@ StepResult _partChecked(
   }
   final a = p.aValue, d = p.diff;
   final counted = s.copyWith(wrong: s.wrong + 1);
-  if (p.big == BigSide.a && value == noBorrow(a, d)) {
+  if (p.big == BigSide.a && value == noBorrow(a, d) && _canSide(s)) {
     return (
       state: _sideLesson(counted, s.step),
       decisions: const [OpenSideLesson(SideLesson.takeAcrossTen)],

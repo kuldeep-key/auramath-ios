@@ -79,6 +79,33 @@ void main() {
     expect(r.state.step, LessonStep.findB);
   });
 
+  test('after the two-miss side lesson, a third miss does not reopen it', () {
+    final r = run(lemon, [
+      ...toFindB,
+      const NumberEntered(50),
+      const NumberEntered(60),
+      const SideLessonDone(),
+      const NumberEntered(70),
+    ]);
+    expect(r.state.step, LessonStep.findB);
+    expect(r.decisions.whereType<OpenSideLesson>(), hasLength(1));
+  });
+
+  test(
+    'no more than two side lessons in a session (policy max_per_session)',
+    () {
+      final r = run(lemon, [
+        ...toFindB,
+        for (var i = 0; i < 3; i++) ...[
+          const NumberEntered(81),
+          const SideLessonDone(),
+        ],
+      ]);
+      expect(r.decisions.whereType<OpenSideLesson>(), hasLength(2));
+      expect(r.state.step, LessonStep.findB);
+    },
+  );
+
   test('a side lesson makes the next problem the helped one', () {
     final r = run(lemon, [
       ...toFindB,

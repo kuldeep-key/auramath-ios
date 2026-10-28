@@ -26,6 +26,17 @@ void main() {
     expect(r.decisions.whereType<Solved>().single.by, SolvedBy.know);
   });
 
+  test('a checked total after drawing A also solves as partway', () {
+    final r = run(lemon, [
+      ...start,
+      const BarADrawn(),
+      const KnowIt(300),
+      const PartChecked(79),
+      const KnowTotalChecked(265),
+    ]);
+    expect(r.decisions.whereType<Solved>().single.by, SolvedBy.partway);
+  });
+
   test('know 265 after drawing A solves as partway', () {
     final r = run(lemon, [...start, const BarADrawn(), const KnowIt(265)]);
     expect(r.decisions.whereType<Solved>().single.by, SolvedBy.partway);

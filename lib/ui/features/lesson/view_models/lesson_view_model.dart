@@ -191,7 +191,7 @@ class LessonViewModel extends ChangeNotifier {
 
   void _coach(String lineId, Map<String, String> slots) {
     // Every Coach carries the problem's own slots; hints and fallbacks don't.
-    final all = {..._slots(), ...slots};
+    final all = {...lineSlots(_problem), ...slots};
     coachText = fillLine(_pack.lines[lineId] ?? '', all);
     _voice.say(coachText);
   }
@@ -207,15 +207,6 @@ class LessonViewModel extends ChangeNotifier {
     LessonStep.chooseOp: 'cmp.chooseOp',
     LessonStep.findB: 'cmp.findB',
     LessonStep.findTotal: 'cmp.findTotal',
-  };
-
-  Map<String, String> _slots() => {
-    'a': _problem.a.name.toLowerCase(),
-    'b': _problem.b.name.toLowerCase(),
-    'B': _problem.b.name,
-    'av': '${_problem.aValue}',
-    'd': '${_problem.diff}',
-    'u': _problem.unit,
   };
 
   @override
