@@ -2,6 +2,7 @@ import 'package:auramath/ui/core/parts/aura_button.dart';
 import 'package:auramath/ui/core/parts/lesson_header.dart';
 import 'package:auramath/ui/core/parts/question_strip.dart';
 import 'package:auramath/ui/core/parts/standing_button.dart';
+import 'package:auramath/ui/core/parts/ribbon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -64,6 +65,24 @@ void main() {
     );
     await tester.pump();
     expect(find.text('Tricky one? Tap me!'), findsNothing);
+  });
+
+  testWidgets('a portrait stays round in a column that stretches', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        const Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [Portrait(size: 88)],
+        ),
+      ),
+    );
+    final box = find.descendant(
+      of: find.byType(Portrait),
+      matching: find.byType(DecoratedBox),
+    );
+    expect(tester.getSize(box), const Size(88, 88));
   });
 
   testWidgets('StandingButton fills the width it is given', (tester) async {

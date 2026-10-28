@@ -34,16 +34,20 @@ class Portrait extends StatelessWidget {
 
   final double size;
 
+  // Centred so a stretching parent (a sheet's column) can't widen it into a
+  // strip that crops the face.
   @override
-  Widget build(BuildContext context) => Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      border: Border.all(color: AuraColors.navy, width: 4),
-      image: const DecorationImage(
-        image: AssetImage('assets/images/detective_boy.jpg'),
-        fit: BoxFit.cover,
+  Widget build(BuildContext context) => Center(
+    child: Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AuraColors.navy, width: 4),
+        image: const DecorationImage(
+          image: AssetImage('assets/images/detective_boy.jpg'),
+          fit: BoxFit.cover,
+        ),
       ),
     ),
   );
