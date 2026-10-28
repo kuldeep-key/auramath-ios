@@ -61,7 +61,7 @@ class _AnswerSheetState extends State<AnswerSheet> {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: AuraColors.blueTint,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(AuraRadii.small),
                       border: Border.all(color: AuraColors.blue, width: 3),
                     ),
                     child: Text(

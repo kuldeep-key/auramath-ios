@@ -14,7 +14,7 @@ class Ribbon extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
     decoration: BoxDecoration(
       color: AuraColors.yellow,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AuraRadii.small),
       border: Border.all(color: AuraColors.navy, width: 3),
       boxShadow: const [
         BoxShadow(color: AuraColors.navy, offset: Offset(0, 5)),

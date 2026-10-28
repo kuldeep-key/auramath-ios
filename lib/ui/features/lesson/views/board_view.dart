@@ -257,7 +257,7 @@ class _AnswerBox extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: AuraColors.blueTint,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AuraRadii.small),
         border: Border.all(color: AuraColors.blue, width: 3),
       ),
       child: Text(text, style: AuraText.title.copyWith(fontSize: 30)),

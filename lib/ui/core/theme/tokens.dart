@@ -39,6 +39,9 @@ abstract final class AuraRadii {
   static const barTop = 14.0;
   static const barBottom = 4.0;
   static const key = 8.0;
+
+  /// Small tiles: the ribbon, the undo key, value boxes, the brace label.
+  static const small = 14.0;
 }
 
 /// Nunito is a variable font: each style sets the weight axis directly so the

@@ -21,7 +21,9 @@ class Brace extends StatelessWidget {
             right: BorderSide(color: AuraColors.navy, width: 3),
             bottom: BorderSide(color: AuraColors.navy, width: 3),
           ),
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(AuraRadii.small),
+          ),
         ),
       ),
       Transform.translate(

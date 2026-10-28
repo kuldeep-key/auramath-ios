@@ -255,7 +255,7 @@ class _BarBoardState extends State<BarBoard> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: AuraColors.white,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AuraRadii.small),
                         border: Border.all(color: AuraColors.navy, width: 3),
                       ),
                     ),
@@ -378,7 +378,9 @@ class _BarBoardState extends State<BarBoard> {
                               height: 48,
                               decoration: BoxDecoration(
                                 color: AuraColors.white,
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(
+                                  AuraRadii.small,
+                                ),
                                 border: Border.all(
                                   color: AuraColors.navy,
                                   width: 3,
