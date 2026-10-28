@@ -6,6 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 final lemon = ComparisonProblem.fromJson({
   'id': 'lemon',
+  'template': {'id': 'cmp.comparison', 'version': '0.3.0'},
+  'story': 'lemon-fig',
+  'level': 'L4',
+  'variant': 'standard',
   'a': {'name': 'Lemon tree', 'pic': '🍋', 'value': 186},
   'b': {'name': 'Fig tree', 'pic': '🌳'},
   'diff': 107,

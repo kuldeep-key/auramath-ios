@@ -224,6 +224,7 @@ class LessonState {
     this.hintsUsed = 0,
     this.sideLessons = 0,
     this.returnStep,
+    this.sideLesson,
     this.knowFlow = KnowFlow.none,
     this.quietLevel = 0,
   });
@@ -243,6 +244,9 @@ class LessonState {
   final int sideLessons;
   bool get sideLessonRan => sideLessons > 0;
   final LessonStep? returnStep;
+
+  /// The side lesson open now, or the last one run.
+  final SideLesson? sideLesson;
   final KnowFlow knowFlow;
 
   /// How many quiet-child thresholds have fired since the last move (0–4).
@@ -261,6 +265,7 @@ class LessonState {
     int? hintsUsed,
     int? sideLessons,
     LessonStep? returnStep,
+    SideLesson? sideLesson,
     KnowFlow? knowFlow,
     int? quietLevel,
   }) => LessonState(
@@ -276,6 +281,7 @@ class LessonState {
     hintsUsed: hintsUsed ?? this.hintsUsed,
     sideLessons: sideLessons ?? this.sideLessons,
     returnStep: returnStep ?? this.returnStep,
+    sideLesson: sideLesson ?? this.sideLesson,
     knowFlow: knowFlow ?? this.knowFlow,
     quietLevel: quietLevel ?? this.quietLevel,
   );
@@ -293,6 +299,7 @@ class LessonState {
     hintsUsed,
     sideLessons,
     returnStep,
+    sideLesson,
     knowFlow,
     quietLevel,
   ];
@@ -462,10 +469,13 @@ StepResult _move(ComparisonProblem p, LessonState s, LessonInput input) {
         ]);
       }
       if (value == dropCarry(p.aValue, p.bValue) && _canSide(s)) {
-        return to(_sideLesson(s, LessonStep.findTotal), [
-          Coach('cmp.carry', slots),
-          const OpenSideLesson(SideLesson.addWithCarry),
-        ]);
+        return to(
+          _sideLesson(s, LessonStep.findTotal, SideLesson.addWithCarry),
+          [
+            Coach('cmp.carry', slots),
+            const OpenSideLesson(SideLesson.addWithCarry),
+          ],
+        );
       }
       if ((value - p.total).abs() <= 10) return wrongMove('cmp.recheck');
       return wrongMove('cmp.addBoth');
@@ -491,7 +501,7 @@ StepResult _move(ComparisonProblem p, LessonState s, LessonInput input) {
         );
       }
       if (value == dropCarry(p.aValue, p.bValue) && _canSide(s)) {
-        return to(_sideLesson(s, s.step), [
+        return to(_sideLesson(s, s.step, SideLesson.addWithCarry), [
           const OpenSideLesson(SideLesson.addWithCarry),
         ]);
       }
@@ -537,12 +547,12 @@ StepResult _findB(
   switch (_canSide(s) || route == Mistake.oppositeOp ? route : null) {
     case Mistake.regrouping:
       return (
-        state: _sideLesson(counted, LessonStep.findB),
+        state: _sideLesson(counted, LessonStep.findB, side),
         decisions: [Coach('cmp.regrouping', slots), OpenSideLesson(side)],
       );
     case Mistake.carry:
       return (
-        state: _sideLesson(counted, LessonStep.findB),
+        state: _sideLesson(counted, LessonStep.findB, SideLesson.addWithCarry),
         decisions: [
           Coach('cmp.carry', slots),
           const OpenSideLesson(SideLesson.addWithCarry),
@@ -559,7 +569,7 @@ StepResult _findB(
       final next = r.state.copyWith(findBWrong: misses);
       if (misses == 2 && _canSide(s)) {
         return (
-          state: _sideLesson(next, LessonStep.findB),
+          state: _sideLesson(next, LessonStep.findB, side),
           decisions: [...r.decisions, OpenSideLesson(side)],
         );
       }
@@ -625,12 +635,14 @@ const maxSideLessons = 2;
 
 bool _canSide(LessonState s) => s.sideLessons < maxSideLessons;
 
-LessonState _sideLesson(LessonState s, LessonStep back) => s.copyWith(
-  step: LessonStep.sideLesson,
-  returnStep: back,
-  sideLessons: s.sideLessons + 1,
-  knowFlow: KnowFlow.none,
-);
+LessonState _sideLesson(LessonState s, LessonStep back, SideLesson kind) =>
+    s.copyWith(
+      step: LessonStep.sideLesson,
+      returnStep: back,
+      sideLesson: kind,
+      sideLessons: s.sideLessons + 1,
+      knowFlow: KnowFlow.none,
+    );
 
 /// Back to an empty board to draw it out.
 LessonState _drawIt(LessonState s) => LessonState(
@@ -691,7 +703,7 @@ StepResult _partChecked(
   final counted = s.copyWith(wrong: s.wrong + 1);
   if (p.big == BigSide.a && value == noBorrow(a, d) && _canSide(s)) {
     return (
-      state: _sideLesson(counted, s.step),
+      state: _sideLesson(counted, s.step, SideLesson.takeAcrossTen),
       decisions: const [OpenSideLesson(SideLesson.takeAcrossTen)],
     );
   }

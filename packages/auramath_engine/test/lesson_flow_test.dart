@@ -106,6 +106,17 @@ void main() {
     },
   );
 
+  test('the state remembers which side lesson is open', () {
+    var r = run(lemon, [...toFindB, const NumberEntered(81)]);
+    expect(r.state.sideLesson, SideLesson.takeAcrossTen);
+    r = run(lemon, [
+      ...toFindB,
+      const NumberEntered(79),
+      const NumberEntered(255),
+    ]);
+    expect(r.state.sideLesson, SideLesson.addWithCarry);
+  });
+
   test('a side lesson makes the next problem the helped one', () {
     final r = run(lemon, [
       ...toFindB,

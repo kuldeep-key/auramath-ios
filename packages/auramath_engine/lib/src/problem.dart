@@ -47,10 +47,16 @@ class ComparisonProblem {
     required this.text,
     required this.say,
     required this.next,
+    required this.templateId,
+    required this.templateVersion,
+    required this.storyId,
+    required this.variant,
+    this.level,
   });
 
   factory ComparisonProblem.fromJson(Map<String, Object?> j) {
     final a = j['a'] as Map<String, Object?>;
+    final template = j['template'] as Map<String, Object?>;
     return ComparisonProblem(
       id: j['id'] as String,
       a: Item.fromJson(a),
@@ -63,6 +69,11 @@ class ComparisonProblem {
       text: j['text'] as String,
       say: j['say'] as String,
       next: NextProblems.fromJson(j['next'] as Map<String, Object?>),
+      templateId: template['id'] as String,
+      templateVersion: template['version'] as String,
+      storyId: j['story'] as String,
+      variant: j['variant'] as String,
+      level: j['level'] as String?,
     );
   }
 
@@ -77,6 +88,17 @@ class ComparisonProblem {
   final String text;
   final String say;
   final NextProblems next;
+
+  /// The spec's names for this problem, carried into `problem_shown`.
+  final String templateId;
+  final String templateVersion;
+  final String storyId;
+
+  /// `standard`, `easier`, `worked_example` or `check`.
+  final String variant;
+
+  /// `L1` to `L5`; null when the problem sits outside the ladder.
+  final String? level;
 
   int get bValue => big == BigSide.a ? aValue - diff : aValue + diff;
   int get total => aValue + bValue;

@@ -43,6 +43,7 @@
   "problems": [
     {
       "id": "lemon",
+      "template": {"id": "cmp.comparison", "version": "0.3.0"}, "story": "lemon-fig", "level": "L4", "variant": "standard",
       "a": {"name": "Lemon tree", "pic": "🍋", "value": 186},
       "b": {"name": "Fig tree", "pic": "🌳"},
       "diff": 107, "big": "a", "unit": "cm", "ask": "total",
@@ -52,6 +53,7 @@
     },
     {
       "id": "shorter",
+      "template": {"id": "cmp.comparison", "version": "0.3.0"}, "story": "lemon-fig", "level": "L5", "variant": "standard",
       "a": {"name": "Lemon tree", "pic": "🍋", "value": 186},
       "b": {"name": "Fig tree", "pic": "🌳"},
       "diff": 107, "big": "b", "unit": "cm", "ask": "total",
@@ -61,6 +63,7 @@
     },
     {
       "id": "mango",
+      "template": {"id": "cmp.comparison", "version": "0.3.0"}, "story": "mango-guava", "level": "L4", "variant": "standard",
       "a": {"name": "Mango tree", "pic": "🥭", "value": 152},
       "b": {"name": "Guava tree", "pic": "🍐"},
       "diff": 68, "big": "a", "unit": "cm", "ask": "total",
@@ -70,6 +73,7 @@
     },
     {
       "id": "easier",
+      "template": {"id": "cmp.comparison", "version": "0.3.0"}, "story": "lemon-fig", "level": "L3", "variant": "easier",
       "a": {"name": "Lemon tree", "pic": "🍋", "value": 254},
       "b": {"name": "Fig tree", "pic": "🌳"},
       "diff": 132, "big": "a", "unit": "cm", "ask": "b",

@@ -29,6 +29,13 @@
     "problems": [
       {
         "id": "lemon",
+        "template": {
+          "id": "cmp.comparison",
+          "version": "0.3.0"
+        },
+        "story": "lemon-fig",
+        "level": "L4",
+        "variant": "standard",
         "a": {
           "name": "Lemon tree",
           "pic": "🍋",
@@ -52,6 +59,13 @@
       },
       {
         "id": "shorter",
+        "template": {
+          "id": "cmp.comparison",
+          "version": "0.3.0"
+        },
+        "story": "lemon-fig",
+        "level": "L4",
+        "variant": "standard",
         "a": {
           "name": "Lemon tree",
           "pic": "🍋",
@@ -75,6 +89,13 @@
       },
       {
         "id": "mango",
+        "template": {
+          "id": "cmp.comparison",
+          "version": "0.3.0"
+        },
+        "story": "lemon-fig",
+        "level": "L4",
+        "variant": "standard",
         "a": {
           "name": "Lemon tree",
           "pic": "🍋",
@@ -98,6 +119,13 @@
       },
       {
         "id": "easier",
+        "template": {
+          "id": "cmp.comparison",
+          "version": "0.3.0"
+        },
+        "story": "lemon-fig",
+        "level": "L4",
+        "variant": "standard",
         "a": {
           "name": "Lemon tree",
           "pic": "🍋",

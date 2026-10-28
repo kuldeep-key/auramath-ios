@@ -8,6 +8,10 @@ Map<String, Object?> problemJson(
   String ask = 'total',
 }) => {
   'id': id,
+  'template': {'id': 'cmp.comparison', 'version': '0.3.0'},
+  'story': 'lemon-fig',
+  'level': 'L4',
+  'variant': 'standard',
   'a': {'name': 'Lemon tree', 'pic': '🍋', 'value': a},
   'b': {'name': 'Fig tree', 'pic': '🌳'},
   'diff': diff,
