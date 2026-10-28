@@ -47,14 +47,20 @@ Each has what it costs if it is wrong.
 | 20 | Hint lines are filled with the problem's numbers by the view model | One engine field later |
 | 21 | Help, answer and "still there?" sheets are drawn inside the lesson screen | No Android back-gesture to close them |
 | 22 | No `provider` package: services are passed in through constructors | Add it when features multiply |
-| 23 | Home's Keep going always opens the lemon problem until progress is stored | Home restarts at lemon after reopening |
-| 24 | **Deferred: resume after the app is killed.** Events are saved and replay works, but the app doesn't yet remember which session was open | A killed app restarts the current case |
+| 23 | Done 28 Oct: Keep going reads the log. An unfinished case resumes, a solved one goes to the engine's next problem; lemon only when nothing is saved | Lemon is the first case until setup picks a starting level |
+| 24 | Done 28 Oct: resume after the app is killed, by replaying the last session's events (no snapshot) | The server's "session finished" (Postgres wins) is checked once the real API is connected |
 
 ## Smaller items left for later (from the final review)
 
-- After one side lesson, every later wrong answer at "find the fig tree" reopens it.
-- A right total after "check one part" always counts as "knew it", even if bar A was drawn.
-- The real HTTP client must turn every failure into `ApiException`, or sync stops retrying until the next tap.
-- `restore()` should take the next seq from the last saved event, not the count.
-- The view model copies the engine's line slots; the engine should export them.
-- Two corner radii (14) are hard-coded instead of coming from the theme.
+Done 28 Oct, each with a test that failed first:
+
+- Side lessons are capped at 2 per session (tutor policy `max_per_session`), and the two-miss side lesson opens once.
+- A right total after "check one part" counts as partway when bar A was drawn.
+- `restore()` continues from the last saved seq.
+- The engine exports `lineSlots`; the view model's copy is gone.
+- Corner radius 14 is now `AuraRadii.small`, in all 6 places.
+- The celebration screen paints under the status bar.
+
+Still open:
+
+- The real HTTP client must turn every failure into `ApiException`, or sync stops retrying until the next tap. Comes with the API client.
