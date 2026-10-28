@@ -1,4 +1,5 @@
 import 'package:auramath/app.dart';
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -29,6 +30,35 @@ void main() {
     await tester.tap(find.byIcon(Icons.home_rounded));
     await tester.pumpAndSettle();
     expect(find.text('Ready for a new case?'), findsOneWidget);
+  });
+
+  testWidgets('Keep going reopens an unfinished case where it was left', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final pack = samplePack();
+    final (sessions, _, _) =
+        await tester.runAsync(memorySessions) ?? (throw StateError('no db'));
+    await tester.runAsync(() async {
+      await sessions.record('old', 1, pack.version, 'lemon', const Started());
+      await sessions.record('old', 2, pack.version, 'lemon', const BarADrawn());
+    });
+    await tester.pumpWidget(
+      AuraApp(sessions: sessions, pack: pack, voice: FakeVoice()),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Keep going'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.text('Now drag a bar for the fig tree.'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.home_rounded));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('after something easier, a clean solve opens lemon again', (

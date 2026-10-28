@@ -66,10 +66,14 @@ class LessonViewModel extends ChangeNotifier {
   BadgeInfo? get badge => _pack.badges[badgeId];
   String? nextProblemId;
 
+  /// Rebuilds the lesson from its saved events: replayed through the engine,
+  /// never from a snapshot.
   Future<void> restore() async {
-    final inputs = await _sessions.resume(_sessionId);
+    final (:inputs, :lastSeq) = await _sessions.resume(_sessionId);
     _state = replay(_pack, _problem, inputs);
-    _seq = inputs.length;
+    _seq = lastSeq;
+    final line = _stepLines[_state.step];
+    if (line != null) _coach(line, const {});
     notifyListeners();
   }
 

@@ -72,6 +72,17 @@ class OutboxDb {
       _row(r),
   ];
 
+  /// The session the newest event belongs to, or null when nothing is saved.
+  Future<String?> lastSessionId() async {
+    final rows = await _db.query(
+      'events',
+      columns: ['session_id'],
+      orderBy: 'rowid DESC',
+      limit: 1,
+    );
+    return rows.isEmpty ? null : rows.single['session_id']! as String;
+  }
+
   Future<void> close() => _db.close();
 
   LessonEvent _row(Map<String, Object?> r) => LessonEvent(

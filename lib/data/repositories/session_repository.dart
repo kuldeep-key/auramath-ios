@@ -80,9 +80,47 @@ class SessionRepository {
     }
   }
 
-  Future<List<LessonInput>> resume(String sessionId) async => [
-    for (final e in await _db.forSession(sessionId)) e.input,
-  ];
+  /// A session's saved inputs, in order, and the seq the next event follows.
+  Future<({List<LessonInput> inputs, int lastSeq})> resume(
+    String sessionId,
+  ) async {
+    final events = await _db.forSession(sessionId);
+    return (
+      inputs: [for (final e in events) e.input],
+      lastSeq: events.isEmpty ? 0 : events.last.seq,
+    );
+  }
+
+  /// Where Home's Keep going leads, read from the log: back into the last
+  /// case if it isn't finished, else on to the problem the engine chose.
+  /// Null when nothing is saved or the pack no longer has that problem.
+  Future<({String problemId, String? resumeSessionId})?> whereNext(
+    Pack pack,
+  ) async {
+    final sessionId = await _db.lastSessionId();
+    if (sessionId == null) return null;
+    final events = await _db.forSession(sessionId);
+    final problem = pack.problems[events.first.data['problemId']];
+    if (problem == null) return null;
+    var state = initialState();
+    for (final e in events) {
+      final r = step(pack, problem, state, e.input);
+      state = r.state;
+      for (final d in r.decisions) {
+        final next = switch (d) {
+          Solved(:final nextProblemId) => nextProblemId,
+          SwitchProblem(:final problemId) => problemId,
+          _ => null,
+        };
+        if (next != null) {
+          return pack.problems.containsKey(next)
+              ? (problemId: next, resumeSessionId: null)
+              : null;
+        }
+      }
+    }
+    return (problemId: problem.id, resumeSessionId: sessionId);
+  }
 
   void dispose() => _retry?.cancel();
 

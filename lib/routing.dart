@@ -17,8 +17,20 @@ GoRouter buildRouter({
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, _) =>
-          HomeScreen(onKeepGoing: () => context.go('/lesson/lemon')),
+      builder: (context, _) => HomeScreen(
+        onKeepGoing: () async {
+          final next = await sessions.whereNext(pack);
+          if (!context.mounted) return;
+          // ponytail: lemon is the first case until setup picks a starting level
+          final id = next?.problemId ?? 'lemon';
+          final resume = next?.resumeSessionId;
+          context.go(
+            resume == null
+                ? '/lesson/$id?s=${_LessonRouteState._uuid.v4()}'
+                : '/lesson/$id?resume=$resume',
+          );
+        },
+      ),
     ),
     GoRoute(
       path: '/lesson/:problemId',
@@ -27,6 +39,7 @@ GoRouter buildRouter({
         // same problem again still builds a fresh lesson.
         key: ValueKey(state.uri.toString()),
         problemId: state.pathParameters['problemId']!,
+        resumeSessionId: state.uri.queryParameters['resume'],
         sessions: sessions,
         pack: pack,
         voice: voice,
@@ -40,12 +53,16 @@ class _LessonRoute extends StatefulWidget {
   const _LessonRoute({
     super.key,
     required this.problemId,
+    required this.resumeSessionId,
     required this.sessions,
     required this.pack,
     required this.voice,
   });
 
   final String problemId;
+
+  /// Set when reopening a case that was left part way.
+  final String? resumeSessionId;
   final SessionRepository sessions;
   final Pack pack;
   final Voice voice;
@@ -60,11 +77,17 @@ class _LessonRouteState extends State<_LessonRoute> {
   late final _vm = LessonViewModel(
     pack: widget.pack,
     problemId: widget.problemId,
-    sessionId: _uuid.v4(),
+    sessionId: widget.resumeSessionId ?? _uuid.v4(),
     sessions: widget.sessions,
     voice: widget.voice,
     newSessionId: _uuid.v4,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.resumeSessionId != null) _vm.restore();
+  }
 
   @override
   void dispose() {

@@ -4,6 +4,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../ui/features/lesson/fakes.dart' show samplePack;
 import 'helpers.dart';
 
 void main() {
@@ -80,14 +81,87 @@ void main() {
     await db.close();
   });
 
-  test('resume returns inputs in seq order', () async {
+  test('resume returns inputs in seq order and the last saved seq', () async {
     final db = await memoryOutbox();
     final repo = SessionRepository(db: db, api: FakeApi(), nowMs: () => 5);
     await repo.record('s1', 2, 'sample-1', 'lemon', const BarADrawn());
     await repo.record('s1', 1, 'sample-1', 'lemon', const Started());
-    final inputs = await repo.resume('s1');
-    expect(inputs.map((i) => inputToJson(i)['type']), ['started', 'barADrawn']);
+    // a seq can be missing if a save ever failed; the next one must not reuse it
+    await repo.record('s1', 5, 'sample-1', 'lemon', const BarBPlaced());
+    final (:inputs, :lastSeq) = await repo.resume('s1');
+    expect(inputs.map((i) => inputToJson(i)['type']), [
+      'started',
+      'barADrawn',
+      'barBPlaced',
+    ]);
+    expect(lastSeq, 5);
     repo.dispose();
     await db.close();
+  });
+
+  group('whereNext', () {
+    final pack = samplePack();
+
+    Future<SessionRepository> withLog(List<(String, LessonInput)> log) async {
+      final db = await memoryOutbox();
+      final repo = SessionRepository(db: db, api: FakeApi(), nowMs: () => 5);
+      var seq = 0;
+      for (final (problemId, input) in log) {
+        await repo.record('s-$problemId', ++seq, 'sample-1', problemId, input);
+      }
+      return repo;
+    }
+
+    test('nothing saved: no answer', () async {
+      final repo = await withLog([]);
+      expect(await repo.whereNext(pack), isNull);
+      repo.dispose();
+    });
+
+    test('an unfinished case is resumed', () async {
+      final repo = await withLog([
+        ('lemon', const Started()),
+        ('lemon', const BarADrawn()),
+      ]);
+      expect(await repo.whereNext(pack), (
+        problemId: 'lemon',
+        resumeSessionId: 's-lemon',
+      ));
+      repo.dispose();
+    });
+
+    test('a switch to something easier goes to that problem', () async {
+      final repo = await withLog([
+        ('lemon', const Started()),
+        ('lemon', const EasierTaken()),
+      ]);
+      expect(await repo.whereNext(pack), (
+        problemId: 'easier',
+        resumeSessionId: null,
+      ));
+      repo.dispose();
+    });
+
+    test('a solved case moves on to the problem the engine chose', () async {
+      final repo = await withLog([
+        for (final i in const <LessonInput>[
+          Started(),
+          BarADrawn(),
+          BarBPlaced(),
+          BarBSized(Relation.shorter),
+          PieceDropped(Piece.gap, Target.gapSlot),
+          PieceDropped(Piece.total, Target.totalSlot),
+          OpChosen(Op.subtract),
+          NumberEntered(79),
+          NumberEntered(265),
+        ])
+          ('lemon', i),
+      ]);
+      expect(await repo.whereNext(pack), (
+        problemId: 'shorter',
+        resumeSessionId: null,
+      ));
+      repo.dispose();
+    });
   });
 }

@@ -111,7 +111,29 @@ void main() {
     await second.restore();
     expect(second.state.step, LessonStep.placeGap);
     expect(second.recorded, 4);
+    expect(second.coachText, 'Drag the gap onto the board.');
     second.dispose();
+  });
+
+  test('after a restore the next event follows the last saved seq', () async {
+    final (sessions, _, _) = await memorySessions();
+    await sessions.record('s1', 1, pack.version, 'lemon', const Started());
+    await sessions.record('s1', 3, pack.version, 'lemon', const BarADrawn());
+    final vm = LessonViewModel(
+      pack: pack,
+      problemId: 'lemon',
+      sessionId: 's1',
+      sessions: sessions,
+      voice: FakeVoice(),
+      nowMs: () => 0,
+      newSessionId: () => 's2',
+      tickEvery: null,
+    );
+    await vm.restore();
+    await vm.send(const BarBPlaced());
+    expect(vm.recorded, 4);
+    expect((await sessions.resume('s1')).inputs, hasLength(3));
+    vm.dispose();
   });
 
   test('two wrong moves set helpAttention to shake', () async {
