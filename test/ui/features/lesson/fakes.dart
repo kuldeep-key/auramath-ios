@@ -27,5 +27,14 @@ Pack samplePack() => Pack.fromJson(
 Future<(SessionRepository, OutboxDb, FakeApi)> memorySessions() async {
   final api = FakeApi();
   final db = await memoryOutbox();
-  return (SessionRepository(db: db, api: api, nowMs: () => 1), db, api);
+  return (
+    SessionRepository(
+      db: db,
+      api: api,
+      identity: testIdentity,
+      nowMs: () => 1791400000000,
+    ),
+    db,
+    api,
+  );
 }

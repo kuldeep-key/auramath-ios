@@ -2,22 +2,28 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:auramath_engine/auramath_engine.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/lesson_event.dart';
 import '../services/api.dart';
 import '../services/outbox_db.dart';
 
-/// The lesson's record: saves every input on the phone first, then sends it,
+/// The lesson's record: saves every event on the phone first, then sends it,
 /// retrying until the server has it. A lesson never waits on the network.
 class SessionRepository {
   SessionRepository({
     required this._db,
     required this._api,
+    required this.identity,
+    String Function()? newId,
     int Function()? nowMs,
-  }) : _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch);
+  }) : _newId = newId ?? const Uuid().v4,
+       _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch);
 
   final OutboxDb _db;
   final Api _api;
+  final Identity identity;
+  final String Function() _newId;
   final int Function() _now;
 
   Timer? _retry;
@@ -29,23 +35,28 @@ class SessionRepository {
   static Duration retryDelay(int failures) =>
       Duration(seconds: math.min(30, 2 << math.min(failures - 1, 4)));
 
+  /// Saves [events] as seq [firstSeq] onwards, then tries to send them.
   Future<void> record(
     String sessionId,
-    int seq,
-    String packVersion,
-    String problemId,
-    LessonInput input,
+    int firstSeq,
+    List<SpecEvent> events,
   ) async {
-    await _db.insert(
-      LessonEvent.fromInput(
-        sessionId: sessionId,
-        seq: seq,
-        at: _now(),
-        packVersion: packVersion,
-        problemId: problemId,
-        input: input,
-      ),
-    );
+    final at = _now();
+    for (final (i, e) in events.indexed) {
+      await _db.insert(
+        LessonEvent(
+          eventId: _newId(),
+          sessionId: sessionId,
+          seq: firstSeq + i,
+          at: at,
+          name: e.name,
+          childRef: identity.childRef,
+          deviceId: identity.deviceId,
+          appVersion: identity.appVersion,
+          payload: e.payload,
+        ),
+      );
+    }
     await syncNow();
   }
 
@@ -80,14 +91,16 @@ class SessionRepository {
     }
   }
 
-  /// A session's saved inputs, in order, and the seq the next event follows.
-  Future<({List<LessonInput> inputs, int lastSeq})> resume(
+  /// A session's events from its latest `problem_shown` on (what a resume
+  /// replays), and the last seq saved, which the next event follows.
+  Future<({List<SpecEvent> events, int lastSeq})> resume(
     String sessionId,
   ) async {
-    final events = await _db.forSession(sessionId);
+    final all = await _db.forSession(sessionId);
+    final from = all.lastIndexWhere((e) => e.name == 'problem_shown');
     return (
-      inputs: [for (final e in events) e.input],
-      lastSeq: events.isEmpty ? 0 : events.last.seq,
+      events: [for (final e in all.skip(math.max(from, 0))) e.spec],
+      lastSeq: all.isEmpty ? -1 : all.last.seq,
     );
   }
 
@@ -99,12 +112,15 @@ class SessionRepository {
   ) async {
     final sessionId = await _db.lastSessionId();
     if (sessionId == null) return null;
-    final events = await _db.forSession(sessionId);
-    final problem = pack.problems[events.first.data['problemId']];
+    final (:events, lastSeq: _) = await resume(sessionId);
+    final shown = events.firstOrNull;
+    final problem = shown?.name == 'problem_shown'
+        ? pack.problems[shown!.payload['problem_id']]
+        : null;
     if (problem == null) return null;
     var state = initialState();
-    for (final e in events) {
-      final r = step(pack, problem, state, e.input);
+    for (final input in inputsFrom(pack, problem, events)) {
+      final r = step(pack, problem, state, input);
       state = r.state;
       for (final d in r.decisions) {
         final next = switch (d) {

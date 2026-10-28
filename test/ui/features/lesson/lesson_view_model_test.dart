@@ -3,6 +3,7 @@ import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../data/helpers.dart' show lessonEvents;
 import 'fakes.dart';
 
 void main() {
@@ -86,7 +87,7 @@ void main() {
   });
 
   test('view model restores step from outbox', () async {
-    final (sessions, _, _) = await memorySessions();
+    final (sessions, db, _) = await memorySessions();
     LessonViewModel make() => LessonViewModel(
       pack: pack,
       problemId: 'lemon',
@@ -98,6 +99,7 @@ void main() {
       tickEvery: null,
     );
     final first = make();
+    await first.start();
     for (final i in const [
       Started(),
       BarADrawn(),
@@ -110,15 +112,22 @@ void main() {
     final second = make();
     await second.restore();
     expect(second.state.step, LessonStep.placeGap);
-    expect(second.recorded, 4);
+    // every saved event, the resume marker included, in one unbroken run
+    final seqs = [for (final e in await db.forSession('s1')) e.seq];
+    expect(seqs, List.generate(seqs.length, (i) => i));
+    expect(second.recorded, seqs.length);
+    expect((await db.forSession('s1')).last.name, 'session_resumed');
     expect(second.coachText, 'Drag the gap onto the board.');
     second.dispose();
   });
 
   test('after a restore the next event follows the last saved seq', () async {
-    final (sessions, _, _) = await memorySessions();
-    await sessions.record('s1', 1, pack.version, 'lemon', const Started());
-    await sessions.record('s1', 3, pack.version, 'lemon', const BarADrawn());
+    final (sessions, db, _) = await memorySessions();
+    final lemon = pack.problems['lemon']!;
+    final log = lessonEvents(pack, lemon, const [Started(), BarADrawn()]);
+    await sessions.record('s1', 0, log.sublist(0, 2));
+    // seqs 2 to 4 never saved: the rest lands at 5, 6, 7
+    await sessions.record('s1', 5, log.sublist(2));
     final vm = LessonViewModel(
       pack: pack,
       problemId: 'lemon',
@@ -131,8 +140,14 @@ void main() {
     );
     await vm.restore();
     await vm.send(const BarBPlaced());
-    expect(vm.recorded, 4);
-    expect((await sessions.resume('s1')).inputs, hasLength(3));
+    expect(vm.state.step, LessonStep.sizeB);
+    expect(
+      [for (final e in await db.forSession('s1')) e.seq],
+      [
+        0, 1, 5, 6, 7, 8, 9, //
+      ],
+    );
+    expect(vm.recorded, 10);
     vm.dispose();
   });
 
@@ -159,7 +174,8 @@ void main() {
     expect(vm.problem.id, 'easier');
     expect(vm.sessionId, 's2');
     expect(vm.state.step, LessonStep.question);
-    expect(vm.recorded, 0);
+    // the new session opens on the easier problem
+    expect(vm.recorded, 2);
     vm.dispose();
   });
 

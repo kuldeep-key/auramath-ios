@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import '../ui/features/lesson/fakes.dart' show samplePack;
 import 'helpers.dart';
 
+const step = SpecEvent('step_entered', {'step_id': 'draw_known_bar'});
+
 void main() {
   test('retryDelay is 2,4,8,16,30,30 s', () {
     expect(
@@ -23,8 +25,13 @@ void main() {
   test('a recorded event is sent', () async {
     final db = await memoryOutbox();
     final api = FakeApi();
-    final repo = SessionRepository(db: db, api: api, nowMs: () => 5);
-    await repo.record('s1', 1, 'sample-1', 'lemon', const Started());
+    final repo = SessionRepository(
+      db: db,
+      api: api,
+      identity: testIdentity,
+      nowMs: () => 5,
+    );
+    await repo.record('s1', 1, const [step]);
     expect(api.received.map((e) => (e.sessionId, e.seq)), [('s1', 1)]);
     expect(await db.unsent(), isEmpty);
     repo.dispose();
@@ -35,8 +42,13 @@ void main() {
     final db = await memoryOutbox();
     fakeAsync((async) {
       final api = FakeApi()..failNext = 1;
-      final repo = SessionRepository(db: db, api: api, nowMs: () => 5);
-      repo.record('s1', 1, 'sample-1', 'lemon', const Started());
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      repo.record('s1', 1, const [step]);
       async.flushMicrotasks();
       expect(api.received, isEmpty);
       async.elapse(const Duration(seconds: 2));
@@ -50,9 +62,14 @@ void main() {
     final db = await memoryOutbox();
     fakeAsync((async) {
       final api = FakeApi()..failNext = 1000;
-      final repo = SessionRepository(db: db, api: api, nowMs: () => 5);
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
       for (var seq = 1; seq <= 5; seq++) {
-        repo.record('s1', seq, 'sample-1', 'lemon', const BarADrawn());
+        repo.record('s1', seq, const [step]);
         async.flushMicrotasks();
       }
       async.elapse(const Duration(minutes: 2));
@@ -72,43 +89,59 @@ void main() {
   test('two sessions are sent as separate batches', () async {
     final db = await memoryOutbox();
     final api = FakeApi()..failNext = 2;
-    final repo = SessionRepository(db: db, api: api, nowMs: () => 5);
-    await repo.record('a', 1, 'sample-1', 'lemon', const Started());
-    await repo.record('b', 1, 'sample-1', 'lemon', const Started());
+    final repo = SessionRepository(
+      db: db,
+      api: api,
+      identity: testIdentity,
+      nowMs: () => 5,
+    );
+    await repo.record('a', 1, const [step]);
+    await repo.record('b', 1, const [step]);
     await repo.syncNow();
     expect(api.batches.map((b) => b.$1), ['a', 'b']);
     repo.dispose();
     await db.close();
   });
 
-  test('resume returns inputs in seq order and the last saved seq', () async {
-    final db = await memoryOutbox();
-    final repo = SessionRepository(db: db, api: FakeApi(), nowMs: () => 5);
-    await repo.record('s1', 2, 'sample-1', 'lemon', const BarADrawn());
-    await repo.record('s1', 1, 'sample-1', 'lemon', const Started());
-    // a seq can be missing if a save ever failed; the next one must not reuse it
-    await repo.record('s1', 5, 'sample-1', 'lemon', const BarBPlaced());
-    final (:inputs, :lastSeq) = await repo.resume('s1');
-    expect(inputs.map((i) => inputToJson(i)['type']), [
-      'started',
-      'barADrawn',
-      'barBPlaced',
-    ]);
-    expect(lastSeq, 5);
-    repo.dispose();
-    await db.close();
-  });
+  test(
+    'resume returns events from the latest problem shown, and the last seq',
+    () async {
+      final db = await memoryOutbox();
+      final repo = SessionRepository(
+        db: db,
+        api: FakeApi(),
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      final pack = samplePack();
+      final lemon = pack.problems['lemon']!;
+      await repo.record('s1', 0, [problemShown(lemon), step]);
+      final second = [problemShown(lemon), step];
+      // a seq can be missing if a save ever failed; the next one must not reuse it
+      await repo.record('s1', 5, second);
+      final (:events, :lastSeq) = await repo.resume('s1');
+      expect(events.map((e) => e.name), ['problem_shown', 'step_entered']);
+      expect(lastSeq, 6);
+      repo.dispose();
+      await db.close();
+    },
+  );
 
   group('whereNext', () {
     final pack = samplePack();
 
     Future<SessionRepository> withLog(List<(String, LessonInput)> log) async {
       final db = await memoryOutbox();
-      final repo = SessionRepository(db: db, api: FakeApi(), nowMs: () => 5);
-      var seq = 0;
-      for (final (problemId, input) in log) {
-        await repo.record('s-$problemId', ++seq, 'sample-1', problemId, input);
-      }
+      final repo = SessionRepository(
+        db: db,
+        api: FakeApi(),
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      if (log.isEmpty) return repo;
+      final problem = pack.problems[log.first.$1]!;
+      final events = lessonEvents(pack, problem, [for (final (_, i) in log) i]);
+      await repo.record('s-${problem.id}', 0, events);
       return repo;
     }
 

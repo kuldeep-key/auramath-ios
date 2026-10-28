@@ -86,7 +86,7 @@ class _LessonRouteState extends State<_LessonRoute> {
   @override
   void initState() {
     super.initState();
-    if (widget.resumeSessionId != null) _vm.restore();
+    widget.resumeSessionId != null ? _vm.restore() : _vm.start();
   }
 
   @override

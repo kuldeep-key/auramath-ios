@@ -12,31 +12,33 @@ class OutboxDb {
   static Future<OutboxDb> open(String path) async {
     final db = await openDatabase(
       path,
-      version: 1,
-      onCreate: (db, _) => db.execute('''
-        CREATE TABLE events(
-          session_id TEXT NOT NULL,
-          seq INTEGER NOT NULL,
-          at INTEGER NOT NULL,
-          name TEXT NOT NULL,
-          detail TEXT NOT NULL,
-          data TEXT NOT NULL,
-          sent INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY(session_id, seq)
-        )'''),
+      version: 2,
+      onCreate: (db, _) => _create(db),
+      // v1 held the pre-contract event shape; no real family has used the
+      // app, so it is dropped rather than migrated.
+      onUpgrade: (db, _, _) async {
+        await db.execute('DROP TABLE IF EXISTS events');
+        await _create(db);
+      },
     );
     return OutboxDb._(db);
   }
 
   final Database _db;
 
+  static Future<void> _create(Database db) => db.execute('''
+    CREATE TABLE events(
+      session_id TEXT NOT NULL,
+      seq INTEGER NOT NULL,
+      body TEXT NOT NULL,
+      sent INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY(session_id, seq)
+    )''');
+
   Future<void> insert(LessonEvent e) => _db.insert('events', {
     'session_id': e.sessionId,
     'seq': e.seq,
-    'at': e.at,
-    'name': e.name,
-    'detail': e.detail,
-    'data': jsonEncode(e.data),
+    'body': jsonEncode(e.toJson()),
   }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
   /// Unconfirmed events, oldest first.
@@ -85,12 +87,7 @@ class OutboxDb {
 
   Future<void> close() => _db.close();
 
-  LessonEvent _row(Map<String, Object?> r) => LessonEvent(
-    sessionId: r['session_id']! as String,
-    seq: r['seq']! as int,
-    at: r['at']! as int,
-    name: r['name']! as String,
-    detail: r['detail']! as String,
-    data: jsonDecode(r['data']! as String) as Map<String, Object?>,
+  LessonEvent _row(Map<String, Object?> r) => LessonEvent.fromJson(
+    jsonDecode(r['body']! as String) as Map<String, Object?>,
   );
 }

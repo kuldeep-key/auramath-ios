@@ -3,6 +3,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
+import 'config/env.dart';
 import 'data/repositories/pack_repository.dart';
 import 'data/repositories/session_repository.dart';
 import 'data/services/fake_api.dart';
@@ -17,7 +18,19 @@ Future<void> main() async {
   final db = await OutboxDb.open(p.join(dir.path, 'outbox.db'));
   // ponytail: FakeApi until the backend accepts phone-made session ids and
   // the v2 event names; then swap in the HTTP client here.
-  final sessions = SessionRepository(db: db, api: FakeApi());
+  if (Env.childRef.isEmpty || Env.deviceId.isEmpty) {
+    throw StateError('No child ref or device id: setup and pairing come first');
+  }
+  final sessions = SessionRepository(
+    db: db,
+    api: FakeApi(),
+    identity: (
+      childRef: Env.childRef,
+      deviceId: Env.deviceId,
+      appVersion: Env.appVersion,
+      isDemo: Env.isDemo,
+    ),
+  );
   final pack = await PackRepository(source: AssetPackSource()).load();
   runApp(AuraApp(sessions: sessions, pack: pack, voice: DeviceVoice()));
 }

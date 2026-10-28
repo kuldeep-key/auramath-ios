@@ -29,7 +29,7 @@ class LessonViewModel extends ChangeNotifier {
   }) : _pack = pack,
        _problem = pack.problems[problemId]!,
        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch) {
-    _lastMoveMs = _now();
+    _lastMoveMs = _shownAt = _stepAt = _now();
     if (tickEvery != null) _ticker = Timer.periodic(tickEvery, (_) => tick());
   }
 
@@ -43,8 +43,12 @@ class LessonViewModel extends ChangeNotifier {
   ComparisonProblem _problem;
   String _sessionId;
   LessonState _state = initialState();
+  /// The seq the next saved event gets.
   int _seq = 0;
   late int _lastMoveMs;
+  late int _shownAt;
+  late int _stepAt;
+  int? _startedAt;
 
   ComparisonProblem get problem => _problem;
   String get sessionId => _sessionId;
@@ -53,6 +57,23 @@ class LessonViewModel extends ChangeNotifier {
 
   /// Events saved for the current session.
   int get recorded => _seq;
+
+  /// Opens a new session on this problem: `session_started`, `problem_shown`.
+  Future<void> start() async {
+    final events = [
+      SpecEvent('session_started', {
+        'launch_source': 'child_opened',
+        'content_versions': {
+          'template.${_problem.templateId}': _problem.templateVersion,
+        },
+        'is_demo': _sessions.identity.isDemo,
+      }),
+      problemShown(_problem),
+    ];
+    final first = _seq;
+    _seq += events.length;
+    await _sessions.record(_sessionId, first, events);
+  }
 
   String coachText = '';
   Attention helpAttention = Attention.none;
@@ -69,9 +90,12 @@ class LessonViewModel extends ChangeNotifier {
   /// Rebuilds the lesson from its saved events: replayed through the engine,
   /// never from a snapshot.
   Future<void> restore() async {
-    final (:inputs, :lastSeq) = await _sessions.resume(_sessionId);
-    _state = replay(_pack, _problem, inputs);
-    _seq = lastSeq;
+    final (:events, :lastSeq) = await _sessions.resume(_sessionId);
+    _state = replay(_pack, _problem, inputsFrom(_pack, _problem, events));
+    _seq = lastSeq + 2;
+    await _sessions.record(_sessionId, lastSeq + 1, const [
+      SpecEvent('session_resumed', {}),
+    ]);
     final line = _stepLines[_state.step];
     if (line != null) _coach(line, const {});
     notifyListeners();
@@ -83,22 +107,33 @@ class LessonViewModel extends ChangeNotifier {
   Future<void> send(LessonInput input) async {
     final r = step(_pack, _problem, _state, input);
     if (identical(r.state, _state) && r.decisions.isEmpty) return;
+    final now = _now();
+    final events = eventsFor(_problem, _state, input, r, (
+      stepMs: now - _stepAt,
+      problemMs: now - _shownAt,
+      readingMs: (_startedAt ?? now) - _shownAt,
+    ));
+    if (input is Started) _startedAt = now;
     if (input is! QuietFor) {
-      _lastMoveMs = _now();
+      _lastMoveMs = now;
       glowPiece = showHand = stillThere = false;
       if (helpAttention == Attention.pulse) helpAttention = Attention.none;
     }
     final entering = r.state.step != _state.step ? r.state.step : null;
+    if (entering != null) _stepAt = now;
     _state = r.state;
-    final seq = ++_seq;
-    final sessionId = _sessionId, problemId = _problem.id;
+    final first = _seq;
+    _seq += events.length;
+    final sessionId = _sessionId;
     _apply(r.decisions);
     final stepLine = _stepLines[entering];
     if (stepLine != null && !r.decisions.any((d) => d is Coach)) {
       _coach(stepLine, const {});
     }
     notifyListeners();
-    await _sessions.record(sessionId, seq, _pack.version, problemId, input);
+    await _sessions.record(sessionId, first, events);
+    // something easier opened a new session on the easier problem
+    if (_sessionId != sessionId) await start();
   }
 
   void readQuestion() => _voice.say(_problem.say);
@@ -140,7 +175,8 @@ class LessonViewModel extends ChangeNotifier {
     _sessionId = _newSessionId();
     _state = initialState();
     _seq = 0;
-    _lastMoveMs = _now();
+    _lastMoveMs = _shownAt = _stepAt = _now();
+    _startedAt = null;
     coachText = '';
     helpAttention = Attention.none;
     glowPiece = showHand = stillThere = false;

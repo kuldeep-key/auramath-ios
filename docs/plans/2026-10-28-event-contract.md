@@ -43,3 +43,20 @@
 ## For the backend team
 
 The app will send `step_committed` with `correct` and `error_type`, and `problem_completed` with the outcome. The spec already allows these. If the backend builds its reports and mastery from these fields, it can retire `core/`.
+
+## Done 28 Oct, and the calls made while building
+
+**Built:**
+- Every event the app saves passes the backend's own schema; the tests check this on a full lesson.
+- Resume replays the spec events.
+- Engine 86 tests and app 62 tests pass.
+
+**Calls made while building:**
+1. **The engine keeps its internal names.** `contract.dart` maps them to the spec's step ids and mistake types, which gives the server the same result with far less churn than renaming. *Cost if wrong:* one mapping table to keep in step with the template.
+2. **Each session holds one problem for now.** "Something easier" opens a new session; resume starts from the latest `problem_shown`. A session becomes the whole sitting when the 30-minute cap lands (next item). *Cost if wrong:* the session grouping changes in one place, the view model.
+3. **`help_opened` is written when a help option is chosen,** not when the sheet opens; opening and closing the sheet without choosing isn't logged. *Cost if wrong:* one extra input.
+4. **Several idle-prompt levels firing in one tick are written as one `idle_prompt_shown`** at the highest level. Replay gives the same state.
+5. **On the answer sheet, "check one part" is written as `route: check_unknown_first`.** The policy has no name for that route.
+6. **Prod builds refuse to start without a child ref and device id.** Only dev has placeholders.
+7. **The spec's worked example isn't used as a golden file,** because it skips steps our lesson draws. The schema check on every event covers the contract instead.
+8. **The outbox table moves to version 2 and drops the old rows.** No real family has used the app.

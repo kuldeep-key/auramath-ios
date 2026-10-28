@@ -1,1 +1,1 @@
-{"ENV": "prod", "API_BASE": "https://api.auramath.net"}
+{"ENV": "prod", "API_BASE": "https://api.auramath.net", "APP_VERSION": "0.1.0", "DEMO": "false"}

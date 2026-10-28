@@ -5,6 +5,7 @@ import 'package:auramath/ui/features/lesson/views/lesson_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../data/helpers.dart' show expectContract;
 import 'fakes.dart';
 
 void main() {
@@ -19,12 +20,13 @@ void main() {
     final vm = LessonViewModel(
       pack: samplePack(),
       problemId: 'lemon',
-      sessionId: 's1',
+      sessionId: '5b0c3f0e-8a51-4c2e-9d3e-2f1a6c7b9e10',
       sessions: sessions,
       voice: voice,
       newSessionId: () => 's2',
       tickEvery: null,
     );
+    await tester.runAsync(vm.start);
     String? finishedWith;
     await tester.pumpWidget(
       MaterialApp(
@@ -90,7 +92,15 @@ void main() {
     expect(find.text('Tree Detective'), findsOneWidget);
     await tap(find.text('Add to my sash'));
     expect(finishedWith, 'shorter');
-    expect(api.received.map((e) => e.seq), List.generate(9, (i) => i + 1));
+    final seqs = api.received.map((e) => e.seq).toList();
+    expect(seqs, List.generate(seqs.length, (i) => i));
+    expectContract(api.received);
+    final names = api.received.map((e) => e.name).toList();
+    expect(names.take(2), ['session_started', 'problem_shown']);
+    expect(names.skip(names.length - 2), [
+      'problem_completed',
+      'badge_awarded',
+    ]);
 
     vm.dispose();
   });

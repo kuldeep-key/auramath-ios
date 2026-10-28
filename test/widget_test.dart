@@ -3,6 +3,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'data/helpers.dart' show lessonEvents;
 import 'ui/features/lesson/fakes.dart';
 
 void main() {
@@ -42,8 +43,14 @@ void main() {
     final (sessions, _, _) =
         await tester.runAsync(memorySessions) ?? (throw StateError('no db'));
     await tester.runAsync(() async {
-      await sessions.record('old', 1, pack.version, 'lemon', const Started());
-      await sessions.record('old', 2, pack.version, 'lemon', const BarADrawn());
+      await sessions.record(
+        'old',
+        0,
+        lessonEvents(pack, pack.problems['lemon']!, const [
+          Started(),
+          BarADrawn(),
+        ]),
+      );
     });
     await tester.pumpWidget(
       AuraApp(sessions: sessions, pack: pack, voice: FakeVoice()),

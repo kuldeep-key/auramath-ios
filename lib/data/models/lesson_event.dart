@@ -1,62 +1,66 @@
 import 'package:auramath_engine/auramath_engine.dart';
 
-/// One saved child input, in the backend's wire shape
-/// (`auramath-backend/auramath/api/schemas.py` `EventIn`).
+/// Who and what is writing events: the envelope fields every event carries.
+typedef Identity = ({
+  String childRef,
+  String deviceId,
+  String appVersion,
+  bool isDemo,
+});
+
+/// One saved event in the backend's contract
+/// (`auramath-backend/spec/contracts/events.schema.json`): the engine's
+/// [SpecEvent] wrapped in its envelope.
 class LessonEvent {
   const LessonEvent({
+    required this.eventId,
     required this.sessionId,
     required this.seq,
     required this.at,
     required this.name,
-    this.detail = '',
-    required this.data,
+    required this.childRef,
+    required this.deviceId,
+    required this.appVersion,
+    required this.payload,
   });
 
-  factory LessonEvent.fromInput({
-    required String sessionId,
-    required int seq,
-    required int at,
-    required String packVersion,
-    required String problemId,
-    required LessonInput input,
-  }) {
-    final json = inputToJson(input);
-    return LessonEvent(
-      sessionId: sessionId,
-      seq: seq,
-      at: at,
-      name: json['type']! as String,
-      data: {
-        for (final e in json.entries)
-          if (e.key != 'type') e.key: e.value,
-        'packVersion': packVersion,
-        'problemId': problemId,
-        'schemaVersion': schemaVersion,
-      },
-    );
-  }
+  factory LessonEvent.fromJson(Map<String, Object?> j) => LessonEvent(
+    eventId: j['event_id']! as String,
+    sessionId: j['session_id']! as String,
+    seq: j['seq']! as int,
+    at: j['at']! as int,
+    name: j['name']! as String,
+    childRef: j['child_ref']! as String,
+    deviceId: j['device_id']! as String,
+    appVersion: j['app_version']! as String,
+    payload: j['payload']! as Map<String, Object?>,
+  );
 
-  /// Bumped when the shape of [data] changes; old versions stay readable.
-  static const schemaVersion = 1;
-
+  final String eventId;
   final String sessionId;
+
+  /// From 0, in order, per session.
   final int seq;
 
-  /// Epoch milliseconds when the child did it.
+  /// Epoch milliseconds when it happened.
   final int at;
   final String name;
-  final String detail;
+  final String childRef;
+  final String deviceId;
+  final String appVersion;
+  final Map<String, Object?> payload;
 
-  /// Flat: strings, numbers and booleans only.
-  final Map<String, Object?> data;
-
-  LessonInput get input => inputFromJson({...data, 'type': name});
+  SpecEvent get spec => SpecEvent(name, payload);
 
   Map<String, Object?> toJson() => {
+    'event_id': eventId,
+    'session_id': sessionId,
     'seq': seq,
     'at': at,
     'name': name,
-    'detail': detail,
-    'data': data,
+    'child_ref': childRef,
+    'device_id': deviceId,
+    'app_version': appVersion,
+    'payload': payload,
   };
 }
