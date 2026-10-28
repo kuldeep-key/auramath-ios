@@ -128,4 +128,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sideAddWithCarry => 'Adding with a carry';
+
+  @override
+  String get takeABreak => 'Take a break?';
+
+  @override
+  String get drawingSaved => 'Your drawing is saved.';
+
+  @override
+  String get goHome => 'Go home';
+
+  @override
+  String get timeUpTitle => 'That\'s today\'s time!';
+
+  @override
+  String get timeUpBody =>
+      'Great detective work. Your case is saved for next time.';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get finishThisOne => 'Finish this one';
 }

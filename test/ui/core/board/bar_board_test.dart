@@ -29,7 +29,11 @@ const placeGap = LessonState(step: LessonStep.placeGap, barA: true, barB: true);
 void main() {
   late List<LessonInput> inputs;
 
-  Future<void> pumpBoard(WidgetTester tester, LessonState state) async {
+  Future<void> pumpBoard(
+    WidgetTester tester,
+    LessonState state, {
+    bool showHand = false,
+  }) async {
     inputs = [];
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -41,13 +45,29 @@ void main() {
         home: Scaffold(
           body: SizedBox(
             height: 540,
-            child: BarBoard(problem: lemon, state: state, onInput: inputs.add),
+            child: BarBoard(
+              problem: lemon,
+              state: state,
+              onInput: inputs.add,
+              showHand: showHand,
+            ),
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('the quiet-child hand runs its whole sweep without breaking', (
+    tester,
+  ) async {
+    await pumpBoard(tester, drawA, showHand: true);
+    // every frame of the 2 s sweep, including the one at exactly 85%
+    for (var ms = 0; ms <= 2000; ms += 10) {
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('tap slot A draws bar A', (tester) async {
     await pumpBoard(tester, drawA);

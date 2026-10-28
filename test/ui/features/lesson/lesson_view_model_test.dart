@@ -1,5 +1,6 @@
 import 'package:auramath/ui/core/parts/standing_button.dart';
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
+import 'package:auramath/ui/features/lesson/view_models/sitting.dart';
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -20,6 +21,7 @@ void main() {
       voice: FakeVoice(),
       nowMs: () => now,
       newSessionId: () => 's2',
+      sitting: Sitting(capMs: 30 * 60 * 1000),
       tickEvery: null,
     );
   }
@@ -96,6 +98,7 @@ void main() {
       voice: FakeVoice(),
       nowMs: () => 0,
       newSessionId: () => 's2',
+      sitting: Sitting(capMs: 30 * 60 * 1000),
       tickEvery: null,
     );
     final first = make();
@@ -117,7 +120,8 @@ void main() {
     expect(seqs, List.generate(seqs.length, (i) => i));
     expect(second.recorded, seqs.length);
     expect((await db.forSession('s1')).last.name, 'session_resumed');
-    expect(second.coachText, 'Drag the gap onto the board.');
+    // Figma M1-pause: the coach greets the child back to their drawing
+    expect(second.coachText, 'Welcome back. Here is your drawing.');
     second.dispose();
   });
 
@@ -136,6 +140,7 @@ void main() {
       voice: FakeVoice(),
       nowMs: () => 0,
       newSessionId: () => 's2',
+      sitting: Sitting(capMs: 30 * 60 * 1000),
       tickEvery: null,
     );
     await vm.restore();

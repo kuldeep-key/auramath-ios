@@ -256,3 +256,19 @@ class Policy {
   final Timers timers;
   final int maxSideLessons;
 }
+
+/// App settings that aren't teaching rules, from the spec pack's
+/// `content/app-config.yaml`.
+class AppConfig {
+  const AppConfig({required this.sessionCapMinutes});
+
+  factory AppConfig.fromYaml(String text) {
+    final y = loadYaml(text) as YamlMap;
+    return AppConfig(
+      sessionCapMinutes: (y['session'] as YamlMap)['cap_minutes'] as int,
+    );
+  }
+
+  /// SES-01, D-07: "no more than half an hour".
+  final int sessionCapMinutes;
+}

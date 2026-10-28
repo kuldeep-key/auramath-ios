@@ -39,14 +39,17 @@ void main() {
     }
   });
 
-  test("the quiet timers come from Julia's policy file, not the pack", () async {
-    final edited = File(
-      'assets/spec/policy.yaml',
-    ).readAsStringSync().replaceFirst('help_pulse_after_s: 15', 'help_pulse_after_s: 20');
-    final pack = await PackRepository(
-      source: FilePackSource(policy: edited),
-    ).load();
-    expect(pack.timers.pulseMs, 20000);
-    expect(pack.timers.glowMs, 25000);
-  });
+  test(
+    "the quiet timers come from Julia's policy file, not the pack",
+    () async {
+      final edited = File('assets/spec/policy.yaml')
+          .readAsStringSync()
+          .replaceFirst('help_pulse_after_s: 15', 'help_pulse_after_s: 20');
+      final pack = await PackRepository(
+        source: FilePackSource(policy: edited),
+      ).load();
+      expect(pack.timers.pulseMs, 20000);
+      expect(pack.timers.glowMs, 25000);
+    },
+  );
 }

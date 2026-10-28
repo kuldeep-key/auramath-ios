@@ -505,7 +505,8 @@ class _HandState extends State<_Hand> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: _c,
     builder: (context, _) => Opacity(
-      opacity: _c.value < 0.85 ? 1 : (1 - _c.value) / 0.15,
+      // clamped: (1 - 0.85) / 0.15 rounds to just over 1
+      opacity: _c.value < 0.85 ? 1 : ((1 - _c.value) / 0.15).clamp(0.0, 1.0),
       child: Transform.translate(
         offset: Offset(0, -160 * Curves.easeInOut.transform(_c.value)),
         child: const Icon(

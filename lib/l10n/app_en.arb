@@ -40,5 +40,12 @@
   "@partRight": {"placeholders": {"name": {"type": "String"}}},
   "nowCheckAdding": "Now check your adding.",
   "sideTakeAcrossTen": "Take away across a ten",
-  "sideAddWithCarry": "Adding with a carry"
+  "sideAddWithCarry": "Adding with a carry",
+  "takeABreak": "Take a break?",
+  "drawingSaved": "Your drawing is saved.",
+  "goHome": "Go home",
+  "timeUpTitle": "That's today's time!",
+  "timeUpBody": "Great detective work. Your case is saved for next time.",
+  "ok": "OK",
+  "finishThisOne": "Finish this one"
 }

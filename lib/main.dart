@@ -1,4 +1,6 @@
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -32,5 +34,15 @@ Future<void> main() async {
     ),
   );
   final pack = await PackRepository(source: AssetPackSource()).load();
-  runApp(AuraApp(sessions: sessions, pack: pack, voice: DeviceVoice()));
+  final config = AppConfig.fromYaml(
+    await rootBundle.loadString('assets/spec/app-config.yaml'),
+  );
+  runApp(
+    AuraApp(
+      sessions: sessions,
+      pack: pack,
+      voice: DeviceVoice(),
+      sessionCap: Duration(minutes: config.sessionCapMinutes),
+    ),
+  );
 }

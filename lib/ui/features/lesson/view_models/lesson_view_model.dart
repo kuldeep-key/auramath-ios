@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../../../../data/repositories/session_repository.dart';
 import '../../../../data/services/voice.dart';
 import '../../../core/parts/standing_button.dart';
+import 'sitting.dart';
 
 /// Which answer sheet is open during "I know it".
 enum KnowPrompt { answer, whatAsked, recheck, checkPart, checkTotal }
@@ -24,16 +25,18 @@ class LessonViewModel extends ChangeNotifier {
     required this._sessions,
     required this._voice,
     required this._newSessionId,
+    required this._sitting,
     int Function()? nowMs,
     Duration? tickEvery = const Duration(seconds: 1),
   }) : _pack = pack,
        _problem = pack.problems[problemId]!,
        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch) {
-    _lastMoveMs = _shownAt = _stepAt = _now();
+    _lastMoveMs = _shownAt = _stepAt = _lastTickMs = _now();
     if (tickEvery != null) _ticker = Timer.periodic(tickEvery, (_) => tick());
   }
 
   final Pack _pack;
+  final Sitting _sitting;
   final SessionRepository _sessions;
   final Voice _voice;
   final String Function() _newSessionId;
@@ -49,12 +52,15 @@ class LessonViewModel extends ChangeNotifier {
   late int _lastMoveMs;
   late int _shownAt;
   late int _stepAt;
+  late int _lastTickMs;
   int? _startedAt;
+  int? _pausedAt;
 
   ComparisonProblem get problem => _problem;
   String get sessionId => _sessionId;
   LessonState get state => _state;
   Pack get pack => _pack;
+  SessionRepository get sessions => _sessions;
 
   /// Events saved for the current session.
   int get recorded => _seq;
@@ -71,9 +77,13 @@ class LessonViewModel extends ChangeNotifier {
       }),
       problemShown(_problem),
     ];
+    await _record(events);
+  }
+
+  Future<void> _record(List<SpecEvent> events) {
     final first = _seq;
     _seq += events.length;
-    await _sessions.record(_sessionId, first, events);
+    return _sessions.record(_sessionId, first, events);
   }
 
   String coachText = '';
@@ -88,6 +98,12 @@ class LessonViewModel extends ChangeNotifier {
   BadgeInfo? get badge => _pack.badges[badgeId];
   String? nextProblemId;
 
+  /// The sitting reached its cap: show "That's today's time!".
+  bool timeUp = false;
+
+  /// Home was tapped mid-lesson: ask "Take a break?" first.
+  bool askingBreak = false;
+
   /// Rebuilds the lesson from its saved events: replayed through the engine,
   /// never from a snapshot.
   Future<void> restore() async {
@@ -97,13 +113,83 @@ class LessonViewModel extends ChangeNotifier {
     await _sessions.record(_sessionId, lastSeq + 1, const [
       SpecEvent('session_resumed', {}),
     ]);
-    final line = _stepLines[_state.step];
-    if (line != null) _coach(line, const {});
+    _coach('cmp.welcomeBack', const {});
     notifyListeners();
   }
 
-  /// Sends a quiet-child tick; the engine decides whether it matters.
-  Future<void> tick() => send(QuietFor(_now() - _lastMoveMs));
+  /// Counts the sitting's time, then sends a quiet-child tick; the engine
+  /// decides whether that matters.
+  Future<void> tick() async {
+    final now = _now();
+    if (_pausedAt == null) _sitting.activeMs += now - _lastTickMs;
+    _lastTickMs = now;
+    if (_sitting.over &&
+        !_sitting.finishing &&
+        !timeUp &&
+        _state.step != LessonStep.solved) {
+      timeUp = true;
+      notifyListeners();
+    }
+    await send(QuietFor(now - _lastMoveMs));
+  }
+
+  /// Time's up, and the child keeps going until this problem is done.
+  void finishThisOne() {
+    timeUp = false;
+    _sitting.finishing = true;
+    notifyListeners();
+  }
+
+  /// Time's up, and the child stops; the work stays in the log (SES-01).
+  Future<void> callItADay() async {
+    timeUp = false;
+    notifyListeners();
+    await _record([
+      SpecEvent('session_ended', {
+        'reason': 'time_up',
+        'active_ms': _sitting.activeMs,
+      }),
+    ]);
+  }
+
+  /// The phone locked or the app went to the background (SES-03).
+  Future<void> paused() async {
+    if (_pausedAt != null) return;
+    _pausedAt = _now();
+    await _record(const [
+      SpecEvent('session_paused', {'reason': 'lock'}),
+    ]);
+  }
+
+  /// Back from the background: the time away doesn't count.
+  Future<void> resumed() async {
+    final since = _pausedAt;
+    if (since == null) return;
+    _pausedAt = null;
+    final now = _now();
+    _lastTickMs = _lastMoveMs = now;
+    await _record([
+      SpecEvent('session_resumed', {'after_ms': now - since}),
+    ]);
+  }
+
+  void askBreak() {
+    askingBreak = true;
+    notifyListeners();
+  }
+
+  void keepGoing() {
+    askingBreak = false;
+    notifyListeners();
+  }
+
+  /// The child chose to go home: the drawing is kept for next time.
+  Future<void> leave() async {
+    askingBreak = false;
+    await _record(const [
+      SpecEvent('session_paused', {'reason': 'child'}),
+    ]);
+  }
 
   Future<void> send(LessonInput input) async {
     final r = step(_pack, _problem, _state, input);

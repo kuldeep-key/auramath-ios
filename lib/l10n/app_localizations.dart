@@ -327,6 +327,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Adding with a carry'**
   String get sideAddWithCarry;
+
+  /// No description provided for @takeABreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a break?'**
+  String get takeABreak;
+
+  /// No description provided for @drawingSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your drawing is saved.'**
+  String get drawingSaved;
+
+  /// No description provided for @goHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Go home'**
+  String get goHome;
+
+  /// No description provided for @timeUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s today\'s time!'**
+  String get timeUpTitle;
+
+  /// No description provided for @timeUpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Great detective work. Your case is saved for next time.'**
+  String get timeUpBody;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @finishThisOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish this one'**
+  String get finishThisOne;
 }
 
 class _AppLocalizationsDelegate

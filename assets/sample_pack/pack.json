@@ -8,6 +8,7 @@
   },
   "lines": {
     "cmp.drawA": "Drag a bar up here.",
+    "cmp.welcomeBack": "Welcome back. Here is your drawing.",
     "cmp.placeB": "Now drag a bar for the {b}.",
     "cmp.sizeB": "Taller or shorter? Show it with the {b} bar.",
     "cmp.placeGap": "Drag the gap onto the board.",

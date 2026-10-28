@@ -18,7 +18,12 @@ void main() {
     final voice = FakeVoice();
 
     await tester.pumpWidget(
-      AuraApp(sessions: sessions, pack: samplePack(), voice: voice),
+      AuraApp(
+        sessions: sessions,
+        pack: samplePack(),
+        voice: voice,
+        sessionCap: const Duration(minutes: 30),
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.text('Ready for a new case?'), findsOneWidget);
@@ -29,6 +34,12 @@ void main() {
     expect(voice.said.last, startsWith('The lemon tree is 186 centimetres'));
 
     await tester.tap(find.byIcon(Icons.home_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('Take a break?'), findsOneWidget);
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Go home'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    });
     await tester.pumpAndSettle();
     expect(find.text('Ready for a new case?'), findsOneWidget);
   });
@@ -53,7 +64,12 @@ void main() {
       );
     });
     await tester.pumpWidget(
-      AuraApp(sessions: sessions, pack: pack, voice: FakeVoice()),
+      AuraApp(
+        sessions: sessions,
+        pack: pack,
+        voice: FakeVoice(),
+        sessionCap: const Duration(minutes: 30),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -63,7 +79,8 @@ void main() {
     });
     await tester.pumpAndSettle();
 
-    expect(find.text('Now drag a bar for the fig tree.'), findsOneWidget);
+    expect(find.text('Welcome back. Here is your drawing.'), findsOneWidget);
+    expect(find.text('Shorter'), findsNothing); // still placing bar B
     await tester.tap(find.byIcon(Icons.home_rounded));
     await tester.pumpAndSettle();
   });
@@ -77,7 +94,12 @@ void main() {
     final (sessions, _, _) =
         await tester.runAsync(memorySessions) ?? (throw StateError('no db'));
     await tester.pumpWidget(
-      AuraApp(sessions: sessions, pack: samplePack(), voice: FakeVoice()),
+      AuraApp(
+        sessions: sessions,
+        pack: samplePack(),
+        voice: FakeVoice(),
+        sessionCap: const Duration(minutes: 30),
+      ),
     );
     await tester.pumpAndSettle();
 

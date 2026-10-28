@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 
 import '../view_models/lesson_view_model.dart';
 import 'board_view.dart';
+import 'break_views.dart';
 import 'question_view.dart';
 import 'side_lesson_view.dart';
 import 'solved_view.dart';
 
 /// One lesson, start to finish: picks the screen for the engine's step.
-/// Figma: M0, M1, D1–D6, H0, T1, S1/S2, J17, Y2, Y3.
+/// Figma: M0, M1, D1–D6, H0, T1, S1/S2, J17, Y2, Y3, M1-pause, TU.
 class LessonFlow extends StatelessWidget {
   const LessonFlow({
     super.key,
@@ -26,21 +27,49 @@ class LessonFlow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: vm,
-    builder: (context, _) => Scaffold(
-      // the celebration paints edge to edge and keeps its own safe area
-      body: vm.state.step == LessonStep.solved
-          ? SolvedView(vm: vm, onFinished: onFinished)
-          : SafeArea(
-              child: switch (vm.state.step) {
-                LessonStep.question => QuestionView(
-                  key: ValueKey(vm.sessionId),
-                  vm: vm,
-                  onHome: onHome,
-                ),
-                LessonStep.sideLesson => SideLessonView(vm: vm, onHome: onHome),
-                _ => BoardView(vm: vm, onHome: onHome),
-              },
-            ),
-    ),
+    builder: (context, _) {
+      if (vm.timeUp) {
+        return Scaffold(
+          body: TimeUpView(
+            onStop: () async {
+              await vm.callItADay();
+              onHome();
+            },
+            onFinish: vm.finishThisOne,
+          ),
+        );
+      }
+      return Scaffold(
+        // the celebration paints edge to edge and keeps its own safe area
+        body: vm.state.step == LessonStep.solved
+            ? SolvedView(vm: vm, onFinished: onFinished)
+            : Stack(
+                children: [
+                  SafeArea(
+                    child: switch (vm.state.step) {
+                      LessonStep.question => QuestionView(
+                        key: ValueKey(vm.sessionId),
+                        vm: vm,
+                        onHome: vm.askBreak,
+                      ),
+                      LessonStep.sideLesson => SideLessonView(
+                        vm: vm,
+                        onHome: vm.askBreak,
+                      ),
+                      _ => BoardView(vm: vm, onHome: vm.askBreak),
+                    },
+                  ),
+                  if (vm.askingBreak)
+                    BreakSheet(
+                      onKeepGoing: vm.keepGoing,
+                      onGoHome: () async {
+                        await vm.leave();
+                        onHome();
+                      },
+                    ),
+                ],
+              ),
+      );
+    },
   );
 }

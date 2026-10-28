@@ -7,6 +7,7 @@ import 'data/services/voice.dart';
 import 'l10n/app_localizations.dart';
 import 'routing.dart';
 import 'ui/core/theme/app_theme.dart';
+import 'ui/features/lesson/view_models/sitting.dart';
 
 class AuraApp extends StatefulWidget {
   const AuraApp({
@@ -14,11 +15,15 @@ class AuraApp extends StatefulWidget {
     required this.sessions,
     required this.pack,
     required this.voice,
+    required this.sessionCap,
   });
 
   final SessionRepository sessions;
   final Pack pack;
   final Voice voice;
+
+  /// app-config `session.cap_minutes`.
+  final Duration sessionCap;
 
   @override
   State<AuraApp> createState() => _AuraAppState();
@@ -29,6 +34,7 @@ class _AuraAppState extends State<AuraApp> {
     sessions: widget.sessions,
     pack: widget.pack,
     voice: widget.voice,
+    sitting: Sitting(capMs: widget.sessionCap.inMilliseconds),
   );
 
   late final AppLifecycleListener _lifecycle;

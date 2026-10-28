@@ -1,6 +1,7 @@
 import 'package:auramath/ui/features/lesson/views/solved_view.dart';
 import 'package:auramath/l10n/app_localizations.dart';
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
+import 'package:auramath/ui/features/lesson/view_models/sitting.dart';
 import 'package:auramath/ui/features/lesson/views/lesson_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,6 +25,7 @@ void main() {
       sessions: sessions,
       voice: voice,
       newSessionId: () => 's2',
+      sitting: Sitting(capMs: 30 * 60 * 1000),
       tickEvery: null,
     );
     await tester.runAsync(vm.start);

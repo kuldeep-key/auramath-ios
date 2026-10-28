@@ -17,7 +17,7 @@ class HelpSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return _Sheet(
+    return AuraSheet(
       onClose: onClose,
       children: [
         const Portrait(size: 88),
@@ -53,8 +53,8 @@ class HelpSheet extends StatelessWidget {
 }
 
 /// A bottom sheet drawn over a dimmed screen, inside the lesson's own stack.
-class _Sheet extends StatelessWidget {
-  const _Sheet({required this.onClose, required this.children});
+class AuraSheet extends StatelessWidget {
+  const AuraSheet({super.key, required this.onClose, required this.children});
 
   final VoidCallback onClose;
   final List<Widget> children;

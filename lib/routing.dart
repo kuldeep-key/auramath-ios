@@ -7,12 +7,14 @@ import 'data/repositories/session_repository.dart';
 import 'data/services/voice.dart';
 import 'ui/features/child_home/views/home_screen.dart';
 import 'ui/features/lesson/view_models/lesson_view_model.dart';
+import 'ui/features/lesson/view_models/sitting.dart';
 import 'ui/features/lesson/views/lesson_flow.dart';
 
 GoRouter buildRouter({
   required SessionRepository sessions,
   required Pack pack,
   required Voice voice,
+  required Sitting sitting,
 }) => GoRouter(
   routes: [
     GoRoute(
@@ -40,6 +42,7 @@ GoRouter buildRouter({
         key: ValueKey(state.uri.toString()),
         problemId: state.pathParameters['problemId']!,
         resumeSessionId: state.uri.queryParameters['resume'],
+        sitting: sitting,
         sessions: sessions,
         pack: pack,
         voice: voice,
@@ -54,6 +57,7 @@ class _LessonRoute extends StatefulWidget {
     super.key,
     required this.problemId,
     required this.resumeSessionId,
+    required this.sitting,
     required this.sessions,
     required this.pack,
     required this.voice,
@@ -63,6 +67,7 @@ class _LessonRoute extends StatefulWidget {
 
   /// Set when reopening a case that was left part way.
   final String? resumeSessionId;
+  final Sitting sitting;
   final SessionRepository sessions;
   final Pack pack;
   final Voice voice;
@@ -81,16 +86,25 @@ class _LessonRouteState extends State<_LessonRoute> {
     sessions: widget.sessions,
     voice: widget.voice,
     newSessionId: _uuid.v4,
+    sitting: widget.sitting,
   );
+
+  late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
     widget.resumeSessionId != null ? _vm.restore() : _vm.start();
+    // The phone locks or the app goes away: pause, and don't count the time.
+    _lifecycle = AppLifecycleListener(
+      onPause: _vm.paused,
+      onResume: _vm.resumed,
+    );
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _vm.dispose();
     super.dispose();
   }
@@ -99,6 +113,8 @@ class _LessonRouteState extends State<_LessonRoute> {
   Widget build(BuildContext context) => LessonFlow(
     vm: _vm,
     onHome: () => context.go('/'),
-    onFinished: (next) => context.go('/lesson/$next?s=${_uuid.v4()}'),
+    // past the cap, a finished problem ends the sitting instead of starting one
+    onFinished: (next) =>
+        context.go(widget.sitting.over ? '/' : '/lesson/$next?s=${_uuid.v4()}'),
   );
 }
