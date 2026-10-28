@@ -29,7 +29,8 @@ class _SolvedViewState extends State<SolvedView> {
     final l = AppLocalizations.of(context)!;
     final badge = widget.vm.badge;
     final white = AuraText.title.copyWith(color: AuraColors.white);
-    return DecoratedBox(
+    return Container(
+      width: double.infinity,
       decoration: auraPlayBackground,
       child: Padding(
         padding: const EdgeInsets.all(16),
