@@ -60,6 +60,15 @@ class Pack {
     },
   );
 
+  Pack copyWith({Timers? timers}) => Pack(
+    version: version,
+    timers: timers ?? this.timers,
+    hintLineIds: hintLineIds,
+    badges: badges,
+    lines: lines,
+    problems: problems,
+  );
+
   final String version;
   final Timers timers;
   final List<String> hintLineIds;

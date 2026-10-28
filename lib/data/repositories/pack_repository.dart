@@ -9,6 +9,13 @@ class PackRepository {
 
   final PackSource _source;
 
-  Future<Pack> load() async =>
-      Pack.fromJson(jsonDecode(await _source.read()) as Map<String, Object?>);
+  /// The pack, with the quiet timers taken from Julia's policy file so a
+  /// change to her timings is a content edit (PLAT-03).
+  Future<Pack> load() async {
+    final pack = Pack.fromJson(
+      jsonDecode(await _source.read()) as Map<String, Object?>,
+    );
+    final policy = Policy.fromYaml(await _source.readPolicy());
+    return pack.copyWith(timers: policy.timers);
+  }
 }

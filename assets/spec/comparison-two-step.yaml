@@ -1,0 +1,242 @@
+id: cmp.comparison
+version: 0.3.0
+type: comparison_two_step
+status: provisional            # question type 1 (D-04, D-20 closed 8 Oct)
+skill: cmp.compare-bars
+notes: >
+  Question type 1, comparison. Julia's 21 Sep mock-lesson problem (the lemon tree) is the first
+  example. One known quantity (A), a stated difference (D) and a relation word. The child finds
+  the unknown (B) and then, from level 3, the total. Levels hold the number ranges (SKL-10).
+  More stories come from the AI story pipeline (CON-08), which this term writes for heights and, from
+  Julia's bowl and mug (CON-11), weights; Julia sees samples in her check (CON-09). Error rules are evaluated in order and the first
+  match wins; the generator rejects any problem where two rules, or a rule and the right
+  answer, would give the same number (constraint error_answers_distinct).
+frame: "The {a} is {A} {unit} tall. It is {D} {unit} {relation} than the {b}. What is the total height of the two {plural}?"   # CON-08: AI-written height stories use this frame; Julia's own stories keep their text
+frames_by_quantity:            # CON-08, CON-11: weight stories (relation words from the story's relation_words)
+  mass: "The {a} weighs {A} {unit}. It weighs {D} {unit} {relation} than the {b}. What is the total weight of both {a} and {b}?"
+stories:
+  - id: lemon-fig
+    a: lemon tree
+    b: fig tree
+    kind: tree
+    plural: trees
+    unit: cm
+    quantity: height
+    orientation: upright        # ASK-J10
+    text: "The {a} is {A} {unit} tall. It is {D} {unit} {relation} than the {b}. What is the total height of the two {plural}?"
+    use: lesson
+    problem_name: Tree Word Problem
+    source: CALL-0921
+  - id: building-a-b
+    a: Building A
+    b: Building B
+    kind: building
+    plural: buildings
+    unit: m
+    quantity: height
+    orientation: upright
+    text: "{a} is {A} {unit} tall. It is {D} {unit} {relation} than {b}. What is the total height of both buildings?"
+    use: worked_example         # "Help me draw" with a smaller example, ASK-J43
+    problem_name: Building Word Problem
+    source: ASK-J43
+  - id: mango-guava
+    a: mango tree
+    b: guava tree
+    kind: tree
+    plural: trees
+    unit: cm
+    quantity: height
+    orientation: upright
+    text: "The {a} is {A} {unit} tall. It is {D} {unit} {relation} than the {b}. What is the total height of the two {plural}?"
+    use: lesson                 # the "same pattern, new numbers" problem after show me how (Figma 8.6, 8.7)
+    problem_name: Tree Word Problem
+    source: FLOW-7-11
+  - id: bowl-mug                # CON-11: Julia's weight example (Figma 41.3 comment, 9 Oct)
+    a: bowl
+    b: mug
+    kind: thing
+    plural: things
+    unit: g
+    quantity: mass
+    orientation: horizontal
+    relation_words: {taller: more, shorter: less}
+    b_words: {taller: less, shorter: more}
+    text: "The {a} weighs {A} {unit}. It weighs {D} {unit} {relation} than the {b}. What is the total weight of both {a} and {b}?"
+    use: lesson
+    levels: [L3, L4, L5]        # two-step levels only this term
+    problem_name: Bowl and Mug Word Problem
+    source: FIGMA-C-1009
+relations:
+  taller:  {word: taller,  b_word: shorter, B: "A - D", keyword_trap: false}
+  shorter: {word: shorter, b_word: taller,  B: "A + D", keyword_trap: true}    # 'shorter' but the child must add (SR-1, ASK-J20)
+numbers:
+  A: {min: 100, max: 499}
+  D: {min: 11, max: 399}
+  constraints:
+    - "D < A"
+    - "B >= 10"
+    - "A + B <= 999"
+    - "B != D"
+    - "error_answers_distinct"
+  provisional_note: The default range is level 4's (two steps, regrouping); levels below hold each level's own ranges (SKL-10). Julia sees the ladder in her check (CON-09).
+levels:                        # SKL-10. Proposed ladder; Julia checks it with the type (CON-09). "Something easier" = one level down (CON-06).
+  - id: L1
+    name: "One step, numbers to 20"
+    relations: [taller]
+    numbers:
+      A: {min: 12, max: 20}
+      D: {min: 2, max: 9}
+      constraints: ["D < A", "B >= 3", "B != D", "no_regrouping", "error_answers_distinct"]
+    steps_end_at: find_unknown
+    skip_steps: [place_total]
+    question_text: "The {a} is {A} {unit} tall. It is {D} {unit} {relation} than the {b}. How tall is the {b}?"
+  - id: L2
+    name: "One step, numbers to 100"
+    relations: [taller]
+    numbers:
+      A: {min: 30, max: 99}
+      D: {min: 5, max: 60}
+      constraints: ["D < A", "B >= 10", "B != D", "error_answers_distinct"]
+    steps_end_at: find_unknown
+    skip_steps: [place_total]
+    question_text: "The {a} is {A} {unit} tall. It is {D} {unit} {relation} than the {b}. How tall is the {b}?"
+  - id: L3
+    name: "Two steps, numbers to 1000, no regrouping"
+    relations: [taller]
+    numbers:
+      A: {min: 100, max: 499}
+      D: {min: 11, max: 399}
+      constraints: ["D < A", "B >= 10", "A + B <= 999", "B != D", "no_regrouping", "error_answers_distinct"]
+    steps_end_at: find_total
+  - id: L4
+    name: "Two steps, numbers to 1000, with regrouping (the lemon tree problem's level)"
+    relations: [taller]
+    numbers:
+      A: {min: 100, max: 499}
+      D: {min: 11, max: 399}
+      constraints: ["D < A", "B >= 10", "A + B <= 999", "B != D", "regrouping", "error_answers_distinct"]
+    steps_end_at: find_total
+  - id: L5
+    name: "The 'shorter' wording, where the child must add"
+    relations: [shorter]
+    numbers:
+      A: {min: 100, max: 499}
+      D: {min: 11, max: 399}
+      constraints: ["D < A", "B >= 10", "A + B <= 999", "B != D", "error_answers_distinct"]
+    steps_end_at: find_total
+worked_examples:               # CON-05, "show me how" (Figma 8.2 to 8.5)
+  - {story: building-a-b, relation: taller, A: 6, D: 4, B: 2, total: 8, source: FLOW-7-11}
+steps:
+  - {id: name_quantities,  screen: "TBD (Apoorv)", input: choice, expects: "A for {a}", skill: cmp.name-quantities, optional: true,
+     options: [{id: opt_A, text: "{A} {unit}", correct_for: [taller, shorter]},
+               {id: opt_D, text: "{D} {unit}", correct_for: [], error_type: difference_as_amount}]}
+  - {id: draw_known_bar,   screen: D1,  input: drag_bar,    expects: "bar for {a} sized to A",          skill: cmp.name-quantities,  hint_start_rung: H1-1}
+  - {id: size_second_bar,  screen: D1b, input: size_bar,    expects: "bar for {b}, {b_word} than the bar for {a}", skill: cmp.read-relation, hint_start_rung: H1-3}
+  - {id: place_difference, screen: D3,  input: place_brace, expects: "D between the bar ends",            skill: cmp.read-difference,  hint_start_rung: H1-5}
+  - {id: place_total,      screen: D3b, input: place_brace, expects: "total across both bars",            skill: cmp.name-quantities}
+  - {id: choose_operation, screen: D4,  input: choice,      expects: "an operation that finds B",         skill: cmp.choose-operation, hint_start_rung: D4w,
+     options: [{id: a_plus_d,  text: "A + D", correct_for: [shorter], error_type: operation_reversed},
+               {id: a_minus_d, text: "A - D", correct_for: [taller], error_type: keyword_strategy}]}
+  # D4 and D5 label the same slip differently on purpose: choosing A + D at D4 is charged to choosing the
+  # operation (Figma journey 15); entering A + D at D5 is the SR-4 catalogue's difference-as-amount error.
+  # Key's call; Julia sees both in her check (CON-09).
+  # Figma D4 shows the two sums above. An adding-up option ("D + box = A") for Julia's J14 is proposed
+  # to Apoorv and Julia; see the design review.
+  - {id: find_unknown,     screen: D5,  input: number,      expects: "B",                                 skill: cmp.choose-operation}
+  - {id: find_total,       screen: D6,  input: number,      expects: "A + B",                             skill: prob.read-question}
+  - {id: number_sentence,  screen: J36, input: number_sentence, expects: "a number sentence for B", skill: cmp.number-sentence, optional: true,
+     accepts: [{form: "A - D = box", correct_for: [taller]}, {form: "D + box = A", correct_for: [taller]},
+               {form: "box + D = A", correct_for: [taller]}, {form: "A - box = D", correct_for: [taller]},
+               {form: "A + D = box", correct_for: [shorter]}, {form: "D + A = box", correct_for: [shorter]},
+               {form: "box - D = A", correct_for: [shorter]}, {form: "box - A = D", correct_for: [shorter]}]}
+answers:
+  B: "per relation"
+  total: "A + B"
+error_rules:
+  # drawing steps
+  - {step: size_second_bar,  detector: bar_relation_reversed, error_type: relation_reversed}
+  - {step: place_difference, detector: placed_on, object: difference, target: bar_b, error_type: difference_as_amount}
+  # number steps (first match wins)
+  - {step: find_unknown, detector: equals_expr, expr: "D", error_type: difference_as_amount}
+  - {step: find_unknown, detector: equals_expr, expr: "A + D", when_relation: taller,  error_type: difference_as_amount}
+  - {step: find_unknown, detector: equals_expr, expr: "A - D", when_relation: shorter, error_type: keyword_strategy}
+  - {step: find_unknown, detector: column_sub_smaller_from_larger, operands: [A, D], when_relation: taller, error_type: sub_smaller_from_larger}
+  - {step: find_unknown, detector: digit_permutation, expr: "B", error_type: transposition}
+  - {step: find_total,   detector: equals_expr, expr: "B", error_type: answered_wrong_question}
+  - {step: find_total,   detector: column_add_dropped_carry, operands: [A, B], error_type: carry_dropped}
+  - {step: find_total,   detector: digit_permutation, expr: "A + B", error_type: transposition}
+answer_sheet_rules:
+  # LES-05, following Julia (Figma journey 12, 9 Oct): "Before drawing, try to determine where the error is.
+  # Ask for height of fig tree. If fig tree is correct - then the addition of both trees is a calculation
+  # error." Code decides; no AI. tutor/policy.yaml answer_sheet gives the order and the routes.
+  # At levels 1 and 2 the sheet asks for the unknown, so only the unknown stage applies.
+  # On the answer sheet nothing is drawn, so A + D for the fig tree is read as Julia reads it on slide 9
+  # (thought the fig tree was taller), not as the difference taken as an amount (find_unknown).
+  - {stage: total,   detector: equals_expr, expr: "B", error_type: answered_wrong_question, note: "Gave the unknown instead of the total"}
+  - {stage: unknown, detector: equals_expr, expr: "D", error_type: difference_as_amount, source: VIF-S9-1009}
+  - {stage: unknown, detector: equals_expr, expr: "A + D", when_relation: taller,  error_type: relation_reversed, source: VIF-S9-1009, note: "Julia's 479: 'did not understand which item is taller'"}
+  - {stage: unknown, detector: equals_expr, expr: "A - D", when_relation: shorter, error_type: keyword_strategy}
+  - {stage: unknown, detector: column_sub_smaller_from_larger, operands: [A, D], when_relation: taller, error_type: sub_smaller_from_larger, source: VIF-S9-1009, note: "Julia's 267: 'did not subtract correctly first step' (her 167 has the same first-step slip)"}
+  - {stage: unknown, detector: digit_permutation, expr: "B", error_type: transposition}
+  - {stage: total_after_unknown, detector: column_add_dropped_carry, operands: [A, B], error_type: carry_dropped, source: FIGMA-C-1009, note: "Julia: 'If fig tree is correct - then the addition of both trees is a calculation error'"}
+  - {stage: total_after_unknown, detector: digit_permutation, expr: "A + B", error_type: transposition}
+examples:
+  - story: lemon-fig
+    relation: taller
+    A: 186
+    D: 107
+    B: 79
+    total: 265
+    errors:
+      - {step: size_second_bar,  bar_b_vs_a: longer, error_type: relation_reversed}
+      - {step: place_difference, placed: {object: difference, target: bar_b}, error_type: difference_as_amount}
+      - {step: find_unknown, entered: 107, error_type: difference_as_amount}
+      - {step: find_unknown, entered: 293, error_type: difference_as_amount}
+      - {step: find_unknown, entered: 81,  error_type: sub_smaller_from_larger}
+      - {step: find_unknown, entered: 97,  error_type: transposition}
+      - {step: find_total,   entered: 79,  error_type: answered_wrong_question}
+      - {step: find_total,   entered: 255, error_type: carry_dropped}
+      - {step: find_total,   entered: 256, error_type: transposition}
+      - {step: answer_sheet_total,   entered: 79,  error_type: answered_wrong_question}
+      - {step: answer_sheet_unknown, entered: 81,  error_type: sub_smaller_from_larger, source: VIF-S9-1009}
+      - {step: answer_sheet_unknown, entered: 293, error_type: relation_reversed,       source: VIF-S9-1009}
+      - {step: answer_sheet_unknown, entered: 107, error_type: difference_as_amount}
+      - {step: answer_sheet_total_after_unknown, entered: 255, error_type: carry_dropped}
+    source: SR-1
+  - story: lemon-fig
+    relation: shorter
+    A: 186
+    D: 107
+    B: 293
+    total: 479
+    errors:
+      - {step: size_second_bar, bar_b_vs_a: shorter, error_type: relation_reversed}
+      - {step: find_unknown, entered: 79, error_type: keyword_strategy}
+      - {step: answer_sheet_total,   entered: 293, error_type: answered_wrong_question}
+      - {step: answer_sheet_unknown, entered: 79,  error_type: keyword_strategy}
+    source: SR-1
+  - story: mango-guava
+    relation: taller
+    A: 152
+    D: 68
+    B: 84
+    total: 236
+    errors:
+      - {step: find_unknown, entered: 68, error_type: difference_as_amount}
+    source: FLOW-7-11
+  - story: bowl-mug
+    relation: taller            # "more than": the bowl is the heavier one
+    A: 456
+    D: 128
+    B: 328
+    total: 784
+    errors:
+      - {step: find_unknown, entered: 584, error_type: difference_as_amount}
+      - {step: find_unknown, entered: 332, error_type: sub_smaller_from_larger}
+      - {step: answer_sheet_unknown, entered: 584, error_type: relation_reversed}
+    source: FIGMA-C-1009
+approval:
+  approved_by: null
+  approved_on: null
+  note: Story and numbers are Julia's (mock lesson); template wording not yet approved.
+sources: [CALL-0921, SR-1, SR-4, EM-0928, FLOW-4, VIF-S9-1009, FIGMA-C-1009]

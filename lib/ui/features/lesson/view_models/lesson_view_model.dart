@@ -43,6 +43,7 @@ class LessonViewModel extends ChangeNotifier {
   ComparisonProblem _problem;
   String _sessionId;
   LessonState _state = initialState();
+
   /// The seq the next saved event gets.
   int _seq = 0;
   late int _lastMoveMs;

@@ -8,3 +8,4 @@ export 'src/lesson.dart';
 export 'src/mistakes.dart';
 export 'src/pack.dart';
 export 'src/problem.dart';
+export 'src/template.dart';
