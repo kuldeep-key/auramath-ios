@@ -64,3 +64,21 @@ Done 28 Oct, each with a test that failed first:
 Still open:
 
 - The real HTTP client must turn every failure into `ApiException`, or sync stops retrying until the next tap. Comes with the API client.
+
+## 28 Oct: foundation items 1–5
+
+All built test-first and committed. Engine 93 tests, app 75 tests, analyze clean. Checked on the Android emulator, including resume after the app is killed.
+
+1. **Event format:** every saved event passes the backend's schema (`docs/plans/2026-10-28-event-contract.md`).
+2. **Julia's files:** the comparison template and tutor policy are bundled in `assets/spec/` (spec pack v0.3.0). The quiet timers come from the policy.
+3. **Problem generator:** any level, any story, from a seed. Every template rule holds, with no mistake collisions. *Not yet used in the lesson:* that waits for the next-problem rules in v3.3.
+4. **30-minute sitting cap, "Take a break?", pause on lock (SES-01 to SES-03).**
+5. **"Lost the internet" notice (SES-04):** the lesson carries on, and the change is logged.
+
+**Bugs found on the way, each fixed with a test first:**
+- the quiet-child hand crashed debug builds at 85% of its sweep;
+- the small portrait in sheets showed a cropped face.
+
+**For the designer** (we built these ourselves; not in Figma):
+- the "Finish this one" button on the time's-up screen (SES-01 requires it);
+- the "Lost the internet" notice.
