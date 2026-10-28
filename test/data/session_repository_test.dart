@@ -58,6 +58,27 @@ void main() {
     await db.close();
   });
 
+  test('online goes false when sending fails and true once it works', () async {
+    final db = await memoryOutbox();
+    fakeAsync((async) {
+      final api = FakeApi()..failNext = 1;
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      expect(repo.online.value, isTrue);
+      repo.record('s1', 0, const [step]);
+      async.flushMicrotasks();
+      expect(repo.online.value, isFalse);
+      async.elapse(const Duration(seconds: 2));
+      expect(repo.online.value, isTrue);
+      repo.dispose();
+    });
+    await db.close();
+  });
+
   test('offline lesson syncs in order later', () async {
     final db = await memoryOutbox();
     fakeAsync((async) {

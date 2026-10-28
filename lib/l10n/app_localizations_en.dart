@@ -150,4 +150,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get finishThisOne => 'Finish this one';
+
+  @override
+  String get lostInternet => 'Lost the internet. Your work is saved.';
 }

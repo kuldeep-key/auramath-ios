@@ -33,6 +33,7 @@ class LessonViewModel extends ChangeNotifier {
        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch) {
     _lastMoveMs = _shownAt = _stepAt = _lastTickMs = _now();
     if (tickEvery != null) _ticker = Timer.periodic(tickEvery, (_) => tick());
+    _sessions.online.addListener(_onlineChanged);
   }
 
   final Pack _pack;
@@ -181,6 +182,17 @@ class LessonViewModel extends ChangeNotifier {
   void keepGoing() {
     askingBreak = false;
     notifyListeners();
+  }
+
+  /// The server can't be reached (or can again): logged for the record; the
+  /// lesson itself doesn't wait on it (SES-04).
+  bool get online => _sessions.online.value;
+
+  void _onlineChanged() {
+    notifyListeners();
+    _record([
+      SpecEvent('connectivity_changed', {'online': online}),
+    ]);
   }
 
   /// The child chose to go home: the drawing is kept for next time.
@@ -338,6 +350,7 @@ class LessonViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _sessions.online.removeListener(_onlineChanged);
     _ticker?.cancel();
     _voice.stop();
     super.dispose();

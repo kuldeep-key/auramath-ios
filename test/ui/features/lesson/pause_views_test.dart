@@ -1,3 +1,5 @@
+import 'package:auramath/data/services/fake_api.dart';
+import 'package:auramath/data/services/outbox_db.dart';
 import 'package:auramath/l10n/app_localizations.dart';
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
 import 'package:auramath/ui/features/lesson/view_models/sitting.dart';
@@ -13,6 +15,8 @@ void main() {
   var now = 0;
   var wentHome = 0;
   late LessonViewModel vm;
+  late OutboxDb db;
+  late FakeApi api;
 
   Future<void> pumpLesson(WidgetTester tester) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -20,8 +24,10 @@ void main() {
     addTearDown(tester.view.reset);
     now = 0;
     wentHome = 0;
-    final (sessions, _, _) =
+    final (sessions, outbox, fake) =
         await tester.runAsync(memorySessions) ?? (throw StateError('no db'));
+    db = outbox;
+    api = fake;
     vm = LessonViewModel(
       pack: samplePack(),
       problemId: 'lemon',
@@ -98,6 +104,36 @@ void main() {
     await tester.pumpAndSettle();
     await tap(tester, find.text('OK'));
     expect(wentHome, 1);
+    vm.dispose();
+  });
+
+  testWidgets('a lost connection shows a gentle notice and is logged', (
+    tester,
+  ) async {
+    await pumpLesson(tester);
+    expect(find.textContaining('Lost the internet'), findsNothing);
+    await tester.runAsync(() async {
+      api.failNext = 1000;
+      await vm.send(const BarADrawn()); // its send fails: offline
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    });
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Lost the internet'), findsOneWidget);
+    // the lesson carries on underneath (SES-04)
+    expect(find.text('Bar'), findsOneWidget);
+    expect(vm.state.step, LessonStep.placeB);
+    final names = await tester.runAsync(
+      () async => [for (final e in await db.forSession('s1')) e.name],
+    );
+    expect(names!.last, 'connectivity_changed');
+
+    await tester.runAsync(() async {
+      api.failNext = 0;
+      await vm.sessions.syncNow();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    });
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Lost the internet'), findsNothing);
     vm.dispose();
   });
 }

@@ -47,5 +47,6 @@
   "timeUpTitle": "That's today's time!",
   "timeUpBody": "Great detective work. Your case is saved for next time.",
   "ok": "OK",
-  "finishThisOne": "Finish this one"
+  "finishThisOne": "Finish this one",
+  "lostInternet": "Lost the internet. Your work is saved."
 }

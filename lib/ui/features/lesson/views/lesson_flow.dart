@@ -59,6 +59,13 @@ class LessonFlow extends StatelessWidget {
                       _ => BoardView(vm: vm, onHome: vm.askBreak),
                     },
                   ),
+                  if (!vm.online)
+                    const SafeArea(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: LostInternetNotice(),
+                      ),
+                    ),
                   if (vm.askingBreak)
                     BreakSheet(
                       onKeepGoing: vm.keepGoing,

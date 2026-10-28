@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:auramath_engine/auramath_engine.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/lesson_event.dart';
@@ -25,6 +26,10 @@ class SessionRepository {
   final Identity identity;
   final String Function() _newId;
   final int Function() _now;
+
+  /// False while the server can't be reached; the lesson carries on and the
+  /// outbox holds every event until it can (SES-04).
+  final online = ValueNotifier(true);
 
   Timer? _retry;
   int _failures = 0;
@@ -83,7 +88,9 @@ class SessionRepository {
         }
       } while (_again);
       _failures = 0;
+      online.value = true;
     } on ApiException {
+      online.value = false;
       _failures++;
       _retry = Timer(retryDelay(_failures), syncNow);
     } finally {
@@ -138,7 +145,10 @@ class SessionRepository {
     return (problemId: problem.id, resumeSessionId: sessionId);
   }
 
-  void dispose() => _retry?.cancel();
+  void dispose() {
+    _retry?.cancel();
+    online.dispose();
+  }
 
   static List<(String, List<LessonEvent>)> _bySession(List<LessonEvent> batch) {
     final groups = <String, List<LessonEvent>>{};

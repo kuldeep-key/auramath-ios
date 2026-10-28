@@ -98,3 +98,35 @@ class TimeUpView extends StatelessWidget {
     );
   }
 }
+
+/// SES-04's gentle notice while the server can't be reached. Not designed in
+/// Figma yet: a calm strip, never red (NFR-03), and the lesson carries on.
+class LostInternetNotice extends StatelessWidget {
+  const LostInternetNotice({super.key});
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    child: Container(
+      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AuraColors.yellowTint,
+        borderRadius: BorderRadius.circular(AuraRadii.small),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.wifi_off_rounded, color: AuraColors.yellowInk),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              AppLocalizations.of(context)!.lostInternet,
+              style: AuraText.body.copyWith(color: AuraColors.yellowInk),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}

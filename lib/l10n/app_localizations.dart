@@ -369,6 +369,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finish this one'**
   String get finishThisOne;
+
+  /// No description provided for @lostInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost the internet. Your work is saved.'**
+  String get lostInternet;
 }
 
 class _AppLocalizationsDelegate
