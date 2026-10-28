@@ -44,6 +44,33 @@ void main() {
     vm.dispose();
   });
 
+  test('each board step says its own line', () async {
+    final vm = await makeVm();
+    final lines = <String>[];
+    for (final i in const [
+      Started(),
+      BarADrawn(),
+      BarBPlaced(),
+      BarBSized(Relation.shorter),
+      PieceDropped(Piece.gap, Target.gapSlot),
+      PieceDropped(Piece.total, Target.totalSlot),
+      OpChosen(Op.subtract),
+    ]) {
+      await vm.send(i);
+      lines.add(vm.coachText);
+    }
+    expect(lines, [
+      'Drag a bar up here.',
+      'Now drag a bar for the fig tree.',
+      'Taller or shorter? Show it with the fig tree bar.',
+      'Drag the gap onto the board.',
+      'Drag total under both bars.',
+      'Which sum finds the fig tree?',
+      'How tall is the fig tree?',
+    ]);
+    vm.dispose();
+  });
+
   test('quiet tick recorded only when it produces a decision', () async {
     final vm = await makeVm();
     now = 0;

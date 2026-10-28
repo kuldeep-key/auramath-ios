@@ -104,6 +104,7 @@ class _StandingButtonState extends State<StandingButton>
     );
     return Stack(
       clipBehavior: Clip.none,
+      fit: StackFit.passthrough,
       children: [
         AnimatedBuilder(
           animation: _anim,

@@ -354,13 +354,18 @@ class _BarBoardState extends State<BarBoard> {
                           BoardPiece.total => l.pieceTotal,
                         }),
                       if (_step == LessonStep.sizeB)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _chip(l.shorter, Relation.shorter),
-                            const SizedBox(width: 12),
-                            _chip(l.taller, Relation.taller),
-                          ],
+                        Padding(
+                          // leaves the undo key its corner
+                          padding: const EdgeInsets.only(left: 12, right: 68),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _chip(l.shorter, Relation.shorter),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(child: _chip(l.taller, Relation.taller)),
+                            ],
+                          ),
                         ),
                       if (s.barB)
                         Positioned(
@@ -417,21 +422,61 @@ class _BarBoardState extends State<BarBoard> {
     );
   }
 
-  Widget _chip(String label, Relation rel) => GestureDetector(
-    onTap: () => widget.onInput(BarBSized(rel)),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+  /// Tap alternative to dragging B's handle. Not in Figma: drawn as a tray
+  /// piece, with a picture of B next to A so it reads without reading.
+  Widget _chip(String label, Relation rel) {
+    Widget bar(double h, {bool outline = false}) => Container(
+      width: 12,
+      height: h,
       decoration: BoxDecoration(
-        color: AuraColors.white,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AuraColors.blue, width: 2),
+        color: outline ? null : AuraColors.blue,
+        border: outline ? Border.all(color: AuraColors.navy, width: 2) : null,
+        borderRadius: BorderRadius.circular(4),
       ),
-      child: Text(
-        label,
-        style: AuraText.chip.copyWith(fontSize: 18, color: AuraColors.blueInk),
+    );
+    void tap() => widget.onInput(BarBSized(rel));
+    return Semantics(
+      button: true,
+      label: label,
+      onTap: tap,
+      excludeSemantics: true,
+      child: GestureDetector(
+        key: Key(rel == Relation.taller ? 'sizeTaller' : 'sizeShorter'),
+        onTap: tap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 56),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AuraColors.white,
+            borderRadius: BorderRadius.circular(AuraRadii.panel),
+            border: Border.all(color: AuraColors.blue, width: 3),
+            boxShadow: const [
+              BoxShadow(color: AuraColors.blueLip, offset: Offset(0, 5)),
+            ],
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  key: const Key('sizePic'),
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    bar(24, outline: true),
+                    const SizedBox(width: 4),
+                    bar(rel == Relation.taller ? 34 : 14),
+                  ],
+                ),
+                const SizedBox(width: 10),
+                Text(label, style: AuraText.button.copyWith(fontSize: 20)),
+              ],
+            ),
+          ),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// The quiet-child hand: shows where the piece goes, once.

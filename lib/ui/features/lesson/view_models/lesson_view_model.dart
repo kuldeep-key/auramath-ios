@@ -89,8 +89,9 @@ class LessonViewModel extends ChangeNotifier {
     final seq = ++_seq;
     final sessionId = _sessionId, problemId = _problem.id;
     _apply(r.decisions);
-    if (entering == LessonStep.drawA && !r.decisions.any((d) => d is Coach)) {
-      _coach('cmp.drawA', const {});
+    final stepLine = _stepLines[entering];
+    if (stepLine != null && !r.decisions.any((d) => d is Coach)) {
+      _coach(stepLine, const {});
     }
     notifyListeners();
     await _sessions.record(sessionId, seq, _pack.version, problemId, input);
@@ -194,6 +195,19 @@ class LessonViewModel extends ChangeNotifier {
     coachText = fillLine(_pack.lines[lineId] ?? '', all);
     _voice.say(coachText);
   }
+
+  /// The line said on entering a board step, unless the engine said one.
+  /// Prototype: STEPLINE.
+  static const _stepLines = {
+    LessonStep.drawA: 'cmp.drawA',
+    LessonStep.placeB: 'cmp.placeB',
+    LessonStep.sizeB: 'cmp.sizeB',
+    LessonStep.placeGap: 'cmp.placeGap',
+    LessonStep.placeTotal: 'cmp.placeTotal',
+    LessonStep.chooseOp: 'cmp.chooseOp',
+    LessonStep.findB: 'cmp.findB',
+    LessonStep.findTotal: 'cmp.findTotal',
+  };
 
   Map<String, String> _slots() => {
     'a': _problem.a.name.toLowerCase(),

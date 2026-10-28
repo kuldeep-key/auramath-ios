@@ -8,7 +8,13 @@
   },
   "lines": {
     "cmp.drawA": "Drag a bar up here.",
+    "cmp.placeB": "Now drag a bar for the {b}.",
     "cmp.sizeB": "Taller or shorter? Show it with the {b} bar.",
+    "cmp.placeGap": "Drag the gap onto the board.",
+    "cmp.placeTotal": "Drag total under both bars.",
+    "cmp.chooseOp": "Which sum finds the {b}?",
+    "cmp.findB": "How tall is the {b}?",
+    "cmp.findTotal": "Now, how tall are both together?",
     "cmp.sizeBWrong": "Read it again. Is the {b} taller or shorter?",
     "cmp.gapWrong": "Is the {b} {d} {u} tall, or {d} {u} {rel}?",
     "cmp.totalWrong": "Total goes under both bars.",

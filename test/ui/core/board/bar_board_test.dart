@@ -74,6 +74,24 @@ void main() {
     expect((inputs.single as BarBSized).rel, Relation.shorter);
   });
 
+  testWidgets('size chips are big tray buttons with a size picture', (
+    tester,
+  ) async {
+    await pumpBoard(tester, sizeB);
+    for (final k in ['sizeShorter', 'sizeTaller']) {
+      final chip = find.byKey(Key(k));
+      expect(tester.getSize(chip).height, greaterThanOrEqualTo(56));
+      expect(
+        find.descendant(of: chip, matching: find.byKey(const Key('sizePic'))),
+        findsOneWidget,
+      );
+    }
+    expect(
+      tester.getSemantics(find.byKey(const Key('sizeTaller'))),
+      matchesSemantics(label: 'Taller', isButton: true, hasTapAction: true),
+    );
+  });
+
   testWidgets('drag bar B handle down reports shorter', (tester) async {
     await pumpBoard(tester, sizeB);
     await tester.drag(find.byKey(const Key('handleB')), const Offset(0, 150));

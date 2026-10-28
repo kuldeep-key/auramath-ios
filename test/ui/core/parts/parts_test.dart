@@ -66,6 +66,22 @@ void main() {
     expect(find.text('Tricky one? Tap me!'), findsNothing);
   });
 
+  testWidgets('StandingButton fills the width it is given', (tester) async {
+    await tester.pumpWidget(
+      host(
+        SizedBox(
+          width: 400,
+          child: StandingButton(
+            icon: Icons.lightbulb_rounded,
+            label: 'I know it',
+            onPressed: () {},
+          ),
+        ),
+      ),
+    );
+    expect(tester.getSize(find.byType(GestureDetector).first).width, 400);
+  });
+
   testWidgets('QuestionStrip shows chips and opens the question', (
     tester,
   ) async {
