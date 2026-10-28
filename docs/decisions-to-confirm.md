@@ -21,15 +21,20 @@ Each item gives the default the mobile app will be built with if no one objects,
    - Why: same as Apple; the publisher name is public and transfers are slow.
 
 4. **Kids Category (iOS) and Families target audience (Google Play)**
-   - Default: yes, list it for children. Apple asks for one age band (6–8 or 9–11); which one?
+   - Default: yes, list it for children.
+   - Google Play: several age groups can be ticked, so we pick **6–8 and 9–12**.
+   - iOS: Apple allows **only one** band per app (5 and under, 6–8, or 9–11), so 6–11 as a single choice isn't possible. Default: **6–8**, since three of our five ages (6, 7, 8) fall in it. The band only affects where the app is shown in the kids' section; older kids can still download and use it. Which band?
    - Why: brings strict rules (no third-party analytics or ads, a parental gate before purchases, links out and settings). Apple makes it hard to leave the category once approved; to verify in App Store Connect help before choosing.
 
 ## 2. Set by us (please confirm)
 
-1. **Link domain:** `auramath.net` for universal links (iOS) and App Links (Android), used by email sign-in links and the parent note.
-2. **Content pack signing:** the backend holds the private key; the app ships with the public key and room for a second key so it can be rotated.
+1. **Link domain:** pending; you'll share it once it's final. It's used for links that open the app (from the parent email). Placeholder `auramath.net` until then.
+2. **Content pack signing:** problems, coach lines and hints come down from the backend as "packs". The backend signs each pack with a secret key, and the app checks that signature with a matching public key built into the app. If anyone tampers with a pack on the way, the app refuses it, so a child never sees wrong or injected content. Nothing to buy; the backend team makes the key pair once. The app has room for a second key so the key can be changed later.
 3. **Minimum OS versions:** iOS 16 and Android 8.0 (API 26).
-4. **Devices at first release:** iPhone only. Screens are built adaptive so iPad is a layout task later. Once a version ships with iPad support, later versions cannot drop it.
+   - iOS 16 runs on iPhone 8 / X and newer (2017 on). Roughly 95% or more of iPhones in use.
+   - Android 8 runs on most phones from 2017 on. Roughly 95% or more of Android phones in use.
+   - Both are approximate, from Apple's and Google's published version-share figures; we'll take the exact numbers from those pages before submitting.
+4. **Devices at first release:** confirmed: iPhone only, built so iPad is easy to switch on later. Screens are adaptive, so iPad is a layout and testing task, not a rewrite. Once a version ships with iPad support, later versions can't drop it.
 
 ## 3. Needed before external TestFlight or App Store
 
@@ -54,6 +59,8 @@ Each item gives the default the mobile app will be built with if no one objects,
 - This repo holds the mobile app and the Dart teaching engine (`packages/auramath_engine`). The backend lives in its own repo and pulls the engine at a tagged version.
 - App name is "Auramath" for now; it can change later.
 - Language is English only for now.
+- Parent sign-in is Google and Apple (SSO). Apple requires Sign in with Apple whenever Google sign-in is offered, so having both is correct. The backend currently has email and password only, so it needs to add both.
+- Event format (app ↔ backend): each tap a child makes in a lesson is saved on the phone as a small record (order number, time, what happened) and sent to the backend later. The two sides must agree on its shape; that's an engineering detail between the app and backend teams, not a stakeholder call. The app already sends the backend's current shape.
 
 ## 6. Easy to change later (no sign-off needed)
 

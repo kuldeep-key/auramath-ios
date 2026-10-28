@@ -7,13 +7,17 @@
 - All 12 plan tasks done. `flutter test`: 54 pass. `dart test` (engine): 73 pass. `flutter analyze`: clean.
 - The lemon-tree lesson plays end to end from Home by taps, offline, and every tap is saved and synced in order (against a fake backend).
 - A fresh reviewer read the whole branch. Its 2 Critical and 3 Important findings: 4 fixed with tests, 1 deferred (below).
-- **Not checked on a device.** Xcode is not installed, so no iOS build or simulator. The Android "Pixel" emulator stays locked after boot and launches no sideloaded app (an untouched Flutter template fails the same way). The Android APK builds and is correct.
+- **Checked on Android (28 Oct).** The whole lemon lesson plays on the "Latest_device" emulator (Pixel 7 Pro, Android 15), from Home to the badge. The old "Pixel" emulator (16 KB page image) is broken; don't use it. That check found 4 bugs, each fixed with a test first:
+  - the coach bubble stayed on "Drag a bar up here." for the whole lesson; every board step now says its own line (prototype STEPLINE);
+  - "I know it" / "Help me" shrank to their text; they now fill their half;
+  - the "Case cracked!" background only covered part of the screen;
+  - the Taller / Shorter chips (not in Figma) are now drawn as tray pieces with a small bar picture, so a child who can't read yet still gets them; they're 56pt tall.
+- **iOS still not checked.** Xcode isn't installed.
 
 ## Needed from you before the next step
 
-1. **Install Xcode** (App Store), then `sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer` and `sudo xcodebuild -runFirstLaunch`. Needed for any iOS build, simulator run, or TestFlight.
-2. **Or fix the Android emulator**: wipe the "Pixel" AVD's data in Android Studio's Device Manager, or create a new one, then `flutter run --dart-define-from-file=env/dev.json`.
-3. **A designer look** at the Taller / Shorter chips in the tray (the tap alternative for sizing bar B). Figma has no design for them.
+1. **Install Xcode:** click Get on the App Store page (already opened), or run `! sudo mas get 497799835`. Then `sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer` and `sudo xcodebuild -runFirstLaunch`. These need your Mac password, so I can't run them for you.
+2. **Designer sign-off** on the Taller / Shorter chips, which use our own design.
 
 ## Calls made during the build
 
