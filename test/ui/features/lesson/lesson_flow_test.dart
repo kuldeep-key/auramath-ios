@@ -79,6 +79,12 @@ void main() {
     );
     expect(tester.getSize(bg.first).width, 1000);
     tester.view.physicalSize = const Size(390, 844);
+    // under a notch the celebration still runs to the top edge
+    tester.view.padding = const FakeViewPadding(top: 47);
+    await tester.pump();
+    expect(tester.getTopLeft(bg.first).dy, 0);
+    expect(tester.getTopLeft(find.text('Next')).dy, greaterThan(47));
+    tester.view.resetPadding();
     await tester.pump();
     await tap(find.text('Next'));
     expect(find.text('Tree Detective'), findsOneWidget);

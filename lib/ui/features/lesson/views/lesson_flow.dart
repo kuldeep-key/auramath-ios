@@ -27,18 +27,20 @@ class LessonFlow extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: vm,
     builder: (context, _) => Scaffold(
-      body: SafeArea(
-        child: switch (vm.state.step) {
-          LessonStep.question => QuestionView(
-            key: ValueKey(vm.sessionId),
-            vm: vm,
-            onHome: onHome,
-          ),
-          LessonStep.sideLesson => SideLessonView(vm: vm, onHome: onHome),
-          LessonStep.solved => SolvedView(vm: vm, onFinished: onFinished),
-          _ => BoardView(vm: vm, onHome: onHome),
-        },
-      ),
+      // the celebration paints edge to edge and keeps its own safe area
+      body: vm.state.step == LessonStep.solved
+          ? SolvedView(vm: vm, onFinished: onFinished)
+          : SafeArea(
+              child: switch (vm.state.step) {
+                LessonStep.question => QuestionView(
+                  key: ValueKey(vm.sessionId),
+                  vm: vm,
+                  onHome: onHome,
+                ),
+                LessonStep.sideLesson => SideLessonView(vm: vm, onHome: onHome),
+                _ => BoardView(vm: vm, onHome: onHome),
+              },
+            ),
     ),
   );
 }
