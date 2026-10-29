@@ -322,6 +322,66 @@ abstract class AppLocalizations {
   /// **'Take a break?'**
   String get takeABreak;
 
+  /// No description provided for @exampleFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Building A is {a} m. B is {d} m {relation}.'**
+  String exampleFacts(int a, int d, String relation);
+
+  /// No description provided for @exampleA.
+  ///
+  /// In en, this message translates to:
+  /// **'Building A is {a} metres tall.'**
+  String exampleA(int a);
+
+  /// No description provided for @exampleB.
+  ///
+  /// In en, this message translates to:
+  /// **'Building B is {d} metres {relation}.'**
+  String exampleB(int d, String relation);
+
+  /// No description provided for @exampleTake.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} take away {d} is {b}.'**
+  String exampleTake(int a, int d, int b);
+
+  /// No description provided for @exampleAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} add {d} is {b}.'**
+  String exampleAdd(int a, int d, int b);
+
+  /// No description provided for @exampleTogether.
+  ///
+  /// In en, this message translates to:
+  /// **'Together: {a} + {b} = {total} metres.'**
+  String exampleTogether(int a, int b, int total);
+
+  /// No description provided for @exampleShorter.
+  ///
+  /// In en, this message translates to:
+  /// **'shorter'**
+  String get exampleShorter;
+
+  /// No description provided for @exampleTaller.
+  ///
+  /// In en, this message translates to:
+  /// **'taller'**
+  String get exampleTaller;
+
+  /// No description provided for @exampleAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Again'**
+  String get exampleAgain;
+
+  /// No description provided for @exampleNowYouTry.
+  ///
+  /// In en, this message translates to:
+  /// **'Now you try'**
+  String get exampleNowYouTry;
+
   /// No description provided for @lessonHundreds.
   ///
   /// In en, this message translates to:

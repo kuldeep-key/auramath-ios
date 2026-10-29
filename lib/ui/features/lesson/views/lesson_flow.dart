@@ -7,6 +7,7 @@ import 'break_views.dart';
 import 'question_view.dart';
 import 'side_lesson_view.dart';
 import 'solved_view.dart';
+import 'worked_example_view.dart';
 
 /// One lesson, start to finish: picks the screen for the engine's step.
 /// Figma: M0, M1, D1–D6, H0, T1, S1/S2, J17, Y2, Y3, M1-pause, TU.
@@ -58,18 +59,20 @@ class LessonFlow extends StatelessWidget {
             : Stack(
                 children: [
                   SafeArea(
-                    child: switch (vm.state.step) {
-                      LessonStep.question => QuestionView(
-                        key: ValueKey(vm.sessionId),
-                        vm: vm,
-                        onHome: vm.askBreak,
-                      ),
-                      LessonStep.sideLesson => SideLessonView(
-                        vm: vm,
-                        onHome: vm.askBreak,
-                      ),
-                      _ => BoardView(vm: vm, onHome: vm.askBreak),
-                    },
+                    child: vm.showingExample
+                        ? WorkedExampleView(vm: vm, onHome: vm.askBreak)
+                        : switch (vm.state.step) {
+                            LessonStep.question => QuestionView(
+                              key: ValueKey(vm.sessionId),
+                              vm: vm,
+                              onHome: vm.askBreak,
+                            ),
+                            LessonStep.sideLesson => SideLessonView(
+                              vm: vm,
+                              onHome: vm.askBreak,
+                            ),
+                            _ => BoardView(vm: vm, onHome: vm.askBreak),
+                          },
                   ),
                   if (!vm.online)
                     LostInternetPause(

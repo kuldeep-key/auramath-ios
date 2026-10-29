@@ -132,6 +132,15 @@ class LessonViewModel extends ChangeNotifier {
   /// Home was tapped mid-lesson: ask "Take a break?" first.
   bool askingBreak = false;
 
+  /// "Show me how" was chosen: the worked example covers the board until
+  /// "Now you try" (Figma H2, H2-1 to H2-3).
+  bool showingExample = false;
+
+  void closeExample() {
+    showingExample = false;
+    notifyListeners();
+  }
+
   /// Rebuilds the lesson from its saved events: replayed through the engine,
   /// never from a snapshot.
   Future<void> restore() async {
@@ -247,6 +256,7 @@ class LessonViewModel extends ChangeNotifier {
       readingMs: (_startedAt ?? now) - _shownAt,
     ));
     if (input is Started) _startedAt = now;
+    if (input is ShowMeHowTaken) showingExample = true;
     if (input is! QuietFor) {
       _lastMoveMs = now;
       glowPiece = showHand = stillThere = false;

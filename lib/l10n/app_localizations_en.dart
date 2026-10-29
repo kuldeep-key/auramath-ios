@@ -127,6 +127,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get takeABreak => 'Take a break?';
 
   @override
+  String exampleFacts(int a, int d, String relation) {
+    return 'Building A is $a m. B is $d m $relation.';
+  }
+
+  @override
+  String exampleA(int a) {
+    return 'Building A is $a metres tall.';
+  }
+
+  @override
+  String exampleB(int d, String relation) {
+    return 'Building B is $d metres $relation.';
+  }
+
+  @override
+  String exampleTake(int a, int d, int b) {
+    return '$a take away $d is $b.';
+  }
+
+  @override
+  String exampleAdd(int a, int d, int b) {
+    return '$a add $d is $b.';
+  }
+
+  @override
+  String exampleTogether(int a, int b, int total) {
+    return 'Together: $a + $b = $total metres.';
+  }
+
+  @override
+  String get exampleShorter => 'shorter';
+
+  @override
+  String get exampleTaller => 'taller';
+
+  @override
+  String get exampleAgain => 'Again';
+
+  @override
+  String get exampleNowYouTry => 'Now you try';
+
+  @override
   String get lessonHundreds => 'Hundreds';
 
   @override
