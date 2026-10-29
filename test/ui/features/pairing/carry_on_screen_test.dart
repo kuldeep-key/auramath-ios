@@ -29,6 +29,6 @@ void main() {
     await tester.pumpWidget(shotApp(const CarryOnScreen()));
     await tester.tap(find.text('Carry on here'));
     await tester.pumpAndSettle();
-    expect(find.text('went to ${Paths.lessonNext}'), findsOneWidget);
+    expect(find.text('went to ${Paths.lessonCarryOnHere}'), findsOneWidget);
   });
 }

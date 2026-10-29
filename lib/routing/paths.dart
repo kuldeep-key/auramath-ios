@@ -61,6 +61,10 @@ abstract final class Paths {
   /// Keep going: the lesson route opens the unfinished case (this phone's
   /// or the server's) or the next one the engine chose.
   static const lessonNext = '/lesson';
+
+  /// "Carry on here" on OtherPhone: resume the case from the other phone
+  /// without asking again.
+  static const lessonCarryOnHere = '/lesson?here=1';
   static String lesson(String problemId) => '/lesson/$problemId';
   static String badge(String id) => '/badges/$id'; // B2 651:2
   static String afterCaseNext(String next) => '$afterCase?next=$next';

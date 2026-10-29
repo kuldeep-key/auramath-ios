@@ -27,7 +27,7 @@ class CarryOnScreen extends StatelessWidget {
       buttons: [
         AuraButton(
           label: l.pairCarryOnHere,
-          onPressed: () => context.go(Paths.lessonNext),
+          onPressed: () => context.go(Paths.lessonCarryOnHere),
         ),
       ],
     );
