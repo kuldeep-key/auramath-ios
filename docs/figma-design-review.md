@@ -1,4 +1,4 @@
-# Figma issues found while building the screens
+# Figma design review: findings from building the screens
 
 29 Oct 2026 · Figma file "Auramath", page "Screens · Prototype copy (27 Oct)" (629:2) · for Apoorv (design) and Ashutosh (product).
 

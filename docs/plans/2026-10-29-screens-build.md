@@ -109,7 +109,7 @@ Figma file "Auramath", page **Screens · Prototype copy (27 Oct)** (629:2). Each
   - `integration_test/setup_to_lesson_test.dart`: a grown-up sets up with an emailed link, gives consent, the child is saved, a passcode is set, the phone is handed over, and the lesson's events reach the server.
   - `integration_test/pair_to_lesson_test.dart`: a child's phone pairs with a 6-digit code, and its lesson reaches the server.
 
-**Figma issues:** `docs/figma-issues.md`.
+**Figma design review:** `docs/figma-design-review.md`.
 
 **Still open:**
 - **Keys:** Google and Apple sign-in are coded but untested until the client ids and the Apple developer account exist.
