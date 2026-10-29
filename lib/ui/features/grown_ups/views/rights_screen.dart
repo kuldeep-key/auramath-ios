@@ -128,7 +128,13 @@ class _RightsScreenState extends State<RightsScreen> {
                 for (final s in stored)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text('•  $s', style: AuraText.small),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('•  ', style: AuraText.small),
+                        Expanded(child: Text(s, style: AuraText.small)),
+                      ],
+                    ),
                   ),
               ],
             ),
