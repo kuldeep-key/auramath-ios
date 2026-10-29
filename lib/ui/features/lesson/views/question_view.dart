@@ -97,7 +97,7 @@ class _QuestionViewState extends State<QuestionView> {
         ..add(
           TextSpan(
             text: m[0],
-            style: TextStyle(color: names[m[0]]),
+            style: AuraText.storyName.copyWith(color: names[m[0]]),
           ),
         );
       at = m.end;

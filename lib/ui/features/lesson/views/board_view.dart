@@ -117,10 +117,7 @@ class _BoardViewState extends State<BoardView> {
             TextButton.icon(
               onPressed: _help,
               icon: const Icon(Icons.support_rounded),
-              label: Text(
-                l.helpMe,
-                style: AuraText.chip.copyWith(fontSize: 18),
-              ),
+              label: Text(l.helpMe, style: AuraText.link),
             ),
           ],
         );

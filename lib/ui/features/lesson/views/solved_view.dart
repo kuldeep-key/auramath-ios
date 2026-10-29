@@ -27,7 +27,6 @@ class _SolvedViewState extends State<SolvedView> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final badge = widget.vm.badge;
-    final white = AuraText.title.copyWith(color: AuraColors.white);
     return Container(
       width: double.infinity,
       decoration: auraPlayBackground,
@@ -42,7 +41,11 @@ class _SolvedViewState extends State<SolvedView> {
                 const SizedBox(height: 24),
                 const Portrait(size: 200),
                 const SizedBox(height: 24),
-                Text(l.youSolvedIt, style: white, textAlign: TextAlign.center),
+                Text(
+                  l.youSolvedIt,
+                  style: AuraText.cheer,
+                  textAlign: TextAlign.center,
+                ),
               ] else ...[
                 Ribbon(text: l.newBadge),
                 const SizedBox(height: 24),
@@ -66,11 +69,14 @@ class _SolvedViewState extends State<SolvedView> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text(badge?.name ?? '', style: white),
+                Text(
+                  badge?.name ?? '',
+                  style: AuraText.playTitle.copyWith(color: AuraColors.white),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   badge?.says ?? '',
-                  style: AuraText.body.copyWith(color: AuraColors.white),
+                  style: AuraText.play,
                   textAlign: TextAlign.center,
                 ),
               ],

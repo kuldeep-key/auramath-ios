@@ -22,13 +22,13 @@ class HelpSheet extends StatelessWidget {
       children: [
         const Portrait(size: 88),
         const SizedBox(height: 12),
-        Text(l.howCanIHelp, style: AuraText.title, textAlign: TextAlign.center),
-        const SizedBox(height: 8),
         Text(
-          l.pickOne,
-          style: AuraText.body.copyWith(color: AuraColors.mute),
+          l.howCanIHelp,
+          style: AuraText.sheetTitle,
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 8),
+        Text(l.pickOne, style: AuraText.sheetLine, textAlign: TextAlign.center),
         const SizedBox(height: 16),
         for (final (label, icon, input) in [
           (l.aHint, Icons.lightbulb_outline_rounded, const HintTaken()),

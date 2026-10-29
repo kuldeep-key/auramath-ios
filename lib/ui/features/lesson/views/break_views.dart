@@ -26,11 +26,15 @@ class BreakSheet extends StatelessWidget {
       children: [
         const Portrait(size: 88),
         const SizedBox(height: 12),
-        Text(l.takeABreak, style: AuraText.title, textAlign: TextAlign.center),
+        Text(
+          l.takeABreak,
+          style: AuraText.sheetTitle,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 8),
         Text(
           l.drawingSaved,
-          style: AuraText.body.copyWith(color: AuraColors.mute),
+          style: AuraText.sheetLine,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
@@ -78,10 +82,7 @@ class TimeUpView extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 l.timeUpBody,
-                style: AuraText.body.copyWith(
-                  color: AuraColors.white,
-                  fontSize: 20,
-                ),
+                style: AuraText.play,
                 textAlign: TextAlign.center,
               ),
               const Spacer(),
@@ -130,13 +131,13 @@ class LostInternetPause extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             l.lostInternet,
-            style: AuraText.title,
+            style: AuraText.sheetTitle,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
             l.lessonLostInternetBody,
-            style: AuraText.body.copyWith(color: AuraColors.mute),
+            style: AuraText.sheetLine,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -187,7 +188,7 @@ class NeedInternetView extends StatelessWidget {
           Text(
             detail ?? l.lessonNeedInternetBody,
             textAlign: TextAlign.center,
-            style: AuraText.body.copyWith(color: AuraColors.white),
+            style: AuraText.play,
           ),
         ],
       ),
