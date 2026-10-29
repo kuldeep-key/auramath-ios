@@ -1,113 +1,125 @@
-# Backend review: what we can connect now, what's missing, and Tuesday
+# Backend review and gaps: online-first
 
-29 Oct 2026. Mobile app is on branch `feat/app-base`. The backend is `auramath-backend`, branch `feature/initial-setup`, at commit `4740765`. There have been no new backend commits since 28 Oct, and `prod` is still the initial commit.
+29 Oct 2026 (updated). Mobile app is on branch `feat/app-base`. The backend is `auramath-backend`, branch `feature/initial-setup`, at commit `4740765`.
 
-**How this was checked:**
-- I read the backend's routes.
-- I ran the backend on this Mac (`make dev`, localhost:8080, dev mode, demo parent token).
+**Decision taken:** the app is online-first. A lesson needs an internet connection. Short drops are held and resent; a longer drop pauses the lesson, which then resumes where it stopped. See `docs/flag-online-lesson.md`.
+
+**Also decided:** the Google and Apple client ids come later. We build sign-in, setup and every screen end to end now, then switch the keys on when they arrive.
+
+## How this was checked
+
+- I read the backend's routes, then ran it on this Mac (`make dev`, localhost:8080, dev mode). The deployed addresses (`api.auramath.net`, `auramath.net`) don't answer, so there is no shared dev server yet.
 - I sent it real calls:
-  - created a session;
-  - posted the spec's 21-event example lesson;
-  - paired a phone with a 6-digit code;
-  - used the phone token to start a session;
-  - read the content bundle.
-- The deployed addresses (`api.auramath.net`, `auramath.net`) don't answer, so there is no shared dev server yet.
+  - created a session and posted the spec's 21-event example lesson: all 21 accepted;
+  - paired a phone with a 6-digit code, and the phone token started a session;
+  - the phone token reading the family's records was refused (403), as the spec says;
+  - created a parent with the operator token, then got an email sign-in link (dev shows the link in the response).
 
 ## 1. Summary
 
-- **We can connect the child's lesson to the backend now.** Sessions, events, pairing and resume all work. The local test accepted all 21 spec events.
-- **Two things block a clean connection:**
-  1. The server makes the session id.
-  2. The server fixes the child id (`child_ref`).
+- **Online-first fits the backend as it is.** The server already makes the session id and `child_ref` when a lesson starts. The earlier "accept a phone-made session id" gap is gone.
+- **We can build the whole loop now, with no Google or Apple keys.** In dev, a parent signs in with the email link (no mail service is needed, because dev shows the link). From there the parent can:
+  - give consent;
+  - add the child;
+  - make a pairing code.
 
-  So the app has to ask the server for a session before it sends events. Today the app makes its own ids, and the server rejected those events with "session_id: does not match the session in the URL".
-- **What the server builds from the events is wrong for our lesson.** Mastery, the level, spaced checks and the parent report all come from the old burger lesson. In the test, a solved lesson came back as "The taught problem was not completed." The events are stored, but they aren't read.
-- **Parent sign-in is built but can't be switched on yet.** Google needs a client id. Apple needs the Apple developer account. Email needs a mail service.
+  The child's phone pairs, the child does the lesson, the events land on the server, and the session ends.
+- **The biggest backend gap:** mastery, the level, spaced checks and the parent report still read the old burger lesson. In the test, a lesson the child solved came back as "not completed". This blocks a true parent note. It does not block app work.
+- **New gaps that online-first brings:**
+  - a live AI endpoint for the lesson;
+  - closing a lesson that never comes back online;
+  - the server telling the app the child's current level.
 
-## 2. What we can connect today
+## 2. What we can connect today (tested)
 
-| Backend feature | Route | Tested | Use in the app |
+| Backend feature | Route | Use in the app |
+| --- | --- | --- |
+| Start a session | `POST /api/sessions` → `id`, `childRef` | The lesson start. The app puts both in every event. No connection means no lesson. |
+| Send events | `POST /api/sessions/{id}/events` | Live, as the child taps. A repeat is ignored by `event_id`. Refused events come back with reasons, and the app must show them as errors. |
+| Resume, on any phone | `GET /api/sessions/resumable` | It returns the unfinished session's events, and the app replays them with its own engine. Ignore its `phase/step` hint, which comes from the burger lesson. |
+| Pair a phone | `POST /api/devices/pairing` (parent), `POST /api/devices/redeem` (phone) | GetCode and JoinCode screens. The phone token can start sessions and send events, but can't read the record. |
+| Phones list and remove | `GET /api/devices`, `DELETE /api/devices/{id}` | RemovePhone screen. |
+| Parent sign-in | `POST /api/auth/email-link` + `/verify` (works now); `/google`, `/apple` (return 501 until the keys come) | SignIn screen. All three return the same parent token, so only the button differs. |
+| Sign-in options | `GET /api/auth/config` | Shows only the sign-in buttons this server can use, so the keys switch on with no app change. |
+| Family setup | `POST/GET /api/children`, `POST /api/parent/consent`, `GET /api/parent/consents` | Data, AddChild and Who's learning screens. |
+| Grown-up area | `GET/PUT /api/family/passcode`, `POST /api/family/passcode/check`, `GET/PUT /api/family/settings/reports`, `GET /api/children/{id}/plan` | Lock, GPass, Settings and Plan screens. |
+| Privacy | `GET /api/parent/export`, `POST /api/parent/export-jobs`, `POST /api/parent/erase`, invites, members | Rights and Family screens. Delete the account; Apple requires this in the app. |
+| Health | `GET /api/health` | The connection check behind "Lost the internet". |
+
+## 3. Backend gaps, online-first
+
+| # | Gap | Why it matters | Must for v1 |
 | --- | --- | --- | --- |
-| Start a session | `POST /api/sessions` | Yes, 200; returns `id` and `childRef` | At lesson start. Put the returned id and `childRef` in every event. |
-| Send events | `POST /api/sessions/{id}/events` | Yes, 21 of 21 accepted | The outbox sync. A repeat send is ignored by `event_id`. Refused events come back with reasons, and the app must show them as errors, not drop them. |
-| Pair a phone | `POST /api/devices/pairing` (parent), `POST /api/devices/redeem` (phone) | Yes; code then phone token | Child-phone pairing screen. The phone token can start sessions and send events, but can't read the record (403, as the spec says). |
-| List and remove phones | `GET /api/devices`, `DELETE /api/devices/{id}` | Read only | The grown-up area, later. |
-| Resume on another phone | `GET /api/sessions/resumable` | Read only | It returns the unfinished session's events, which the app can replay with its own engine. Its "phase/step" hint comes from the burger machine, so ignore it. |
-| Health | `GET /api/health` | Yes | The "Lost the internet" check. |
-| Content values | `GET /api/content/bundle` | Yes; version hash `fc91fab64b01` | Optional: compare with the spec files bundled in the app. These are spec values, not problem packs. |
-| Parent sign-in | `POST /api/auth/google`, `/apple`, `/email-link` (+ `/verify`) | Config only | Returns a parent token. Today Google and Apple return 501 (not configured); the email link works in dev. |
-| Family setup | `POST/GET /api/children`, `POST /api/parent/consent`, `GET /api/parent/consents` | Read only | Parent setup: child profile and consent. |
-| Grown-up area | `GET/PUT /api/family/passcode`, `POST /api/family/passcode/check`, `GET/PUT /api/family/settings/reports`, `GET /api/children/{id}/plan` | Read only | Passcode gate, report email settings, the plan. |
-| Privacy | `GET /api/parent/export`, `POST /api/parent/export-jobs`, `POST /api/parent/erase`, invites and members | Read only | Export, delete the account, second grown-up. |
+| B1 | **Mastery, level, spaced checks and parent report read the new events.** They should use `step_committed` (`correct`, `error_type`), `hint_shown` and `problem_completed` (`outcome`, `wrong_count`, `hints_used`). Also, sessions shouldn't be fixed to `burger-drink`; the problem comes from `problem_shown`. | Every parent note would be wrong. "A parent gets a true note" is the 17 Nov goal. | Yes |
+| B2 | **The current level comes back at lesson start**, in the `POST /api/sessions` reply or from `/plan`, worked out from B1. | Online-first means one live profile, so every phone starts at the same level. The app then makes a problem at that level. | Yes |
+| B3 | **Close lessons that never come back.** Today a session ends only when a `session_ended` event arrives. A child who drops off and never returns leaves it open forever, so no report is sent. | It needs an idle timeout on the server, for example 30 minutes with no events. | Yes |
+| B4 | **A shared dev server with HTTPS** (a `*.run.app` address is enough), then a prod project in Australia. | iOS blocks plain `http://`. Without it, nothing runs on a real phone or in TestFlight. | Yes, soon |
+| B5 | **Live AI endpoint for the lesson**, with a time limit. The AI may evaluate a step or choose or word the help. Code still decides right and wrong. The model has to run in Australia, and only ids, steps and numbers go to it. `/api/utterance` is a start, but it only rewords lines and runs a stub model. | This is the reason for going online. It needs a model decision from Vishal; the Gemini API terms bar apps likely used by under-18s. | Agree scope |
+| B6 | **Switch the keys on:** the Google client ids and the Apple client id. Today the backend checks one Google client id, so mobile must request its token for that id, or the backend must accept the iOS and Android ids too. | Code is ready on both sides; only config remains. | Later, when the keys come |
+| B7 | **A mail service.** | The parent report is an email (PAR-01), and so is the email link. In dev it only logs. | Yes, before families |
+| B8 | **Email link must open the app.** The link goes to `/parent#m=…` on the web. Mobile needs a Universal Link / App Link, which needs the Apple team id and a hosted file. Or the backend sends a 6-digit code instead of a link. | Without it, email sign-in works only in dev. | Yes, or use the code option |
+| B9 | **An endpoint for app errors** (DAT-08). | The app needs somewhere to report its own errors. | Yes |
+| B10 | **Real-family sign-off** (`ALLOW_REAL_ACCOUNTS`, after the legal review). | The five families can't be created without it. | Yes (a decision) |
+| B11 | **Update the spec pack and PRD:** SES-04, TUT-01 / D-26 and NFR-05 change with online-first. Today the backend enforces `model_rewording: false`. | So the backend's checks and the spec agree. | Yes (paperwork) |
 
-**Small things to agree with the backend:**
-
-- **`device_id`.** The contract wants `dv_` plus 8–32 letters or digits. Pairing returns a UUID. Suggestion: the app sends `dv_` plus the UUID with its dashes removed, the same rule the server uses for `child_ref`.
-- **Google sign-in client id.** The backend checks one Google client id. Mobile sign-in has to request its token for that same id, or the backend must accept the iOS and Android client ids too.
-- **Phones need HTTPS.** iOS blocks plain `http://` except on localhost. A shared dev server needs HTTPS (a `*.run.app` address is enough).
-
-## 3. What the backend is missing for the first version
-
-| # | Missing | Why it matters | Size |
-| --- | --- | --- | --- |
-| B1 | **Accept a session id made by the phone.** `POST /api/sessions` should take an `id`. | The child can start a lesson offline (the spec). Without this, the app must be online at the start of every lesson. | Small (a few lines) |
-| B2 | **Mastery, level, spaced checks and parent report read the new events.** They should use `step_committed` (`correct`, `error_type`), `hint_shown` and `problem_completed` (`outcome`, `wrong_count`, `hints_used`). | Without this, every parent note is wrong or empty. "A parent gets a true note" is the 17 Nov goal. | Medium |
-| B3 | **Sessions shouldn't be fixed to `burger-drink`.** The problem comes from `problem_shown`. | Reports and the plan would name the wrong problem. | Small, with B2 |
-| B4 | **A shared dev server phones can reach**, over HTTPS; then a prod project in Australia. | Without it, nothing runs on a real phone, TestFlight included. | Infra |
-| B5 | **Sign-in switched on:** Google client ids (web, iOS, Android) and the Apple client id. | Parents can't sign up in the app. Apple needs the developer account (Julia meeting). | Config, once accounts exist |
-| B6 | **A mail service.** | The parent report is an email (PAR-01), and so is email sign-in. Today mail only logs to the console. | Small + a provider decision |
-| B7 | **Real-family sign-off** (`ALLOW_REAL_ACCOUNTS`, after the legal review). | The five families at home can't be created without it. | Decision, not code |
-| B8 | **An endpoint for app errors** (DAT-08). | The app needs somewhere to report its own errors. Only an analytics read exists today. | Small |
-
-**Can wait until after the first version:**
-- signed content packs, the story pipeline and recorded audio;
+**Can wait:**
+- signed content packs, the story pipeline and recorded audio. Online-first lets the server serve problems later; the phone makes them from Julia's template for now;
 - retiring the Python lesson machine (`core/`) and the old web routes;
 - three DB schemas, Pub/Sub, a separate note worker.
 
-Content packs can wait only if product accepts that the phone makes the problems from Julia's template. The app already does this for all 5 levels.
+## 4. App gaps, online-first
 
-## 4. What the app is missing for the first version
-
-**Done since the 28 Oct delta:**
-- spec event format;
-- Julia's template with 5 levels and generated problems;
+**Already built:**
+- the lesson with Julia's template, 5 levels and generated problems;
+- the spec event format;
 - the 30-minute cap and taking a break;
-- resume;
-- the "Lost the internet" notice.
+- resume by replay;
+- the outbox, which becomes the short-drop buffer;
+- the theme and parts from Figma.
 
-| # | Missing | Needs from backend |
+| # | Work | Change from offline-first | Backend dependency |
+| --- | --- | --- | --- |
+| A1 | **Real HTTP client** in place of `FakeApi`. Every failure becomes `ApiException`, and refused events are shown, not dropped. | — | None |
+| A2 | **Session from the server.** Start a lesson with `POST /api/sessions`, then use its `id` and `childRef`. If there's no connection, show a "We need the internet to start" screen with a retry. | Changed: no more phone-made session ids. | None |
+| A3 | **Connection handling.** Send taps as they happen, hold and resend during a short drop, and pause the lesson after a longer one ("Lost the internet. Your work is saved."). Carry on exactly where it stopped. | Changed: today the notice doesn't block the lesson; it must pause it. | None |
+| A4 | **Resume from the server,** on the same phone or another, with "carry on?". | Changed: the server's log is the source, not the phone's. | None |
+| A5 | **Level from the server.** Read the level at lesson start, and make the problem at it. "Something easier" means one level down. | Changed: the phone no longer keeps its own score. | B2 (until then, a fixed level) |
+| A6 | **AI moments seam.** Ask the server, with a time limit; if it's late or fails, show the code's own line. | New | B5 |
+| A7 | **Parent setup.** Sign in (Apple, Google and email buttons, shown from `/api/auth/config`), consent, child profile, "please don't help", make the pairing code. Uses the SignIn, Data, AddChild, Who's learning and GetCode screens. | — | B6 for Apple and Google; the email link works now |
+| A8 | **Child phone.** JoinCode screen; keep the token in the Keychain or Keystore; hand the parent's phone to the child. | — | None |
+| A9 | **Grown-up area.** Lock, GPass, PHome, Book, Plan, Settings, Rights, Family, RemovePhone and SignOut, including delete account and export. | — | B1 for true Book and Plan content |
+| A10 | **Release.** App icon and splash, prod settings, TestFlight and Play internal testing. | — | B4, developer accounts |
+| A11 | **Accessibility pass** (WCAG 2.2 AA), read-aloud with the device voice, error reporting. | — | B9 for error reporting |
+
+## 5. Blockers
+
+**Nothing blocks the end-to-end build.** Every screen and call above can be built and tested now, against the backend on this Mac, on the Android emulator and iPhone simulator.
+
+**What blocks parts of it:**
+
+| Blocker | What it holds up | Owner |
 | --- | --- | --- |
-| A1 | **Real HTTP client** in place of `FakeApi`. Every failure becomes `ApiException`, and refused events are shown, not dropped. | None, works today |
-| A2 | **Session handshake:** ask the server for a session, then use its `id` and `childRef`. | Works today (B1 makes offline start possible) |
-| A3 | **Child phone pairing:** enter the 6-digit code; keep the phone token in the Keychain. | Works today |
-| A4 | **Level progression:** a hidden score per skill, move up or down, choose the next problem. This is how difficulty rises with performance. | None (the phone decides) |
-| A5 | **Parent setup:** sign in with Apple or Google, consent, child profile, "please don't help", make a pairing code. | B5 |
-| A6 | **Grown-up area:** passcode, report settings, remove a phone, delete the account. Apple requires in-app account deletion for App Store release. | Works today |
-| A7 | **Release:** app icon and splash (Apoorv), TestFlight and Play internal testing, prod settings. | B4, developer accounts |
-| A8 | **Accessibility pass** (WCAG 2.2 AA) and read-aloud with the device voice. The voice works; recorded clips can wait. | None |
+| **No shared dev server with HTTPS** (B4) | Running on real phones and TestFlight. Dev work is not held up. | Backend (Kuldeep) |
+| **Reports and levels still read the burger lesson** (B1, B2) | A true parent note and server-held levels. The app builds against the routes and shows real data once they're fixed. | Backend |
+| **AI model choice and terms** (B5) | The AI moments only. The app ships the seam with the code's fallback line. | Vishal |
+| **Apple developer account** | Sign in with Apple testing, Universal Links (B8) and TestFlight. Code isn't held up. | Julia meeting |
+| **Google client ids** | Google sign-in testing only. | Backend / accounts |
+| **Design** | Figma has every parent screen. Still needed: the "Lost the internet" **pause** state (the spec sent to Apoorv says it must not block, which is now wrong), a "need the internet to start" screen, the official Apple and Google buttons, the updated Time's up screen, the app icon and splash. We build with placeholders until they arrive. | Apoorv |
 
-## 5. Tuesday 3 Nov
+## 6. Tuesday 3 Nov
 
-None of our docs say what Tuesday's delivery is. Below is my proposal; please confirm or correct the scope.
+**Proposed goal:** the lesson works online, end to end, against the backend:
+1. A parent signs in with the email link (dev), gives consent, adds the child and gets a 6-digit code.
+2. The child's phone pairs with that code.
+3. The child does the lesson. Every tap reaches the server live; a dropped connection pauses the lesson, and it resumes where it stopped.
+4. Apple and Google buttons are in place and switch on when the keys come.
 
-**Proposed Tuesday goal:** a child does the lesson on a phone. Every tap reaches the dev backend and is stored, and the phone is paired with a 6-digit code. There is no parent sign-in yet; a dev parent token makes the code.
+**From us:** A1, A2, A3, A4, A7 (email path), A8, and the SignIn, Data, AddChild, GetCode and JoinCode screens. All of it is checked on the Android emulator and the iPhone simulator.
 
-**Required from us (app):**
-1. A1: real HTTP client, base URL from the env file.
-2. A2: session handshake. If the phone is offline at the start, the lesson still runs, and the session is created and the events sent when it's back online.
-3. A3: pairing screen and token storage. `device_id` uses the `dv_` rule above.
-4. A check, run on both the Android emulator and the iPhone simulator, against the backend, that the lesson's events show up on the server.
-
-**Required from the backend team:**
-1. B1, or agree to the online-start fallback in step 2 above.
-2. B4: a dev URL with HTTPS for real phones. Without it, Tuesday is emulator and simulator only, against a backend on this Mac.
-3. Agree the `device_id` format.
-4. A way to make a pairing code in dev. The dev parent token works today.
+**From the backend team, if possible by Tuesday:** a dev URL with HTTPS (B4), so it runs on a real phone too. Without it, Tuesday is emulator and simulator only.
 
 **Not in Tuesday:**
-- parent sign-in, which needs the Google and Apple accounts;
-- parent reports from the new events (B2);
-- level progression (A4);
-- content packs.
-
-**Open decision that changes this:** product's reply on running the lesson online (`docs/flag-online-lesson.md`). If the lesson is online, B1 matters less, and the session handshake gets simpler.
+- true parent reports and levels from the server (B1, B2);
+- AI moments (B5);
+- the grown-up area beyond setup (A9);
+- TestFlight.
