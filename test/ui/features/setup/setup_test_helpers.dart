@@ -1,4 +1,5 @@
 import 'package:auramath/deps.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -52,6 +53,14 @@ Future<void> precacheAssets(WidgetTester tester, List<String> assets) async {
     ]),
   );
 }
+
+/// Apple's and Google's buttons ask for the iPhone's system font, which a
+/// test doesn't have: Nunito stands in so the shots are readable.
+Future<void> loadSystemFontStandIn(WidgetTester tester) => tester.runAsync(
+  () => (FontLoader(
+    '.SF Pro Text',
+  )..addFont(rootBundle.load('assets/fonts/Nunito-Variable.ttf'))).load(),
+);
 
 /// The routes [FakeServer] was called on, in order.
 List<String> called(FakeServer server) => [for (final (r, _) in server.calls) r];
