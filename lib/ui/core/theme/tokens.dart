@@ -24,6 +24,23 @@ abstract final class AuraColors {
   static const keyShadow = Color(0xFF898A8D);
   static const keyText = Color(0xFF111111);
 
+  /// The Button component (265:25562): each colour's gradient, top to
+  /// bottom, and the yellow button's label.
+  static const yellowTop = Color(0xFFFFE45C);
+  static const yellowBottom = Color(0xFFFFB000);
+  static const buttonYellowText = Color(0xFF3A2600);
+  static const blueTop = Color(0xFF4A86FF);
+  static const whiteBottom = Color(0xFFE3E9F7);
+
+  /// The dark band inside a button's bottom edge (black at 18 %).
+  static const buttonInnerShade = Color(0x2E000000);
+
+  /// A disabled button.
+  static const buttonOffTop = Color(0xFFEEF1F6);
+  static const buttonOffBottom = Color(0xFFDDE2EC);
+  static const buttonOffEdge = Color(0xFF9AA3B8);
+  static const buttonOffText = Color(0xFF5D6275);
+
   /// The empty part of a progress bar.
   static const track = Color(0xFFE7EAF2);
 
