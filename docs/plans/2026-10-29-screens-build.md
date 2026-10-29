@@ -88,3 +88,32 @@ Figma file "Auramath", page **Screens · Prototype copy (27 Oct)** (629:2). Each
 3. **Figma issues:** missing states (loading, error, empty), standard-practice gaps (platform guidelines, accessibility, copy rules), and anything not designed that you had to invent.
 4. **Anything not built, and why.**
 5. **Changes you need** in files that aren't yours.
+
+## Done 29 Oct
+
+**Built.** About 60 screens are built, every one checked against its Figma frame at iPhone 15, SE, Pro Max and iPad sizes (screenshots in `build/shots/`), and each with behaviour tests:
+- setup and sign-in (G1);
+- the child's phone and the picker (G2);
+- the grown-up area (G3);
+- the child's screens around the lesson (G4);
+- the online-first lesson:
+  - the server opens each session;
+  - the lesson pauses while offline;
+  - resume works across phones;
+  - an interactive side lesson (T1);
+  - "Show me how" (H2).
+
+**Checks:**
+- `flutter analyze` is clean, and all unit and widget tests pass.
+- **End to end against the dev backend, on the iPhone 15 and SE simulators:**
+  - `integration_test/setup_to_lesson_test.dart`: a grown-up sets up with an emailed link, gives consent, the child is saved, a passcode is set, the phone is handed over, and the lesson's events reach the server.
+  - `integration_test/pair_to_lesson_test.dart`: a child's phone pairs with a 6-digit code, and its lesson reaches the server.
+
+**Figma issues:** `docs/figma-issues.md`.
+
+**Still open:**
+- **Keys:** Google and Apple sign-in are coded but untested until the client ids and the Apple developer account exist.
+- **Emailed links:** a link doesn't open the app on a real phone yet. It needs a Universal Link (Apple team id) and a backend link format the app can open (gap B8). The dev servers return the link in the response, which the check-email screen uses.
+- **Generic simulator build:** `flutter build ios --simulator` with no device fails in Flutter's unpack step. Builds for a named simulator work.
+- **Lesson settings:** the grown-up's lesson settings (time each day, read aloud, number pad) are saved on the phone, but the lesson doesn't read them yet.
+- **Keypad:** `onCheck` returns an `int`, which drops leading zeros. The code and passcode screens read the typed string instead.
