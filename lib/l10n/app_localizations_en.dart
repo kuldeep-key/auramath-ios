@@ -153,4 +153,124 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lostInternet => 'Lost the internet. Your work is saved.';
+
+  @override
+  String get pairBrand => 'Auramath';
+
+  @override
+  String get pairWhosUsing => 'Hi! Who\'s using Auramath?';
+
+  @override
+  String get pairImAKid => 'I\'m a kid';
+
+  @override
+  String get pairImAGrownUp => 'I\'m a grown-up';
+
+  @override
+  String get pairHaveAccount => 'I already have an account';
+
+  @override
+  String get pairTypeCode => 'Type your code';
+
+  @override
+  String get pairCodeWhere => 'Your grown-up has it on their phone.';
+
+  @override
+  String get pairAskForNewCode =>
+      'Ask your grown-up to make a new code on their phone.';
+
+  @override
+  String get pairChecking => 'Checking your code';
+
+  @override
+  String get pairOffline =>
+      'Can\'t reach the internet. Check the Wi-Fi, then try again.';
+
+  @override
+  String pairFailed(String message) {
+    return 'That didn\'t work: $message';
+  }
+
+  @override
+  String get pairTryAgain => 'Try again';
+
+  @override
+  String get pairPhoneLabel => 'Child\'s phone';
+
+  @override
+  String get pairCodeWrong => 'That code didn\'t work';
+
+  @override
+  String get pairCodeWrongBody => 'Ask your grown-up for a new one.';
+
+  @override
+  String get pairTooMany => 'Too many tries';
+
+  @override
+  String get pairTooManyBody =>
+      'Wait a few minutes, then ask your grown-up for a new code.';
+
+  @override
+  String get pairNewCode => 'Grown-up: new code';
+
+  @override
+  String get pairWhichChild => 'Which child is this phone for?';
+
+  @override
+  String get pairNoChildren =>
+      'No children here yet. Ask your grown-up to add you on their phone.';
+
+  @override
+  String get pairIsThisYou => 'Is this you?';
+
+  @override
+  String get pairYesMe => 'Yes, that\'s me!';
+
+  @override
+  String get pairNo => 'No';
+
+  @override
+  String pairYoureIn(String name) {
+    return 'You\'re in, $name!';
+  }
+
+  @override
+  String get pairPhoneYours => 'This phone is yours for lessons now.';
+
+  @override
+  String get pairLetsGo => 'Let\'s go';
+
+  @override
+  String get pairRemoved => 'This phone was removed';
+
+  @override
+  String get pairRemovedBody =>
+      'Your progress is safe. Ask your grown-up for a new code.';
+
+  @override
+  String get pairWhosLearning => 'Who\'s learning today?';
+
+  @override
+  String get pairGrownUps => 'Grown-ups';
+
+  @override
+  String get pairNoKidsYet => 'No children yet. Add one to start learning.';
+
+  @override
+  String get pairAddChild => 'Add a child';
+
+  @override
+  String get pairCarryOn => 'Carry on here?';
+
+  @override
+  String pairStartedOn(String device) {
+    return 'You started this case on $device. It moved with you.';
+  }
+
+  @override
+  String get pairStartedElsewhere =>
+      'You started this case on another phone. It moved with you.';
+
+  @override
+  String get pairCarryOnHere => 'Carry on here';
 }
