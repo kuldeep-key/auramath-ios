@@ -1,0 +1,332 @@
+version: 0.3.0
+updated: 2026-10-09
+notes: >
+  Provisional. Lemon tree skills come from Julia's 28 Sep email as set out in the scoring
+  report (section 4), with prerequisite curriculum references from that report. The
+  number-sense skills come from Julia's 7 Oct "NSW curriculum - Numbers" document; she gave
+  no syllabus codes, so code is null until mapped. How the Numbers skills are used this term
+  was decided on 8 Oct (D-09): prerequisites, the starting check and stepping down; the full
+  Numbers topic is next term. The method is the Singapore model method; NSW Mathematics K-10
+  (2022) sets the progression, with Singapore primary levels alongside (PLAT-08, D-27).
+  Julia's 9 Oct review notes (NUM-1009) for the Numbers skills: younger children (4 to 7) practise first
+  and are tested only from time to time (applied to the starting check for ages 6 and 7, D-29); time how
+  long a skill takes to learn (can be worked out from the event log; not a requirement this term); activity text is written for the child, and the teacher's
+  notes on errors stay in their own field (observed_errors); errors seen in an activity can be taken up in
+  another session (for the Numbers topic, next term).
+age_defaults: {}   # superseded 8 Oct by the placement table in content/arithmetic.yaml (ACC-05, SKL-07)
+skills:
+  # ------------------------------------------------ question type 2: total and difference (CON-07; the burger and drink is one example)
+  - id: td.total-and-difference
+    name: Find two amounts from their total and their difference
+    kind: problem
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 2", code: MA2-AR-01, note: "to confirm with Dr Fong"}
+      - {framework: SG-MOE-Primary, stage: P3, note: "sum and difference model; level to confirm"}
+    prerequisites: [cmp.read-difference, cmp.name-quantities, arith.addsub-2d-regroup]
+    sources: [DP, DISC-0725, CALL-0921, PM-1008]
+  # ------------------------------------------------ question type 1: comparison (the lemon tree problem is one example)
+  - id: cmp.compare-bars
+    name: Compare two bars - which is taller, and by how much
+    kind: problem
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 2", code: MA2-AR-01, note: "bar models introduced in Stage 2"}
+      - {framework: SG-MOE-Primary, stage: P2, note: comparison model}
+    prerequisites: [cmp.read-relation, cmp.read-difference, cmp.name-quantities, cmp.choose-operation, cmp.number-sentence, arith.sub-3d-regroup, arith.add-3d-regroup]
+    sources: [EM-0928, SR-4]
+  - id: cmp.name-quantities
+    name: Name the number each bar stands for, and mark the unknown
+    kind: concept
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 2", code: MA2-AR-01}
+      - {framework: SG-MOE-Primary, stage: P2}
+    sources: [EM-0928, SR-4]
+  - id: cmp.choose-operation
+    name: Choose the operation for each of the two steps
+    kind: concept
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 2", code: MA2-AR-01}
+      - {framework: NSW-K10-2022, stage: "Stage 2", code: MA2-AR-02}
+      - {framework: SG-MOE-Primary, stage: P2, note: "word problems of up to two steps"}
+    sources: [EM-0928, SR-4]
+  - id: cmp.number-sentence
+    name: Write a number sentence for the unknown, for example 186 - 107 = box
+    kind: concept
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 2", code: MA2-AR-02}
+      - {framework: SG-MOE-Primary, stage: P2}
+    sources: [EM-0928, SR-4, ASK-J36]
+  - id: cmp.read-relation
+    name: Read a comparison statement (which one is taller)
+    kind: concept
+    status: provisional
+    sources: [SR-4]
+  - id: cmp.read-difference
+    name: "'Taller than' names a difference, not an amount"
+    kind: concept
+    status: provisional
+    sources: [SR-4, CALL-0921]
+  - id: cmp.inconsistent-wording
+    name: Comparison with inconsistent wording ('shorter' that needs adding)
+    kind: concept
+    status: provisional
+    prerequisites: [cmp.read-relation]
+    sources: [SR-4, ASK-J20]
+  - id: cmp.hold-reference
+    name: Hold one reference quantity through the problem
+    kind: concept
+    status: provisional
+    sources: [SR-4]
+  - id: prob.read-question
+    name: Answer what the question asks
+    kind: concept
+    status: provisional
+    sources: [SR-4]
+
+  # ------------------------------------------------ arithmetic underneath (scoring report section 4)
+  - id: arith.sub-3d-regroup
+    name: Three-digit subtraction with regrouping
+    kind: arithmetic
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 2", code: MA2-AR-01}
+      - {framework: SG-MOE-Primary, stage: P2}
+    prerequisites: [arith.addsub-2d-regroup, pv.place-value-1000]
+    number_range: {min: 100, max: 999}
+    sources: [SR-4, SR-5]
+  - id: arith.add-3d-regroup
+    name: Three-digit addition with regrouping
+    kind: arithmetic
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 2", code: MA2-AR-01}
+      - {framework: SG-MOE-Primary, stage: P2}
+    prerequisites: [arith.addsub-2d-regroup, pv.place-value-1000]
+    number_range: {min: 100, max: 999}
+    sources: [SR-4, SR-5]
+  - id: arith.addsub-2d
+    name: Two-digit adding and taking away without regrouping
+    kind: arithmetic
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 1", code: MA1-CSQ-01}
+      - {framework: SG-MOE-Primary, stage: P1}
+    prerequisites: [facts.to-20]
+    sources: [CALL-0921, PM-1008]
+  - id: arith.addsub-3d
+    name: Three-digit adding and taking away without regrouping
+    kind: arithmetic
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 2", code: MA2-AR-01, note: "to confirm with Dr Fong"}
+      - {framework: SG-MOE-Primary, stage: P2}
+    prerequisites: [arith.addsub-2d, pv.place-value-1000]
+    sources: [CALL-0921, PM-1008]
+  - id: arith.addsub-2d-regroup
+    name: Two-digit addition and subtraction with regrouping
+    kind: arithmetic
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 1 into Stage 2", code: MA1-CSQ-01}
+      - {framework: SG-MOE-Primary, stage: P1}
+    prerequisites: [facts.to-20]
+    remediation: ["take away across a ten with smaller numbers, then return to the problem"]
+    sources: [SR-4, ASK-J15]
+  - id: pv.place-value-1000
+    name: Place value to 1000, including renaming (186 is 17 tens and 16 ones)
+    kind: concept
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 1", code: MA1-RWN-01}
+      - {framework: NSW-K10-2022, stage: "Stage 1", code: MA1-RWN-02}
+      - {framework: SG-MOE-Primary, stage: P2}
+    activities:
+      - "Count back by tens (80, 70, 60...; 53, 43, 33...; 384, 374, 364...)"
+      - "Place value of a digit (5 in 512 is 500) versus its place (hundreds)"
+      - "Expanded form (512 = 500 + 10 + 2)"
+      - "Represent numbers with unit and tens cubes"
+    observed_errors: ["Mixes up place and place value"]
+    sources: [SR-4, NUM-1007]
+  - id: facts.to-20
+    name: Number facts to 20
+    kind: arithmetic
+    status: provisional
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Stage 1", code: MA1-CSQ-01}
+      - {framework: SG-MOE-Primary, stage: P1}
+    # Link to the number-sense skills below is for Julia and Dr Fong to set (D-09).
+    speed_signal: "Response speed separates counting strategies from instant number-bond recall (5 Oct call)."
+    sources: [SR-4, CALL-1005]
+
+  # ------------------------------------------------ number sense, NSW Early Stage 1 (Julia, 7 Oct)
+  - id: ns.subitise-5
+    name: Instantly name the number of objects by sight, up to 5
+    kind: number-sense
+    status: foundation-next
+    curriculum:
+      - {framework: NSW-K10-2022, stage: "Early Stage 1", code: null, note: "Representing whole numbers; code to map"}
+    prerequisites: [ns.count-to-5, ns.last-number-is-total]
+    number_range: {min: 1, max: 5}
+    activities:                 # Julia, 9 Oct: two activities are enough, dots on a cube and drag-and-drop counting
+      - "Drag items left to right and count as you drop"
+      - "Dots on a dice, fingers on hands, timed"
+      - "How many balls? Tap one of four numbers (Julia lists this under ns.last-number-is-total; kept here until the Numbers topic is designed)"
+    practice_first: true        # NUM-1009: repeated practice first, tests from time to time
+    observed_errors: ["miscounting", "over-counting or under-counting", "incorrect answers"]
+    speed_signal: "Speed differences could show which skill was used: subitising versus finger counting."
+    sources: [NUM-1007, NUM-1009]
+  - id: ns.count-to-5
+    name: Count up to 5 items with one-to-one correspondence
+    kind: number-sense
+    status: foundation-next
+    curriculum: [{framework: NSW-K10-2022, stage: "Early Stage 1", code: null}]
+    sources: [NUM-1007]
+  - id: ns.last-number-is-total
+    name: The last number counted is the total; write the numeral
+    kind: number-sense
+    status: foundation-next
+    curriculum: [{framework: NSW-K10-2022, stage: "Early Stage 1", code: null}]
+    activities:
+      - "Type the number in, or tap a number from four"
+      - "Count five cubes aloud (one, two, three, four, five), then choose or drag the numeral 5"   # NUM-1009
+    sources: [NUM-1007, NUM-1009]
+  - id: vocab.after-forward
+    name: The words "after" and "forward"
+    kind: vocabulary
+    status: foundation-next
+    note: '"After" is the next number; "forward" is several numbers on. Julia, 9 Oct: teach "after" as its own short drag-and-drop activity, before counting forward.'
+    sources: [NUM-1007, NUM-1009]
+  - id: vocab.before-backward
+    name: The words "before" and "backward"
+    kind: vocabulary
+    status: foundation-next
+    sources: [NUM-1007]
+  - id: ns.count-fwd-10
+    name: Count forward in sequence up to 10
+    kind: number-sense
+    status: foundation-next
+    curriculum: [{framework: NSW-K10-2022, stage: "Early Stage 1", code: null}]
+    prerequisites: [vocab.after-forward]
+    number_range: {min: 1, max: 10}
+    activities: ["Complete the sequence from a given number (5, _, _, _)", "Drag and drop or type the numbers in"]
+    remediation:
+      - "Show the digit and ask the child to draw or drag items"
+      - "Show a number line"
+      - "Break it down to one digit"
+      - "If the child is one step below (needing help or taking a long time), practise fingers and numbers"
+    observed_errors: ["Unable to identify the number 8 without running through a sequence"]
+    sources: [NUM-1007]
+  - id: ns.count-fwd-20
+    name: Count forward in sequence up to 20
+    kind: number-sense
+    status: foundation-next
+    curriculum: [{framework: NSW-K10-2022, stage: "Early Stage 1", code: null}]
+    prerequisites: [ns.count-fwd-10]
+    number_range: {min: 1, max: 20}
+    activities: ["As up to 10 with larger numbers; trickier items cross from one digit to two (8... 11)"]
+    sources: [NUM-1007]
+  - id: ns.count-fwd-30
+    name: Count forward in sequence up to 30
+    kind: number-sense
+    status: foundation-next
+    curriculum: [{framework: NSW-K10-2022, stage: "Early Stage 1", code: null}]
+    prerequisites: [ns.count-fwd-20]
+    number_range: {min: 1, max: 30}
+    sources: [NUM-1007]
+  - id: ns.count-back-10
+    name: Count backward in sequence from 10
+    kind: number-sense
+    status: foundation-next
+    curriculum: [{framework: NSW-K10-2022, stage: "Early Stage 1", code: null}]
+    prerequisites: [vocab.before-backward]
+    number_range: {min: 1, max: 10}
+    activities: ["Random drag-and-drop numbers", "Missing digits", "Fill the blanks on a number line, adding more gaps"]
+    remediation: ["Re-teach with a number line", "Sort numbers", "Side step to one digit before (_, 4, _)"]
+    sources: [NUM-1007]
+  - id: ns.count-back-20
+    name: Count backward in sequence from 20
+    kind: number-sense
+    status: foundation-next
+    curriculum: [{framework: NSW-K10-2022, stage: "Early Stage 1", code: null}]
+    prerequisites: [ns.count-back-10]
+    number_range: {min: 1, max: 20}
+    sources: [NUM-1007]
+  - id: ns.count-back-30
+    name: Count backward in sequence from 30
+    kind: number-sense
+    status: foundation-next
+    curriculum: [{framework: NSW-K10-2022, stage: "Early Stage 1", code: null}]
+    prerequisites: [ns.count-back-20]
+    number_range: {min: 1, max: 30}
+    activities: ["Which group of ten a number belongs to (12, 13, 19 in 10-19; 25, 28 in 20-29)"]
+    sources: [NUM-1007]
+
+error_types:                     # tutor_response describes the help; the lines shown, with their weight versions, are in tutor/policy.yaml
+  - id: difference_as_amount
+    description: Puts the difference on the unknown as its amount (107 on the fig tree), or answers 186 + 107
+    skill: cmp.read-difference
+    counts_as: wrong
+    side_lesson: on_repeat
+    tutor_response: "Hint H1·5: is the {b} {D} {unit} tall, or {D} {unit} {b_word} than the {a}?"
+    sources: [SR-4, CALL-0921]
+  - id: relation_reversed
+    description: Sizes the second bar the wrong way round (longer when it should be shorter, or the reverse); on the answer sheet, the unknown given as A + D (293 for 186/107 taller, Julia's 479)
+    skill: cmp.read-relation
+    counts_as: wrong
+    side_lesson: on_repeat
+    side_lesson_content: "Show me how (Building A and B). If time permits at M2+ (TUT-17, D-28): Julia's 'a longer bar represents a greater number' (3 and 5), then 3 stars and 5 stars"
+    tutor_response: "Hint: taller or shorter? (H1·4)"
+    sources: [SR-4, VIF-S8-1009, VIF-S9-1009]
+  - id: keyword_strategy
+    description: Subtracts on the 'shorter' version ('shorter means minus')
+    skill: cmp.inconsistent-wording
+    counts_as: wrong
+    side_lesson: on_repeat
+    tutor_response: "Hint: longer bar or shorter bar? (D4w)"
+    sources: [SR-4]
+  - id: operation_reversed
+    description: Picks adding when the story needs taking away on the taller version (Figma journey 15, "Picked plus instead of take away")
+    skill: cmp.choose-operation
+    counts_as: wrong
+    side_lesson: on_repeat
+    tutor_response: "Hint D4w: longer bar or shorter bar?"
+    sources: [FLOW-12-15, SR-4]
+  - id: sub_smaller_from_larger
+    description: Takes the smaller digit from the larger in a column (186 - 107 = 81)
+    skill: arith.sub-3d-regroup
+    counts_as: wrong
+    side_lesson: immediate
+    tutor_response: "Side lesson: take away across a ten (T1)"
+    sources: [SR-4, ASK-J15]
+  - id: carry_dropped
+    description: Drops one or more carries in addition (186 + 79 = 255, or 155 if both carries are dropped)
+    skill: arith.add-3d-regroup
+    counts_as: wrong
+    side_lesson: immediate
+    tutor_response: Side lesson on adding across a ten
+    sources: [SR-4]
+  - id: answered_wrong_question
+    description: Correct model, gives the unknown (79) instead of the total
+    skill: prob.read-question
+    counts_as: wrong
+    side_lesson: on_repeat
+    tutor_response: "Ask what the question wants"
+    sources: [SR-4]
+  - id: reference_changed
+    description: Starts from one quantity, then treats the other as the reference part-way through
+    skill: cmp.hold-reference
+    counts_as: wrong
+    side_lesson: on_repeat
+    detection_note: No detector yet; needs a rule on the drawing steps once the bar interactions are built (Kuldeep with Apoorv).
+    sources: [SR-4]
+  - id: transposition
+    description: Digits swapped in an entered answer (97 for 79), fixed on 'check again'
+    skill: null
+    counts_as: no_cost
+    side_lesson: none
+    tutor_response: "Check your sum again (J17)"
+    sources: [SR-4, ASK-J17]
