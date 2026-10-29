@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../theme/tokens.dart';
@@ -29,7 +30,13 @@ class AuraPage extends StatelessWidget {
   final double maxWidth;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => AnnotatedRegion<SystemUiOverlayStyle>(
+    // white clock and battery on the blue play background
+    value: play ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+    child: _scaffold(),
+  );
+
+  Widget _scaffold() => Scaffold(
     backgroundColor: play ? AuraColors.blueLip : AuraColors.white,
     body: DecoratedBox(
       decoration: play

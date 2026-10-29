@@ -32,9 +32,8 @@ List<RouteBase> pairingRoutes(Deps deps) => [
   GoRoute(
     path: Paths.pairIsThisYou,
     // `?id=<childId>&name=<name>`; without them, ask which child
-    redirect: (_, s) => s.uri.queryParameters['id'] == null
-        ? Paths.pairWhichChild
-        : null,
+    redirect: (_, s) =>
+        s.uri.queryParameters['id'] == null ? Paths.pairWhichChild : null,
     builder: (_, s) => IsThisYouScreen(
       account: deps.account,
       childId: s.uri.queryParameters['id']!,

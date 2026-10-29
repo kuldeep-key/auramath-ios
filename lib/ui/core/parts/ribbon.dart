@@ -13,8 +13,16 @@ class Ribbon extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
     decoration: BoxDecoration(
-      color: AuraColors.yellow,
-      borderRadius: BorderRadius.circular(AuraRadii.small),
+      // Figma: a gloss from light yellow, radius 12
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color.lerp(AuraColors.yellow, AuraColors.white, 0.3)!,
+          AuraColors.yellow,
+        ],
+      ),
+      borderRadius: BorderRadius.circular(12),
       border: Border.all(color: AuraColors.navy, width: 3),
       boxShadow: const [
         BoxShadow(color: AuraColors.navy, offset: Offset(0, 5)),
@@ -23,7 +31,7 @@ class Ribbon extends StatelessWidget {
     child: Text(
       text,
       textAlign: TextAlign.center,
-      style: AuraText.title.copyWith(color: AuraColors.yellowFg),
+      style: AuraText.title.copyWith(color: AuraColors.yellowFg, fontSize: 24),
     ),
   );
 }
@@ -51,10 +59,7 @@ class Portrait extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(color: AuraColors.navy, width: 4),
-        image: DecorationImage(
-          image: AssetImage(image),
-          fit: BoxFit.cover,
-        ),
+        image: DecorationImage(image: AssetImage(image), fit: BoxFit.cover),
       ),
     ),
   );

@@ -29,10 +29,7 @@ class IsThisYouScreen extends StatelessWidget {
       art: const ExcludeSemantics(child: Portrait(size: 170)),
       title: l.pairIsThisYou,
       line: name,
-      lineStyle: AuraText.title.copyWith(
-        fontSize: 32,
-        color: AuraColors.white,
-      ),
+      lineStyle: AuraText.title.copyWith(fontSize: 32, color: AuraColors.white),
       buttons: [
         AuraButton(
           label: l.pairYesMe,
