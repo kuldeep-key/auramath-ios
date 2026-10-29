@@ -76,4 +76,36 @@ void main() {
       throwsA(isA<ApiException>().having((e) => e.status, 'status', 422)),
     );
   });
+
+  test("resume reads the record's own event shape", () async {
+    // as /api/sessions/resumable answered on the dev backend, 29 Oct
+    final api = HttpApi(
+      clientFor(
+        (_) async => http.Response(
+          '{"session":{"id":"sess-1","endedAt":null},'
+          '"events":[{"seq":0,"at":5,"name":"session_started","detail":"",'
+          '"eventId":"e-0","childRef":"ch_abc12345","deviceId":"dv_abc12345",'
+          '"appVersion":"0.1.0","payload":{"is_demo":false},"receivedAt":6},'
+          '{"seq":1,"at":7,"name":"step_satisfied","detail":"old web event"}],'
+          '"resume":{"sameDevice":false,"startedOn":{"label":"Phone A"}}}',
+          200,
+        ),
+      ),
+    );
+    final open = await api.resumable(childId: 'c1');
+    expect(open!.events.single.sessionId, 'sess-1');
+    expect(open.events.single.childRef, 'ch_abc12345');
+    expect(open.sameDevice, isFalse);
+    expect(open.startedOn, 'Phone A');
+  });
+
+  test('no unfinished case on the server: nothing to resume', () async {
+    final api = HttpApi(
+      clientFor(
+        (_) async =>
+            http.Response('{"session":null,"events":[],"resume":null}', 200),
+      ),
+    );
+    expect(await api.resumable(), isNull);
+  });
 }

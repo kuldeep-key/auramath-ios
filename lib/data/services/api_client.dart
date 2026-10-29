@@ -121,13 +121,26 @@ class HttpApi implements Api {
               query: {'childId': ?childId},
             )
             as Map<String, Object?>;
+    final session = json['session'] as Map<String, Object?>?;
+    if (session == null) return null;
+    // The record serves stored events in camelCase and without their
+    // session id; only spec events (with an event id) can be replayed.
     final events = [
-      for (final e in json['events']! as List)
-        // spec events only: the old web client's events can't be replayed
-        if ((e as Map<String, Object?>)['event_id'] != null)
-          LessonEvent.fromJson(e),
+      for (final e in (json['events']! as List).cast<Map<String, Object?>>())
+        if (e['eventId'] != null)
+          LessonEvent(
+            eventId: e['eventId']! as String,
+            sessionId: session['id']! as String,
+            seq: e['seq']! as int,
+            at: e['at']! as int,
+            name: e['name']! as String,
+            childRef: e['childRef']! as String,
+            deviceId: e['deviceId']! as String,
+            appVersion: e['appVersion']! as String,
+            payload: e['payload']! as Map<String, Object?>,
+          ),
     ];
-    if (json['session'] == null || events.isEmpty) return null;
+    if (events.isEmpty) return null;
     final offer = json['resume'] as Map<String, Object?>?;
     final on = offer?['startedOn'] as Map<String, Object?>?;
     return (
