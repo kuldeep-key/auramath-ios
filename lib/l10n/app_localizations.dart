@@ -549,6 +549,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lost the internet. Your work is saved.'**
   String get lostInternet;
+
+  /// No description provided for @pairBrand.
+  ///
+  /// In en, this message translates to:
+  /// **'Auramath'**
+  String get pairBrand;
+
+  /// No description provided for @pairWhosUsing.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! Who\'s using Auramath?'**
+  String get pairWhosUsing;
+
+  /// No description provided for @pairImAKid.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m a kid'**
+  String get pairImAKid;
+
+  /// No description provided for @pairImAGrownUp.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m a grown-up'**
+  String get pairImAGrownUp;
+
+  /// No description provided for @pairHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'I already have an account'**
+  String get pairHaveAccount;
+
+  /// No description provided for @pairTypeCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your code'**
+  String get pairTypeCode;
+
+  /// No description provided for @pairCodeWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Your grown-up has it on their phone.'**
+  String get pairCodeWhere;
+
+  /// No description provided for @pairAskForNewCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your grown-up to make a new code on their phone.'**
+  String get pairAskForNewCode;
+
+  /// No description provided for @pairChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking your code'**
+  String get pairChecking;
+
+  /// No description provided for @pairOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the internet. Check the Wi-Fi, then try again.'**
+  String get pairOffline;
+
+  /// No description provided for @pairFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t work: {message}'**
+  String pairFailed(String message);
+
+  /// No description provided for @pairTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get pairTryAgain;
+
+  /// No description provided for @pairPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Child\'s phone'**
+  String get pairPhoneLabel;
+
+  /// No description provided for @pairCodeWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That code didn\'t work'**
+  String get pairCodeWrong;
+
+  /// No description provided for @pairCodeWrongBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your grown-up for a new one.'**
+  String get pairCodeWrongBody;
+
+  /// No description provided for @pairTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many tries'**
+  String get pairTooMany;
+
+  /// No description provided for @pairTooManyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait a few minutes, then ask your grown-up for a new code.'**
+  String get pairTooManyBody;
+
+  /// No description provided for @pairNewCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Grown-up: new code'**
+  String get pairNewCode;
+
+  /// No description provided for @pairWhichChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Which child is this phone for?'**
+  String get pairWhichChild;
+
+  /// No description provided for @pairNoChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'No children here yet. Ask your grown-up to add you on their phone.'**
+  String get pairNoChildren;
+
+  /// No description provided for @pairIsThisYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this you?'**
+  String get pairIsThisYou;
+
+  /// No description provided for @pairYesMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, that\'s me!'**
+  String get pairYesMe;
+
+  /// No description provided for @pairNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get pairNo;
+
+  /// No description provided for @pairYoureIn.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re in, {name}!'**
+  String pairYoureIn(String name);
+
+  /// No description provided for @pairPhoneYours.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone is yours for lessons now.'**
+  String get pairPhoneYours;
+
+  /// No description provided for @pairLetsGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go'**
+  String get pairLetsGo;
+
+  /// No description provided for @pairRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone was removed'**
+  String get pairRemoved;
+
+  /// No description provided for @pairRemovedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress is safe. Ask your grown-up for a new code.'**
+  String get pairRemovedBody;
+
+  /// No description provided for @pairWhosLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Who\'s learning today?'**
+  String get pairWhosLearning;
+
+  /// No description provided for @pairGrownUps.
+  ///
+  /// In en, this message translates to:
+  /// **'Grown-ups'**
+  String get pairGrownUps;
+
+  /// No description provided for @pairNoKidsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No children yet. Add one to start learning.'**
+  String get pairNoKidsYet;
+
+  /// No description provided for @pairAddChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a child'**
+  String get pairAddChild;
+
+  /// No description provided for @pairCarryOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry on here?'**
+  String get pairCarryOn;
+
+  /// No description provided for @pairStartedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'You started this case on {device}. It moved with you.'**
+  String pairStartedOn(String device);
+
+  /// No description provided for @pairStartedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'You started this case on another phone. It moved with you.'**
+  String get pairStartedElsewhere;
+
+  /// No description provided for @pairCarryOnHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry on here'**
+  String get pairCarryOnHere;
 }
 
 class _AppLocalizationsDelegate
