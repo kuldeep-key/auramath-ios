@@ -121,7 +121,7 @@ class _PasscodeScreenState extends State<PasscodeScreen>
     if (v.length == _length) _submit(v);
   }
 
-  void _checked(int _) {
+  void _checked(String _) {
     if (_beforeCheck.length < _length!) {
       setState(() => _message = _l.guPassShort(_length!));
     }

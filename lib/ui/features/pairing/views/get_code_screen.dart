@@ -53,7 +53,7 @@ class _GetCodeScreenState extends State<GetCodeScreen> {
     });
   }
 
-  Future<void> _check(int _) async {
+  Future<void> _check(String _) async {
     final code = _last;
     // a short code can't be right: don't spend one of the server's tries
     if (code.length < _length) return _wrong(tooMany: false);

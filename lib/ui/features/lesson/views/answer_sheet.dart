@@ -77,7 +77,7 @@ class _AnswerSheetState extends State<AnswerSheet> {
               Keypad(
                 key: ValueKey(widget.vm.knowPrompt),
                 onChanged: (v) => setState(() => _typed = v),
-                onCheck: widget.vm.answer,
+                onCheck: (v) => widget.vm.answer(int.parse(v)),
               ),
             ],
           ),

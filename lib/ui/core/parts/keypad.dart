@@ -11,11 +11,19 @@ class Keypad extends StatefulWidget {
     required this.onChanged,
     required this.onCheck,
     this.maxDigits = 4,
+    this.keyHeight = 48,
   });
 
   final ValueChanged<String> onChanged;
-  final ValueChanged<int> onCheck;
+
+  /// The digits as typed, so a code's leading 0 is kept; a lesson answer
+  /// parses them.
+  final ValueChanged<String> onCheck;
   final int maxDigits;
+
+  /// 48 is the phone's own look; the grown-up's "Bigger number pad"
+  /// setting and child screens use more.
+  final double keyHeight;
 
   @override
   State<Keypad> createState() => _KeypadState();
@@ -40,9 +48,9 @@ class _KeypadState extends State<Keypad> {
 
   void _check() {
     if (_typed.isEmpty) return;
-    final value = int.parse(_typed);
+    final typed = _typed;
     _set('');
-    widget.onCheck(value);
+    widget.onCheck(typed);
   }
 
   @override
@@ -61,7 +69,7 @@ class _KeypadState extends State<Keypad> {
           child: GestureDetector(
             onTap: onTap,
             child: Container(
-              height: 48,
+              height: widget.keyHeight,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: blue ? AuraColors.blue : AuraColors.white,

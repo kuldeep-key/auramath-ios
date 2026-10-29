@@ -155,7 +155,7 @@ class _BoardViewState extends State<BoardView> {
             Keypad(
               key: ValueKey(s.step),
               onChanged: (v) => setState(() => _typed = v),
-              onCheck: (v) => vm.send(NumberEntered(v)),
+              onCheck: (v) => vm.send(NumberEntered(int.parse(v))),
             ),
           ],
         );

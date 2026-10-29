@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   late List<String> changes;
-  late List<int> checks;
+  late List<String> checks;
 
   Future<void> pumpPad(WidgetTester tester) async {
     changes = [];
@@ -35,7 +35,7 @@ void main() {
     await keys(tester, '123');
     expect(changes.last, '123');
     await check(tester);
-    expect(checks, [123]);
+    expect(checks, ['123']);
     expect(changes.last, '', reason: 'clears after a check');
   });
 
@@ -53,11 +53,14 @@ void main() {
     expect(checks, isEmpty);
   });
 
-  testWidgets('Keypad "007" checks as 7', (tester) async {
+  testWidgets('Keypad hands back "007" as typed; a lesson reads 7', (
+    tester,
+  ) async {
     await pumpPad(tester);
     await keys(tester, '007');
     await check(tester);
-    expect(checks, [7]);
+    expect(checks, ['007']); // a code keeps its zeros
+    expect(int.parse(checks.single), 7);
   });
 
   testWidgets('Keypad delete removes the last digit', (tester) async {
