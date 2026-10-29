@@ -105,7 +105,7 @@ Figma file "Auramath", page **Screens · Prototype copy (27 Oct)** (629:2). Each
 
 **Checks:**
 - `flutter analyze` is clean, and all unit and widget tests pass.
-- **End to end against the dev backend, on the iPhone 15 and SE simulators:**
+- **End to end against the dev backend, on the iPhone 15 and SE simulators and the Android emulator (Pixel 7 Pro, API 35):**
   - `integration_test/setup_to_lesson_test.dart`: a grown-up sets up with an emailed link, gives consent, the child is saved, a passcode is set, the phone is handed over, and the lesson's events reach the server.
   - `integration_test/pair_to_lesson_test.dart`: a child's phone pairs with a 6-digit code, and its lesson reaches the server.
 
