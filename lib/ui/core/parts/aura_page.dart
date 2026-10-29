@@ -177,10 +177,7 @@ class AuraHeading extends StatelessWidget {
         Semantics(header: true, child: Text(title, style: AuraText.heading)),
         if (subtitle != null) ...[
           const SizedBox(height: 8),
-          Text(
-            subtitle!,
-            style: AuraText.body.copyWith(color: AuraColors.mute),
-          ),
+          Text(subtitle!, style: AuraText.subtitle),
         ],
       ],
     ),
@@ -207,9 +204,9 @@ class AuraLink extends StatelessWidget {
     child: Text(
       label,
       textAlign: TextAlign.center,
-      style: AuraText.link.copyWith(
-        color: light ? AuraColors.white : AuraColors.blueInk,
-      ),
+      style: light
+          ? AuraText.link.copyWith(color: AuraColors.linkOnBlue)
+          : AuraText.link,
     ),
   );
 }

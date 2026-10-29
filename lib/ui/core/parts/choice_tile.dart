@@ -73,21 +73,11 @@ class ChoiceTile extends StatelessWidget {
                             color: AuraColors.flag,
                             borderRadius: BorderRadius.circular(7),
                           ),
-                          child: Text(
-                            flag!,
-                            style: AuraText.flag.copyWith(
-                              color: AuraColors.flagInk,
-                            ),
-                          ),
+                          child: Text(flag!, style: AuraText.flag),
                         ),
                       Text(label, style: AuraText.option),
                       if (detail != null)
-                        Text(
-                          detail!,
-                          style: AuraText.small.copyWith(
-                            color: AuraColors.mute,
-                          ),
-                        ),
+                        Text(detail!, style: AuraText.optionDetail),
                     ],
                   ),
                 ),

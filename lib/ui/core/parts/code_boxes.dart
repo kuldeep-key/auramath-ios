@@ -57,9 +57,7 @@ class CodeBoxes extends StatelessWidget {
                       ? FittedBox(
                           child: Text(
                             obscure ? '•' : value[i],
-                            style: AuraText.title.copyWith(
-                              color: AuraColors.navy,
-                            ),
+                            style: AuraText.codeDigit,
                           ),
                         )
                       : null,

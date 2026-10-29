@@ -28,11 +28,7 @@ class Ribbon extends StatelessWidget {
         BoxShadow(color: AuraColors.navy, offset: Offset(0, 5)),
       ],
     ),
-    child: Text(
-      text,
-      textAlign: TextAlign.center,
-      style: AuraText.title.copyWith(color: AuraColors.yellowFg, fontSize: 24),
-    ),
+    child: Text(text, textAlign: TextAlign.center, style: AuraText.ribbon),
   );
 }
 

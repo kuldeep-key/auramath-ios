@@ -41,7 +41,7 @@ class AuraTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AuraText.small.copyWith(color: AuraColors.mute)),
+        Text(label, style: AuraText.caption),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
@@ -65,7 +65,7 @@ class AuraTextField extends StatelessWidget {
             errorBorder: border(AuraColors.coral),
             focusedErrorBorder: border(AuraColors.coral),
             errorText: error,
-            errorStyle: AuraText.small.copyWith(color: AuraColors.ink),
+            errorStyle: AuraText.small,
             errorMaxLines: 3,
             prefixIconConstraints: const BoxConstraints(),
           ),

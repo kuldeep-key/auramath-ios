@@ -26,10 +26,7 @@ class SpeechBubble extends StatelessWidget {
     ),
     child: Semantics(
       liveRegion: true,
-      child: Text(
-        text,
-        style: big ? AuraText.bubble.copyWith(fontSize: 26) : AuraText.bubble,
-      ),
+      child: Text(text, style: big ? AuraText.bubbleBig : AuraText.bubble),
     ),
   );
 }
