@@ -1,7 +1,6 @@
 import 'package:go_router/go_router.dart';
 
 import '../../../data/repositories/grown_up_repository.dart';
-import '../../../data/services/key_store.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
 import 'views/add_child_screen.dart';
@@ -21,15 +20,10 @@ import 'views/report_screen.dart';
 import 'views/rights_screen.dart';
 import 'views/settings_screen.dart';
 
-/// Delete the family account: not in Figma, so not yet in [Paths].
-// ponytail: local path until Paths gains `deleteAccount` (lead's file).
-const deleteAccountPath = '${Paths.rights}/delete';
-
 /// The grown-up area behind the passcode (Figma 7 and 8, PHome, Rights,
-/// AddChild, Notify, SignOut). [store] holds this phone's lesson settings
-/// and the forgot-passcode marker.
-List<RouteBase> grownUpRoutes(Deps deps, {KeyStore? store}) {
-  final repo = GrownUpRepository(deps.client, store ?? SecureKeyStore());
+/// AddChild, Notify, SignOut).
+List<RouteBase> grownUpRoutes(Deps deps) {
+  final repo = GrownUpRepository(deps.client, deps.store);
   final family = deps.family;
   String child(GoRouterState s) => s.pathParameters['childId']!;
   return [
@@ -80,10 +74,10 @@ List<RouteBase> grownUpRoutes(Deps deps, {KeyStore? store}) {
     GoRoute(
       path: Paths.rights,
       builder: (_, _) =>
-          RightsScreen(repo: repo, deletePath: deleteAccountPath),
+          RightsScreen(repo: repo, deletePath: Paths.deleteAccount),
     ),
     GoRoute(
-      path: deleteAccountPath,
+      path: Paths.deleteAccount,
       builder: (_, _) => DeleteAccountScreen(account: deps.account, repo: repo),
     ),
     GoRoute(

@@ -98,6 +98,7 @@ Future<(Deps, FakeServer)> testDeps({
       sitting: Sitting(capMs: 30 * 60 * 1000),
       deviceLock: FakeDeviceLock(),
       outbox: outbox,
+      store: store,
     ),
     server,
   );

@@ -80,6 +80,9 @@ abstract final class Paths {
   static const newCode = '/grown-ups/family/new-code'; // NewCode 653:89
   static const addChild = '/grown-ups/add-child'; // 667:87
   static const rights = '/grown-ups/rights'; // 667:66
+
+  /// Delete the family account: its own confirmation (not in Figma).
+  static const deleteAccount = '/grown-ups/rights/delete';
   static const notify = '/grown-ups/notify'; // 659:52
   static const signOut = '/grown-ups/sign-out'; // 659:105
 

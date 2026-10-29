@@ -31,8 +31,9 @@ Future<void> main() async {
   final dir = await getApplicationSupportDirectory();
   final db = await OutboxDb.open(p.join(dir.path, 'outbox.db'));
 
+  final store = SecureKeyStore();
   final account = AccountRepository(
-    store: SecureKeyStore(),
+    store: store,
     social: PlatformSocialSignIn(),
   );
   final client = ApiClient(
@@ -67,6 +68,7 @@ Future<void> main() async {
         sitting: Sitting(capMs: config.sessionCapMinutes * 60 * 1000),
         deviceLock: LocalDeviceLock(),
         outbox: db,
+        store: store,
       ),
     ),
   );

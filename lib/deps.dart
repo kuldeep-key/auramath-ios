@@ -5,6 +5,7 @@ import 'data/repositories/family_repository.dart';
 import 'data/repositories/session_repository.dart';
 import 'data/services/api_client.dart';
 import 'data/services/device_lock.dart';
+import 'data/services/key_store.dart';
 import 'data/services/outbox_db.dart';
 import 'data/services/voice.dart';
 import 'ui/features/lesson/view_models/sitting.dart';
@@ -22,6 +23,7 @@ class Deps {
     required this.sitting,
     required this.deviceLock,
     required this.outbox,
+    required this.store,
   });
 
   final AccountRepository account;
@@ -38,4 +40,8 @@ class Deps {
   /// This phone's saved lesson events (read-only outside the lesson): the
   /// badges and trail read what was earned here.
   final OutboxDb outbox;
+
+  /// This phone's small saved settings (the grown-up's lesson settings,
+  /// the forgot-passcode marker). Tokens stay inside the account.
+  final KeyStore store;
 }

@@ -110,7 +110,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(server.calls.last.$1, _children);
     expect(server.calls[1].$2['code'], '482715');
-    expect(find.textContaining('went to ${Paths.pairIsThisYou}'), findsOneWidget);
+    expect(
+      find.textContaining('went to ${Paths.pairIsThisYou}'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a server failure shows its message', (tester) async {

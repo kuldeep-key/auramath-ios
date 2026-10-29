@@ -13,8 +13,7 @@ void main() {
   Future<(Deps, FakeServer)> setUp(WidgetTester tester) async =>
       (await tester.runAsync(() => testDeps(stored: parentPhone)))!;
 
-  KidsScreen screen(Deps d) =>
-      KidsScreen(account: d.account, family: d.family);
+  KidsScreen screen(Deps d) => KidsScreen(account: d.account, family: d.family);
 
   testWidgets('fits every size', (tester) async {
     final (deps, server) = await setUp(tester);
