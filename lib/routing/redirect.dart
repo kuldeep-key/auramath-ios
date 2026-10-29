@@ -27,9 +27,11 @@ String? redirectFor({
           Paths.isSignedInSetup(loc)) {
         return Paths.signIn;
       }
-      if (loc == Paths.open || loc == Paths.welcome || loc == Paths.pair) {
+      if (loc == Paths.open || loc == Paths.welcome) {
         return _start(role, childId);
       }
+      // just paired: GetCode itself picks Is-this-you or Which-child
+      if (loc == Paths.pair) return childId == null ? null : Paths.home;
       if (childId == null && _needsChild(loc)) return Paths.pairWhichChild;
       return null;
 

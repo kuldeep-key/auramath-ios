@@ -51,6 +51,8 @@ void main() {
       expect(go('/', role: Role.device), Paths.pairWhichChild);
       expect(go(Paths.home, role: Role.device), Paths.pairWhichChild);
       expect(go(Paths.pair, role: Role.device, childId: 'c'), Paths.home);
+      // just paired, child not chosen yet: GetCode decides where next
+      expect(go(Paths.pair, role: Role.device), isNull);
     });
 
     test('needs a grown-up to sign in before the grown-up area', () {

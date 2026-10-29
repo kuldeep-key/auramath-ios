@@ -83,10 +83,29 @@ Future<void> shotAllSizes(
         child: wrap ? shotApp(screen) : screen,
       ),
     );
+    await _precacheAssets(tester);
     await tester.pumpAndSettle();
     await _save(tester, '$name@$label');
   }
   tester.view.reset();
+}
+
+/// Asset images decode asynchronously; without this a shot shows empty
+/// frames where portraits and pictures go.
+Future<void> _precacheAssets(WidgetTester tester) async {
+  final context = tester.element(find.byKey(const ValueKey('shot')));
+  final files = Directory('assets/images').listSync().whereType<File>().where(
+    (f) => RegExp(r'\.(png|jpe?g|webp)$').hasMatch(f.path),
+  );
+  await tester.runAsync(
+    () => Future.wait([
+      for (final f in files)
+        precacheImage(
+          AssetImage('assets/images/${f.uri.pathSegments.last}'),
+          context,
+        ),
+    ]),
+  );
 }
 
 Future<void> _save(WidgetTester tester, String file) async {
