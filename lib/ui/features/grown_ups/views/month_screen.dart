@@ -66,7 +66,7 @@ class MonthScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       l.guMonthChartLater(child.name),
-                      style: weight(AuraText.body, 700).copyWith(fontSize: 16),
+                      style: AuraText.cardLine.copyWith(color: AuraColors.ink),
                     ),
                   ),
                 ],

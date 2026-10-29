@@ -76,7 +76,7 @@ class _TabsState extends State<_Tabs> {
         children: [
           Text(title, style: AuraText.option),
           const SizedBox(height: 10),
-          Text(body, style: AuraText.body.copyWith(fontSize: 16)),
+          Text(body, style: AuraText.note),
         ],
       ),
     );
@@ -118,13 +118,7 @@ class _TabsState extends State<_Tabs> {
                 ],
               ),
               const SizedBox(height: 10),
-              Text(
-                l.guMonthViewBody,
-                style: weight(
-                  AuraText.body,
-                  700,
-                ).copyWith(fontSize: 16, color: AuraColors.mute),
-              ),
+              Text(l.guMonthViewBody, style: AuraText.cardLine),
             ],
           ),
         ),
@@ -176,8 +170,7 @@ class _Segments extends StatelessWidget {
                   child: Text(
                     label,
                     textAlign: TextAlign.center,
-                    style: weight(AuraText.small, 800).copyWith(
-                      fontSize: 14,
+                    style: AuraText.tab.copyWith(
                       color: i == selected ? AuraColors.white : AuraColors.mute,
                     ),
                   ),
@@ -211,7 +204,7 @@ class _SessionCardState extends State<_SessionCard> {
     final day = DateFormat.EEEE(
       Localizations.localeOf(context).toString(),
     ).format(s.startedAt);
-    final body = AuraText.body.copyWith(fontSize: 16);
+    final body = AuraText.note;
     return GuCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

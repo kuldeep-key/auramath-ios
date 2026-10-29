@@ -117,7 +117,7 @@ class _NewCodeScreenState extends State<NewCodeScreen> {
               child: Text(
                 expired ? l.guCodeExpired : l.guCodeLeft(mmss),
                 textAlign: TextAlign.center,
-                style: AuraText.body.copyWith(color: AuraColors.mute),
+                style: AuraText.subtitle,
               ),
             ),
           ],

@@ -72,13 +72,7 @@ class GrownUpHomeScreen extends StatelessWidget {
                     children: [
                       Text(l.guHomeNoChildren, style: AuraText.option),
                       const SizedBox(height: 4),
-                      Text(
-                        l.guHomeNoChildrenBody,
-                        style: weight(
-                          AuraText.body,
-                          700,
-                        ).copyWith(fontSize: 16, color: AuraColors.mute),
-                      ),
+                      Text(l.guHomeNoChildrenBody, style: AuraText.cardLine),
                       const SizedBox(height: 8),
                       AuraLink(
                         label: l.guAddChild,
@@ -121,10 +115,7 @@ class GrownUpHomeScreen extends StatelessWidget {
                       const SizedBox(height: 10),
                       Text(
                         l.guHomeProgressBody(first.name),
-                        style: weight(
-                          AuraText.body,
-                          700,
-                        ).copyWith(fontSize: 16, color: AuraColors.mute),
+                        style: AuraText.cardLine,
                       ),
                     ],
                   ),
@@ -218,10 +209,7 @@ class _ChildCardState extends State<_ChildCard> {
                             tally(snap.data!, weekStart(DateTime.now())).count,
                           )
                         : '',
-                    style: weight(
-                      AuraText.body,
-                      700,
-                    ).copyWith(fontSize: 16, color: AuraColors.mute),
+                    style: AuraText.cardLine,
                   ),
                 ),
               ],

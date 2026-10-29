@@ -13,12 +13,6 @@ import '../../../core/theme/tokens.dart';
 // The grown-up area's own small parts, from Figma's parent components:
 // Pcard 684:67, Kv 684:99, Opt 684:95 and the section labels.
 
-/// [s] at another weight of the variable Nunito.
-TextStyle weight(TextStyle s, double w) => s.copyWith(
-  fontWeight: FontWeight.values[(w ~/ 100) - 1],
-  fontVariations: [FontVariation('wght', w)],
-);
-
 /// The child's name, or "your child" when there is no single child to name.
 String childName(BuildContext context, List<Child> children) =>
     children.length == 1
@@ -107,12 +101,6 @@ class KvRow extends StatelessWidget {
   final VoidCallback? onTap;
   final String? hint;
 
-  static final labelStyle = weight(AuraText.small, 700);
-  static final valueStyle = weight(
-    AuraText.small,
-    900,
-  ).copyWith(color: AuraColors.blueInk);
-
   @override
   Widget build(BuildContext context) => onTap == null
       ? _row()
@@ -133,13 +121,17 @@ class KvRow extends StatelessWidget {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Flexible(child: Text(label, style: labelStyle)),
+        Flexible(child: Text(label, style: AuraText.kvLabel)),
         const SizedBox(width: 12),
         if (trailing != null)
           trailing!
         else if (value != null)
           Flexible(
-            child: Text(value!, style: valueStyle, textAlign: TextAlign.end),
+            child: Text(
+              value!,
+              style: AuraText.kvValue,
+              textAlign: TextAlign.end,
+            ),
           ),
       ],
     ),
@@ -185,7 +177,7 @@ class TitleBar extends StatelessWidget {
             child: Text(
               title,
               overflow: TextOverflow.ellipsis,
-              style: weight(AuraText.body, 700).copyWith(fontSize: 18),
+              style: AuraText.barTitle,
             ),
           ),
         ),
@@ -250,13 +242,7 @@ class NavRow extends StatelessWidget {
                       Text(label, style: AuraText.option),
                       if (detail != null) ...[
                         const SizedBox(height: 3),
-                        Text(
-                          detail!,
-                          style: AuraText.small.copyWith(
-                            fontSize: 14,
-                            color: AuraColors.mute,
-                          ),
-                        ),
+                        Text(detail!, style: AuraText.optionDetail),
                       ],
                     ],
                   ),
@@ -284,11 +270,7 @@ class SectionLabel extends StatelessWidget {
       header: true,
       child: Text(
         text.toUpperCase(),
-        style: AuraText.flag.copyWith(
-          fontSize: 11,
-          letterSpacing: 0.9,
-          color: AuraColors.mute,
-        ),
+        style: AuraText.eyebrow.copyWith(color: AuraColors.mute),
       ),
     ),
   );

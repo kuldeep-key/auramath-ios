@@ -80,13 +80,8 @@ class _NotifyScreenState extends State<NotifyScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(l.guNotifyCard, style: weight(AuraText.body, 700)),
-                        Text(
-                          l.guNotifyCardBody,
-                          style: AuraText.small.copyWith(
-                            color: AuraColors.mute,
-                          ),
-                        ),
+                        Text(l.guNotifyCard, style: AuraText.infoTitle),
+                        Text(l.guNotifyCardBody, style: AuraText.caption),
                       ],
                     ),
                   ),

@@ -51,7 +51,7 @@ class PlanScreen extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       l.guPlanEmptyBody(child.name),
-                      style: AuraText.body.copyWith(color: AuraColors.mute),
+                      style: AuraText.cardLine,
                     ),
                   ],
                 ),
