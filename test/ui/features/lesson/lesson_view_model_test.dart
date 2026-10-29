@@ -287,4 +287,27 @@ void main() {
       vm.dispose();
     });
   });
+
+  test('read aloud off: lines show but are spoken only when asked', () async {
+    final (sessions, _, _) = await memorySessions();
+    final voice = FakeVoice();
+    final vm = LessonViewModel(
+      pack: pack,
+      problemId: 'lemon',
+      sessionId: 's1',
+      sessions: sessions,
+      voice: voice,
+      nowMs: () => now,
+      openSession: sessions.open,
+      sitting: Sitting(capMs: 30 * 60 * 1000),
+      tickEvery: null,
+    )..readAloud = false;
+    vm.autoReadQuestion();
+    await vm.send(const Started());
+    expect(vm.coachText, 'Drag a bar up here.');
+    expect(voice.said, isEmpty);
+    vm.sayAgain(); // the speak button
+    expect(voice.said, ['Drag a bar up here.']);
+    vm.dispose();
+  });
 }

@@ -3,9 +3,18 @@
 /// child: there is no clock or countdown anywhere (SES-02).
 // ponytail: lives as long as the app process; a new launch is a new sitting.
 class Sitting {
-  Sitting({required this.capMs});
+  /// [capMs] is the most a sitting may run (app-config); the grown-up's
+  /// "Time each day" can only shorten it ([useMinutes]).
+  Sitting({required int capMs}) : maxCapMs = capMs, capMs = capMs;
 
-  final int capMs;
+  final int maxCapMs;
+  int capMs;
+
+  void useMinutes(int minutes) {
+    final ms = minutes * 60 * 1000;
+    capMs = ms < maxCapMs ? ms : maxCapMs;
+  }
+
   int activeMs = 0;
 
   /// Time was up and the child chose to finish the problem they were on.

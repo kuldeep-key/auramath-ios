@@ -75,6 +75,7 @@ class _AnswerSheetState extends State<AnswerSheet> {
               ),
               const SizedBox(height: 12),
               Keypad(
+                keyHeight: widget.vm.biggerPad ? 64 : 48,
                 key: ValueKey(widget.vm.knowPrompt),
                 onChanged: (v) => setState(() => _typed = v),
                 onCheck: (v) => widget.vm.answer(int.parse(v)),

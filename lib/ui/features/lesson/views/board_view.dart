@@ -153,6 +153,7 @@ class _BoardViewState extends State<BoardView> {
             ),
             const SizedBox(height: 8),
             Keypad(
+              keyHeight: vm.biggerPad ? 64 : 48,
               key: ValueKey(s.step),
               onChanged: (v) => setState(() => _typed = v),
               onCheck: (v) => vm.send(NumberEntered(int.parse(v))),

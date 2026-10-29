@@ -43,12 +43,12 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    widget.vm.say(_line(AppLocalizations.of(context)!));
+    widget.vm.autoSay(_line(AppLocalizations.of(context)!));
   }
 
   void _go(int step) {
     setState(() => _step = step);
-    widget.vm.say(_line(AppLocalizations.of(context)!));
+    widget.vm.autoSay(_line(AppLocalizations.of(context)!));
   }
 
   @override

@@ -99,4 +99,12 @@ void main() {
     expect(paused.name, 'session_paused');
     expect(paused.payload['reason'], 'child');
   });
+
+  test("the grown-up's time each day only shortens the cap", () {
+    final sitting = Sitting(capMs: 30 * 60 * 1000);
+    sitting.useMinutes(15);
+    expect(sitting.capMs, 15 * 60 * 1000);
+    sitting.useMinutes(45); // never past app-config's 30
+    expect(sitting.capMs, 30 * 60 * 1000);
+  });
 }

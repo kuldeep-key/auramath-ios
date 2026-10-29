@@ -23,7 +23,7 @@ class _QuestionViewState extends State<QuestionView> {
   @override
   void initState() {
     super.initState();
-    widget.vm.readQuestion();
+    widget.vm.autoReadQuestion();
   }
 
   @override

@@ -278,10 +278,29 @@ class LessonViewModel extends ChangeNotifier {
     if (_sessionId == null) await start();
   }
 
+  /// The grown-up's "Read aloud" (Settings): when off, nothing is spoken
+  /// unless the child taps a speak button.
+  bool readAloud = true;
+
+  /// The grown-up's "Bigger number pad" (Settings).
+  bool biggerPad = false;
+
+  /// Tapped "Hear it again": always spoken.
   void readQuestion() => _voice.say(_problem.say);
 
-  /// Says a line the screen wrote (the side-lesson board's steps).
+  /// The question as it first shows: spoken if read-aloud is on.
+  void autoReadQuestion() {
+    if (readAloud) _voice.say(_problem.say);
+  }
+
+  /// A line the child asked to hear (a speak button).
   void say(String text) => _voice.say(text);
+
+  /// A line a screen shows on its own (the board's steps, the example):
+  /// spoken if read-aloud is on.
+  void autoSay(String text) {
+    if (readAloud) _voice.say(text);
+  }
 
   /// The sum the side lesson works through: the one the child was on.
   /// Finding B subtracts the gap when A is bigger, else adds it; the
@@ -389,7 +408,7 @@ class LessonViewModel extends ChangeNotifier {
     // Every Coach carries the problem's own slots; hints and fallbacks don't.
     final all = {...lineSlots(_problem), ...slots};
     coachText = fillLine(_pack.lines[lineId] ?? '', all);
-    _voice.say(coachText);
+    autoSay(coachText);
   }
 
   /// The line said on entering a board step, unless the engine said one.

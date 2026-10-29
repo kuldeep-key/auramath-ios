@@ -33,12 +33,12 @@ class _SideLessonViewState extends State<SideLessonView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    widget.vm.say(_lines(AppLocalizations.of(context)!).join(' '));
+    widget.vm.autoSay(_lines(AppLocalizations.of(context)!).join(' '));
   }
 
   void _act() {
     setState(_sum.act);
-    widget.vm.say(_lines(AppLocalizations.of(context)!).join(' '));
+    widget.vm.autoSay(_lines(AppLocalizations.of(context)!).join(' '));
   }
 
   /// What to do now: the situation, then the instruction (Figma: black,

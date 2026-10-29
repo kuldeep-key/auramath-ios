@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
+import '../data/repositories/grown_up_repository.dart';
 import '../deps.dart';
 import '../ui/features/lesson/view_models/lesson_view_model.dart';
 import '../ui/features/lesson/views/lesson_flow.dart';
@@ -81,12 +82,26 @@ class _LessonRouteState extends State<_LessonRoute> {
   @override
   void initState() {
     super.initState();
-    widget.resumeSessionId != null ? _vm.restore() : _vm.start();
+    _begin();
     // The phone locks or the app goes away: pause, and don't count the time.
     _lifecycle = AppLifecycleListener(
       onPause: _vm.paused,
       onResume: _vm.resumed,
     );
+  }
+
+  /// The grown-up's lesson settings for this phone, then the lesson.
+  Future<void> _begin() async {
+    final prefs = await GrownUpRepository(
+      widget.deps.client,
+      widget.deps.store,
+    ).loadPrefs();
+    if (!mounted) return;
+    _vm
+      ..readAloud = prefs.readAloud
+      ..biggerPad = prefs.biggerPad;
+    widget.deps.sitting.useMinutes(prefs.minutes);
+    await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
   }
 
   @override
