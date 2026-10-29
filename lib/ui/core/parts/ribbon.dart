@@ -30,9 +30,16 @@ class Ribbon extends StatelessWidget {
 
 /// A child's round portrait. Figma: Prototype parts › Avatar.
 class Portrait extends StatelessWidget {
-  const Portrait({super.key, required this.size});
+  const Portrait({
+    super.key,
+    required this.size,
+    this.image = 'assets/images/detective_boy.jpg',
+  });
 
   final double size;
+
+  /// The detective's picture (an asset path).
+  final String image;
 
   // Centred so a stretching parent (a sheet's column) can't widen it into a
   // strip that crops the face.
@@ -44,8 +51,8 @@ class Portrait extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(color: AuraColors.navy, width: 4),
-        image: const DecorationImage(
-          image: AssetImage('assets/images/detective_boy.jpg'),
+        image: DecorationImage(
+          image: AssetImage(image),
           fit: BoxFit.cover,
         ),
       ),
