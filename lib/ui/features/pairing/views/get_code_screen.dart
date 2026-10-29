@@ -121,7 +121,7 @@ class _GetCodeScreenState extends State<GetCodeScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final white = AuraText.bubble.copyWith(color: AuraColors.white);
+    final white = AuraText.play;
     // the pad's own 26 pt foot covers most of the home indicator
     final foot = math.max(0.0, MediaQuery.paddingOf(context).bottom - 26);
     return Scaffold(

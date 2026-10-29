@@ -73,9 +73,7 @@ class _KidsScreenState extends State<KidsScreen> {
                       Text(
                         l.pairNoKidsYet,
                         textAlign: TextAlign.center,
-                        style: AuraText.bubble.copyWith(
-                          color: AuraColors.white,
-                        ),
+                        style: AuraText.play,
                       ),
                       const SizedBox(height: 18),
                       AuraButton(

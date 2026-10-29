@@ -24,7 +24,7 @@ class PlayMessage extends StatelessWidget {
   final String title;
   final String? line;
 
-  /// Defaults to the 20 pt white line under the ribbon.
+  /// Defaults to the white line under the ribbon ([AuraText.play]).
   final TextStyle? lineStyle;
   final List<Widget> buttons;
 
@@ -42,8 +42,7 @@ class PlayMessage extends StatelessWidget {
           Text(
             line!,
             textAlign: TextAlign.center,
-            style:
-                lineStyle ?? AuraText.bubble.copyWith(color: AuraColors.white),
+            style: lineStyle ?? AuraText.play,
           ),
         ],
       ],

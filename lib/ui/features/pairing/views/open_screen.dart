@@ -35,17 +35,7 @@ class OpenScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Semantics(
             header: true,
-            child: Text(
-              l.pairBrand,
-              style: AuraText.title.copyWith(
-                fontSize: 44,
-                letterSpacing: -0.9,
-                color: AuraColors.white,
-                shadows: const [
-                  Shadow(color: AuraColors.navy, offset: Offset(0, 4)),
-                ],
-              ),
-            ),
+            child: Text(l.pairBrand, style: AuraText.brand),
           ),
           const SizedBox(height: 26),
           SizedBox(
