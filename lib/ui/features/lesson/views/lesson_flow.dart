@@ -1,5 +1,8 @@
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../routing/paths.dart';
 
 import '../view_models/lesson_view_model.dart';
 import 'board_view.dart';
@@ -40,6 +43,14 @@ class LessonFlow extends StatelessWidget {
                 onRetry: vm.start,
                 onGoHome: onHome,
               );
+      }
+      if (vm.askVoiceResting) {
+        // once, between frames: "My voice is resting", then big words
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted || !vm.askVoiceResting) return;
+          vm.toldVoiceResting();
+          context.push(Paths.noVoice);
+        });
       }
       if (vm.timeUp) {
         return Scaffold(

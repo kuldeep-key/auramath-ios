@@ -61,6 +61,7 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           LessonHeader(
+            big: widget.vm.voice.resting.value,
             line: line,
             onSpeak: () => widget.vm.say(line),
             onHome: widget.onHome,

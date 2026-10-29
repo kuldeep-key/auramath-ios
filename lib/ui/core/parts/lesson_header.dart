@@ -11,11 +11,15 @@ class LessonHeader extends StatelessWidget {
     required this.line,
     required this.onSpeak,
     required this.onHome,
+    this.big = false,
   });
 
   final String line;
   final VoidCallback onSpeak;
   final VoidCallback onHome;
+
+  /// Big words while the voice is resting.
+  final bool big;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -29,7 +33,9 @@ class LessonHeader extends StatelessWidget {
         onTap: onSpeak,
       ),
       const SizedBox(width: 8),
-      Expanded(child: SpeechBubble(text: line)),
+      Expanded(
+        child: SpeechBubble(text: line, big: big),
+      ),
       const SizedBox(width: 8),
       _SquareButton(
         icon: Icons.home_rounded,

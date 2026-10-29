@@ -4,9 +4,12 @@ import '../theme/tokens.dart';
 
 /// The coach's line. Figma: Prototype parts › Speech bubble.
 class SpeechBubble extends StatelessWidget {
-  const SpeechBubble({super.key, required this.text});
+  const SpeechBubble({super.key, required this.text, this.big = false});
 
   final String text;
+
+  /// The voice is resting: the words show big instead (NoVoice 659:39).
+  final bool big;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -23,7 +26,10 @@ class SpeechBubble extends StatelessWidget {
     ),
     child: Semantics(
       liveRegion: true,
-      child: Text(text, style: AuraText.bubble),
+      child: Text(
+        text,
+        style: big ? AuraText.bubble.copyWith(fontSize: 26) : AuraText.bubble,
+      ),
     ),
   );
 }

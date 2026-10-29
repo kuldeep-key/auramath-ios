@@ -37,6 +37,7 @@ class LessonViewModel extends ChangeNotifier {
     _lastMoveMs = _shownAt = _stepAt = _lastTickMs = _now();
     if (tickEvery != null) _ticker = Timer.periodic(tickEvery, (_) => tick());
     _sessions.online.addListener(_onlineChanged);
+    _voice.resting.addListener(_voiceResting);
   }
 
   final Pack _pack;
@@ -278,6 +279,24 @@ class LessonViewModel extends ChangeNotifier {
     if (_sessionId == null) await start();
   }
 
+  Voice get voice => _voice;
+
+  /// The voice just stopped working: tell the child once (NoVoice).
+  bool askVoiceResting = false;
+  bool _toldVoiceResting = false;
+
+  void _voiceResting() {
+    if (!_voice.resting.value || _toldVoiceResting) return;
+    _toldVoiceResting = askVoiceResting = true;
+    notifyListeners();
+  }
+
+  /// NoVoice was shown.
+  void toldVoiceResting() {
+    askVoiceResting = false;
+    notifyListeners();
+  }
+
   /// The grown-up's "Read aloud" (Settings): when off, nothing is spoken
   /// unless the child taps a speak button.
   bool readAloud = true;
@@ -427,6 +446,7 @@ class LessonViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _sessions.online.removeListener(_onlineChanged);
+    _voice.resting.removeListener(_voiceResting);
     _ticker?.cancel();
     _voice.stop();
     super.dispose();

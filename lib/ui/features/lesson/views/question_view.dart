@@ -36,6 +36,7 @@ class _QuestionViewState extends State<QuestionView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           LessonHeader(
+            big: widget.vm.voice.resting.value,
             line: l.todaysCase,
             onSpeak: widget.vm.readQuestion,
             onHome: widget.onHome,

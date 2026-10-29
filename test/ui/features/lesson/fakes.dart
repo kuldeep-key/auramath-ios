@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -11,6 +12,9 @@ import '../../../data/helpers.dart';
 
 class FakeVoice implements Voice {
   final List<String> said = [];
+
+  @override
+  final ValueNotifier<bool> resting = ValueNotifier(false);
 
   @override
   Future<void> say(String text) async => said.add(text);

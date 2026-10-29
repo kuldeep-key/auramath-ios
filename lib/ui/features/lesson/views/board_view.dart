@@ -49,6 +49,7 @@ class _BoardViewState extends State<BoardView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               LessonHeader(
+                big: vm.voice.resting.value,
                 line: vm.coachText,
                 onSpeak: vm.sayAgain,
                 onHome: widget.onHome,

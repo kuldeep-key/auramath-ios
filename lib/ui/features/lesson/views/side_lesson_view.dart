@@ -85,6 +85,7 @@ class _SideLessonViewState extends State<SideLessonView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           LessonHeader(
+            big: widget.vm.voice.resting.value,
             line: lines.last,
             onSpeak: () => widget.vm.say(lines.join(' ')),
             onHome: widget.onHome,
