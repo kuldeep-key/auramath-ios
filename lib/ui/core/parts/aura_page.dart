@@ -109,7 +109,8 @@ class AuraTopBar extends StatelessWidget {
           if (canLeave)
             // the arrow sits on the 16 pt margin, the tap area spills left
             IconButton(
-              visualDensity: VisualDensity.compact,
+              // a full 48 pt target; the arrow sits at its left edge
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               padding: EdgeInsets.zero,
               alignment: Alignment.centerLeft,
               tooltip: close

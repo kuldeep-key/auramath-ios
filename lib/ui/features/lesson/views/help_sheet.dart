@@ -63,9 +63,12 @@ class AuraSheet extends StatelessWidget {
   Widget build(BuildContext context) => Stack(
     children: [
       Positioned.fill(
-        child: GestureDetector(
-          onTap: onClose,
-          child: const ColoredBox(color: AuraColors.scrim),
+        child: Semantics(
+          label: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+          child: GestureDetector(
+            onTap: onClose,
+            child: const ColoredBox(color: AuraColors.scrim),
+          ),
         ),
       ),
       Align(

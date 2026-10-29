@@ -167,7 +167,7 @@ class _Segments extends StatelessWidget {
               child: GestureDetector(
                 onTap: () => onSelect(i),
                 child: Container(
-                  constraints: const BoxConstraints(minHeight: 44),
+                  constraints: const BoxConstraints(minHeight: 48),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: i == selected ? AuraColors.blue : null,

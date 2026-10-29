@@ -86,6 +86,7 @@ Future<void> shotAllSizes(
     await _precacheAssets(tester);
     await tester.pumpAndSettle();
     await _save(tester, '$name@$label');
+    if (label == shotSizes.keys.first) await _accessible(tester);
   }
   tester.view.reset();
 }
@@ -106,6 +107,17 @@ Future<void> _precacheAssets(WidgetTester tester) async {
         ),
     ]),
   );
+}
+
+/// Apple's 44 pt and Android's 48 dp touch targets, a label on everything
+/// tappable, and readable text contrast (WCAG 2.2 AA), at the Figma size.
+Future<void> _accessible(WidgetTester tester) async {
+  final semantics = tester.ensureSemantics();
+  await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+  await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+  await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+  await expectLater(tester, meetsGuideline(textContrastGuideline));
+  semantics.dispose();
 }
 
 Future<void> _save(WidgetTester tester, String file) async {

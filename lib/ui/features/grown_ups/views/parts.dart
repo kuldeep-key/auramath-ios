@@ -102,7 +102,8 @@ class KvRow extends StatelessWidget {
   final Widget? trailing;
   final bool divider;
 
-  /// A setting: tapping changes the value. The row grows to 44 pt.
+  /// A setting: tapping changes the value. The row grows to 48 pt (iOS
+  /// asks 44, Android 48).
   final VoidCallback? onTap;
   final String? hint;
 
@@ -122,7 +123,7 @@ class KvRow extends StatelessWidget {
         );
 
   Widget _row() => Container(
-    constraints: BoxConstraints(minHeight: onTap == null ? 32 : 44),
+    constraints: BoxConstraints(minHeight: onTap == null ? 32 : 48),
     padding: const EdgeInsets.only(top: 6, bottom: 7),
     decoration: divider
         ? const BoxDecoration(
@@ -171,7 +172,7 @@ class TitleBar extends StatelessWidget {
     child: Row(
       children: [
         IconButton(
-          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           padding: EdgeInsets.zero,
           alignment: Alignment.centerLeft,
           tooltip: MaterialLocalizations.of(context).backButtonTooltip,
