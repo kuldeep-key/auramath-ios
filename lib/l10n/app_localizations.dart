@@ -316,23 +316,113 @@ abstract class AppLocalizations {
   /// **'Now check your adding.'**
   String get nowCheckAdding;
 
-  /// No description provided for @sideTakeAcrossTen.
-  ///
-  /// In en, this message translates to:
-  /// **'Take away across a ten'**
-  String get sideTakeAcrossTen;
-
-  /// No description provided for @sideAddWithCarry.
-  ///
-  /// In en, this message translates to:
-  /// **'Adding with a carry'**
-  String get sideAddWithCarry;
-
   /// No description provided for @takeABreak.
   ///
   /// In en, this message translates to:
   /// **'Take a break?'**
   String get takeABreak;
+
+  /// No description provided for @lessonHundreds.
+  ///
+  /// In en, this message translates to:
+  /// **'Hundreds'**
+  String get lessonHundreds;
+
+  /// No description provided for @lessonTens.
+  ///
+  /// In en, this message translates to:
+  /// **'Tens'**
+  String get lessonTens;
+
+  /// No description provided for @lessonOnes.
+  ///
+  /// In en, this message translates to:
+  /// **'Ones'**
+  String get lessonOnes;
+
+  /// No description provided for @lessonNotEnoughOnes.
+  ///
+  /// In en, this message translates to:
+  /// **'Take {take} ones from {have}? Not enough!'**
+  String lessonNotEnoughOnes(int take, int have);
+
+  /// No description provided for @lessonNotEnoughTens.
+  ///
+  /// In en, this message translates to:
+  /// **'Take {take} tens from {have}? Not enough!'**
+  String lessonNotEnoughTens(int take, int have);
+
+  /// No description provided for @lessonTapATen.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a ten to break it.'**
+  String get lessonTapATen;
+
+  /// No description provided for @lessonTapAHundred.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a hundred to break it.'**
+  String get lessonTapAHundred;
+
+  /// No description provided for @lessonTakeOnes.
+  ///
+  /// In en, this message translates to:
+  /// **'Take away {n} ones.'**
+  String lessonTakeOnes(int n);
+
+  /// No description provided for @lessonTakeTens.
+  ///
+  /// In en, this message translates to:
+  /// **'Take away {n} tens.'**
+  String lessonTakeTens(int n);
+
+  /// No description provided for @lessonTakeHundreds.
+  ///
+  /// In en, this message translates to:
+  /// **'Take away {n} hundreds.'**
+  String lessonTakeHundreds(int n);
+
+  /// No description provided for @lessonAddOnes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {n} ones.'**
+  String lessonAddOnes(int n);
+
+  /// No description provided for @lessonAddTens.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {n} tens.'**
+  String lessonAddTens(int n);
+
+  /// No description provided for @lessonAddHundreds.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {n} hundreds.'**
+  String lessonAddHundreds(int n);
+
+  /// No description provided for @lessonMakeATen.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} ones! Tap the ones to make a ten.'**
+  String lessonMakeATen(int n);
+
+  /// No description provided for @lessonMakeAHundred.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} tens! Tap the tens to make a hundred.'**
+  String lessonMakeAHundred(int n);
+
+  /// No description provided for @lessonDoIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Do it'**
+  String get lessonDoIt;
+
+  /// No description provided for @lessonSideDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{sum} = {answer}. You did it!'**
+  String lessonSideDone(String sum, int answer);
 
   /// No description provided for @lessonLostInternetBody.
   ///

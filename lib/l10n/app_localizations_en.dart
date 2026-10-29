@@ -124,13 +124,80 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nowCheckAdding => 'Now check your adding.';
 
   @override
-  String get sideTakeAcrossTen => 'Take away across a ten';
-
-  @override
-  String get sideAddWithCarry => 'Adding with a carry';
-
-  @override
   String get takeABreak => 'Take a break?';
+
+  @override
+  String get lessonHundreds => 'Hundreds';
+
+  @override
+  String get lessonTens => 'Tens';
+
+  @override
+  String get lessonOnes => 'Ones';
+
+  @override
+  String lessonNotEnoughOnes(int take, int have) {
+    return 'Take $take ones from $have? Not enough!';
+  }
+
+  @override
+  String lessonNotEnoughTens(int take, int have) {
+    return 'Take $take tens from $have? Not enough!';
+  }
+
+  @override
+  String get lessonTapATen => 'Tap a ten to break it.';
+
+  @override
+  String get lessonTapAHundred => 'Tap a hundred to break it.';
+
+  @override
+  String lessonTakeOnes(int n) {
+    return 'Take away $n ones.';
+  }
+
+  @override
+  String lessonTakeTens(int n) {
+    return 'Take away $n tens.';
+  }
+
+  @override
+  String lessonTakeHundreds(int n) {
+    return 'Take away $n hundreds.';
+  }
+
+  @override
+  String lessonAddOnes(int n) {
+    return 'Add $n ones.';
+  }
+
+  @override
+  String lessonAddTens(int n) {
+    return 'Add $n tens.';
+  }
+
+  @override
+  String lessonAddHundreds(int n) {
+    return 'Add $n hundreds.';
+  }
+
+  @override
+  String lessonMakeATen(int n) {
+    return '$n ones! Tap the ones to make a ten.';
+  }
+
+  @override
+  String lessonMakeAHundred(int n) {
+    return '$n tens! Tap the tens to make a hundred.';
+  }
+
+  @override
+  String get lessonDoIt => 'Do it';
+
+  @override
+  String lessonSideDone(String sum, int answer) {
+    return '$sum = $answer. You did it!';
+  }
 
   @override
   String get lessonLostInternetBody =>

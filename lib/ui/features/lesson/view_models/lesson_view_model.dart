@@ -270,6 +270,20 @@ class LessonViewModel extends ChangeNotifier {
 
   void readQuestion() => _voice.say(_problem.say);
 
+  /// Says a line the screen wrote (the side-lesson board's steps).
+  void say(String text) => _voice.say(text);
+
+  /// The sum the side lesson works through: the one the child was on.
+  /// Finding B subtracts the gap when A is bigger, else adds it; the
+  /// total adds A and B.
+  ({int left, int right, bool subtract}) get sideSum {
+    final p = _problem;
+    if (_state.returnStep == LessonStep.findTotal) {
+      return (left: p.aValue, right: p.bValue, subtract: false);
+    }
+    return (left: p.aValue, right: p.diff, subtract: p.big == BigSide.a);
+  }
+
   void sayAgain() => _voice.say(coachText);
 
   void dismissStillThere() {
