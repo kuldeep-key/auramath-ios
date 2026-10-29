@@ -115,5 +115,14 @@ Figma file "Auramath", page **Screens · Prototype copy (27 Oct)** (629:2). Each
 - **Keys:** Google and Apple sign-in are coded but untested until the client ids and the Apple developer account exist.
 - **Emailed links:** a link doesn't open the app on a real phone yet. It needs a Universal Link (Apple team id) and a backend link format the app can open (gap B8). The dev servers return the link in the response, which the check-email screen uses.
 - **Generic simulator build:** `flutter build ios --simulator` with no device fails in Flutter's unpack step. Builds for a named simulator work.
-- **Lesson settings:** the grown-up's lesson settings (time each day, read aloud, number pad) are saved on the phone, but the lesson doesn't read them yet.
-- **Keypad:** `onCheck` returns an `int`, which drops leading zeros. The code and passcode screens read the typed string instead.
+- **Number pad setting:** "Phone's own" vs "The app's own" is saved, but the lesson always uses the app's keypad. D-32 (PRD v3.3) says the phone's pad for answers; Figma draws the app's. Waiting on a decision.
+- **"Your sound is off" (650:149):** built, but the app can't detect a muted phone without another plugin, so nothing opens it yet.
+- **Level progression:** the server's job under online-first (gap B2). The phone already makes problems for any level, once the server sends one.
+
+## Done later on 29 Oct
+
+- **Keypad:** hands back the digits as typed, so codes and passcodes keep a leading 0.
+- **Accessibility:** every screenshot test also checks Apple's 44 pt and Android's 48 dp touch targets, labels on everything tappable, and WCAG text contrast. All screens pass.
+- **The lesson follows the grown-up's settings:** "Time each day" shortens the sitting (never past the 30-minute cap), "Read aloud" off speaks only when the child taps a speak button, and the bigger number pad is applied.
+- **Voice:** when the phone's voice fails, the child sees "My voice is resting" once and the words show big.
+- **End to end:** both tests rerun and pass on the iPhone 16 simulator and the Android emulator.

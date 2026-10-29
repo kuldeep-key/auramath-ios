@@ -103,6 +103,8 @@ The app has a version of each, built in the same style. Design should replace th
   - Product needs to supply the real list.
 - **Settings "Number pad":** "Phone's own" is one choice; the other is undefined.
   - The app uses "The app's own".
+  - D-32 (PRD v3.3) says the phone's own pad for answers and our keypad for number sentences, but the lesson frames (D5/D6) draw our keypad for answers.
+  - The lesson keeps our keypad until this is settled.
 - **Data "Learn more":** there's no page to link to. Hidden until the full privacy notice has a URL.
 
 ## 7. Shown in Figma, not on the server yet
