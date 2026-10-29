@@ -63,4 +63,6 @@ Future<void> loadSystemFontStandIn(WidgetTester tester) => tester.runAsync(
 );
 
 /// The routes [FakeServer] was called on, in order.
-List<String> called(FakeServer server) => [for (final (r, _) in server.calls) r];
+List<String> called(FakeServer server) => [
+  for (final (r, _) in server.calls) r,
+];

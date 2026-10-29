@@ -24,6 +24,11 @@ abstract final class SetupStep {
 AuraTopBar setupTopBar(double progress) =>
     AuraTopBar(progress: progress, fallback: Paths.welcome);
 
+/// [CodeBoxes] measures itself with a LayoutBuilder, which can't answer
+/// the intrinsic height [AuraPage]'s body asks for: a fixed height (its
+/// tallest boxes, 52 × 1.15) answers instead.
+const codeBoxesHeight = 60.0;
+
 /// The child's typed name, or "your child" when setup was entered sideways.
 String childName(BuildContext context, String? name) =>
     name ?? AppLocalizations.of(context)!.setupYourChild;

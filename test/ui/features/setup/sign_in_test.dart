@@ -44,7 +44,7 @@ Future<void> brandAssets(WidgetTester tester) async {
   await precacheAssets(tester, ['assets/images/google_g.png']);
 }
 
-const readyPath ='went to /setup/ready?child=child-9&name=Aarav';
+const readyPath = 'went to /setup/ready?child=child-9&name=Aarav';
 
 void main() {
   group('SavePlace (643:235)', () {
@@ -162,10 +162,7 @@ void main() {
       final (deps, server) = await ready(tester);
       await show(tester, SignInScreen(deps: deps));
       await tapAndWait(tester, find.text('Continue with Google'));
-      expect(called(server), [
-        'GET /api/auth/config',
-        'POST /api/auth/google',
-      ]);
+      expect(called(server), ['GET /api/auth/config', 'POST /api/auth/google']);
       expect(find.text('went to /kids'), findsOneWidget);
     });
 
@@ -232,7 +229,10 @@ void main() {
       final (deps, server) = await ready(tester);
       await show(tester, screen(deps));
       await tapAndWait(tester, find.text('I tapped the link'));
-      expect(find.textContaining("hasn't opened on this phone"), findsOneWidget);
+      expect(
+        find.textContaining("hasn't opened on this phone"),
+        findsOneWidget,
+      );
       expect(server.calls, isEmpty);
     });
 
