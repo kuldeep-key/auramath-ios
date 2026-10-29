@@ -13,12 +13,17 @@ class AuraButton extends StatefulWidget {
     required this.onPressed,
     this.color = AuraButtonColor.yellow,
     this.icon,
+    this.leading,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final AuraButtonColor color;
   final IconData? icon;
+
+  /// A mark before the label: the Apple logo or Google's "G" on the sign-in
+  /// buttons, which their brand rules put on the left.
+  final Widget? leading;
 
   @override
   State<AuraButton> createState() => _AuraButtonState();
@@ -72,6 +77,10 @@ class _AuraButtonState extends State<AuraButton> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                if (widget.leading != null) ...[
+                  widget.leading!,
+                  const SizedBox(width: 12),
+                ],
                 Flexible(
                   child: Text(
                     widget.label,

@@ -103,18 +103,9 @@ class _SignInMethodsState extends State<SignInMethods> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // fixed type, like Apple's native button: large text would spill
-        // out of their fixed height
-        MediaQuery.withNoTextScaling(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppleButton(onPressed: busy ? null : _apple),
-              const SizedBox(height: 12),
-              GoogleButton(onPressed: busy ? null : _google),
-            ],
-          ),
-        ),
+        AppleButton(onPressed: busy ? null : _apple),
+        const SizedBox(height: 12),
+        GoogleButton(onPressed: busy ? null : _google),
         const SizedBox(height: 12),
         if (!_emailOpen)
           AuraButton(
@@ -163,89 +154,47 @@ class _SignInMethodsState extends State<SignInMethods> {
   }
 }
 
-/// Apple's own button (HIG): the Apple logo, "Continue with Apple", black
-/// outline on white, as tall as Google's beside it.
+/// "Continue with Apple" in the app's own button (Apple allows a custom
+/// style): Apple's logo artwork, logo and title in the same colour, on
+/// white, as large as every other option (HIG, Sign in with Apple).
 class AppleButton extends StatelessWidget {
   const AppleButton({super.key, required this.onPressed});
 
   final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) => IgnorePointer(
-    ignoring: onPressed == null,
-    child: Opacity(
-      opacity: onPressed == null ? 0.5 : 1,
-      child: SignInWithAppleButton(
-        text: AppLocalizations.of(context)!.setupContinueApple,
-        onPressed: onPressed ?? () {},
-        height: socialButtonHeight,
-        style: SignInWithAppleButtonStyle.whiteOutlined,
-        borderRadius: BorderRadius.circular(AuraRadii.button),
+  Widget build(BuildContext context) => AuraButton(
+    label: AppLocalizations.of(context)!.setupContinueApple,
+    color: AuraButtonColor.white,
+    onPressed: onPressed,
+    leading: const ExcludeSemantics(
+      child: SizedBox(
+        // the logo's own proportions (25:31), sized to the label
+        width: 22 * 25 / 31,
+        height: 22,
+        child: CustomPaint(painter: AppleLogoPainter(color: AuraColors.navy)),
       ),
     ),
   );
 }
 
-/// Google's light button (branding guidelines): the official "G" mark and
-/// "Continue with Google", drawn to match [AppleButton]'s size and type.
+/// "Continue with Google" in the app's own button (Google allows a custom
+/// button): the official full-colour "G", unchanged, on white.
 class GoogleButton extends StatelessWidget {
   const GoogleButton({super.key, required this.onPressed});
 
   final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AuraRadii.button);
-    return Opacity(
-      opacity: onPressed == null ? 0.5 : 1,
-      child: Semantics(
-        button: true,
-        enabled: onPressed != null,
-        child: Material(
-          color: AuraColors.white,
-          borderRadius: radius,
-          child: InkWell(
-            borderRadius: radius,
-            onTap: onPressed,
-            child: Container(
-              height: socialButtonHeight,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                borderRadius: radius,
-                border: Border.all(color: Colors.black),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/google_g.png',
-                    width: 20,
-                    height: 20,
-                    excludeFromSemantics: true,
-                  ),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: Text(
-                      AppLocalizations.of(context)!.setupContinueGoogle,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        inherit: false,
-                        fontSize: socialButtonHeight * 0.43,
-                        color: Colors.black,
-                        fontFamily: '.SF Pro Text',
-                        letterSpacing: -0.41,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => AuraButton(
+    label: AppLocalizations.of(context)!.setupContinueGoogle,
+    color: AuraButtonColor.white,
+    onPressed: onPressed,
+    leading: Image.asset(
+      'assets/images/google_g.png',
+      width: 22,
+      height: 22,
+      excludeFromSemantics: true,
+    ),
+  );
 }
-
-/// Apple's and Google's buttons are this tall: the same as each other.
-const socialButtonHeight = 56.0;
