@@ -64,8 +64,10 @@ void main() {
     await tester.pumpWidget(AuraApp(deps: deps));
     await tester.pumpAndSettle();
 
+    // the first Home with a case left open is WelcomeBack (651:133)
+    expect(find.text('Your case is waiting.'), findsOneWidget);
     await tester.runAsync(() async {
-      await tester.tap(find.text('Keep going'));
+      await tester.tap(find.text("Let's see"));
       await Future<void>.delayed(const Duration(milliseconds: 50));
     });
     await tester.pumpAndSettle();
@@ -110,7 +112,12 @@ void main() {
     await tap(find.text('Next'));
     await tap(find.text('Add to my sash'));
 
-    // the engine chose lemon next; the after-case screens show it
-    expect(find.text('afterCase'), findsOneWidget);
+    // a paired phone that is online: Y4, then X1 with the lemon case the
+    // engine chose next
+    expect(find.text('My sash'), findsOneWidget);
+    await tap(find.text('Next case'));
+    expect(find.text('Ready for a trickier one?'), findsOneWidget);
+    await tap(find.text("Let's go"));
+    expect(find.textContaining('186 cm'), findsOneWidget);
   });
 }
