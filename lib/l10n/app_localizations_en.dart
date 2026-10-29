@@ -153,4 +153,148 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lostInternet => 'Lost the internet. Your work is saved.';
+
+  @override
+  String get kidMyTrail => 'My trail';
+
+  @override
+  String get kidMyBadges => 'My badges';
+
+  @override
+  String get kidForGrownUps => 'For grown-ups';
+
+  @override
+  String get kidHome => 'Home';
+
+  @override
+  String kidWelcomeBack(String name) {
+    return 'Welcome back, $name!';
+  }
+
+  @override
+  String get kidWelcomeBackNoName => 'Welcome back!';
+
+  @override
+  String get kidCaseWaiting => 'Your case is waiting.';
+
+  @override
+  String get kidLetsSee => 'Let\'s see';
+
+  @override
+  String get kidSoundOff => 'Your sound is off';
+
+  @override
+  String get kidSoundOffBody => 'Turn it up to hear me. Or read along.';
+
+  @override
+  String get kidSoundOn => 'Sound is on now';
+
+  @override
+  String get kidIllRead => 'I\'ll read';
+
+  @override
+  String get kidVoiceResting => 'My voice is resting';
+
+  @override
+  String get kidVoiceRestingBody => 'Today I\'ll show the words big instead.';
+
+  @override
+  String get kidOkLetsGo => 'OK, let\'s go';
+
+  @override
+  String get kidNextToEarn => 'Next to earn';
+
+  @override
+  String get kidNoBadgesYet => 'Crack a case to earn your first badge!';
+
+  @override
+  String get kidBackToBadges => 'Back to my badges';
+
+  @override
+  String get kidDone => 'Done';
+
+  @override
+  String get kidYouAreHere => 'You are here';
+
+  @override
+  String get kidNextStop => 'Next stop';
+
+  @override
+  String get kidStopAddBig => 'Adding to 1000';
+
+  @override
+  String get kidStopTakeAwayBig => 'Taking away to 1000';
+
+  @override
+  String get kidStopTrees => 'Tree cases';
+
+  @override
+  String get kidStopTrickyWords => 'Tricky word cases';
+
+  @override
+  String get kidStopTotalAndDifference => 'Burger cases';
+
+  @override
+  String get kidReachedTop => 'You reached the top!';
+
+  @override
+  String get kidNewTrailSoon =>
+      'A new trail opens soon. Keep your detective skills sharp!';
+
+  @override
+  String get kidQuickCheck => 'A quick check!';
+
+  @override
+  String get kidQuickCheckBody =>
+      'A warm-up game with sums you know. No score.';
+
+  @override
+  String get kidLetsPlay => 'Let\'s play';
+
+  @override
+  String get kidTrickierOne => 'Ready for a trickier one?';
+
+  @override
+  String get kidTreeWordProblem => 'Tree Word Problem';
+
+  @override
+  String get kidWordProblem => 'Word Problem';
+
+  @override
+  String get kidSameTreesWatchWords => 'Same trees. Watch the words!';
+
+  @override
+  String get kidLetsGo => 'Let\'s go';
+
+  @override
+  String get kidDoneForToday => 'Done for today';
+
+  @override
+  String get kidOnARoll => 'On a roll!';
+
+  @override
+  String get kidCaseAfterCase => 'Case after case. Detective work!';
+
+  @override
+  String get kidTryNewSkill => 'Try a new skill!';
+
+  @override
+  String kidNewStopOpened(String stop) {
+    return 'A new stop opened on your trail: $stop.';
+  }
+
+  @override
+  String get kidSeeMyTrail => 'See my trail';
+
+  @override
+  String get kidMySash => 'My sash';
+
+  @override
+  String get kidInYourSash => 'It\'s in your sash. Your grown-up sees it too.';
+
+  @override
+  String get kidNextCase => 'Next case';
+
+  @override
+  String get kidTryAgain => 'Try again';
 }

@@ -39,6 +39,21 @@ abstract final class AuraColors {
 
   /// The inset shade along a bar's base (black at 12 %).
   static const barShade = Color(0x1F000000);
+
+  /// An earned badge: a gold disc with a darker edge and lip (B1, Y4).
+  static const badgeGoldLight = Color(0xFFFFE08A);
+  static const badgeGold = Color(0xFFFFB800);
+  static const badgeGoldEdge = Color(0xFFE59A00);
+  static const badgeGoldLip = Color(0xFFB97800);
+
+  /// A badge or new skill shown large: a blue disc (B2, Up).
+  static const badgeBlueLight = Color(0xFF9CB8FF);
+  static const badgeBlue = Color(0xFF5A86FF);
+  static const badgeBlueEdge = Color(0xFF2F55D9);
+  static const badgeBlueLip = Color(0xFF1C3A9E);
+
+  /// The sash board's top-left light (Y4).
+  static const sashLight = Color(0xFFFFDE7A);
 }
 
 abstract final class AuraRadii {
@@ -87,4 +102,21 @@ abstract final class AuraText {
   static final link = _nunito(900, 17);
   static final small = _nunito(600, 15);
   static final flag = _nunito(900, 12);
+
+  /// The line under a ribbon on the child's blue screens.
+  static final play = _nunito(800, 21);
+
+  /// The child's name beside their portrait (Home).
+  static final kidName = _nunito(700, 22);
+
+  /// A badge's name under it (B1); [badgeNext] for one not earned yet.
+  static final badgeName = _nunito(700, 18);
+  static final badgeNext = _nunito(700, 15);
+
+  /// A small capitals heading ("NEXT TO EARN").
+  static final eyebrow = _nunito(900, 11).copyWith(letterSpacing: 0.9);
+
+  /// A trail stop's name and the note under it ("Done", "You are here").
+  static final trailStop = _nunito(700, 16, height: 1.1);
+  static final trailNote = _nunito(800, 13);
 }

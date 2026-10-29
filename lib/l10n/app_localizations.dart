@@ -375,6 +375,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lost the internet. Your work is saved.'**
   String get lostInternet;
+
+  /// No description provided for @kidMyTrail.
+  ///
+  /// In en, this message translates to:
+  /// **'My trail'**
+  String get kidMyTrail;
+
+  /// No description provided for @kidMyBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'My badges'**
+  String get kidMyBadges;
+
+  /// No description provided for @kidForGrownUps.
+  ///
+  /// In en, this message translates to:
+  /// **'For grown-ups'**
+  String get kidForGrownUps;
+
+  /// No description provided for @kidHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get kidHome;
+
+  /// No description provided for @kidWelcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back, {name}!'**
+  String kidWelcomeBack(String name);
+
+  /// No description provided for @kidWelcomeBackNoName.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back!'**
+  String get kidWelcomeBackNoName;
+
+  /// No description provided for @kidCaseWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Your case is waiting.'**
+  String get kidCaseWaiting;
+
+  /// No description provided for @kidLetsSee.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s see'**
+  String get kidLetsSee;
+
+  /// No description provided for @kidSoundOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sound is off'**
+  String get kidSoundOff;
+
+  /// No description provided for @kidSoundOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn it up to hear me. Or read along.'**
+  String get kidSoundOffBody;
+
+  /// No description provided for @kidSoundOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound is on now'**
+  String get kidSoundOn;
+
+  /// No description provided for @kidIllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ll read'**
+  String get kidIllRead;
+
+  /// No description provided for @kidVoiceResting.
+  ///
+  /// In en, this message translates to:
+  /// **'My voice is resting'**
+  String get kidVoiceResting;
+
+  /// No description provided for @kidVoiceRestingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today I\'ll show the words big instead.'**
+  String get kidVoiceRestingBody;
+
+  /// No description provided for @kidOkLetsGo.
+  ///
+  /// In en, this message translates to:
+  /// **'OK, let\'s go'**
+  String get kidOkLetsGo;
+
+  /// No description provided for @kidNextToEarn.
+  ///
+  /// In en, this message translates to:
+  /// **'Next to earn'**
+  String get kidNextToEarn;
+
+  /// No description provided for @kidNoBadgesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Crack a case to earn your first badge!'**
+  String get kidNoBadgesYet;
+
+  /// No description provided for @kidBackToBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my badges'**
+  String get kidBackToBadges;
+
+  /// No description provided for @kidDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get kidDone;
+
+  /// No description provided for @kidYouAreHere.
+  ///
+  /// In en, this message translates to:
+  /// **'You are here'**
+  String get kidYouAreHere;
+
+  /// No description provided for @kidNextStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stop'**
+  String get kidNextStop;
+
+  /// No description provided for @kidStopAddBig.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding to 1000'**
+  String get kidStopAddBig;
+
+  /// No description provided for @kidStopTakeAwayBig.
+  ///
+  /// In en, this message translates to:
+  /// **'Taking away to 1000'**
+  String get kidStopTakeAwayBig;
+
+  /// No description provided for @kidStopTrees.
+  ///
+  /// In en, this message translates to:
+  /// **'Tree cases'**
+  String get kidStopTrees;
+
+  /// No description provided for @kidStopTrickyWords.
+  ///
+  /// In en, this message translates to:
+  /// **'Tricky word cases'**
+  String get kidStopTrickyWords;
+
+  /// No description provided for @kidStopTotalAndDifference.
+  ///
+  /// In en, this message translates to:
+  /// **'Burger cases'**
+  String get kidStopTotalAndDifference;
+
+  /// No description provided for @kidReachedTop.
+  ///
+  /// In en, this message translates to:
+  /// **'You reached the top!'**
+  String get kidReachedTop;
+
+  /// No description provided for @kidNewTrailSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'A new trail opens soon. Keep your detective skills sharp!'**
+  String get kidNewTrailSoon;
+
+  /// No description provided for @kidQuickCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'A quick check!'**
+  String get kidQuickCheck;
+
+  /// No description provided for @kidQuickCheckBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A warm-up game with sums you know. No score.'**
+  String get kidQuickCheckBody;
+
+  /// No description provided for @kidLetsPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s play'**
+  String get kidLetsPlay;
+
+  /// No description provided for @kidTrickierOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for a trickier one?'**
+  String get kidTrickierOne;
+
+  /// No description provided for @kidTreeWordProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Tree Word Problem'**
+  String get kidTreeWordProblem;
+
+  /// No description provided for @kidWordProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Word Problem'**
+  String get kidWordProblem;
+
+  /// No description provided for @kidSameTreesWatchWords.
+  ///
+  /// In en, this message translates to:
+  /// **'Same trees. Watch the words!'**
+  String get kidSameTreesWatchWords;
+
+  /// No description provided for @kidLetsGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go'**
+  String get kidLetsGo;
+
+  /// No description provided for @kidDoneForToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Done for today'**
+  String get kidDoneForToday;
+
+  /// No description provided for @kidOnARoll.
+  ///
+  /// In en, this message translates to:
+  /// **'On a roll!'**
+  String get kidOnARoll;
+
+  /// No description provided for @kidCaseAfterCase.
+  ///
+  /// In en, this message translates to:
+  /// **'Case after case. Detective work!'**
+  String get kidCaseAfterCase;
+
+  /// No description provided for @kidTryNewSkill.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a new skill!'**
+  String get kidTryNewSkill;
+
+  /// No description provided for @kidNewStopOpened.
+  ///
+  /// In en, this message translates to:
+  /// **'A new stop opened on your trail: {stop}.'**
+  String kidNewStopOpened(String stop);
+
+  /// No description provided for @kidSeeMyTrail.
+  ///
+  /// In en, this message translates to:
+  /// **'See my trail'**
+  String get kidSeeMyTrail;
+
+  /// No description provided for @kidMySash.
+  ///
+  /// In en, this message translates to:
+  /// **'My sash'**
+  String get kidMySash;
+
+  /// No description provided for @kidInYourSash.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s in your sash. Your grown-up sees it too.'**
+  String get kidInYourSash;
+
+  /// No description provided for @kidNextCase.
+  ///
+  /// In en, this message translates to:
+  /// **'Next case'**
+  String get kidNextCase;
+
+  /// No description provided for @kidTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get kidTryAgain;
 }
 
 class _AppLocalizationsDelegate
