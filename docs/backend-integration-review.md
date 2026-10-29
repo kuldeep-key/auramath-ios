@@ -106,7 +106,50 @@
 | **Google client ids** | Google sign-in testing only. | Backend / accounts |
 | **Design** | Figma has every parent screen. Still needed: the "Lost the internet" **pause** state (the spec sent to Apoorv says it must not block, which is now wrong), a "need the internet to start" screen, the official Apple and Google buttons, the updated Time's up screen, the app icon and splash. We build with placeholders until they arrive. | Apoorv |
 
-## 6. Tuesday 3 Nov
+## 6. Figma screens: built, buildable now, waiting
+
+Source: Figma page "Screens · Prototype copy (27 Oct)" (629:2), about 130 frames.
+
+**Built in the app (lesson flow):**
+- M0/M1 (the question), M1-D2 to M1-D6 (the drawing steps);
+- M1-help, a simple H2-1 to H2-3 (show me how), a simple T1 (side lesson);
+- W1, J17 (wrong answers), M1-pause, R1, R2, TU;
+- Y2 (case cracked), Y3 (badge), a basic Home;
+- the N1, N1b and N1s problem variants, which are the same screens with other numbers.
+
+**Buildable now, with backend routes already there:**
+
+| Group | Screens |
+| --- | --- |
+| Parent setup | Welcome 643:2, Name 643:24, Age 643:40, Year 643:66, Start 643:102, StartNotSure 643:145, Goal 643:169, Data 643:203, SavePlace 643:235, Ready 644:2, Lock 644:20, Who's learning 644:38, AddChild 667:87 |
+| Pairing and phones | JoinCode 644:75, Open (Who's here?) 644:107, GetCode 644:147, IsThisYou 644:205, PhoneJoined 644:240, CodeWrong 653:55, NewCode 653:89, WhichChild 653:115, OtherPhone 653:24, RemovePhone 653:159, Removed 653:172 |
+| Sign-in | SignIn 653:2, CheckEmail 653:144, ForgotPass 653:132, SignOut 659:105 |
+| Grown-up area | GPass 652:173, PHome 658:84, Settings 652:75, Family 652:213, Invite 652:251, Rights 667:66 |
+| Child extras | WelcomeBack 651:133, Y4 (sent to your grown-up) 648:83, Sound 650:149, NoVoice 659:39, Notify 659:52, P1b (phone call) 650:63, Lock0 667:34 |
+| Lesson, full versions | H2 (smaller example) 667:2, interactive T1 board 649:239, N0/N0b/N1b/N1 (easier and same-pattern intros) 649:49 to 649:193 |
+| Badges and progress (on the phone) | B1 (my badges) 650:233, B2 (badge close-up) 651:2, Streak 650:202, K2 (my trail) 651:68, TrailTop 659:2, Up (something new) 651:35, X1 (case closed) 650:166 |
+
+**Buildable now, but the data is wrong until the backend reads the new events (B1):**
+- Book 652:35, Plan 652:119, R0 (simple report) 667:44, Monthly 658:121;
+- Check (spaced check) 651:165.
+
+**Not an app screen:** Email 652:2 and FirstEmail 652:151 are emails the backend sends.
+
+**Waiting on a decision or content:**
+- **Other problem types** need Julia's templates; the spec pack has only the comparison one:
+  - L0/L1 (level 1) 654:98, 654:146;
+  - WT1/WT2 (weights);
+  - TD1/TD2 (total and difference, M3);
+  - BS1/BS2 (bar sense);
+  - NS1/NS2/NS3 (number sense);
+  - N0s/N1s (the flip).
+- **Warm-up and choose today** (A2 647:2, A3 647:56, A2e 658:192) and **Quick sums** (QS1, QSgo, QS2, QS3; LES-16, behind a flag). They need the arithmetic content and a product call on when they show.
+- **"New from Kush"** — the free check (FC0, FC1, FCp, FCR, FCKeep, FCBack), LookPick (pick your detective) and Voice (case partner). Not agreed in the PRD; the memo says it changes Julia's SOW.
+- **Plans (membership) 659:71:** payments are out of scope this term (PRD v3.3). Don't build.
+
+**Copy fix needed before building:** several setup frames say "His age", "What he can already do" and "His details". The PRD rule (PRV-07) is no gender anywhere, so the app uses the child's name, or "your child", instead. The goal list on Goal 643:169 is a placeholder; product must supply it (the backend has only "Do well in the school curriculum").
+
+## 7. Tuesday 3 Nov
 
 **Proposed goal:** the lesson works online, end to end, against the backend:
 1. A parent signs in with the email link (dev), gives consent, adds the child and gets a 6-digit code.
