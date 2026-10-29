@@ -24,6 +24,16 @@ abstract final class AuraColors {
   static const keyShadow = Color(0xFF898A8D);
   static const keyText = Color(0xFF111111);
 
+  /// The empty part of a progress bar.
+  static const track = Color(0xFFE7EAF2);
+
+  /// An unticked option's ring.
+  static const tickOff = Color(0xFFC5CBD8);
+
+  /// The small flag on a suggested option ("Usual for age 7").
+  static const flag = Color(0xFFFFE7A3);
+  static const flagInk = Color(0xFF6B4A00);
+
   /// Dims the screen behind a lesson sheet (navy at 40 %).
   static const scrim = Color(0x660F2A73);
 
@@ -64,4 +74,17 @@ abstract final class AuraText {
   static final chip = _nunito(900, 20);
   static final title = _nunito(900, 28);
   static final body = _nunito(600, 17);
+
+  /// A grown-up screen's title. Figma: 30 Black, -0.3 tracking.
+  static final heading = _nunito(
+    900,
+    30,
+    height: 1.15,
+  ).copyWith(letterSpacing: -0.3);
+
+  /// An option's label, a list row's title.
+  static final option = _nunito(900, 19);
+  static final link = _nunito(900, 17);
+  static final small = _nunito(600, 15);
+  static final flag = _nunito(900, 12);
 }

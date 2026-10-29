@@ -4,4 +4,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug builds talk to the backend on this Mac over plain http
+         (adb reverse tcp:8080 tcp:8080). Release builds stay https only. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

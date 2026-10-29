@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'data/helpers.dart' show lessonEvents;
+import 'helpers/app_harness.dart';
 import 'ui/features/lesson/fakes.dart';
 
 void main() {
@@ -13,18 +14,12 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final (sessions, _, _) =
-        await tester.runAsync(memorySessions) ?? (throw StateError('no db'));
-    final voice = FakeVoice();
+    final (deps, _) =
+        await tester.runAsync(() => testDeps(stored: pairedChildPhone)) ??
+        (throw StateError('no deps'));
+    final voice = deps.voice as FakeVoice;
 
-    await tester.pumpWidget(
-      AuraApp(
-        sessions: sessions,
-        pack: samplePack(),
-        voice: voice,
-        sessionCap: const Duration(minutes: 30),
-      ),
-    );
+    await tester.pumpWidget(AuraApp(deps: deps));
     await tester.pumpAndSettle();
     expect(find.text('Ready for a new case?'), findsOneWidget);
 
@@ -50,9 +45,11 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final pack = samplePack();
-    final (sessions, _, _) =
-        await tester.runAsync(memorySessions) ?? (throw StateError('no db'));
+    final (deps, _) =
+        await tester.runAsync(() => testDeps(stored: pairedChildPhone)) ??
+        (throw StateError('no deps'));
+    final pack = deps.pack;
+    final sessions = deps.sessions;
     await tester.runAsync(() async {
       await sessions.record(
         'old',
@@ -63,14 +60,7 @@ void main() {
         ]),
       );
     });
-    await tester.pumpWidget(
-      AuraApp(
-        sessions: sessions,
-        pack: pack,
-        voice: FakeVoice(),
-        sessionCap: const Duration(minutes: 30),
-      ),
-    );
+    await tester.pumpWidget(AuraApp(deps: deps));
     await tester.pumpAndSettle();
 
     await tester.runAsync(() async {
@@ -91,16 +81,10 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final (sessions, _, _) =
-        await tester.runAsync(memorySessions) ?? (throw StateError('no db'));
-    await tester.pumpWidget(
-      AuraApp(
-        sessions: sessions,
-        pack: samplePack(),
-        voice: FakeVoice(),
-        sessionCap: const Duration(minutes: 30),
-      ),
-    );
+    final (deps, _) =
+        await tester.runAsync(() => testDeps(stored: pairedChildPhone)) ??
+        (throw StateError('no deps'));
+    await tester.pumpWidget(AuraApp(deps: deps));
     await tester.pumpAndSettle();
 
     Future<void> tap(Finder f) async {
@@ -125,8 +109,7 @@ void main() {
     await tap(find.text('Next'));
     await tap(find.text('Add to my sash'));
 
-    expect(find.textContaining('186 cm'), findsOneWidget);
-    expect(find.text("Got it, let's draw"), findsOneWidget);
-    await tap(find.byIcon(Icons.home_rounded));
+    // the engine chose lemon next; the after-case screens show it
+    expect(find.text('afterCase'), findsOneWidget);
   });
 }

@@ -1,29 +1,19 @@
-import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'data/repositories/session_repository.dart';
-import 'data/services/voice.dart';
+import 'deps.dart';
 import 'l10n/app_localizations.dart';
-import 'routing.dart';
+import 'routing/paths.dart';
+import 'routing/router.dart';
 import 'ui/core/theme/app_theme.dart';
-import 'ui/features/lesson/view_models/sitting.dart';
 
 class AuraApp extends StatefulWidget {
-  const AuraApp({
-    super.key,
-    required this.sessions,
-    required this.pack,
-    required this.voice,
-    required this.sessionCap,
-  });
+  const AuraApp({super.key, required this.deps, this.initialLocation});
 
-  final SessionRepository sessions;
-  final Pack pack;
-  final Voice voice;
+  final Deps deps;
 
-  /// app-config `session.cap_minutes`.
-  final Duration sessionCap;
+  /// For tests: start somewhere other than `/`.
+  final String? initialLocation;
 
   @override
   State<AuraApp> createState() => _AuraAppState();
@@ -31,10 +21,8 @@ class AuraApp extends StatefulWidget {
 
 class _AuraAppState extends State<AuraApp> {
   late final GoRouter _router = buildRouter(
-    sessions: widget.sessions,
-    pack: widget.pack,
-    voice: widget.voice,
-    sitting: Sitting(capMs: widget.sessionCap.inMilliseconds),
+    widget.deps,
+    initialLocation: widget.initialLocation,
   );
 
   late final AppLifecycleListener _lifecycle;
@@ -43,11 +31,19 @@ class _AuraAppState extends State<AuraApp> {
   void initState() {
     super.initState();
     // Back in the foreground: send anything the outbox is still holding.
-    _lifecycle = AppLifecycleListener(onResume: widget.sessions.syncNow);
+    _lifecycle = AppLifecycleListener(onResume: widget.deps.sessions.syncNow);
+    _router.routerDelegate.addListener(_lockOnLeave);
+  }
+
+  /// Leaving the grown-up area locks it again (ACC-07).
+  void _lockOnLeave() {
+    final loc = _router.routerDelegate.currentConfiguration.uri.path;
+    if (!Paths.isGrownUp(loc)) widget.deps.account.lockGrownUps();
   }
 
   @override
   void dispose() {
+    _router.routerDelegate.removeListener(_lockOnLeave);
     _lifecycle.dispose();
     _router.dispose();
     super.dispose();
@@ -61,5 +57,9 @@ class _AuraAppState extends State<AuraApp> {
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     debugShowCheckedModeBanner: false,
+    // Large text is honoured up to 1.3×; past that the child's screens stop
+    // fitting. Every screen still scrolls rather than clips.
+    builder: (context, child) =>
+        MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: child!),
   );
 }

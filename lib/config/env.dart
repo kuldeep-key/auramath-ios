@@ -7,8 +7,11 @@ abstract final class Env {
   /// Sessions from this build are demo data, never a child's real work.
   static const isDemo = bool.fromEnvironment('DEMO');
 
-  // ponytail: dev placeholders until setup and pairing hand out the real
-  // child ref and device id; prod leaves them empty on purpose.
-  static const childRef = String.fromEnvironment('CHILD_REF');
-  static const deviceId = String.fromEnvironment('DEVICE_ID');
+  /// The iOS OAuth client id for Google sign-in. Empty until the Google
+  /// project exists; the Google button then explains it isn't set up.
+  static const googleIosClientId = String.fromEnvironment(
+    'GOOGLE_IOS_CLIENT_ID',
+  );
+
+  static bool get isDev => name == 'dev';
 }

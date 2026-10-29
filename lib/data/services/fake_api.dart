@@ -11,6 +11,22 @@ class FakeApi implements Api {
   final List<(String, List<LessonEvent>)> batches = [];
   final Set<(String, int)> _seen = {};
 
+  final List<String> sessions = [];
+
+  @override
+  Future<({String sessionId, String childRef})> startSession({
+    String? childId,
+    required bool isDemo,
+  }) async {
+    if (failNext > 0) {
+      failNext--;
+      throw const ApiException('offline');
+    }
+    final id = 'fake-session-${sessions.length}';
+    sessions.add(id);
+    return (sessionId: id, childRef: 'ch_fakechild01');
+  }
+
   @override
   Future<void> sendEvents(String sessionId, List<LessonEvent> events) async {
     if (failNext > 0) {
