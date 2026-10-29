@@ -35,14 +35,14 @@ class WelcomeScreen extends StatelessWidget {
             child: Text(
               l.setupWelcomeTitle,
               textAlign: TextAlign.center,
-              style: AuraText.heading.copyWith(fontSize: 34),
+              style: AuraText.hero,
             ),
           ),
           const SizedBox(height: 22),
           Text(
             l.setupWelcomeBody,
             textAlign: TextAlign.center,
-            style: AuraText.body.copyWith(color: AuraColors.mute, height: 1.4),
+            style: AuraText.subtitle,
           ),
           const SizedBox(height: 16),
         ],

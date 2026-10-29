@@ -123,13 +123,7 @@ class _NotSureTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(l.setupNotSure, style: AuraText.option),
-                      Text(
-                        l.setupNotSureDetail,
-                        style: AuraText.small.copyWith(
-                          color: AuraColors.mute,
-                          fontSize: 14,
-                        ),
-                      ),
+                      Text(l.setupNotSureDetail, style: AuraText.optionDetail),
                     ],
                   ),
                 ),

@@ -37,7 +37,7 @@ class ReadyScreen extends StatelessWidget {
           Text(
             l.setupReadyBody(name),
             textAlign: TextAlign.center,
-            style: AuraText.body.copyWith(color: AuraColors.mute, height: 1.4),
+            style: AuraText.subtitle,
           ),
           const SizedBox(height: 16),
         ],

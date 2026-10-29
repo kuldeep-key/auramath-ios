@@ -125,7 +125,7 @@ class _JoinCodeScreenState extends State<JoinCodeScreen> {
               Text(
                 l.setupCodeExpired,
                 textAlign: TextAlign.center,
-                style: AuraText.body.copyWith(color: AuraColors.mute),
+                style: AuraText.subtitle,
               )
             else
               _WorksFor(left: left!),
@@ -167,19 +167,12 @@ class _WorksFor extends StatelessWidget {
     final time = '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
     final text = AppLocalizations.of(context)!.setupWorksOnce(time);
     final at = text.indexOf(time);
-    final style = AuraText.body.copyWith(color: AuraColors.mute);
     return Text.rich(
       TextSpan(
-        style: style,
+        style: AuraText.subtitle,
         children: [
           TextSpan(text: text.substring(0, at)),
-          TextSpan(
-            text: time,
-            style: style.copyWith(
-              fontWeight: FontWeight.w900,
-              fontVariations: const [FontVariation('wght', 900)],
-            ),
-          ),
+          TextSpan(text: time, style: AuraText.subtitleBold),
           TextSpan(text: text.substring(at + time.length)),
         ],
       ),

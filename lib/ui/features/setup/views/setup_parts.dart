@@ -119,17 +119,8 @@ class InfoCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: AuraText.body.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontVariations: const [FontVariation('wght', 700)],
-                        ),
-                      ),
-                      Text(
-                        detail,
-                        style: AuraText.small.copyWith(color: AuraColors.mute),
-                      ),
+                      Text(title, style: AuraText.infoTitle),
+                      Text(detail, style: AuraText.caption),
                     ],
                   ),
                 ),
