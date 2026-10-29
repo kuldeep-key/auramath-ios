@@ -105,11 +105,7 @@ class _Earned extends StatelessWidget {
           spacing: 8,
           children: [
             BadgeDisc(art: badgeArt(id), size: 130),
-            Text(
-              name,
-              textAlign: TextAlign.center,
-              style: AuraText.badgeName.copyWith(color: AuraColors.white),
-            ),
+            Text(name, textAlign: TextAlign.center, style: AuraText.badgeName),
           ],
         ),
       ),

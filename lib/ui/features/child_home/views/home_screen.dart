@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
               child: Text(
                 name ?? '',
                 overflow: TextOverflow.ellipsis,
-                style: AuraText.kidName.copyWith(color: AuraColors.white),
+                style: AuraText.kidName,
               ),
             ),
             PlayIconButton(

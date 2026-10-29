@@ -27,7 +27,7 @@ class BadgeScreen extends StatelessWidget {
         child: Text(
           badge.name,
           textAlign: TextAlign.center,
-          style: AuraText.heading.copyWith(color: AuraColors.white),
+          style: AuraText.playTitle.copyWith(color: AuraColors.white),
         ),
       ),
       PlayLine(badge.says),

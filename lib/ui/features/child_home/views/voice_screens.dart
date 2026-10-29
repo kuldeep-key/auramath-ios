@@ -103,7 +103,7 @@ class _Notice extends StatelessWidget {
           child: Text(
             title,
             textAlign: TextAlign.center,
-            style: AuraText.heading,
+            style: AuraText.playTitle,
           ),
         ),
         Text(

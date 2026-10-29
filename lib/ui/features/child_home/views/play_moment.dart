@@ -40,11 +40,8 @@ class PlayLine extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => Text(
-    text,
-    textAlign: TextAlign.center,
-    style: AuraText.play.copyWith(color: AuraColors.white),
-  );
+  Widget build(BuildContext context) =>
+      Text(text, textAlign: TextAlign.center, style: AuraText.play);
 }
 
 /// Buttons stacked 12 apart, full width.

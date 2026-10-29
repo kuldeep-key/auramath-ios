@@ -149,13 +149,13 @@ class _CaseClosed extends StatelessWidget {
               Text(
                 tree ? l.kidTreeWordProblem : l.kidWordProblem,
                 textAlign: TextAlign.center,
-                style: AuraText.button.copyWith(color: AuraColors.navy),
+                style: AuraText.caseTitle,
               ),
               if (watchWords)
                 Text(
                   l.kidSameTreesWatchWords,
                   textAlign: TextAlign.center,
-                  style: AuraText.link.copyWith(color: AuraColors.mute),
+                  style: AuraText.caseLine,
                 ),
             ],
           ),
