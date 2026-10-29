@@ -5,6 +5,7 @@ import 'data/repositories/family_repository.dart';
 import 'data/repositories/session_repository.dart';
 import 'data/services/api_client.dart';
 import 'data/services/device_lock.dart';
+import 'data/services/outbox_db.dart';
 import 'data/services/voice.dart';
 import 'ui/features/lesson/view_models/sitting.dart';
 
@@ -20,6 +21,7 @@ class Deps {
     required this.voice,
     required this.sitting,
     required this.deviceLock,
+    required this.outbox,
   });
 
   final AccountRepository account;
@@ -32,4 +34,8 @@ class Deps {
   final Voice voice;
   final Sitting sitting;
   final DeviceLock deviceLock;
+
+  /// This phone's saved lesson events (read-only outside the lesson): the
+  /// badges and trail read what was earned here.
+  final OutboxDb outbox;
 }

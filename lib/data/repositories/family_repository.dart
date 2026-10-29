@@ -1,3 +1,4 @@
+import '../services/api.dart';
 import '../services/api_client.dart';
 
 /// A child in the family, as `/api/children` lists them. Never a gender.
@@ -45,5 +46,35 @@ class FamilyRepository {
     await _client.post('/api/parent/consent', {
       'noticeVersion': state['currentVersion'],
     });
+  }
+
+  // ------------------------------------------- the grown-up passcode
+
+  /// `{set, length, lockedUntil}`: whether one is set, how many digits.
+  Future<({bool set, int length, int? lockedUntil})> passcodeStatus() async {
+    final j = await _client.get('/api/family/passcode') as Map<String, Object?>;
+    return (
+      set: j['set'] == true,
+      length: j['length']! as int,
+      lockedUntil: j['lockedUntil'] as int?,
+    );
+  }
+
+  /// Sets or changes it; [current] is required once one is set.
+  Future<void> setPasscode(String passcode, {String? current}) => _client.put(
+    '/api/family/passcode',
+    {'passcode': passcode, 'current': ?current},
+  );
+
+  /// True if right, false if wrong (the server's 403). Throws 429 while
+  /// locked after too many tries, 404 when none is set.
+  Future<bool> checkPasscode(String passcode) async {
+    try {
+      await _client.post('/api/family/passcode/check', {'passcode': passcode});
+      return true;
+    } on ApiException catch (e) {
+      if (e.status == 403) return false;
+      rethrow;
+    }
   }
 }

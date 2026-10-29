@@ -37,7 +37,9 @@ abstract final class Paths {
   static const pairWhichChild = '/pair/which-child'; // WhichChild 653:115
   static const pairIsThisYou = '/pair/is-this-you'; // IsThisYou 644:205
   static const pairJoined = '/pair/joined'; // PhoneJoined 644:240
-  static const removed = '/removed'; // Removed 653:172
+  /// On the child's phone after a grown-up removed it. Not designed in
+  /// Figma; built from Removed 653:172's look.
+  static const removed = '/removed';
 
   // ------------------------------------------------------- the child
   /// A1 · Who's learning? (644:38): the shared phone's picker.
@@ -76,6 +78,9 @@ abstract final class Paths {
   static const rights = '/grown-ups/rights'; // 667:66
   static const notify = '/grown-ups/notify'; // 659:52
   static const signOut = '/grown-ups/sign-out'; // 659:105
+
+  /// Phone removed (653:172): the grown-up's confirmation after removing.
+  static const phoneRemoved = '/grown-ups/family/phone-removed';
   static String removePhone(String deviceId) =>
       '/grown-ups/family/phones/$deviceId/remove'; // 653:159
   static String book(String childId) => '/grown-ups/children/$childId/book';

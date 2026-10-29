@@ -86,7 +86,7 @@ Future<(Deps, FakeServer)> testDeps({
   );
   account.client = client;
   await account.load();
-  final (SessionRepository sessions, _, _) = await memorySessions();
+  final (SessionRepository sessions, outbox, _) = await memorySessions();
   return (
     Deps(
       account: account,
@@ -97,6 +97,7 @@ Future<(Deps, FakeServer)> testDeps({
       voice: FakeVoice(),
       sitting: Sitting(capMs: 30 * 60 * 1000),
       deviceLock: FakeDeviceLock(),
+      outbox: outbox,
     ),
     server,
   );

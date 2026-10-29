@@ -69,6 +69,7 @@ Future<void> main() async {
         voice: DeviceVoice(),
         sitting: Sitting(capMs: config.sessionCapMinutes * 60 * 1000),
         deviceLock: LocalDeviceLock(),
+        outbox: db,
       ),
     ),
   );
