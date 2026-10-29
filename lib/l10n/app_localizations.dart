@@ -1989,6 +1989,588 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get kidTryAgain;
+
+  /// No description provided for @setupYourChild.
+  ///
+  /// In en, this message translates to:
+  /// **'your child'**
+  String get setupYourChild;
+
+  /// No description provided for @setupContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get setupContinue;
+
+  /// No description provided for @setupTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get setupTryAgain;
+
+  /// No description provided for @setupWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personalised maths.\nTargeted growth.'**
+  String get setupWelcomeTitle;
+
+  /// No description provided for @setupWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar-model word problems for ages 5 to 10, read aloud and drawn by your child.'**
+  String get setupWelcomeBody;
+
+  /// No description provided for @setupGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get setupGetStarted;
+
+  /// No description provided for @setupHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'I already have an account'**
+  String get setupHaveAccount;
+
+  /// No description provided for @setupNameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your child\'s first name'**
+  String get setupNameTitle;
+
+  /// No description provided for @setupNameSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the first name. No surname.'**
+  String get setupNameSubtitle;
+
+  /// No description provided for @setupNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get setupNameLabel;
+
+  /// No description provided for @setupAgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How old is {name}?'**
+  String setupAgeTitle(String name);
+
+  /// No description provided for @setupYearTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which school year is {name} in?'**
+  String setupYearTitle(String name);
+
+  /// No description provided for @setupYearUsual.
+  ///
+  /// In en, this message translates to:
+  /// **'Usual for age {age}'**
+  String setupYearUsual(int age);
+
+  /// No description provided for @setupKindergarten.
+  ///
+  /// In en, this message translates to:
+  /// **'Kindergarten'**
+  String get setupKindergarten;
+
+  /// No description provided for @setupYearN.
+  ///
+  /// In en, this message translates to:
+  /// **'Year {n}'**
+  String setupYearN(int n);
+
+  /// No description provided for @setupStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What can {name} already do?'**
+  String setupStartTitle(String name);
+
+  /// No description provided for @setupStartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick everything that feels easy. In school order.'**
+  String get setupStartSubtitle;
+
+  /// No description provided for @setupCanCount100.
+  ///
+  /// In en, this message translates to:
+  /// **'Counting to 100'**
+  String get setupCanCount100;
+
+  /// No description provided for @setupCanAdd100.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding to 100'**
+  String get setupCanAdd100;
+
+  /// No description provided for @setupCanSub100.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtracting to 100'**
+  String get setupCanSub100;
+
+  /// No description provided for @setupCanAdd1000.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding to 1000'**
+  String get setupCanAdd1000;
+
+  /// No description provided for @setupCanSub1000.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtracting to 1000'**
+  String get setupCanSub1000;
+
+  /// No description provided for @setupCanWordProblems.
+  ///
+  /// In en, this message translates to:
+  /// **'Word problems with bars'**
+  String get setupCanWordProblems;
+
+  /// No description provided for @setupNotSure.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m not sure'**
+  String get setupNotSure;
+
+  /// No description provided for @setupNotSureDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Help me figure it out'**
+  String get setupNotSureDetail;
+
+  /// No description provided for @setupNotSureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No problem'**
+  String get setupNotSureTitle;
+
+  /// No description provided for @setupNotSureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} starts at a typical {year} level. The first sums find the real one, and we\'ll email you what we found.'**
+  String setupNotSureBody(String name, String year);
+
+  /// No description provided for @setupNotSureBodyNoYear.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} starts at a level typical for their age. The first sums find the real one, and we\'ll email you what we found.'**
+  String setupNotSureBodyNoYear(String name);
+
+  /// No description provided for @setupQuickSums.
+  ///
+  /// In en, this message translates to:
+  /// **'Four quick sums first'**
+  String get setupQuickSums;
+
+  /// No description provided for @setupQuickSumsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Before any word problem.'**
+  String get setupQuickSumsDetail;
+
+  /// No description provided for @setupEmailAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'An email after the first session'**
+  String get setupEmailAfter;
+
+  /// No description provided for @setupEmailAfterDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Telling you where {name} is.'**
+  String setupEmailAfterDetail(String name);
+
+  /// No description provided for @setupGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What would help most?'**
+  String get setupGoalTitle;
+
+  /// No description provided for @setupGoalConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Build confidence'**
+  String get setupGoalConfidence;
+
+  /// No description provided for @setupGoalConfidenceDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm, positive practice'**
+  String get setupGoalConfidenceDetail;
+
+  /// No description provided for @setupGoalCatchUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Catch up'**
+  String get setupGoalCatchUp;
+
+  /// No description provided for @setupGoalCatchUpDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill gaps from school'**
+  String get setupGoalCatchUpDetail;
+
+  /// No description provided for @setupGoalAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Get ahead'**
+  String get setupGoalAhead;
+
+  /// No description provided for @setupGoalAheadDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Stretch with harder cases'**
+  String get setupGoalAheadDetail;
+
+  /// No description provided for @setupGoalWordProblems.
+  ///
+  /// In en, this message translates to:
+  /// **'Word problems'**
+  String get setupGoalWordProblems;
+
+  /// No description provided for @setupGoalWordProblemsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading and drawing them'**
+  String get setupGoalWordProblemsDetail;
+
+  /// No description provided for @setupDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s details stay safe'**
+  String setupDataTitle(String name);
+
+  /// No description provided for @setupDataStored.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored in Australia'**
+  String get setupDataStored;
+
+  /// No description provided for @setupDataStoredDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'On servers in Australia.'**
+  String get setupDataStoredDetail;
+
+  /// No description provided for @setupDataNoAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing personal goes to the AI'**
+  String get setupDataNoAi;
+
+  /// No description provided for @setupDataNoAiDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The tutor never sees a name or a birthday.'**
+  String get setupDataNoAiDetail;
+
+  /// No description provided for @setupDataFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a first name'**
+  String get setupDataFirstName;
+
+  /// No description provided for @setupDataFirstNameDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Your child never types personal details.'**
+  String get setupDataFirstNameDetail;
+
+  /// No description provided for @setupDataDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete it any time'**
+  String get setupDataDelete;
+
+  /// No description provided for @setupDataDeleteDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'From Settings, in one step.'**
+  String get setupDataDeleteDetail;
+
+  /// No description provided for @setupAgree.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree'**
+  String get setupAgree;
+
+  /// No description provided for @setupSaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {name}\'s place'**
+  String setupSaveTitle(String name);
+
+  /// No description provided for @setupSaveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One family account, so progress follows your child to any phone.'**
+  String get setupSaveSubtitle;
+
+  /// No description provided for @setupSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving {name}\'s place…'**
+  String setupSaving(String name);
+
+  /// No description provided for @setupContinueApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get setupContinueApple;
+
+  /// No description provided for @setupContinueGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get setupContinueGoogle;
+
+  /// No description provided for @setupUseEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my email'**
+  String get setupUseEmail;
+
+  /// No description provided for @setupEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get setupEmailLabel;
+
+  /// No description provided for @setupEmailMeLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Email me a link'**
+  String get setupEmailMeLink;
+
+  /// No description provided for @setupEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Type the email address to send the link to.'**
+  String get setupEmailInvalid;
+
+  /// No description provided for @setupAppleOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple sign-in isn\'t switched on for this server yet.'**
+  String get setupAppleOff;
+
+  /// No description provided for @setupEmailOff.
+  ///
+  /// In en, this message translates to:
+  /// **'This server can\'t send email yet.'**
+  String get setupEmailOff;
+
+  /// No description provided for @setupSignInTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get setupSignInTitle;
+
+  /// No description provided for @setupSignInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to your family account.'**
+  String get setupSignInSubtitle;
+
+  /// No description provided for @setupCheckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email'**
+  String get setupCheckTitle;
+
+  /// No description provided for @setupCheckBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the link we sent to sign in on this phone.'**
+  String get setupCheckBody;
+
+  /// No description provided for @setupTappedLink.
+  ///
+  /// In en, this message translates to:
+  /// **'I tapped the link'**
+  String get setupTappedLink;
+
+  /// No description provided for @setupLinkNotYet.
+  ///
+  /// In en, this message translates to:
+  /// **'The link hasn\'t opened on this phone yet. Open the email on this phone and tap the link.'**
+  String get setupLinkNotYet;
+
+  /// No description provided for @setupDevLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the link (dev only)'**
+  String get setupDevLink;
+
+  /// No description provided for @setupVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing you in…'**
+  String get setupVerifying;
+
+  /// No description provided for @setupLinkMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This link has no sign-in code in it. Ask for a new one.'**
+  String get setupLinkMissing;
+
+  /// No description provided for @setupBackToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get setupBackToSignIn;
+
+  /// No description provided for @setupReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All set!'**
+  String get setupReadyTitle;
+
+  /// No description provided for @setupReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} starts with a short warm-up, then a story case.'**
+  String setupReadyBody(String name);
+
+  /// No description provided for @setupHandOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand over to {name}'**
+  String setupHandOver(String name);
+
+  /// No description provided for @setupOwnPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has their own phone'**
+  String setupOwnPhone(String name);
+
+  /// No description provided for @setupLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock the grown-up area'**
+  String get setupLockTitle;
+
+  /// No description provided for @setupLockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'So only you can change settings or see the book.'**
+  String get setupLockBody;
+
+  /// No description provided for @setupUseFaceId.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Face ID'**
+  String get setupUseFaceId;
+
+  /// No description provided for @setupUsePasscode.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a passcode'**
+  String get setupUsePasscode;
+
+  /// No description provided for @setupFaceIdFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID didn\'t work. You can use a passcode instead.'**
+  String get setupFaceIdFailed;
+
+  /// No description provided for @setupFaceIdMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID isn\'t set up on this phone. Use a passcode instead.'**
+  String get setupFaceIdMissing;
+
+  /// No description provided for @setupPassTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a passcode'**
+  String get setupPassTitle;
+
+  /// No description provided for @setupPassBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} digits, so only grown-ups can open the grown-up area.'**
+  String setupPassBody(int n);
+
+  /// No description provided for @setupPassAgainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Type it again'**
+  String get setupPassAgainTitle;
+
+  /// No description provided for @setupPassAgainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The same {n} digits, to be sure.'**
+  String setupPassAgainBody(int n);
+
+  /// No description provided for @setupPassMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Those didn\'t match. Choose a passcode again.'**
+  String get setupPassMismatch;
+
+  /// No description provided for @setupPassShort.
+  ///
+  /// In en, this message translates to:
+  /// **'The passcode is {n} digits.'**
+  String setupPassShort(int n);
+
+  /// No description provided for @setupPassAlreadySet.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family has a passcode'**
+  String get setupPassAlreadySet;
+
+  /// No description provided for @setupPassAlreadySetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It was set on another phone. Use it to open the grown-up area here too.'**
+  String get setupPassAlreadySetBody;
+
+  /// No description provided for @setupJoinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join {name}\'s phone'**
+  String setupJoinTitle(String name);
+
+  /// No description provided for @setupJoinBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On {name}\'s phone, open Auramath, tap I\'m a kid and type this code.'**
+  String setupJoinBody(String name);
+
+  /// No description provided for @setupWorksOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Works once, for {time}'**
+  String setupWorksOnce(String time);
+
+  /// No description provided for @setupCodeExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This code has run out. Show a new code.'**
+  String get setupCodeExpired;
+
+  /// No description provided for @setupProgressFollows.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress follows {name}'**
+  String setupProgressFollows(String name);
+
+  /// No description provided for @setupProgressFollowsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons carry on from any phone in the family.'**
+  String get setupProgressFollowsDetail;
+
+  /// No description provided for @setupNewCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a new code'**
+  String get setupNewCode;
 }
 
 class _AppLocalizationsDelegate
