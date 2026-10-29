@@ -26,17 +26,18 @@ class FamilyScreen extends StatelessWidget {
   final GrownUpRepository repo;
 
   Future<_Family> _load() async {
-    final (members, invites, children, devices) = await (
+    // Future.wait rethrows the first failure as it is, for ErrorNote
+    final r = await Future.wait<Object>([
       repo.members(),
       repo.invites(),
       family.children(),
       repo.devices(),
-    ).wait;
+    ]);
     return (
-      members: members,
-      invites: invites,
-      children: children,
-      devices: devices,
+      members: r[0] as List<Member>,
+      invites: r[1] as List<Invite>,
+      children: r[2] as List<Child>,
+      devices: r[3] as List<Device>,
     );
   }
 

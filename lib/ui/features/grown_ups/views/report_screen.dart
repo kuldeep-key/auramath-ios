@@ -28,7 +28,7 @@ class ReportScreen extends StatelessWidget {
         load: () => withChild(
           family,
           childId,
-          () => (repo.lessons(childId), repo.plan(childId)).wait,
+          () async => (await repo.lessons(childId), await repo.plan(childId)),
         ),
         fallback: Paths.grownUps,
         builder: (context, data, _) {

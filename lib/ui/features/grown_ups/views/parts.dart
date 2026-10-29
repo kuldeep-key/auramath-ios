@@ -130,9 +130,9 @@ class KvRow extends StatelessWidget {
           )
         : null,
     child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: Text(label, style: labelStyle)),
+        Flexible(child: Text(label, style: labelStyle)),
         const SizedBox(width: 12),
         if (trailing != null)
           trailing!
@@ -152,10 +152,10 @@ Future<(Child, T)> withChild<T>(
   String id,
   Future<T> Function() more,
 ) async {
-  final (children, data) = await (family.children(), more()).wait;
+  final children = await family.children();
   final child = children.where((c) => c.id == id).firstOrNull;
   if (child == null) throw const ApiException('no such child', status: 404);
-  return (child, data);
+  return (child, await more());
 }
 
 /// Back, a small title, and the settings gear beside it (Book 652:35).
@@ -352,7 +352,9 @@ class Loaded<T> extends StatefulWidget {
 class _LoadedState<T> extends State<Loaded<T>> {
   late Future<T> _future = widget.load();
 
-  void _reload() => setState(() => _future = widget.load());
+  void _reload() => setState(() {
+    _future = widget.load();
+  });
 
   @override
   Widget build(BuildContext context) => FutureBuilder<T>(

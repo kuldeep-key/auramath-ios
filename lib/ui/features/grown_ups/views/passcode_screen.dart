@@ -67,6 +67,7 @@ class _PasscodeScreenState extends State<PasscodeScreen>
   @override
   void initState() {
     super.initState();
+    _shake.value = 0; // made now, not first in dispose
     _load();
   }
 
@@ -227,7 +228,12 @@ class _PasscodeScreenState extends State<PasscodeScreen>
                 ),
                 child: child,
               ),
-              child: CodeBoxes(length: length, value: _typed, obscure: true),
+              // a fixed height: CodeBoxes' LayoutBuilder has no intrinsic
+              // size, which AuraPage's body asks for
+              child: SizedBox(
+                height: 60,
+                child: CodeBoxes(length: length, value: _typed, obscure: true),
+              ),
             ),
             const SizedBox(height: 16),
             if (_busy) const Spinner(),

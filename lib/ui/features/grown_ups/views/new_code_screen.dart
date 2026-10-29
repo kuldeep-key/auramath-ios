@@ -104,7 +104,12 @@ class _NewCodeScreenState extends State<NewCodeScreen> {
             const SizedBox(height: 16),
             Opacity(
               opacity: expired ? 0.4 : 1,
-              child: CodeBoxes(length: code.code.length, value: code.code),
+              // a fixed height: CodeBoxes' LayoutBuilder has no intrinsic
+              // size, which AuraPage's body asks for
+              child: SizedBox(
+                height: 60,
+                child: CodeBoxes(length: code.code.length, value: code.code),
+              ),
             ),
             const SizedBox(height: 14),
             Semantics(
