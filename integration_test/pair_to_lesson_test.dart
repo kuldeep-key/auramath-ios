@@ -19,7 +19,7 @@ Future<Object?> _call(
   String? token,
   Object? body,
 }) async {
-  final r = await http.Request(method, Uri.parse('$_api$path'))
+  final r = http.Request(method, Uri.parse('$_api$path'))
     ..headers.addAll({
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
