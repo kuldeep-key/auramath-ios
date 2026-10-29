@@ -203,7 +203,7 @@ class _BarBoardState extends State<BarBoard> {
                 Center(
                   child: Text(
                     '${p.aValue} ${p.unit}',
-                    style: AuraText.title.copyWith(fontSize: 22),
+                    style: AuraText.barValue,
                   ),
                 ),
               ),
@@ -233,7 +233,7 @@ class _BarBoardState extends State<BarBoard> {
                     child: Text(
                       bFound ? '${p.bValue}\n${p.unit}' : '?\n${p.unit}',
                       textAlign: TextAlign.center,
-                      style: AuraText.chip.copyWith(color: AuraColors.white),
+                      style: AuraText.barInside,
                     ),
                   ),
                 ),
@@ -294,14 +294,15 @@ class _BarBoardState extends State<BarBoard> {
                 height: capH,
                 child: Column(
                   children: [
-                    Text(item.pic, style: const TextStyle(fontSize: 22)),
+                    // Figma's caption: the emoji at 26 / 28.6
+                    Text(
+                      item.pic,
+                      style: const TextStyle(fontSize: 26, height: 1.1),
+                    ),
                     Text(
                       item.name,
                       textAlign: TextAlign.center,
-                      style: AuraText.chip.copyWith(
-                        fontSize: 17,
-                        color: AuraColors.ink,
-                      ),
+                      style: AuraText.barName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -471,7 +472,7 @@ class _BarBoardState extends State<BarBoard> {
                   ],
                 ),
                 const SizedBox(width: 10),
-                Text(label, style: AuraText.button.copyWith(fontSize: 20)),
+                Text(label, style: AuraText.standing),
               ],
             ),
           ),

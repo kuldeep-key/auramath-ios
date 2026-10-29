@@ -76,7 +76,7 @@ class TrayPiece extends StatelessWidget {
         children: [
           mini,
           const SizedBox(width: 10),
-          Text(label, style: AuraText.button.copyWith(fontSize: 20)),
+          Text(label, style: AuraText.standing),
         ],
       ),
     );

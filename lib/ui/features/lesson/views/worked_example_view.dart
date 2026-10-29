@@ -76,10 +76,7 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
             child: Text(
               l.exampleFacts(_a, _d, _relation(l)),
               textAlign: TextAlign.center,
-              style: AuraText.chip.copyWith(
-                color: AuraColors.yellowInk,
-                fontSize: 19,
-              ),
+              style: AuraText.chip.copyWith(color: AuraColors.yellowInk),
             ),
           ),
           Expanded(
@@ -138,10 +135,8 @@ class _Bars extends StatelessWidget {
       final tallest = (box.maxHeight - labelSpace).clamp(60.0, 270.0);
       final unit = tallest / (a > b ? a : b);
       final faded = step >= 2;
-      Widget label(String text) => SizedBox(
-        height: 36,
-        child: Text(text, style: AuraText.title.copyWith(fontSize: 22)),
-      );
+      Widget label(String text) =>
+          SizedBox(height: 36, child: Text(text, style: AuraText.barValue));
 
       // the gap rides on the shorter bar, up to the taller one's top
       final gapOnB = b < a;
@@ -164,13 +159,7 @@ class _Bars extends StatelessWidget {
                 child: faded
                     ? Padding(
                         padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          '$b m',
-                          style: AuraText.title.copyWith(
-                            color: AuraColors.white,
-                            fontSize: 22,
-                          ),
-                        ),
+                        child: Text('$b m', style: AuraText.barInside),
                       )
                     : null,
               ),
@@ -219,7 +208,7 @@ class _Bars extends StatelessWidget {
                 width: barWidth,
                 child: Text(
                   'A',
-                  style: AuraText.chip,
+                  style: AuraText.barName,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -228,7 +217,7 @@ class _Bars extends StatelessWidget {
                 width: barWidth,
                 child: Text(
                   'B',
-                  style: AuraText.chip,
+                  style: AuraText.barName,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -237,7 +226,8 @@ class _Bars extends StatelessWidget {
           const SizedBox(height: 8),
           SizedBox(
             width: barWidth * 2 + gapBetween,
-            height: 44,
+            // the brace's pill holds a Bold 20 label
+            height: 50,
             child: step == 3 ? Brace(label: '${a + b} m') : null,
           ),
         ],

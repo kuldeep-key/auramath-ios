@@ -34,13 +34,7 @@ class Brace extends StatelessWidget {
             color: AuraColors.navy,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(
-            label,
-            style: AuraText.chip.copyWith(
-              color: AuraColors.white,
-              fontSize: 17,
-            ),
-          ),
+          child: Text(label, style: AuraText.braceLabel),
         ),
       ),
     ],

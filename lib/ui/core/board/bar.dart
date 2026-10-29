@@ -46,7 +46,7 @@ class DashedSlot extends StatelessWidget {
       child: Text(
         label,
         textAlign: TextAlign.center,
-        style: AuraText.body.copyWith(color: AuraColors.blueInk, fontSize: 15),
+        style: AuraText.slotLabel,
       ),
     ),
   );

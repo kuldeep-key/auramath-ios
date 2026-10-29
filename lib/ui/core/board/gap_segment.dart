@@ -17,9 +17,6 @@ class GapSegment extends StatelessWidget {
       borderRadius: BorderRadius.circular(AuraRadii.barTop),
       border: Border.all(color: AuraColors.blue, width: 3),
     ),
-    child: Text(
-      label,
-      style: AuraText.chip.copyWith(color: AuraColors.blueInk, fontSize: 19),
-    ),
+    child: Text(label, style: AuraText.gap),
   );
 }
