@@ -31,6 +31,7 @@ void main() {
       identity: testIdentity,
       nowMs: () => 5,
     );
+    await repo.open();
     await repo.record('s1', 1, const [step]);
     expect(api.received.map((e) => (e.sessionId, e.seq)), [('s1', 1)]);
     expect(await db.unsent(), isEmpty);
@@ -41,13 +42,15 @@ void main() {
   test('failed sync retries and then marks sent', () async {
     final db = await memoryOutbox();
     fakeAsync((async) {
-      final api = FakeApi()..failNext = 1;
+      final api = FakeApi();
       final repo = SessionRepository(
         db: db,
         api: api,
         identity: testIdentity,
         nowMs: () => 5,
-      );
+      )..open();
+      async.flushMicrotasks();
+      api.failNext = 1;
       repo.record('s1', 1, const [step]);
       async.flushMicrotasks();
       expect(api.received, isEmpty);
@@ -61,13 +64,15 @@ void main() {
   test('online goes false when sending fails and true once it works', () async {
     final db = await memoryOutbox();
     fakeAsync((async) {
-      final api = FakeApi()..failNext = 1;
+      final api = FakeApi();
       final repo = SessionRepository(
         db: db,
         api: api,
         identity: testIdentity,
         nowMs: () => 5,
-      );
+      )..open();
+      async.flushMicrotasks();
+      api.failNext = 1;
       expect(repo.online.value, isTrue);
       repo.record('s1', 0, const [step]);
       async.flushMicrotasks();
@@ -82,13 +87,15 @@ void main() {
   test('offline lesson syncs in order later', () async {
     final db = await memoryOutbox();
     fakeAsync((async) {
-      final api = FakeApi()..failNext = 1000;
+      final api = FakeApi();
       final repo = SessionRepository(
         db: db,
         api: api,
         identity: testIdentity,
         nowMs: () => 5,
-      );
+      )..open();
+      async.flushMicrotasks();
+      api.failNext = 1000;
       for (var seq = 1; seq <= 5; seq++) {
         repo.record('s1', seq, const [step]);
         async.flushMicrotasks();
@@ -109,17 +116,20 @@ void main() {
 
   test('two sessions are sent as separate batches', () async {
     final db = await memoryOutbox();
-    final api = FakeApi()..failNext = 2;
+    final api = FakeApi();
     final repo = SessionRepository(
       db: db,
       api: api,
       identity: testIdentity,
       nowMs: () => 5,
     );
-    await repo.record('a', 1, const [step]);
-    await repo.record('b', 1, const [step]);
+    await repo.open();
+    await repo.open();
+    api.failNext = 2;
+    await repo.record('s1', 1, const [step]);
+    await repo.record('s2', 1, const [step]);
     await repo.syncNow();
-    expect(api.batches.map((b) => b.$1), ['a', 'b']);
+    expect(api.batches.map((b) => b.$1), ['s1', 's2']);
     repo.dispose();
     await db.close();
   });
@@ -136,6 +146,7 @@ void main() {
       );
       final pack = samplePack();
       final lemon = pack.problems['lemon']!;
+      await repo.open();
       await repo.record('s1', 0, [problemShown(lemon), step]);
       final second = [problemShown(lemon), step];
       // a seq can be missing if a save ever failed; the next one must not reuse it
@@ -162,7 +173,7 @@ void main() {
       if (log.isEmpty) return repo;
       final problem = pack.problems[log.first.$1]!;
       final events = lessonEvents(pack, problem, [for (final (_, i) in log) i]);
-      await repo.record('s-${problem.id}', 0, events);
+      await repo.record(await repo.open(), 0, events);
       return repo;
     }
 
@@ -179,7 +190,8 @@ void main() {
       ]);
       expect(await repo.whereNext(pack), (
         problemId: 'lemon',
-        resumeSessionId: 's-lemon',
+        resumeSessionId: 's1',
+        startedOn: null,
       ));
       repo.dispose();
     });
@@ -192,6 +204,7 @@ void main() {
       expect(await repo.whereNext(pack), (
         problemId: 'easier',
         resumeSessionId: null,
+        startedOn: null,
       ));
       repo.dispose();
     });
@@ -214,8 +227,68 @@ void main() {
       expect(await repo.whereNext(pack), (
         problemId: 'shorter',
         resumeSessionId: null,
+        startedOn: null,
       ));
       repo.dispose();
+    });
+  });
+
+  group('the server knows the unfinished case', () {
+    final pack = samplePack();
+
+    test('a case started on another phone is adopted and named', () async {
+      final db = await memoryOutbox();
+      final api = FakeApi();
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      final lemon = pack.problems['lemon']!;
+      final spec = lessonEvents(pack, lemon, const [Started(), BarADrawn()]);
+      api.openCase = (
+        events: [
+          for (final (i, e) in spec.indexed)
+            ev('srv', i, e.name).withPayload(e.payload),
+        ],
+        sameDevice: false,
+        startedOn: 'Phone A',
+      );
+      expect(await repo.whereNext(pack), (
+        problemId: 'lemon',
+        resumeSessionId: 'srv',
+        startedOn: 'Phone A',
+      ));
+      // adopted as already sent: nothing to resend, and resumable here
+      expect(await db.unsent(), isEmpty);
+      expect((await repo.resume('srv')).events.length, spec.length);
+      repo.dispose();
+      await db.close();
+    });
+
+    test("this phone's own case doesn't ask to carry on", () async {
+      final db = await memoryOutbox();
+      final api = FakeApi();
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      final lemon = pack.problems['lemon']!;
+      final spec = lessonEvents(pack, lemon, const [Started()]);
+      api.openCase = (
+        events: [
+          for (final (i, e) in spec.indexed)
+            ev('srv', i, e.name).withPayload(e.payload),
+        ],
+        sameDevice: true,
+        startedOn: 'Phone A',
+      );
+      expect((await repo.whereNext(pack))?.startedOn, isNull);
+      repo.dispose();
+      await db.close();
     });
   });
 }

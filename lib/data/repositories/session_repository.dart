@@ -9,8 +9,9 @@ import '../models/lesson_event.dart';
 import '../services/api.dart';
 import '../services/outbox_db.dart';
 
-/// The lesson's record: saves every event on the phone first, then sends it,
-/// retrying until the server has it. A lesson never waits on the network.
+/// The lesson's record, online-first: the server opens each session and
+/// names its child; every event is saved on the phone first, then sent,
+/// and held and resent through a dropped connection.
 class SessionRepository {
   SessionRepository({
     required this._db,
@@ -27,18 +28,35 @@ class SessionRepository {
   final String Function() _newId;
   final int Function() _now;
 
-  /// False while the server can't be reached; the lesson carries on and the
-  /// outbox holds every event until it can (SES-04).
+  /// The `child_ref` each open session's events carry, from the server.
+  final Map<String, String> _childRefs = {};
+
+  /// False while the server can't be reached: the lesson pauses, and the
+  /// outbox holds every event until it can (SES-04, online-first).
   final online = ValueNotifier(true);
 
   Timer? _retry;
   int _failures = 0;
-  bool _syncing = false;
+
+  /// The sync running now; a caller during it waits for it (and the rerun
+  /// it asked for), so "Try again" returns with the true connection state.
+  Future<void>? _inFlight;
   bool _again = false;
 
   /// 2 s, doubling, capped at 30 s.
   static Duration retryDelay(int failures) =>
       Duration(seconds: math.min(30, 2 << math.min(failures - 1, 4)));
+
+  /// Asks the server for a new session for [childId] (the lesson needs a
+  /// connection to start). Throws [ApiException] when it can't.
+  Future<String> open({String? childId}) async {
+    final s = await _api.startSession(
+      childId: childId,
+      isDemo: identity.isDemo,
+    );
+    _childRefs[s.sessionId] = s.childRef;
+    return s.sessionId;
+  }
 
   /// Saves [events] as seq [firstSeq] onwards, then tries to send them.
   Future<void> record(
@@ -46,6 +64,9 @@ class SessionRepository {
     int firstSeq,
     List<SpecEvent> events,
   ) async {
+    final childRef = _childRefs[sessionId] ??=
+        (await _db.forSession(sessionId)).firstOrNull?.childRef ??
+        (throw StateError('session $sessionId was never opened'));
     final at = _now();
     for (final (i, e) in events.indexed) {
       await _db.insert(
@@ -55,7 +76,7 @@ class SessionRepository {
           seq: firstSeq + i,
           at: at,
           name: e.name,
-          childRef: identity.childRef,
+          childRef: childRef,
           deviceId: identity.deviceId,
           appVersion: identity.appVersion,
           payload: e.payload,
@@ -66,12 +87,16 @@ class SessionRepository {
   }
 
   /// Sends everything unconfirmed, one batch per session, oldest first.
-  Future<void> syncNow() async {
-    if (_syncing) {
+  Future<void> syncNow() {
+    final running = _inFlight;
+    if (running != null) {
       _again = true;
-      return;
+      return running;
     }
-    _syncing = true;
+    return _inFlight = _sync().whenComplete(() => _inFlight = null);
+  }
+
+  Future<void> _sync() async {
     _retry?.cancel();
     try {
       do {
@@ -93,8 +118,6 @@ class SessionRepository {
       online.value = false;
       _failures++;
       _retry = Timer(retryDelay(_failures), syncNow);
-    } finally {
-      _syncing = false;
     }
   }
 
@@ -111,12 +134,32 @@ class SessionRepository {
     );
   }
 
-  /// Where Home's Keep going leads, read from the log: back into the last
-  /// case if it isn't finished, else on to the problem the engine chose.
-  /// Null when nothing is saved or the pack no longer has that problem.
-  Future<({String problemId, String? resumeSessionId})?> whereNext(
-    Pack pack,
-  ) async {
+  /// Where Home's Keep going leads: back into the child's unfinished case
+  /// (the server's, so it follows them across phones; else this phone's
+  /// log), or on to the problem the engine chose. Null when nothing is
+  /// saved or the pack no longer has that problem.
+  Future<({String problemId, String? resumeSessionId, String? startedOn})?>
+  whereNext(Pack pack, {String? childId}) async {
+    // set when the server's open case was started on another phone
+    ({String sessionId, String label})? elsewhere;
+    try {
+      final open = await _api.resumable(childId: childId);
+      if (open != null && open.events.isNotEmpty) {
+        // the server's log becomes this phone's, already sent
+        for (final e in open.events) {
+          await _db.insert(e);
+        }
+        await _db.markSent(open.events);
+        if (!open.sameDevice) {
+          elsewhere = (
+            sessionId: open.events.first.sessionId,
+            label: open.startedOn ?? '',
+          );
+        }
+      }
+    } on ApiException {
+      // can't ask: this phone's own log still knows its last case
+    }
     final sessionId = await _db.lastSessionId();
     if (sessionId == null) return null;
     final (:events, lastSeq: _) = await resume(sessionId);
@@ -137,12 +180,16 @@ class SessionRepository {
         };
         if (next != null) {
           return pack.problems.containsKey(next)
-              ? (problemId: next, resumeSessionId: null)
+              ? (problemId: next, resumeSessionId: null, startedOn: null)
               : null;
         }
       }
     }
-    return (problemId: problem.id, resumeSessionId: sessionId);
+    return (
+      problemId: problem.id,
+      resumeSessionId: sessionId,
+      startedOn: elsewhere?.sessionId == sessionId ? elsewhere?.label : null,
+    );
   }
 
   void dispose() {

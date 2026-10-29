@@ -22,9 +22,24 @@ class FakeApi implements Api {
       failNext--;
       throw const ApiException('offline');
     }
-    final id = 'fake-session-${sessions.length}';
+    final id = 's${sessions.length + 1}';
     sessions.add(id);
-    return (sessionId: id, childRef: 'ch_fakechild01');
+    return (sessionId: id, childRef: childRef);
+  }
+
+  String childRef = 'ch_test1234';
+
+  /// What `resumable` answers; null = no unfinished case on the server.
+  ({List<LessonEvent> events, bool sameDevice, String? startedOn})? openCase;
+
+  @override
+  Future<({List<LessonEvent> events, bool sameDevice, String? startedOn})?>
+  resumable({String? childId}) async {
+    if (failNext > 0) {
+      failNext--;
+      throw const ApiException('offline');
+    }
+    return openCase;
   }
 
   @override

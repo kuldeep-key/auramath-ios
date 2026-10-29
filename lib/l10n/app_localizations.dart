@@ -334,6 +334,30 @@ abstract class AppLocalizations {
   /// **'Take a break?'**
   String get takeABreak;
 
+  /// No description provided for @lessonLostInternetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll carry on from here when it\'s back.'**
+  String get lessonLostInternetBody;
+
+  /// No description provided for @lessonTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get lessonTryAgain;
+
+  /// No description provided for @lessonNeedInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'We need the internet to start'**
+  String get lessonNeedInternet;
+
+  /// No description provided for @lessonNeedInternetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the Wi-Fi, then try again.'**
+  String get lessonNeedInternetBody;
+
   /// No description provided for @drawingSaved.
   ///
   /// In en, this message translates to:

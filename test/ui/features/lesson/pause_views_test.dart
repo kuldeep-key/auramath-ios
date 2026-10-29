@@ -36,7 +36,7 @@ void main() {
       voice: FakeVoice(),
       sitting: Sitting(capMs: 30 * 60 * 1000),
       nowMs: () => now,
-      newSessionId: () => 's2',
+      openSession: sessions.open,
       tickEvery: null,
     );
     await tester.runAsync(() async {

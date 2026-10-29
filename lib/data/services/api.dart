@@ -24,6 +24,11 @@ abstract interface class Api {
     required bool isDemo,
   });
 
+  /// `GET /api/sessions/resumable`: the child's unfinished lesson on the
+  /// server, if any, with its events and where it was started (DEV-05).
+  Future<({List<LessonEvent> events, bool sameDevice, String? startedOn})?>
+  resumable({String? childId});
+
   /// `POST /api/sessions/{sessionId}/events` with `{"events": [...]}`.
   Future<void> sendEvents(String sessionId, List<LessonEvent> events);
 }

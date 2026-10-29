@@ -28,6 +28,18 @@ class LessonFlow extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: vm,
     builder: (context, _) {
+      if (!vm.ready) {
+        final error = vm.startError;
+        return error == null
+            ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+            : NeedInternetView(
+                // an answer from the server is its own message; no answer
+                // is the plain "check the Wi-Fi"
+                detail: error.offline ? null : error.message,
+                onRetry: vm.start,
+                onGoHome: onHome,
+              );
+      }
       if (vm.timeUp) {
         return Scaffold(
           body: TimeUpView(
@@ -60,11 +72,12 @@ class LessonFlow extends StatelessWidget {
                     },
                   ),
                   if (!vm.online)
-                    const SafeArea(
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: LostInternetNotice(),
-                      ),
+                    LostInternetPause(
+                      onRetry: vm.retryConnection,
+                      onGoHome: () async {
+                        await vm.leave();
+                        onHome();
+                      },
                     ),
                   if (vm.askingBreak)
                     BreakSheet(

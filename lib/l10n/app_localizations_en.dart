@@ -133,6 +133,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get takeABreak => 'Take a break?';
 
   @override
+  String get lessonLostInternetBody =>
+      'We\'ll carry on from here when it\'s back.';
+
+  @override
+  String get lessonTryAgain => 'Try again';
+
+  @override
+  String get lessonNeedInternet => 'We need the internet to start';
+
+  @override
+  String get lessonNeedInternetBody => 'Check the Wi-Fi, then try again.';
+
+  @override
   String get drawingSaved => 'Your drawing is saved.';
 
   @override

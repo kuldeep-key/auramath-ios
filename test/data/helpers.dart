@@ -18,9 +18,11 @@ Future<OutboxDb> memoryOutbox() async {
   return OutboxDb.open(inMemoryDatabasePath);
 }
 
+/// The child the fake server names for every session.
+const testChildRef = 'ch_test1234';
+
 /// The envelope a test build writes.
 const testIdentity = (
-  childRef: 'ch_test1234',
   deviceId: 'dv_test1234',
   appVersion: '0.1.0',
   isDemo: true,
@@ -34,7 +36,7 @@ LessonEvent ev(String session, int seq, [String name = 'step_entered']) =>
       seq: seq,
       at: 1791400000000 + seq,
       name: name,
-      childRef: testIdentity.childRef,
+      childRef: testChildRef,
       deviceId: testIdentity.deviceId,
       appVersion: testIdentity.appVersion,
       payload: const {'step_id': 'draw_known_bar'},
@@ -71,4 +73,18 @@ void expectContract(Iterable<LessonEvent> events) {
     final r = _schema.validate(e.toJson());
     expect(r.isValid, isTrue, reason: '${e.name}: ${r.errors}');
   }
+}
+
+extension WithPayload on LessonEvent {
+  LessonEvent withPayload(Map<String, Object?> payload) => LessonEvent(
+    eventId: eventId,
+    sessionId: sessionId,
+    seq: seq,
+    at: at,
+    name: name,
+    childRef: childRef,
+    deviceId: deviceId,
+    appVersion: appVersion,
+    payload: payload,
+  );
 }

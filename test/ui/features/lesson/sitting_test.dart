@@ -28,7 +28,7 @@ void main() {
       voice: FakeVoice(),
       sitting: sitting,
       nowMs: () => now,
-      newSessionId: () => 's2',
+      openSession: sessions.open,
       tickEvery: null,
     );
     await vm.start();
@@ -62,6 +62,7 @@ void main() {
     expect(await vm.sessions.whereNext(pack), (
       problemId: 'lemon',
       resumeSessionId: 's1',
+      startedOn: null,
     ));
   });
 

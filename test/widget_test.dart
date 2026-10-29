@@ -51,8 +51,9 @@ void main() {
     final pack = deps.pack;
     final sessions = deps.sessions;
     await tester.runAsync(() async {
+      // testDeps already opened s1, as a lesson on this phone would
       await sessions.record(
-        'old',
+        's1',
         0,
         lessonEvents(pack, pack.problems['lemon']!, const [
           Started(),

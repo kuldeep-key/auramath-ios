@@ -57,9 +57,6 @@ Future<void> main() async {
           db: db,
           api: HttpApi(client),
           identity: (
-            // ponytail: replaced by the server's child_ref per session in
-            // the online-first lesson change
-            childRef: 'ch_pending0',
             deviceId: account.deviceRef,
             appVersion: Env.appVersion,
             isDemo: Env.isDemo,

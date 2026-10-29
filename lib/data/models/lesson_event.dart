@@ -1,12 +1,9 @@
 import 'package:auramath_engine/auramath_engine.dart';
 
-/// Who and what is writing events: the envelope fields every event carries.
-typedef Identity = ({
-  String childRef,
-  String deviceId,
-  String appVersion,
-  bool isDemo,
-});
+/// Which phone and build is writing events: the envelope fields that don't
+/// change per session. The `child_ref` comes from the server with each
+/// session (online-first).
+typedef Identity = ({String deviceId, String appVersion, bool isDemo});
 
 /// One saved event in the backend's contract
 /// (`auramath-backend/spec/contracts/events.schema.json`): the engine's

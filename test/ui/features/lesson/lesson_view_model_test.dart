@@ -20,7 +20,7 @@ void main() {
       sessions: sessions,
       voice: FakeVoice(),
       nowMs: () => now,
-      newSessionId: () => 's2',
+      openSession: sessions.open,
       sitting: Sitting(capMs: 30 * 60 * 1000),
       tickEvery: null,
     );
@@ -97,7 +97,7 @@ void main() {
       sessions: sessions,
       voice: FakeVoice(),
       nowMs: () => 0,
-      newSessionId: () => 's2',
+      openSession: sessions.open,
       sitting: Sitting(capMs: 30 * 60 * 1000),
       tickEvery: null,
     );
@@ -139,7 +139,7 @@ void main() {
       sessions: sessions,
       voice: FakeVoice(),
       nowMs: () => 0,
-      newSessionId: () => 's2',
+      openSession: sessions.open,
       sitting: Sitting(capMs: 30 * 60 * 1000),
       tickEvery: null,
     );
@@ -230,4 +230,61 @@ void main() {
       vm.dispose();
     },
   );
+
+  group('online-first', () {
+    test('a lesson waits for the server to open its session', () async {
+      final (sessions, _, api) = await memorySessions();
+      api.failNext = 1;
+      final vm = LessonViewModel(
+        pack: pack,
+        problemId: 'lemon',
+        sessions: sessions,
+        voice: FakeVoice(),
+        nowMs: () => now,
+        openSession: sessions.open,
+        sitting: Sitting(capMs: 30 * 60 * 1000),
+        tickEvery: null,
+      );
+      await vm.start();
+      expect(vm.ready, isFalse);
+      expect(vm.startError?.offline, isTrue);
+      await vm.send(const Started()); // the board isn't live yet
+      expect(vm.recorded, 0);
+
+      await vm.start(); // Try again
+      expect(vm.ready, isTrue);
+      expect(vm.sessionId, 's2');
+      expect(vm.recorded, 2); // session_started, problem_shown
+      vm.dispose();
+    });
+
+    test('the board pauses while the connection is gone', () async {
+      final (sessions, db, api) = await memorySessions();
+      final vm = LessonViewModel(
+        pack: pack,
+        problemId: 'lemon',
+        sessionId: 's1',
+        sessions: sessions,
+        voice: FakeVoice(),
+        nowMs: () => now,
+        openSession: sessions.open,
+        sitting: Sitting(capMs: 30 * 60 * 1000),
+        tickEvery: null,
+      );
+      api.failNext = 1;
+      await vm.send(const Started()); // saved, then the send fails
+      expect(vm.online, isFalse);
+      final before = vm.state;
+      await vm.send(const BarADrawn()); // ignored while paused
+      expect(vm.state, same(before));
+
+      await vm.retryConnection();
+      expect(vm.online, isTrue);
+      // the "back online" event is saved and sent right after
+      await pumpEventQueue();
+      expect(await db.unsent(), isEmpty); // nothing was lost
+      sessions.dispose();
+      vm.dispose();
+    });
+  });
 }

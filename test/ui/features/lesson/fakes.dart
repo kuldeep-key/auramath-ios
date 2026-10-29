@@ -24,17 +24,17 @@ Pack samplePack() => Pack.fromJson(
       as Map<String, Object?>,
 );
 
+/// Sessions over an in-memory outbox and a fake server, with the first
+/// session (`s1`) already opened, as the lesson route does before a lesson.
 Future<(SessionRepository, OutboxDb, FakeApi)> memorySessions() async {
   final api = FakeApi();
   final db = await memoryOutbox();
-  return (
-    SessionRepository(
-      db: db,
-      api: api,
-      identity: testIdentity,
-      nowMs: () => 1791400000000,
-    ),
-    db,
-    api,
+  final sessions = SessionRepository(
+    db: db,
+    api: api,
+    identity: testIdentity,
+    nowMs: () => 1791400000000,
   );
+  await sessions.open();
+  return (sessions, db, api);
 }

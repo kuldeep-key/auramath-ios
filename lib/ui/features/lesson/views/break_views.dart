@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/parts/aura_button.dart';
+import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'help_sheet.dart';
@@ -99,34 +100,110 @@ class TimeUpView extends StatelessWidget {
   }
 }
 
-/// SES-04's gentle notice while the server can't be reached. Not designed in
-/// Figma yet: a calm strip, never red (NFR-03), and the lesson carries on.
-class LostInternetNotice extends StatelessWidget {
-  const LostInternetNotice({super.key});
+/// Online-first (SES-04 as changed): the connection dropped, so the lesson
+/// pauses here; every tap so far is held and resent, and the lesson carries
+/// on from the same spot. Not designed in Figma yet: calm, never red
+/// (NFR-03), an icon plus words, not colour alone.
+class LostInternetPause extends StatelessWidget {
+  const LostInternetPause({
+    super.key,
+    required this.onRetry,
+    required this.onGoHome,
+  });
+
+  final VoidCallback onRetry;
+  final VoidCallback onGoHome;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    liveRegion: true,
-    child: Container(
-      margin: const EdgeInsets.all(12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: AuraColors.yellowTint,
-        borderRadius: BorderRadius.circular(AuraRadii.small),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Semantics(
+      liveRegion: true,
+      child: AuraSheet(
+        onClose: onRetry,
         children: [
-          const Icon(Icons.wifi_off_rounded, color: AuraColors.yellowInk),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              AppLocalizations.of(context)!.lostInternet,
-              style: AuraText.body.copyWith(color: AuraColors.yellowInk),
-            ),
+          const Icon(
+            Icons.wifi_off_rounded,
+            size: 56,
+            color: AuraColors.yellowInk,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l.lostInternet,
+            style: AuraText.title,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l.lessonLostInternetBody,
+            style: AuraText.body.copyWith(color: AuraColors.mute),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          AuraButton(
+            label: l.lessonTryAgain,
+            color: AuraButtonColor.blue,
+            onPressed: onRetry,
+          ),
+          const SizedBox(height: 10),
+          AuraButton(
+            label: l.goHome,
+            color: AuraButtonColor.white,
+            icon: Icons.home_outlined,
+            onPressed: onGoHome,
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
+}
+
+/// The lesson couldn't start: no connection (online-first). Not designed in
+/// Figma yet. [detail] is the server's own message when it answered.
+class NeedInternetView extends StatelessWidget {
+  const NeedInternetView({
+    super.key,
+    required this.onRetry,
+    required this.onGoHome,
+    this.detail,
+  });
+
+  final VoidCallback onRetry;
+  final VoidCallback onGoHome;
+  final String? detail;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return AuraPage(
+      play: true,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.wifi_off_rounded, size: 72, color: AuraColors.white),
+          const SizedBox(height: 20),
+          Ribbon(text: l.lessonNeedInternet),
+          const SizedBox(height: 16),
+          Text(
+            detail ?? l.lessonNeedInternetBody,
+            textAlign: TextAlign.center,
+            style: AuraText.body.copyWith(color: AuraColors.white),
+          ),
+        ],
+      ),
+      bottom: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AuraButton(label: l.lessonTryAgain, onPressed: onRetry),
+          const SizedBox(height: 10),
+          AuraButton(
+            label: l.goHome,
+            color: AuraButtonColor.white,
+            icon: Icons.home_outlined,
+            onPressed: onGoHome,
+          ),
+        ],
+      ),
+    );
+  }
 }

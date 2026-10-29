@@ -21,10 +21,10 @@ void main() {
     final vm = LessonViewModel(
       pack: samplePack(),
       problemId: 'lemon',
-      sessionId: '5b0c3f0e-8a51-4c2e-9d3e-2f1a6c7b9e10',
+      sessionId: 's1',
       sessions: sessions,
       voice: voice,
-      newSessionId: () => 's2',
+      openSession: sessions.open,
       sitting: Sitting(capMs: 30 * 60 * 1000),
       tickEvery: null,
     );

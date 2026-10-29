@@ -113,6 +113,31 @@ class HttpApi implements Api {
   }
 
   @override
+  Future<({List<LessonEvent> events, bool sameDevice, String? startedOn})?>
+  resumable({String? childId}) async {
+    final json =
+        await _client.get(
+              '/api/sessions/resumable',
+              query: {'childId': ?childId},
+            )
+            as Map<String, Object?>;
+    final events = [
+      for (final e in json['events']! as List)
+        // spec events only: the old web client's events can't be replayed
+        if ((e as Map<String, Object?>)['event_id'] != null)
+          LessonEvent.fromJson(e),
+    ];
+    if (json['session'] == null || events.isEmpty) return null;
+    final offer = json['resume'] as Map<String, Object?>?;
+    final on = offer?['startedOn'] as Map<String, Object?>?;
+    return (
+      events: events,
+      sameDevice: offer?['sameDevice'] == true,
+      startedOn: on?['label'] as String?,
+    );
+  }
+
+  @override
   Future<void> sendEvents(String sessionId, List<LessonEvent> events) async {
     final json =
         await _client.post('/api/sessions/$sessionId/events', {

@@ -4,6 +4,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../../data/repositories/session_repository.dart';
+import '../../../../data/services/api.dart';
 import '../../../../data/services/voice.dart';
 import '../../../core/parts/standing_button.dart';
 import 'sitting.dart';
@@ -21,11 +22,13 @@ class LessonViewModel extends ChangeNotifier {
   LessonViewModel({
     required Pack pack,
     required String problemId,
-    required this._sessionId,
     required this._sessions,
     required this._voice,
-    required this._newSessionId,
+    required this._openSession,
     required this._sitting,
+
+    /// An already-open session: a resumed case.
+    this._sessionId,
     int Function()? nowMs,
     Duration? tickEvery = const Duration(seconds: 1),
   }) : _pack = pack,
@@ -40,12 +43,16 @@ class LessonViewModel extends ChangeNotifier {
   final Sitting _sitting;
   final SessionRepository _sessions;
   final Voice _voice;
-  final String Function() _newSessionId;
+
+  /// Asks the server for a new session (online-first).
+  final Future<String> Function() _openSession;
   final int Function() _now;
   Timer? _ticker;
 
   ComparisonProblem _problem;
-  String _sessionId;
+
+  /// Null until the server opened the session.
+  String? _sessionId;
   LessonState _state = initialState();
 
   /// The seq the next saved event gets.
@@ -58,7 +65,14 @@ class LessonViewModel extends ChangeNotifier {
   int? _pausedAt;
 
   ComparisonProblem get problem => _problem;
-  String get sessionId => _sessionId;
+  String get sessionId => _sessionId ?? '';
+
+  /// The server opened this lesson's session; until then nothing is drawn.
+  bool get ready => _sessionId != null;
+
+  /// The session couldn't be opened: no connection, or the server said no.
+  /// The lesson waits on a "need the internet" screen with Try again.
+  ApiException? startError;
   LessonState get state => _state;
   Pack get pack => _pack;
   SessionRepository get sessions => _sessions;
@@ -68,6 +82,17 @@ class LessonViewModel extends ChangeNotifier {
 
   /// Opens a new session on this problem: `session_started`, `problem_shown`.
   Future<void> start() async {
+    startError = null;
+    if (_sessionId == null) {
+      try {
+        _sessionId = await _openSession();
+      } on ApiException catch (e) {
+        startError = e;
+        notifyListeners();
+        return;
+      }
+      notifyListeners();
+    }
     final events = [
       SpecEvent('session_started', {
         'launch_source': 'child_opened',
@@ -81,10 +106,12 @@ class LessonViewModel extends ChangeNotifier {
     await _record(events);
   }
 
-  Future<void> _record(List<SpecEvent> events) {
+  Future<void> _record(List<SpecEvent> events) async {
+    final sessionId = _sessionId;
+    if (sessionId == null) return; // nothing happened yet to record
     final first = _seq;
     _seq += events.length;
-    return _sessions.record(_sessionId, first, events);
+    await _sessions.record(sessionId, first, events);
   }
 
   String coachText = '';
@@ -108,10 +135,11 @@ class LessonViewModel extends ChangeNotifier {
   /// Rebuilds the lesson from its saved events: replayed through the engine,
   /// never from a snapshot.
   Future<void> restore() async {
-    final (:events, :lastSeq) = await _sessions.resume(_sessionId);
+    final sessionId = _sessionId!;
+    final (:events, :lastSeq) = await _sessions.resume(sessionId);
     _state = replay(_pack, _problem, inputsFrom(_pack, _problem, events));
     _seq = lastSeq + 2;
-    await _sessions.record(_sessionId, lastSeq + 1, const [
+    await _sessions.record(sessionId, lastSeq + 1, const [
       SpecEvent('session_resumed', {}),
     ]);
     _coach('cmp.welcomeBack', const {});
@@ -184,9 +212,12 @@ class LessonViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// The server can't be reached (or can again): logged for the record; the
-  /// lesson itself doesn't wait on it (SES-04).
+  /// The server can't be reached (or can again). Online-first: the lesson
+  /// pauses until it can; every tap so far is held and resent (SES-04).
   bool get online => _sessions.online.value;
+
+  /// "Try again" on the paused lesson.
+  Future<void> retryConnection() => _sessions.syncNow();
 
   void _onlineChanged() {
     notifyListeners();
@@ -204,6 +235,9 @@ class LessonViewModel extends ChangeNotifier {
   }
 
   Future<void> send(LessonInput input) async {
+    final sessionId = _sessionId;
+    // no session yet, or paused for the connection: the board isn't live
+    if (sessionId == null || !online) return;
     final r = step(_pack, _problem, _state, input);
     if (identical(r.state, _state) && r.decisions.isEmpty) return;
     final now = _now();
@@ -223,7 +257,6 @@ class LessonViewModel extends ChangeNotifier {
     _state = r.state;
     final first = _seq;
     _seq += events.length;
-    final sessionId = _sessionId;
     _apply(r.decisions);
     final stepLine = _stepLines[entering];
     if (stepLine != null && !r.decisions.any((d) => d is Coach)) {
@@ -231,8 +264,8 @@ class LessonViewModel extends ChangeNotifier {
     }
     notifyListeners();
     await _sessions.record(sessionId, first, events);
-    // something easier opened a new session on the easier problem
-    if (_sessionId != sessionId) await start();
+    // something easier: the easier problem gets its own session
+    if (_sessionId == null) await start();
   }
 
   void readQuestion() => _voice.say(_problem.say);
@@ -271,7 +304,7 @@ class LessonViewModel extends ChangeNotifier {
   /// Starts the next problem the engine chose.
   void goTo(String problemId) {
     _problem = _pack.problems[problemId]!;
-    _sessionId = _newSessionId();
+    _sessionId = null; // the next start() asks the server for one
     _state = initialState();
     _seq = 0;
     _lastMoveMs = _shownAt = _stepAt = _now();

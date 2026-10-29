@@ -11,10 +11,22 @@ List<RouteBase> lessonRoutes(Deps deps) => [
   GoRoute(
     path: Paths.lessonNext,
     redirect: (context, state) async {
-      final next = await deps.sessions.whereNext(deps.pack);
+      final next = await deps.sessions.whereNext(
+        deps.pack,
+        childId: deps.account.childId,
+      );
       // ponytail: lemon is the first case until the server says the level
       final id = next?.problemId ?? 'lemon';
       final resume = next?.resumeSessionId;
+      // a case started on another phone: offer to carry on here first
+      // (DEV-05); "Carry on here" comes back with ?here=1
+      final elsewhere = next?.startedOn;
+      if (elsewhere != null && state.uri.queryParameters['here'] == null) {
+        return Uri(
+          path: Paths.carryOn,
+          queryParameters: {if (elsewhere.isNotEmpty) 'device': elsewhere},
+        ).toString();
+      }
       return resume == null
           ? '${Paths.lesson(id)}?s=${const Uuid().v4()}'
           : '${Paths.lesson(id)}?resume=$resume';
@@ -53,15 +65,14 @@ class _LessonRoute extends StatefulWidget {
 }
 
 class _LessonRouteState extends State<_LessonRoute> {
-  static const _uuid = Uuid();
-
   late final _vm = LessonViewModel(
     pack: widget.deps.pack,
     problemId: widget.problemId,
-    sessionId: widget.resumeSessionId ?? _uuid.v4(),
+    sessionId: widget.resumeSessionId,
     sessions: widget.deps.sessions,
     voice: widget.deps.voice,
-    newSessionId: _uuid.v4,
+    openSession: () =>
+        widget.deps.sessions.open(childId: widget.deps.account.childId),
     sitting: widget.deps.sitting,
   );
 
