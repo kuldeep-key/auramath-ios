@@ -4,6 +4,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
+import '../../child_home/views/badge_disc.dart' show badgeArt;
 import '../view_models/lesson_view_model.dart';
 
 /// Case cracked, then the one badge that says what the child did.
@@ -22,8 +23,6 @@ class _SolvedViewState extends State<SolvedView> {
   bool _showBadge = false;
 
   // ponytail: badge art by id until packs carry badge pictures.
-  static const _badgeArt = {'tree': '🌳', 'asker': '🙋'};
-
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -62,7 +61,7 @@ class _SolvedViewState extends State<SolvedView> {
                     ],
                   ),
                   child: Text(
-                    _badgeArt[widget.vm.badgeId] ?? '⭐',
+                    badgeArt(widget.vm.badgeId ?? ''),
                     style: const TextStyle(fontSize: 88),
                   ),
                 ),

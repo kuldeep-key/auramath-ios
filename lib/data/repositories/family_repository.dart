@@ -42,7 +42,11 @@ class FamilyRepository {
   Future<void> giveConsent() async {
     final state =
         await _client.get('/api/parent/consent') as Map<String, Object?>;
-    if (state['consented'] == true) return;
+    final current =
+        state['consentAt'] != null &&
+        state['consentWithdrawnAt'] == null &&
+        state['stale'] != true;
+    if (current) return;
     await _client.post('/api/parent/consent', {
       'noticeVersion': state['currentVersion'],
     });

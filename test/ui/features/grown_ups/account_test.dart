@@ -47,7 +47,12 @@ void main() {
     testWidgets('a name is needed; a refusal shows the reason', (tester) async {
       final g = await Gu.make(tester);
       g.server
-        ..on('GET /api/parent/consent', {'consented': true})
+        ..on('GET /api/parent/consent', {
+          'consentAt': 1,
+          'consentWithdrawnAt': null,
+          'currentVersion': 'v1',
+          'stale': false,
+        })
         ..on('POST /api/children', {
           'error': 'synthetic names only until legal review clears',
         }, status: 400);

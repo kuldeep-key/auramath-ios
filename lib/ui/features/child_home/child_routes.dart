@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../data/models/lesson_event.dart';
 import '../../../data/repositories/account_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
-import '../../../data/services/outbox_db.dart';
+import '../../../data/models/lesson_event.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
 import 'views/after_case_screen.dart';
@@ -22,7 +21,15 @@ import 'views/welcome_back_screen.dart';
 List<RouteBase> childRoutes(Deps deps) {
   final progress = ProgressRepository(
     pack: deps.pack,
-    events: () => _savedEvents(deps.outbox),
+    // only this child's cases: a shared phone holds several children's
+    events: () async {
+      final id = deps.account.childId;
+      final ref = id == null ? null : childRefFor(id);
+      return [
+        for (final e in await deps.outbox.all())
+          if (e.childRef == ref) e,
+      ];
+    },
     sessions: deps.sessions,
     family: deps.family,
     account: deps.account,
@@ -101,12 +108,4 @@ List<RouteBase> childRoutes(Deps deps) {
       ),
     ),
   ];
-}
-
-// ponytail: OutboxDb can't list every saved event yet, so the badges, the
-// trail and the streak see only the latest case; swap for the full log
-// (`deps.outbox.all()`) once the lead adds it.
-Future<List<LessonEvent>> _savedEvents(OutboxDb db) async {
-  final id = await db.lastSessionId();
-  return id == null ? const [] : db.forSession(id);
 }

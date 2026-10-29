@@ -24,7 +24,11 @@ class FakeApi implements Api {
     }
     final id = 's${sessions.length + 1}';
     sessions.add(id);
-    return (sessionId: id, childRef: childRef);
+    // the server names the child as childRefFor does
+    return (
+      sessionId: id,
+      childRef: childId == null ? childRef : childRefFor(childId),
+    );
   }
 
   String childRef = 'ch_test1234';

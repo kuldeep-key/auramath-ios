@@ -1,8 +1,10 @@
+import '../../../routing/paths.dart';
+
 /// Setup's own sub-step, and the addresses that carry setup's data in the
 /// query (the new child's id and name; the emailed sign-in token).
 abstract final class SetupPaths {
   /// Choose a passcode: after Lock (644:20). Not in Figma; GPass's look.
-  static const passcode = '/setup/passcode';
+  static const passcode = Paths.setupPasscode;
 
   /// Ready, Lock, Choose a passcode and JoinCode carry the new child.
   static String withChild(

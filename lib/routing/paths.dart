@@ -22,6 +22,9 @@ abstract final class Paths {
   // ------------------------------------ setup, once signed in (parent)
   static const setupReady = '/setup/ready'; // 644:2
   static const setupLock = '/setup/lock'; // 644:20
+
+  /// Choose the grown-up passcode, after Lock. Not in Figma.
+  static const setupPasscode = '/setup/passcode';
   static const setupJoinCode = '/setup/join-code'; // JoinCode 644:75
 
   // ------------------------------------------------------------ sign-in
@@ -107,7 +110,12 @@ abstract final class Paths {
       _under(loc, pair) ||
       loc == removed;
 
-  static const _signedInSetup = {setupReady, setupLock, setupJoinCode};
+  static const _signedInSetup = {
+    setupReady,
+    setupLock,
+    setupPasscode,
+    setupJoinCode,
+  };
 
   static bool isGrownUp(String loc) =>
       _under(loc, grownUps) && loc != grownUpsPass && loc != forgotPasscode;

@@ -1,5 +1,14 @@
 import 'package:auramath_engine/auramath_engine.dart';
 
+/// The `child_ref` the server gives a child's sessions: the child's id
+/// without separators, at most 32 characters (the backend's
+/// `contracts.child_ref_for`). Lets a shared phone tell its children's
+/// saved events apart.
+String childRefFor(String childId) {
+  final id = childId.replaceAll(RegExp('[^A-Za-z0-9]'), '');
+  return 'ch_${id.length > 32 ? id.substring(0, 32) : id}';
+}
+
 /// Which phone and build is writing events: the envelope fields that don't
 /// change per session. The `child_ref` comes from the server with each
 /// session (online-first).

@@ -74,6 +74,12 @@ class OutboxDb {
       _row(r),
   ];
 
+  /// Every saved event, oldest first: what this phone has seen of the
+  /// child's lessons (the badges, the trail and the streak read it).
+  Future<List<LessonEvent>> all() async => [
+    for (final r in await _db.query('events', orderBy: 'rowid')) _row(r),
+  ];
+
   /// The session the newest event belongs to, or null when nothing is saved.
   Future<String?> lastSessionId() async {
     final rows = await _db.query(

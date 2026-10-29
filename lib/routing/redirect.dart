@@ -13,6 +13,14 @@ String? redirectFor({
   required String? childId,
 }) {
   final loc = uri.path;
+  // `auramath://auth/verify?m=…`: the platform reads "auth" as the host,
+  // so the app sees `/verify`
+  if (loc == '/verify') {
+    return Uri(
+      path: Paths.verify,
+      queryParameters: uri.queryParameters,
+    ).toString();
+  }
   if (removed) return loc == Paths.removed ? null : Paths.removed;
   if (loc == '/') return _start(role, childId);
 

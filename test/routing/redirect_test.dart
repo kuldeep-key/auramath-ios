@@ -21,6 +21,10 @@ void main() {
   group('a fresh phone', () {
     test('starts on Who\'s here?', () => expect(go('/'), Paths.open));
 
+    test('the custom-scheme sign-in link lands on verify', () {
+      expect(go('/verify?m=tok'), '${Paths.verify}?m=tok');
+    });
+
     test('may run setup and sign-in, nothing else', () {
       for (final loc in [
         Paths.welcome,
@@ -38,6 +42,7 @@ void main() {
         Paths.lesson('lemon'),
         Paths.grownUps,
         Paths.setupReady,
+        Paths.setupPasscode,
         Paths.kids,
       ]) {
         expect(go(loc), Paths.open, reason: loc);

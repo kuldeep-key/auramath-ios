@@ -1,3 +1,4 @@
+import 'package:auramath/data/models/lesson_event.dart';
 import 'package:auramath/data/services/outbox_db.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -38,5 +39,23 @@ void main() {
       await db.insert(ev('s1', i));
     }
     expect((await db.unsent(limit: 3)).map((e) => e.seq), [1, 2, 3]);
+  });
+
+  test('all lists every session, oldest first', () async {
+    await db.insert(ev('s1', 0));
+    await db.insert(ev('s2', 0));
+    await db.insert(ev('s1', 1));
+    expect(
+      [for (final e in await db.all()) (e.sessionId, e.seq)],
+      [('s1', 0), ('s2', 0), ('s1', 1)],
+    );
+  });
+
+  test("childRefFor matches the server's child_ref", () {
+    // the dev backend made ch_cdfd177903f445f291df1f4acb1de88c for this id
+    expect(
+      childRefFor('cdfd1779-03f4-45f2-91df-1f4acb1de88c'),
+      'ch_cdfd177903f445f291df1f4acb1de88c',
+    );
   });
 }
