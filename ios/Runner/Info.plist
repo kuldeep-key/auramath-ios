@@ -32,6 +32,12 @@
 				<string>auramath</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.188026703951-jm74q3dcavd1f5hhr1p8qj7jnpfg1cld</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>

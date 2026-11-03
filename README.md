@@ -44,7 +44,7 @@ The flows to try by hand, step by step, are in [`docs/testing-guide.md`](docs/te
 | --- | --- | --- | --- |
 | `API_BASE` | `http://localhost:8080` | `https://api-dev.auramath.net` | `https://api.auramath.net` |
 | `DEMO` | `true` | `true` | `false` |
-| `GOOGLE_IOS_CLIENT_ID` | empty | empty | empty |
+| `GOOGLE_IOS_CLIENT_ID` | empty | set | empty |
 
 `env/dev-cloud.json` is the deployed dev backend. It runs in production mode, so it never returns the email link to the app, and it has no email provider yet, so email-link sign-in is off there.
 
