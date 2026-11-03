@@ -9,9 +9,9 @@ import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
 import 'setup_parts.dart';
 
-/// The ages offered (Figma 643:40 and Welcome's "ages 5 to 10"); the
-/// server takes 4 to 12.
-const setupAges = [5, 6, 7, 8, 9, 10];
+/// The ages offered, 6 to 10 (D-36); the server takes 4 to 12. A parent of
+/// a younger or older child reads the line under them (E25).
+const setupAges = [6, 7, 8, 9, 10];
 
 /// Age (643:40).
 class AgeScreen extends StatefulWidget {
@@ -51,6 +51,8 @@ class _AgeScreenState extends State<AgeScreen> {
                 ),
             ],
           ),
+          const SizedBox(height: 16),
+          Text(l.setupAgeRange, style: AuraText.cardLine),
         ],
       ),
       bottom: AuraButton(

@@ -9,15 +9,16 @@ import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/choice_tile.dart';
 import 'setup_parts.dart';
 
-/// Figma's goals and what each sends. The server knows only
-/// `school_curriculum` and `not_sure` (services/child_profile.py, a
-/// placeholder list until product supplies one), so a goal it doesn't know
-/// is shown but not sent.
-List<(String, String, String?)> goalOptions(AppLocalizations l) => [
+/// The PRD's goals (v4 section 10) and what each sends. The server knows
+/// only `school_curriculum` and `not_sure` (services/child_profile.py), so a
+/// goal it doesn't know yet is shown but not sent.
+List<(String, String?, String?)> goalOptions(AppLocalizations l) => [
   (l.setupGoalConfidence, l.setupGoalConfidenceDetail, null),
-  (l.setupGoalCatchUp, l.setupGoalCatchUpDetail, 'school_curriculum'),
+  (l.setupGoalCatchUp, l.setupGoalCatchUpDetail, null),
   (l.setupGoalAhead, l.setupGoalAheadDetail, null),
   (l.setupGoalWordProblems, l.setupGoalWordProblemsDetail, null),
+  (l.setupGoalSchool, null, 'school_curriculum'),
+  (l.setupNotSure, null, 'not_sure'),
 ];
 
 /// Goal (643:169).

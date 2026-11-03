@@ -1981,7 +1981,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupWelcomeBody.
   ///
   /// In en, this message translates to:
-  /// **'Bar-model word problems for ages 5 to 10, read aloud and drawn by your child.'**
+  /// **'Bar-model word problems for ages 6 to 10, read aloud and drawn by your child.'**
   String get setupWelcomeBody;
 
   /// No description provided for @setupGetStarted.
@@ -2013,6 +2013,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'First name'**
   String get setupNameLabel;
+
+  /// No description provided for @setupAgeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Auramath is for ages 6 to 10 for now.'**
+  String get setupAgeRange;
 
   /// No description provided for @setupAgeTitle.
   ///
@@ -2199,6 +2205,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reading and drawing them'**
   String get setupGoalWordProblemsDetail;
+
+  /// No description provided for @setupGoalSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'Do well in the school curriculum'**
+  String get setupGoalSchool;
 
   /// No description provided for @setupDataTitle.
   ///
