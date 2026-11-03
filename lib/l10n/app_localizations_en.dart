@@ -518,20 +518,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guProgressError => 'Couldn\'t load progress';
 
   @override
-  String guHomeProgressTitle(String month) {
-    return '$month progress';
-  }
-
-  @override
-  String guHomeProgressBody(String name) {
-    return '$name this month';
-  }
-
-  @override
   String get guHomeFamily => 'Family';
-
-  @override
-  String get guHomePlan => 'Plan';
 
   @override
   String guHomeBackTo(String name) {
@@ -560,15 +547,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guSetReadAloud => 'Read aloud';
-
-  @override
-  String get guSetPad => 'Number pad';
-
-  @override
-  String get guSetPadPhone => 'Phone\'s own';
-
-  @override
-  String get guSetPadApp => 'The app\'s own';
 
   @override
   String get guSetBigPad => 'Bigger number pad (accessibility)';

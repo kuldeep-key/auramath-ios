@@ -20,12 +20,10 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Loaded<(LessonPrefs, List<Child>)>(
-      load: () async => (await repo.loadPrefs(), await family.children()),
+    return Loaded<LessonPrefs>(
+      load: repo.loadPrefs,
       fallback: Paths.grownUps,
-      builder: (context, data, _) {
-        final (prefs, children) = data;
-        final first = children.isEmpty ? null : children.first;
+      builder: (context, prefs, _) {
         return AuraPage(
           top: const AuraTopBar(fallback: Paths.grownUps),
           body: Column(
@@ -44,14 +42,6 @@ class SettingsScreen extends StatelessWidget {
                 label: l.guFamilyAndPhones,
                 onTap: () => context.push(Paths.family),
               ),
-              if (first != null) ...[
-                const SizedBox(height: 12),
-                NavRow(
-                  icon: Icons.map_outlined,
-                  label: l.guChildPlan(first.name),
-                  onTap: () => context.push(Paths.plan(first.id)),
-                ),
-              ],
               const SizedBox(height: 12),
               NavRow(
                 icon: Icons.mail_outline_rounded,
@@ -126,12 +116,6 @@ class _LessonPrefsCardState extends State<_LessonPrefsCard> {
             value: onOff(_p.readAloud),
             hint: l.guSetChangeHint,
             onTap: () => _set(_p.copyWith(readAloud: !_p.readAloud)),
-          ),
-          KvRow(
-            label: l.guSetPad,
-            value: _p.phonePad ? l.guSetPadPhone : l.guSetPadApp,
-            hint: l.guSetChangeHint,
-            onTap: () => _set(_p.copyWith(phonePad: !_p.phonePad)),
           ),
           KvRow(
             label: l.guSetBigPad,

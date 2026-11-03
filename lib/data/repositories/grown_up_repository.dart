@@ -137,7 +137,6 @@ class LessonPrefs {
   const LessonPrefs({
     this.minutes = 15,
     this.readAloud = true,
-    this.phonePad = true,
     this.biggerPad = false,
   });
 
@@ -146,21 +145,16 @@ class LessonPrefs {
   final int minutes;
   final bool readAloud;
 
-  /// The phone's own number pad, or the app's drawn one.
-  final bool phonePad;
+  /// The lesson always uses the app's own pad (D-41); this makes its keys
+  /// bigger still.
   final bool biggerPad;
 
-  LessonPrefs copyWith({
-    int? minutes,
-    bool? readAloud,
-    bool? phonePad,
-    bool? biggerPad,
-  }) => LessonPrefs(
-    minutes: minutes ?? this.minutes,
-    readAloud: readAloud ?? this.readAloud,
-    phonePad: phonePad ?? this.phonePad,
-    biggerPad: biggerPad ?? this.biggerPad,
-  );
+  LessonPrefs copyWith({int? minutes, bool? readAloud, bool? biggerPad}) =>
+      LessonPrefs(
+        minutes: minutes ?? this.minutes,
+        readAloud: readAloud ?? this.readAloud,
+        biggerPad: biggerPad ?? this.biggerPad,
+      );
 }
 
 /// The grown-up area's own calls: the family, phones, reports, the plan,
@@ -266,7 +260,6 @@ class GrownUpRepository {
     return LessonPrefs(
       minutes: minutes ?? d.minutes,
       readAloud: await flag('lesson.readAloud', d.readAloud),
-      phonePad: await flag('lesson.phonePad', d.phonePad),
       biggerPad: await flag('lesson.biggerPad', d.biggerPad),
     );
   }
@@ -275,7 +268,6 @@ class GrownUpRepository {
     String b(bool v) => v ? '1' : '0';
     await _store.write('lesson.minutes', '${p.minutes}');
     await _store.write('lesson.readAloud', b(p.readAloud));
-    await _store.write('lesson.phonePad', b(p.phonePad));
     await _store.write('lesson.biggerPad', b(p.biggerPad));
   }
 

@@ -964,29 +964,11 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load progress'**
   String get guProgressError;
 
-  /// No description provided for @guHomeProgressTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'{month} progress'**
-  String guHomeProgressTitle(String month);
-
-  /// No description provided for @guHomeProgressBody.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} this month'**
-  String guHomeProgressBody(String name);
-
   /// No description provided for @guHomeFamily.
   ///
   /// In en, this message translates to:
   /// **'Family'**
   String get guHomeFamily;
-
-  /// No description provided for @guHomePlan.
-  ///
-  /// In en, this message translates to:
-  /// **'Plan'**
-  String get guHomePlan;
 
   /// No description provided for @guHomeBackTo.
   ///
@@ -1035,24 +1017,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read aloud'**
   String get guSetReadAloud;
-
-  /// No description provided for @guSetPad.
-  ///
-  /// In en, this message translates to:
-  /// **'Number pad'**
-  String get guSetPad;
-
-  /// No description provided for @guSetPadPhone.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone\'s own'**
-  String get guSetPadPhone;
-
-  /// No description provided for @guSetPadApp.
-  ///
-  /// In en, this message translates to:
-  /// **'The app\'s own'**
-  String get guSetPadApp;
 
   /// No description provided for @guSetBigPad.
   ///
