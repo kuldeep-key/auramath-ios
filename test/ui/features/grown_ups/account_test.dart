@@ -4,11 +4,24 @@ import 'package:auramath/ui/features/grown_ups/views/add_child_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/leave_screens.dart';
 import 'package:auramath/ui/features/grown_ups/views/notify_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/rights_screen.dart';
+import 'package:auramath_engine/auramath_engine.dart' show SpecEvent;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/shots.dart';
+import '../lesson/fakes.dart' show memorySessions;
 import 'gu_fakes.dart';
+
+const _step = SpecEvent('step_entered', {'step_id': 'draw_known_bar'});
+
+/// Taps, letting the outbox's SQLite finish in real time.
+Future<void> _tapReal(WidgetTester tester, Finder f) async {
+  await tester.runAsync(() async {
+    await tester.tap(f);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+  });
+  await tester.pumpAndSettle();
+}
 
 void main() {
   group('AddChild', () {
@@ -105,17 +118,45 @@ void main() {
   });
 
   group('SignOut', () {
-    testWidgets('at every size; signs out and goes to Open', (tester) async {
+    testWidgets('at every size; sends, keeps no child data, goes to Open', (
+      tester,
+    ) async {
       final g = await Gu.make(tester);
+      final sessions = g.deps.sessions;
+      await tester.runAsync(() async {
+        await g.deps.account.chooseChild('child-1');
+        await sessions.record('s1', 1, const [_step]);
+      });
       await shotAllSizes(
         tester,
         'grown_ups_sign_out',
-        SignOutScreen(account: g.deps.account),
+        SignOutScreen(account: g.deps.account, sessions: sessions),
       );
-      await tester.tap(find.text('Sign out'));
-      await tester.pumpAndSettle();
+      await _tapReal(tester, find.text('Sign out'));
       expect(g.deps.account.role, Role.none);
+      expect(g.deps.account.childId, isNull);
+      expect(await tester.runAsync(g.deps.outbox.all), isEmpty);
       expect(find.text('went to ${Paths.open}'), findsOneWidget);
+    });
+
+    testWidgets('unsent work: stays signed in and says why', (tester) async {
+      final g = await Gu.make(tester);
+      final (sessions, outbox, api) = (await tester.runAsync(memorySessions))!;
+      await tester.runAsync(() async {
+        api.failNext = 99;
+        await sessions.record('s1', 1, const [_step]);
+      });
+      await tester.pumpWidget(
+        shotApp(SignOutScreen(account: g.deps.account, sessions: sessions)),
+      );
+      await _tapReal(tester, find.text('Sign out'));
+      expect(
+        find.textContaining("hasn't reached Auramath yet"),
+        findsOneWidget,
+      );
+      expect(g.deps.account.role, Role.parent);
+      expect(await tester.runAsync(outbox.unsent), hasLength(1));
+      sessions.dispose();
     });
   });
 
@@ -175,18 +216,25 @@ void main() {
       expect(find.text('went to ${Paths.rights}/delete'), findsOneWidget);
     });
 
-    testWidgets('confirming erases, signs out and goes to Open', (
+    testWidgets('confirming erases, forgets the lessons, signs out', (
       tester,
     ) async {
       final g = await Gu.make(tester);
       g.server.on('POST /api/parent/erase', {'erased': {}});
-      final delete = DeleteAccountScreen(account: g.deps.account, repo: g.repo);
+      await tester.runAsync(
+        () => g.deps.sessions.record('s1', 1, const [_step]),
+      );
+      final delete = DeleteAccountScreen(
+        account: g.deps.account,
+        repo: g.repo,
+        sessions: g.deps.sessions,
+      );
       await shotAllSizes(tester, 'grown_ups_delete_account', delete);
       expect(find.textContaining("can't be undone"), findsOneWidget);
-      await tester.tap(find.text('Delete everything'));
-      await tester.pumpAndSettle();
+      await _tapReal(tester, find.text('Delete everything'));
       expect(g.calls, contains('POST /api/parent/erase'));
       expect(g.deps.account.role, Role.none);
+      expect(await tester.runAsync(g.deps.outbox.all), isEmpty);
       expect(find.text('went to ${Paths.open}'), findsOneWidget);
     });
 
@@ -196,7 +244,13 @@ void main() {
       final g = await Gu.make(tester);
       g.server.on('POST /api/parent/erase', {'error': 'down'}, status: 503);
       await tester.pumpWidget(
-        shotApp(DeleteAccountScreen(account: g.deps.account, repo: g.repo)),
+        shotApp(
+          DeleteAccountScreen(
+            account: g.deps.account,
+            repo: g.repo,
+            sessions: g.deps.sessions,
+          ),
+        ),
       );
       await tester.tap(find.text('Delete everything'));
       await tester.pumpAndSettle();

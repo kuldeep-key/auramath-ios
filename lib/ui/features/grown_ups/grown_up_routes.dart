@@ -78,7 +78,11 @@ List<RouteBase> grownUpRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.deleteAccount,
-      builder: (_, _) => DeleteAccountScreen(account: deps.account, repo: repo),
+      builder: (_, _) => DeleteAccountScreen(
+        account: deps.account,
+        repo: repo,
+        sessions: deps.sessions,
+      ),
     ),
     GoRoute(
       path: Paths.notify,
@@ -86,7 +90,8 @@ List<RouteBase> grownUpRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.signOut,
-      builder: (_, _) => SignOutScreen(account: deps.account),
+      builder: (_, _) =>
+          SignOutScreen(account: deps.account, sessions: deps.sessions),
     ),
     GoRoute(
       path: '/grown-ups/family/phones/:deviceId/remove',

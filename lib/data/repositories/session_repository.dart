@@ -96,6 +96,27 @@ class SessionRepository {
     return _inFlight = _sync().whenComplete(() => _inFlight = null);
   }
 
+  /// Signing out (DEV-06): sends what's unsent, then forgets every lesson on
+  /// this phone. Throws while anything can't be sent, so no work is lost.
+  Future<void> sendAllThenForget() async {
+    await syncNow();
+    if ((await _db.unsent(limit: 1)).isNotEmpty) {
+      throw const ApiException(
+        "Some lesson work hasn't reached Auramath yet. Connect to the "
+        'internet and try again.',
+      );
+    }
+    await forget();
+  }
+
+  /// Forgets every lesson on this phone without sending (the family's data
+  /// is already erased on the server).
+  Future<void> forget() async {
+    _retry?.cancel();
+    _childRefs.clear();
+    await _db.clear();
+  }
+
   Future<void> _sync() async {
     _retry?.cancel();
     try {
