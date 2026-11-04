@@ -5,6 +5,7 @@ import '../../../../data/repositories/account_repository.dart';
 import '../../../../data/repositories/family_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/ribbon.dart';
@@ -84,9 +85,13 @@ class _KidsScreenState extends State<KidsScreen> {
                   );
                 }
                 Widget tile(int i) => i < children.length
-                    ? _ChildTile(
-                        child: children[i],
-                        onTap: () => _pick(children[i]),
+                    ? Pop(
+                        duration: const Duration(milliseconds: 500),
+                        delay: Duration(milliseconds: i * 80),
+                        child: _ChildTile(
+                          child: children[i],
+                          onTap: () => _pick(children[i]),
+                        ),
                       )
                     : const SizedBox();
                 // two to a row (no LayoutBuilder: the page's body measures

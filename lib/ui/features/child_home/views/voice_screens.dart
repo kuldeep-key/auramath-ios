@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
@@ -92,11 +93,13 @@ class _Notice extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 18,
       children: [
-        Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
-          child: Icon(icon, size: 64, color: iconColor),
+        Float(
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
+            child: Icon(icon, size: 64, color: iconColor),
+          ),
         ),
         Semantics(
           header: true,

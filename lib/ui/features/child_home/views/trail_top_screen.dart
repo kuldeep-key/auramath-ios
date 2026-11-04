@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/ribbon.dart';
 import 'play_moment.dart';
@@ -20,7 +21,7 @@ class TrailTopScreen extends StatelessWidget {
       gap: 10,
       content: [
         const Art('🏔️', size: 110),
-        const Portrait(size: 110),
+        const Float(child: Portrait(size: 110)),
         const SizedBox(height: 16),
         Ribbon(text: l.kidReachedTop),
         PlayLine(l.kidNewTrailSoon),

@@ -6,6 +6,7 @@ import '../../../../data/services/api.dart';
 import '../../../../deps.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
@@ -98,10 +99,12 @@ class _CheckEmailScreenState extends State<CheckEmailScreen> {
         children: [
           AuraHeading(title: l.setupCheckTitle, subtitle: l.setupCheckBody),
           const SizedBox(height: 22),
-          const IconTile(
-            icon: Icons.mark_email_unread_outlined,
-            color: AuraColors.yellowInk,
-            background: AuraColors.yellowTint,
+          const Float(
+            child: IconTile(
+              icon: Icons.mark_email_unread_outlined,
+              color: AuraColors.yellowInk,
+              background: AuraColors.yellowTint,
+            ),
           ),
           const SizedBox(height: 16),
           if (_busy)

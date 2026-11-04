@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
 import 'badge_disc.dart';
@@ -44,8 +45,12 @@ class BadgesScreen extends StatelessWidget {
               spacing: 12,
               runSpacing: 16,
               children: [
-                for (final id in earned)
-                  _Earned(id: id, name: badges[id]?.name ?? id),
+                for (final (i, id) in earned.indexed)
+                  Pop(
+                    duration: const Duration(milliseconds: 400),
+                    delay: Duration(milliseconds: i * 60),
+                    child: _Earned(id: id, name: badges[id]?.name ?? id),
+                  ),
               ],
             ),
           if (toEarn.isNotEmpty) ...[

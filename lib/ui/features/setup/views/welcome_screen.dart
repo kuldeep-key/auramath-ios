@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
 import 'setup_parts.dart';
@@ -25,8 +26,11 @@ class WelcomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              KidAvatar(size: 130, asset: kidBoy),
-              KidAvatar(size: 100, asset: kidGirl),
+              Float(child: KidAvatar(size: 130, asset: kidBoy)),
+              Float(
+                delay: Duration(milliseconds: 500),
+                child: KidAvatar(size: 100, asset: kidGirl),
+              ),
             ],
           ),
           const SizedBox(height: 50),

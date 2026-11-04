@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../data/repositories/account_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
@@ -26,7 +27,7 @@ class IsThisYouScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     return PlayMessage(
-      art: const ExcludeSemantics(child: Portrait(size: 170)),
+      art: const ExcludeSemantics(child: Burst(child: Portrait(size: 170))),
       title: l.pairIsThisYou,
       line: name,
       lineStyle: AuraText.playName,

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/ribbon.dart';
@@ -51,7 +52,7 @@ class HomeScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         spacing: 32,
         children: [
-          const Portrait(size: 210),
+          const Float(child: Portrait(size: 210)),
           Ribbon(text: l.readyForNewCase),
         ],
       ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/motion/motion.dart';
+import '../../../core/motion/play_backdrop.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/ribbon.dart';
@@ -67,16 +69,14 @@ class TimeUpView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Container(
-      width: double.infinity,
-      decoration: auraPlayBackground,
+    return PlayBackdrop(
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
               const Spacer(),
-              const Text('🌙', style: TextStyle(fontSize: 96)),
+              const Burst(child: Text('🌙', style: TextStyle(fontSize: 96))),
               const SizedBox(height: 24),
               Ribbon(text: l.timeUpTitle),
               const SizedBox(height: 16),
@@ -181,7 +181,13 @@ class NeedInternetView extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.wifi_off_rounded, size: 72, color: AuraColors.white),
+          const Float(
+            child: Icon(
+              Icons.wifi_off_rounded,
+              size: 72,
+              color: AuraColors.white,
+            ),
+          ),
           const SizedBox(height: 20),
           Ribbon(text: l.lessonNeedInternet),
           const SizedBox(height: 16),
