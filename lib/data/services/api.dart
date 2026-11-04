@@ -39,11 +39,15 @@ typedef OpenCase = ({
 /// The lesson's calls to the backend. Throws [ApiException] on any failure.
 abstract interface class Api {
   /// `POST /api/sessions`: the server makes the session (online-first) and
-  /// says which `child_ref` its events must carry.
-  Future<({String sessionId, String childRef})> startSession({
-    String? childId,
-    required bool isDemo,
-  });
+  /// says which `child_ref` its events must carry, and the level of a
+  /// spaced check that is due (its first problem is at that level).
+  Future<({String sessionId, String childRef, String? checkLevel})>
+  startSession({String? childId, required bool isDemo});
+
+  /// `POST /api/sessions/{id}/problems/next`: the next problem at the
+  /// child's level (the server's memory), or at [level] ("something
+  /// easier", a spaced check). 409 once the lesson has ended.
+  Future<Map<String, Object?>> nextProblem(String sessionId, {String? level});
 
   /// `GET /api/sessions/resumable`: the child's unfinished lesson on the
   /// server, if any, with its events and where it was started (DEV-05).

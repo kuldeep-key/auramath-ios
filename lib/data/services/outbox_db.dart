@@ -15,7 +15,7 @@ class OutboxDb {
       version: 3,
       onCreate: (db, _) async {
         await _create(db);
-        await _createEnded(db);
+        await _createV3(db);
       },
       onUpgrade: (db, from, _) async {
         // v1 held the pre-contract event shape; no real family has used the
@@ -24,7 +24,7 @@ class OutboxDb {
           await db.execute('DROP TABLE IF EXISTS events');
           await _create(db);
         }
-        if (from < 3) await _createEnded(db);
+        if (from < 3) await _createV3(db);
       },
     );
     return OutboxDb._(db);
@@ -41,10 +41,27 @@ class OutboxDb {
       PRIMARY KEY(session_id, seq)
     )''');
 
-  /// Sessions the server ended (offline too long, idle, a full log): none
-  /// is resumed; its case starts again in a new session.
-  static Future<void> _createEnded(Database db) =>
-      db.execute('CREATE TABLE ended(session_id TEXT PRIMARY KEY)');
+  /// `ended`: sessions the server ended (offline too long, idle, a full
+  /// log); none is resumed, its case starts again in a new session.
+  /// `problems`: the server's problems as it sent them, so a case left
+  /// part way can be rebuilt after the app restarts.
+  static Future<void> _createV3(Database db) async {
+    await db.execute('CREATE TABLE ended(session_id TEXT PRIMARY KEY)');
+    await db.execute(
+      'CREATE TABLE problems(id TEXT PRIMARY KEY, body TEXT NOT NULL)',
+    );
+  }
+
+  Future<void> saveProblem(String id, Map<String, Object?> body) => _db.insert(
+    'problems',
+    {'id': id, 'body': jsonEncode(body)},
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
+
+  Future<List<Map<String, Object?>>> problems() async => [
+    for (final r in await _db.query('problems'))
+      (jsonDecode(r['body']! as String) as Map).cast<String, Object?>(),
+  ];
 
   Future<void> markEnded(String sessionId) => _db.insert('ended', {
     'session_id': sessionId,

@@ -93,12 +93,21 @@ class _SolvedViewState extends State<SolvedView> {
                     ),
                   ],
                   const Spacer(),
-                  AuraButton(
-                    label: _showBadge ? l.addToSash : l.next,
-                    // no badge moment while the flag is off
-                    onPressed: () => _showBadge || !widget.vm.showBadges
-                        ? widget.onFinished(widget.vm.nextProblemId!)
-                        : _reveal(),
+                  Builder(
+                    builder: (context) {
+                      // no badge moment while the flag is off
+                      final finishing = _showBadge || !widget.vm.showBadges;
+                      final next = widget.vm.nextProblemId;
+                      return AuraButton(
+                        label: _showBadge ? l.addToSash : l.next,
+                        // the server's next case may still be on its way
+                        onPressed: !finishing
+                            ? _reveal
+                            : next == null
+                            ? null
+                            : () => widget.onFinished(next),
+                      );
+                    },
                   ),
                 ],
               ),

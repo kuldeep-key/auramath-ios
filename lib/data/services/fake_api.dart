@@ -14,10 +14,8 @@ class FakeApi implements Api {
   final List<String> sessions = [];
 
   @override
-  Future<({String sessionId, String childRef})> startSession({
-    String? childId,
-    required bool isDemo,
-  }) async {
+  Future<({String sessionId, String childRef, String? checkLevel})>
+  startSession({String? childId, required bool isDemo}) async {
     if (failNext > 0) {
       failNext--;
       throw const ApiException('offline');
@@ -28,10 +26,32 @@ class FakeApi implements Api {
     return (
       sessionId: id,
       childRef: childId == null ? childRef : childRefFor(childId),
+      checkLevel: checkLevel,
     );
   }
 
   String childRef = 'ch_test1234';
+
+  /// A spaced check due at this level, as the next session says.
+  String? checkLevel;
+
+  /// What `problems/next` hands out, in turn; each ask is kept in [asked].
+  final List<Map<String, Object?>> problems = [];
+  final List<(String, String?)> asked = [];
+
+  @override
+  Future<Map<String, Object?>> nextProblem(
+    String sessionId, {
+    String? level,
+  }) async {
+    if (failNext > 0) {
+      failNext--;
+      throw const ApiException('offline');
+    }
+    asked.add((sessionId, level));
+    if (problems.isEmpty) throw const ApiException('no problem', status: 409);
+    return problems.removeAt(0);
+  }
 
   /// What `resumable` answers; null = no unfinished case on the server.
   OpenCase? openCase;

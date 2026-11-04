@@ -13,5 +13,11 @@ abstract final class Env {
     'GOOGLE_IOS_CLIENT_ID',
   );
 
+  /// `server`: problems come from `problems/next` at the child's level.
+  /// `bundled` (the default): the sample pack's fixed chain, for a server
+  /// without that route (a local backend older than spec v0.4.1).
+  static const serverProblems =
+      String.fromEnvironment('PROBLEMS', defaultValue: 'bundled') == 'server';
+
   static bool get isDev => name == 'dev';
 }

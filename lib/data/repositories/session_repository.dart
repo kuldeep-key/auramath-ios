@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/lesson_event.dart';
+import '../models/server_problem.dart';
 import '../services/api.dart';
 import '../services/outbox_db.dart';
 
@@ -65,7 +66,41 @@ class SessionRepository {
       isDemo: identity.isDemo,
     );
     _childRefs[s.sessionId] = s.childRef;
+    if (s.checkLevel != null) _checkLevels[s.sessionId] = s.checkLevel!;
     return s.sessionId;
+  }
+
+  /// A spaced check due when the session opened: its first problem only.
+  final Map<String, String> _checkLevels = {};
+
+  /// The server's next problem for [sessionId], saved on the phone (a
+  /// resume rebuilds it) and added to [pack] for the lesson's screens.
+  /// [level] asks one at that level ("something easier"); else the first
+  /// problem of a session with a spaced check due is at the check's level.
+  Future<ComparisonProblem> nextProblem(
+    Pack pack,
+    String sessionId, {
+    String? level,
+  }) async {
+    final j = await _api.nextProblem(
+      sessionId,
+      level: level ?? _checkLevels.remove(sessionId),
+    );
+    final problem = problemFromServer(j);
+    await _db.saveProblem(problem.id, j);
+    // ponytail: the pack's map doubles as the problem store; give problems
+    // their own store if the pack ever becomes read-only
+    pack.problems[problem.id] = problem;
+    return problem;
+  }
+
+  /// Adds the server's problems saved on this phone to [pack], so a case
+  /// left part way resumes after the app restarts.
+  Future<void> loadProblems(Pack pack) async {
+    for (final j in await _db.problems()) {
+      final p = problemFromServer(j);
+      pack.problems[p.id] = p;
+    }
   }
 
   /// Saves [events] as seq [firstSeq] onwards, then tries to send them.

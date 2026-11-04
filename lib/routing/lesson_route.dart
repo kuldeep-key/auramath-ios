@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../data/repositories/grown_up_repository.dart';
 import '../data/services/api.dart';
+import '../config/env.dart';
 import '../deps.dart';
 import '../ui/features/lesson/view_models/lesson_view_model.dart';
 import '../ui/features/lesson/views/lesson_flow.dart';
@@ -18,8 +19,11 @@ List<RouteBase> lessonRoutes(Deps deps) => [
         deps.pack,
         childId: deps.account.childId,
       );
-      // ponytail: lemon is the first case until the server says the level
-      final id = next?.problemId ?? 'lemon';
+      // the server's next problem; a build on the bundled pack starts at
+      // lemon
+      final id =
+          next?.problemId ??
+          (Env.serverProblems ? LessonViewModel.newProblem : 'lemon');
       final resume = next?.resumeSessionId;
       // a case started on another phone: offer to carry on here first
       // (DEV-05); "Carry on here" comes back with ?here=1
@@ -80,6 +84,13 @@ class _LessonRouteState extends State<_LessonRoute> {
     voice: widget.deps.voice,
     openSession: () =>
         widget.deps.sessions.open(childId: widget.deps.account.childId),
+    nextProblem: Env.serverProblems
+        ? (sessionId, {level}) => widget.deps.sessions.nextProblem(
+            widget.deps.pack,
+            sessionId,
+            level: level,
+          )
+        : null,
     sitting: widget.deps.sitting,
   );
 
@@ -142,9 +153,14 @@ class _LessonRouteState extends State<_LessonRoute> {
   Widget build(BuildContext context) => LessonFlow(
     vm: _vm,
     onHome: () => context.go(Paths.home),
-    // past the cap, a finished problem ends the sitting instead of starting one
+    // past the cap, a finished problem ends the sitting instead of starting
+    // one; a next case the server couldn't send yet is asked for again
     onFinished: (next) => context.go(
-      widget.deps.sitting.over ? Paths.home : Paths.afterCaseNext(next),
+      widget.deps.sitting.over
+          ? Paths.home
+          : next == LessonViewModel.newProblem
+          ? Paths.lessonNext
+          : Paths.afterCaseNext(next),
     ),
   );
 }

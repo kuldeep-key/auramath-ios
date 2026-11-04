@@ -29,11 +29,20 @@ class LessonViewModel extends ChangeNotifier {
 
     /// An already-open session: a resumed case.
     this._sessionId,
+
+    /// Problems come from the server (`problems/next`): [problemId]
+    /// [newProblem] waits for one, and "something easier" and the next
+    /// case ask for them. Null: the bundled pack's own chain.
+    this._nextProblem,
     int Function()? nowMs,
     Duration? tickEvery = const Duration(seconds: 1),
   }) : _pack = pack,
-       _problem = pack.problems[problemId]!,
+       _p = pack.problems[problemId],
        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch) {
+    assert(
+      _p != null || _nextProblem != null,
+      'no problem $problemId',
+    );
     _lastMoveMs = _shownAt = _stepAt = _lastTickMs = _now();
     if (tickEvery != null) _ticker = Timer.periodic(tickEvery, (_) => tick());
     _sessions.online.addListener(_onlineChanged);
@@ -48,10 +57,20 @@ class LessonViewModel extends ChangeNotifier {
 
   /// Asks the server for a new session (online-first).
   final Future<String> Function() _openSession;
+  final Future<ComparisonProblem> Function(String sessionId, {String? level})?
+  _nextProblem;
   final int Function() _now;
   Timer? _ticker;
 
-  ComparisonProblem _problem;
+  /// The problem id that means "the server's next one".
+  static const newProblem = 'new';
+
+  /// Null while the server's next problem is on its way.
+  ComparisonProblem? _p;
+  ComparisonProblem get _problem => _p!;
+
+  /// The level to ask for with the next problem ("something easier").
+  String? _askLevel;
 
   /// Null until the server opened the session.
   String? _sessionId;
@@ -69,8 +88,9 @@ class LessonViewModel extends ChangeNotifier {
   ComparisonProblem get problem => _problem;
   String get sessionId => _sessionId ?? '';
 
-  /// The server opened this lesson's session; until then nothing is drawn.
-  bool get ready => _sessionId != null;
+  /// The server opened this lesson's session (and sent its problem); until
+  /// then nothing is drawn.
+  bool get ready => _sessionId != null && _p != null;
 
   /// The session couldn't be opened: no connection, or the server said no.
   /// The lesson waits on a "need the internet" screen with Try again.
@@ -82,19 +102,23 @@ class LessonViewModel extends ChangeNotifier {
   /// Events saved for the current session.
   int get recorded => _seq;
 
-  /// Opens a new session on this problem: `session_started`, `problem_shown`.
+  /// Opens a new session on this problem (asking the server for it, when
+  /// problems are the server's): `session_started`, `problem_shown`.
   Future<void> start() async {
     startError = null;
-    if (_sessionId == null) {
-      try {
-        _sessionId = await _openSession();
-      } on ApiException catch (e) {
-        startError = e;
-        notifyListeners();
-        return;
+    try {
+      final sessionId = _sessionId ??= await _openSession();
+      final next = _nextProblem;
+      if (_p == null && next != null) {
+        _p = await next(sessionId, level: _askLevel);
+        _askLevel = null;
       }
+    } on ApiException catch (e) {
+      startError = e;
       notifyListeners();
+      return;
     }
+    notifyListeners();
     final events = [
       SpecEvent('session_started', {
         'launch_source': 'child_opened',
@@ -382,9 +406,15 @@ class LessonViewModel extends ChangeNotifier {
     _ => KnowIt(value),
   });
 
-  /// Starts the next problem the engine chose.
+  /// Starts the next problem the engine chose; with the server's problems,
+  /// one a level easier than this one, from the server.
   void goTo(String problemId) {
-    _problem = _pack.problems[problemId]!;
+    if (_nextProblem != null) {
+      _askLevel = easierLevel(_problem.level);
+      _p = null;
+    } else {
+      _p = _pack.problems[problemId]!;
+    }
     _sessionId = null; // the next start() asks the server for one
     _state = initialState();
     _seq = 0;
@@ -394,6 +424,19 @@ class LessonViewModel extends ChangeNotifier {
     helpAttention = Attention.none;
     glowPiece = showHand = stillThere = false;
     knowPrompt = sideLesson = badgeId = nextProblemId = null;
+    notifyListeners();
+  }
+
+  /// Solved, with the server's problems: the next case is asked for now,
+  /// in this session, while "case cracked" shows. Unreachable, it is
+  /// [newProblem]: the next lesson asks again.
+  Future<void> _fetchNext() async {
+    try {
+      nextProblemId = (await _nextProblem!(_sessionId!)).id;
+    } on ApiException catch (e) {
+      debugPrint('next problem not fetched: $e');
+      nextProblemId = newProblem;
+    }
     notifyListeners();
   }
 
@@ -434,7 +477,11 @@ class LessonViewModel extends ChangeNotifier {
         case Solved(:final badgeId, nextProblemId: final next):
           knowPrompt = null;
           this.badgeId = badgeId;
-          nextProblemId = next;
+          if (_nextProblem == null) {
+            nextProblemId = next;
+          } else {
+            _fetchNext();
+          }
       }
     }
     if (_state.knowFlow == KnowFlow.checkingTotal) {
@@ -471,4 +518,11 @@ class LessonViewModel extends ChangeNotifier {
     _voice.stop();
     super.dispose();
   }
+}
+
+/// One level down the ladder (`L4` → `L3`), never below `L1`; null leaves
+/// it to the server.
+String? easierLevel(String? level) {
+  final n = int.tryParse(level?.substring(1) ?? '');
+  return n == null ? null : 'L${n > 1 ? n - 1 : 1}';
 }

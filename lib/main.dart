@@ -80,27 +80,30 @@ Future<void> main() async {
   final flags = Flags(client, store, defaults: config.flags);
   await flags.load();
   unawaited(flags.refresh());
+  final sessions = SessionRepository(
+    db: db,
+    api: HttpApi(client),
+    identity: (
+      deviceId: account.deviceRef,
+      appVersion: Env.appVersion,
+      isDemo: Env.isDemo,
+    ),
+    onRejected: (sessionId, rejected) => errors.report(
+      'error',
+      'events refused: ${rejected.join('; ')}',
+      screen: 'lesson',
+      sessionId: sessionId,
+    ),
+  );
+  // the server's problems this phone has shown, for a case left part way
+  await sessions.loadProblems(pack);
   runApp(
     AuraApp(
       deps: Deps(
         account: account,
         family: FamilyRepository(client),
         client: client,
-        sessions: SessionRepository(
-          db: db,
-          api: HttpApi(client),
-          identity: (
-            deviceId: account.deviceRef,
-            appVersion: Env.appVersion,
-            isDemo: Env.isDemo,
-          ),
-          onRejected: (sessionId, rejected) => errors.report(
-            'error',
-            'events refused: ${rejected.join('; ')}',
-            screen: 'lesson',
-            sessionId: sessionId,
-          ),
-        ),
+        sessions: sessions,
         pack: pack,
         voice: DeviceVoice(),
         sitting: Sitting(capMs: config.sessionCapMinutes * 60 * 1000),
