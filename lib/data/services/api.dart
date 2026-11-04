@@ -15,6 +15,27 @@ class ApiException implements Exception {
   String toString() => 'ApiException(${status ?? 'offline'}): $message';
 }
 
+/// The server's answer to a batch of events.
+typedef EventsReply = ({
+  /// Each refused event as "name: reasons". Those aren't stored; the rest
+  /// of the batch is.
+  List<String> rejected,
+
+  /// Why the server ended the session, if it has: `paused` (offline 10+
+  /// min), `idle` (30 min), or `full` (the log's 10,000 events, its 413).
+  String? ended,
+});
+
+/// The child's unfinished lesson on the server.
+typedef OpenCase = ({
+  List<LessonEvent> events,
+  bool sameDevice,
+  String? startedOn,
+
+  /// The server already ended it (`resume.closed`): a new session starts.
+  bool closed,
+});
+
 /// The lesson's calls to the backend. Throws [ApiException] on any failure.
 abstract interface class Api {
   /// `POST /api/sessions`: the server makes the session (online-first) and
@@ -26,9 +47,8 @@ abstract interface class Api {
 
   /// `GET /api/sessions/resumable`: the child's unfinished lesson on the
   /// server, if any, with its events and where it was started (DEV-05).
-  Future<({List<LessonEvent> events, bool sameDevice, String? startedOn})?>
-  resumable({String? childId});
+  Future<OpenCase?> resumable({String? childId});
 
   /// `POST /api/sessions/{sessionId}/events` with `{"events": [...]}`.
-  Future<void> sendEvents(String sessionId, List<LessonEvent> events);
+  Future<EventsReply> sendEvents(String sessionId, List<LessonEvent> events);
 }

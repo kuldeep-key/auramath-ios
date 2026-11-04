@@ -268,6 +268,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Great detective work. Your case is saved for next time.';
 
   @override
+  String get keptTitle => 'Saved for next time';
+
+  @override
+  String get keptBody =>
+      'We were away a while, so this case is kept for next time.';
+
+  @override
   String get ok => 'OK';
 
   @override

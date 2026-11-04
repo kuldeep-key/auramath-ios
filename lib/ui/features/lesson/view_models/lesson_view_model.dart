@@ -37,6 +37,7 @@ class LessonViewModel extends ChangeNotifier {
     _lastMoveMs = _shownAt = _stepAt = _lastTickMs = _now();
     if (tickEvery != null) _ticker = Timer.periodic(tickEvery, (_) => tick());
     _sessions.online.addListener(_onlineChanged);
+    _sessions.ended.addListener(_endedByServer);
     _voice.resting.addListener(_voiceResting);
   }
 
@@ -109,7 +110,8 @@ class LessonViewModel extends ChangeNotifier {
 
   Future<void> _record(List<SpecEvent> events) async {
     final sessionId = _sessionId;
-    if (sessionId == null) return; // nothing happened yet to record
+    // nothing happened yet to record, or the server closed the log
+    if (sessionId == null || endedByServer) return;
     final first = _seq;
     _seq += events.length;
     await _sessions.record(sessionId, first, events);
@@ -236,6 +238,16 @@ class LessonViewModel extends ChangeNotifier {
     ]);
   }
 
+  /// The server ended this lesson (offline 10+ min, idle 30 min, or a full
+  /// log): "we'll keep this for next time", and nothing more is recorded.
+  bool endedByServer = false;
+
+  void _endedByServer() {
+    if (_sessionId == null || _sessions.ended.value != _sessionId) return;
+    endedByServer = true;
+    notifyListeners();
+  }
+
   /// The child chose to go home: the drawing is kept for next time.
   Future<void> leave() async {
     askingBreak = false;
@@ -246,8 +258,9 @@ class LessonViewModel extends ChangeNotifier {
 
   Future<void> send(LessonInput input) async {
     final sessionId = _sessionId;
-    // no session yet, or paused for the connection: the board isn't live
-    if (sessionId == null || !online) return;
+    // no session yet, paused for the connection, or over: the board isn't
+    // live
+    if (sessionId == null || !online || endedByServer) return;
     final r = step(_pack, _problem, _state, input);
     if (identical(r.state, _state) && r.decisions.isEmpty) return;
     final now = _now();
@@ -446,6 +459,7 @@ class LessonViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _sessions.online.removeListener(_onlineChanged);
+    _sessions.ended.removeListener(_endedByServer);
     _voice.resting.removeListener(_voiceResting);
     _ticker?.cancel();
     _voice.stop();

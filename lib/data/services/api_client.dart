@@ -113,8 +113,7 @@ class HttpApi implements Api {
   }
 
   @override
-  Future<({List<LessonEvent> events, bool sameDevice, String? startedOn})?>
-  resumable({String? childId}) async {
+  Future<OpenCase?> resumable({String? childId}) async {
     final json =
         await _client.get(
               '/api/sessions/resumable',
@@ -147,25 +146,34 @@ class HttpApi implements Api {
       events: events,
       sameDevice: offer?['sameDevice'] == true,
       startedOn: on?['label'] as String?,
+      closed: offer?['closed'] != null,
     );
   }
 
   @override
-  Future<void> sendEvents(String sessionId, List<LessonEvent> events) async {
-    final json =
-        await _client.post('/api/sessions/$sessionId/events', {
-              'events': [for (final e in events) e.toJson()],
-            })
-            as Map<String, Object?>;
-    final rejected = json['rejected'];
-    // A refused event is a bug in the app or a contract change: retrying
-    // can't fix it, so it surfaces instead of being dropped.
-    if (rejected is List && rejected.isNotEmpty) {
-      throw ApiException(
-        'The server refused ${rejected.length} event(s): '
-        '${rejected.map((r) => '${(r as Map)['name']}: ${r['reasons']}').join('; ')}',
-        status: 422,
-      );
+  Future<EventsReply> sendEvents(
+    String sessionId,
+    List<LessonEvent> events,
+  ) async {
+    final Map<String, Object?> json;
+    try {
+      json =
+          await _client.post('/api/sessions/$sessionId/events', {
+                'events': [for (final e in events) e.toJson()],
+              })
+              as Map<String, Object?>;
+    } on ApiException catch (e) {
+      // the lesson's log is full: nothing more is stored for it
+      if (e.status == 413) return (rejected: const <String>[], ended: 'full');
+      rethrow;
     }
+    final ended = json['sessionEnded'] as Map<String, Object?>?;
+    return (
+      rejected: [
+        for (final r in (json['rejected'] as List? ?? []).cast<Map>())
+          '${r['name']}: ${r['reasons']}',
+      ],
+      ended: ended == null ? null : '${ended['reason']}',
+    );
   }
 }

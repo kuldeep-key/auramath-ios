@@ -17,6 +17,7 @@ class SessionRepository {
     required this._db,
     required this._api,
     required this.identity,
+    this.onRejected,
     String Function()? newId,
     int Function()? nowMs,
   }) : _newId = newId ?? const Uuid().v4,
@@ -27,6 +28,15 @@ class SessionRepository {
   final Identity identity;
   final String Function() _newId;
   final int Function() _now;
+
+  /// Events the server refused ("name: reasons"): a bug in the app or a
+  /// contract change. Resending can't fix them, so they're reported, and
+  /// the outbox moves on (the rest of their batch was stored).
+  final void Function(String sessionId, List<String> rejected)? onRejected;
+
+  /// The last session the server ended (offline too long, idle, a full
+  /// log). The lesson on it shows "we'll keep this for next time".
+  final ended = ValueNotifier<String?>(null);
 
   /// The `child_ref` each open session's events carry, from the server.
   final Map<String, String> _childRefs = {};
@@ -128,8 +138,16 @@ class SessionRepository {
           batch = await _db.unsent()
         ) {
           for (final (sessionId, events) in _bySession(batch)) {
-            await _api.sendEvents(sessionId, events);
+            final reply = await _api.sendEvents(sessionId, events);
             await _db.markSent(events);
+            if (reply.rejected.isNotEmpty) {
+              debugPrint('events refused in $sessionId: ${reply.rejected}');
+              onRejected?.call(sessionId, reply.rejected);
+            }
+            if (reply.ended != null) {
+              await _db.markEnded(sessionId);
+              ended.value = sessionId;
+            }
           }
         }
       } while (_again);
@@ -171,6 +189,7 @@ class SessionRepository {
           await _db.insert(e);
         }
         await _db.markSent(open.events);
+        if (open.closed) await _db.markEnded(open.events.first.sessionId);
         if (!open.sameDevice) {
           elsewhere = (
             sessionId: open.events.first.sessionId,
@@ -206,6 +225,11 @@ class SessionRepository {
         }
       }
     }
+    // ponytail: a case the server ended starts again from its question in a
+    // new session; rebuild its board from the events if children mind.
+    if (await _db.isEnded(sessionId)) {
+      return (problemId: problem.id, resumeSessionId: null, startedOn: null);
+    }
     return (
       problemId: problem.id,
       resumeSessionId: sessionId,
@@ -216,6 +240,7 @@ class SessionRepository {
   void dispose() {
     _retry?.cancel();
     online.dispose();
+    ended.dispose();
   }
 
   static List<(String, List<LessonEvent>)> _bySession(List<LessonEvent> batch) {

@@ -52,6 +52,9 @@ class LessonFlow extends StatelessWidget {
           context.push(Paths.noVoice);
         });
       }
+      if (vm.endedByServer) {
+        return Scaffold(body: KeptForNextTimeView(onOk: onHome));
+      }
       if (vm.timeUp) {
         return Scaffold(
           body: TimeUpView(

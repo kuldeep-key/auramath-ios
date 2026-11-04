@@ -57,6 +57,42 @@ class BreakSheet extends StatelessWidget {
   }
 }
 
+/// The server ended the lesson (away too long, or its log is full). Not in
+/// Figma: TU's calm layout, one way out, nothing lost.
+class KeptForNextTimeView extends StatelessWidget {
+  const KeptForNextTimeView({super.key, required this.onOk});
+
+  final VoidCallback onOk;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return PlayBackdrop(
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Spacer(),
+              const Burst(child: Text('🗂️', style: TextStyle(fontSize: 96))),
+              const SizedBox(height: 24),
+              Ribbon(text: l.keptTitle),
+              const SizedBox(height: 16),
+              Text(
+                l.keptBody,
+                style: AuraText.play,
+                textAlign: TextAlign.center,
+              ),
+              const Spacer(),
+              AuraButton(label: l.ok, onPressed: onOk),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// "That's today's time!" at the sitting's cap. Figma TU (650:118), plus the
 /// "finish this one" choice SES-01 asks for, which the design doesn't have
 /// yet. No clock or countdown anywhere (SES-02).

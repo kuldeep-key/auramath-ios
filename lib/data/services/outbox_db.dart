@@ -12,13 +12,19 @@ class OutboxDb {
   static Future<OutboxDb> open(String path) async {
     final db = await openDatabase(
       path,
-      version: 2,
-      onCreate: (db, _) => _create(db),
-      // v1 held the pre-contract event shape; no real family has used the
-      // app, so it is dropped rather than migrated.
-      onUpgrade: (db, _, _) async {
-        await db.execute('DROP TABLE IF EXISTS events');
+      version: 3,
+      onCreate: (db, _) async {
         await _create(db);
+        await _createEnded(db);
+      },
+      onUpgrade: (db, from, _) async {
+        // v1 held the pre-contract event shape; no real family has used the
+        // app, so it is dropped rather than migrated.
+        if (from < 2) {
+          await db.execute('DROP TABLE IF EXISTS events');
+          await _create(db);
+        }
+        if (from < 3) await _createEnded(db);
       },
     );
     return OutboxDb._(db);
@@ -35,7 +41,22 @@ class OutboxDb {
       PRIMARY KEY(session_id, seq)
     )''');
 
-  Future<void> insert(LessonEvent e) => _db.insert('events', {
+  /// Sessions the server ended (offline too long, idle, a full log): none
+  /// is resumed; its case starts again in a new session.
+  static Future<void> _createEnded(Database db) =>
+      db.execute('CREATE TABLE ended(session_id TEXT PRIMARY KEY)');
+
+  Future<void> markEnded(String sessionId) => _db.insert('ended', {
+    'session_id': sessionId,
+  }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+  Future<bool> isEnded(String sessionId) async => (await _db.query(
+    'ended',
+    where: 'session_id = ?',
+    whereArgs: [sessionId],
+  )).isNotEmpty;
+
+  Future<void> insert(LessonEvent e) =>_db.insert('events', {
     'session_id': e.sessionId,
     'seq': e.seq,
     'body': jsonEncode(e.toJson()),
@@ -92,7 +113,10 @@ class OutboxDb {
   }
 
   /// Forgets every lesson on this phone (DEV-06).
-  Future<void> clear() => _db.delete('events');
+  Future<void> clear() async {
+    await _db.delete('events');
+    await _db.delete('ended');
+  }
 
   Future<void> close() => _db.close();
 

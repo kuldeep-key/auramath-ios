@@ -532,6 +532,18 @@ abstract class AppLocalizations {
   /// **'Great detective work. Your case is saved for next time.'**
   String get timeUpBody;
 
+  /// No description provided for @keptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved for next time'**
+  String get keptTitle;
+
+  /// No description provided for @keptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We were away a while, so this case is kept for next time.'**
+  String get keptBody;
+
   /// No description provided for @ok.
   ///
   /// In en, this message translates to:
