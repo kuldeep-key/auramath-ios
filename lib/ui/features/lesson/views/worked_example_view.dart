@@ -5,6 +5,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../core/board/bar.dart';
 import '../../../core/board/brace.dart';
 import '../../../core/board/gap_segment.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/lesson_header.dart';
 import '../../../core/theme/tokens.dart';
@@ -64,6 +65,7 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
             big: widget.vm.voice.resting.value,
             line: line,
             onSpeak: () => widget.vm.say(line),
+            speaking: widget.vm.voice.speaking,
             onHome: widget.onHome,
           ),
           const SizedBox(height: 12),
@@ -140,19 +142,42 @@ class _Bars extends StatelessWidget {
 
       // the gap rides on the shorter bar, up to the taller one's top
       final gapOnB = b < a;
+      // it pops in once B has settled (600 ms), then blinks twice as the
+      // example takes d away, and ends faded
       Widget gap() => SizedBox(
         width: barWidth,
         height: d * unit,
-        child: Opacity(
-          opacity: faded ? 0.5 : 1,
-          child: GapSegment(label: '$d m'),
+        child: Pop(
+          delay: Duration(milliseconds: gapOnB ? 600 : 0),
+          child: Entrance(
+            key: ValueKey(step == 2),
+            duration: const Duration(milliseconds: 1600),
+            child: GapSegment(label: '$d m'),
+            builder: (context, t, child) => Opacity(
+              opacity: step == 2
+                  ? keyframes(t, const [
+                      (0, 1),
+                      (0.25, 0.3),
+                      (0.5, 1),
+                      (0.75, 0.3),
+                      (1, 0.5),
+                    ])
+                  : (faded ? 0.5 : 1),
+              child: child,
+            ),
+          ),
         ),
       );
 
       final barB = step == 0
           ? Container(width: barWidth, height: 6, color: AuraColors.blue)
-          : SizedBox(
+          : _GrowBox(
+              key: ValueKey(step == 1),
+              grow: step == 1,
               width: barWidth,
+              from: 6,
+              // a shorter B first reaches A's height, then drops to its own
+              peak: (b < a ? a : b) * unit,
               height: b * unit,
               child: Bar(
                 color: AuraColors.blue,
@@ -228,10 +253,50 @@ class _Bars extends StatelessWidget {
             width: barWidth * 2 + gapBetween,
             // the brace's pill holds a Bold 20 label
             height: 50,
-            child: step == 3 ? Brace(label: '${a + b} m') : null,
+            child: step == 3 ? Pop(child: Brace(label: '${a + b} m')) : null,
           ),
         ],
       );
     },
   );
+}
+
+/// B growing from its flat start: up (to [peak]) with the bar spring, hold,
+/// then down to [height]. Not [grow]ing, it just stands at [height].
+class _GrowBox extends StatelessWidget {
+  const _GrowBox({
+    super.key,
+    required this.grow,
+    required this.width,
+    required this.from,
+    required this.peak,
+    required this.height,
+    required this.child,
+  });
+
+  final bool grow;
+  final double width;
+  final double from;
+  final double peak;
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!grow) return SizedBox(width: width, height: height, child: child);
+    return Entrance(
+      duration: const Duration(milliseconds: 1050),
+      child: child,
+      builder: (context, t, child) {
+        final up = AuraCurves.spring.transform((t / 0.43).clamp(0.0, 1.0));
+        final down = AuraCurves.spring.transform(
+          ((t - 0.57) / 0.43).clamp(0.0, 1.0),
+        );
+        final h = t < 0.57
+            ? from + (peak - from) * up
+            : peak + (height - peak) * down;
+        return SizedBox(width: width, height: h, child: child);
+      },
+    );
+  }
 }
