@@ -23,7 +23,9 @@ ComparisonProblem problemFromServer(Map<String, Object?> j) {
     aValue: numbers['A']! as int,
     diff: numbers['D']! as int,
     // the first item is the bigger one when it is "taller" / "heavier"
-    big: const {'shorter', 'lighter'}.contains(j['relation']) ? BigSide.b : BigSide.a,
+    big: const {'shorter', 'lighter'}.contains(j['relation'])
+        ? BigSide.b
+        : BigSide.a,
     unit: story['unit']! as String,
     ask: expected.containsKey('total') ? Ask.total : Ask.b,
     text: text,
@@ -43,7 +45,12 @@ String spokenUnits(String text) => text.replaceAllMapped(
   (m) => '${m[1]} ${_units[m[2]]}',
 );
 
-const _units = {'cm': 'centimetres', 'm': 'metres', 'kg': 'kilograms', 'g': 'grams'};
+const _units = {
+  'cm': 'centimetres',
+  'm': 'metres',
+  'kg': 'kilograms',
+  'g': 'grams',
+};
 
 // ponytail: a picture by the item's name or kind until stories carry their
 // own; a story the list doesn't know shows the plain magnifier.

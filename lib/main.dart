@@ -16,6 +16,7 @@ import 'data/repositories/family_repository.dart';
 import 'data/repositories/pack_repository.dart';
 import 'data/repositories/session_repository.dart';
 import 'data/services/api_client.dart';
+import 'data/services/content_bundle.dart';
 import 'data/services/device_lock.dart';
 import 'data/services/error_reporter.dart';
 import 'data/services/flags.dart';
@@ -73,9 +74,32 @@ Future<void> main() async {
     return false; // still the platform's to log
   };
 
-  final pack = await PackRepository(source: AssetPackSource()).load();
-  final config = AppConfig.fromYaml(
-    await rootBundle.loadString('assets/spec/app-config.yaml'),
+  // The server's teaching content from the last launch, else the bundled
+  // copy; a newer one is fetched now for the next launch.
+  final bundle = ContentBundle(
+    client,
+    File(p.join(dir.path, 'content_bundle.json')),
+  );
+  await bundle.load();
+  if (account.bearer != null) unawaited(bundle.refresh());
+  Future<T> served<T>(Future<T> Function(ContentBundle?) read) async {
+    try {
+      return await read(bundle);
+    } on Object catch (e) {
+      // a served file this build can't read: the bundled copy, reported
+      errors.report('error', 'served content not readable: $e');
+      return read(null);
+    }
+  }
+
+  final pack = await served(
+    (b) => PackRepository(source: AssetPackSource(served: b)).load(),
+  );
+  final config = await served(
+    (b) async => AppConfig.fromYaml(
+      b?.yamlOf('app-config.yaml') ??
+          await rootBundle.loadString('assets/spec/app-config.yaml'),
+    ),
   );
   final flags = Flags(client, store, defaults: config.flags);
   await flags.load();

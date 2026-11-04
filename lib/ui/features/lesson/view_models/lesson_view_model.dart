@@ -39,10 +39,7 @@ class LessonViewModel extends ChangeNotifier {
   }) : _pack = pack,
        _p = pack.problems[problemId],
        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch) {
-    assert(
-      _p != null || _nextProblem != null,
-      'no problem $problemId',
-    );
+    assert(_p != null || _nextProblem != null, 'no problem $problemId');
     _lastMoveMs = _shownAt = _stepAt = _lastTickMs = _now();
     if (tickEvery != null) _ticker = Timer.periodic(tickEvery, (_) => tick());
     _sessions.online.addListener(_onlineChanged);

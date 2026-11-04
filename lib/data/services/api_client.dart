@@ -39,11 +39,34 @@ class ApiClient {
 
   Future<Object?> delete(String path) => _send('DELETE', path);
 
+  /// A GET that sends the [etag] held: null when the server says it is
+  /// unchanged (304), else the new JSON and its ETag.
+  Future<({Object? json, String? etag})?> getIfChanged(
+    String path, {
+    String? etag,
+  }) async {
+    String? fresh;
+    try {
+      final json = await _send(
+        'GET',
+        path,
+        headers: {'If-None-Match': ?etag},
+        onResponse: (r) => fresh = r.headers['etag'],
+      );
+      return (json: json, etag: fresh);
+    } on ApiException catch (e) {
+      if (e.status == 304) return null;
+      rethrow;
+    }
+  }
+
   Future<Object?> _send(
     String method,
     String path, {
     Object? body,
     Map<String, String>? query,
+    Map<String, String>? headers,
+    void Function(http.Response)? onResponse,
   }) async {
     final request = http.Request(
       method,
@@ -54,6 +77,7 @@ class ApiClient {
       'Accept': 'application/json',
       if (body != null) 'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
+      ...?headers,
     });
     if (body != null) request.body = jsonEncode(body);
 
@@ -66,6 +90,7 @@ class ApiClient {
       // socket, TLS, timeout: the server never answered
       throw ApiException("Can't reach the server ($e)");
     }
+    onResponse?.call(response);
 
     final text = response.body;
     final Object? json;
