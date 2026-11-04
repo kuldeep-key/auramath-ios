@@ -901,7 +901,7 @@ abstract class AppLocalizations {
   /// No description provided for @guPassResetBlocked.
   ///
   /// In en, this message translates to:
-  /// **'The server still asks for the old passcode before it sets a new one, so this can\'t finish yet.'**
+  /// **'It has been more than 10 minutes since you signed in. Sign in again, then choose a new passcode.'**
   String get guPassResetBlocked;
 
   /// No description provided for @guFaceIdReason.

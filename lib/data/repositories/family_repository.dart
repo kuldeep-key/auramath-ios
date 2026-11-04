@@ -85,6 +85,11 @@ class FamilyRepository {
     {'passcode': passcode, 'current': ?current},
   );
 
+  /// A forgotten passcode replaced without the old one: allowed within 10
+  /// min of a fresh sign-in, else 403 (sign in again).
+  Future<void> resetPasscode(String passcode) =>
+      _client.post('/api/family/passcode/reset', {'passcode': passcode});
+
   /// True if right, false if wrong (the server's 403). Throws 429 while
   /// locked after too many tries, 404 when none is set.
   Future<bool> checkPasscode(String passcode) async {

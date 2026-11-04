@@ -472,7 +472,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guPassResetBlocked =>
-      'The server still asks for the old passcode before it sets a new one, so this can\'t finish yet.';
+      'It has been more than 10 minutes since you signed in. Sign in again, then choose a new passcode.';
 
   @override
   String get guFaceIdReason => 'Open the grown-up area';
