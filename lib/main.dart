@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:auramath_engine/auramath_engine.dart';
+import 'package:flutter/foundation.dart' show PlatformDispatcher;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
@@ -12,6 +15,7 @@ import 'data/repositories/pack_repository.dart';
 import 'data/repositories/session_repository.dart';
 import 'data/services/api_client.dart';
 import 'data/services/device_lock.dart';
+import 'data/services/error_reporter.dart';
 import 'data/services/key_store.dart';
 import 'data/services/outbox_db.dart';
 import 'data/services/pack_source.dart';
@@ -44,6 +48,28 @@ Future<void> main() async {
   account.client = client;
   await account.load();
 
+  final errors = ErrorReporter(
+    client,
+    hasToken: () => account.bearer != null,
+    appVersion: Env.appVersion,
+    platform: Platform.operatingSystem,
+    osVersion: Platform.operatingSystemVersion,
+  );
+  // held from before sign-in go once a token exists
+  account.addListener(errors.schedule);
+  FlutterError.onError = (d) {
+    FlutterError.presentError(d);
+    errors.report(
+      d.library == 'rendering library' ? 'render' : 'error',
+      d.exceptionAsString(),
+      stack: d.stack?.toString(),
+    );
+  };
+  PlatformDispatcher.instance.onError = (e, stack) {
+    errors.report('crash', '$e', stack: '$stack');
+    return false; // still the platform's to log
+  };
+
   final pack = await PackRepository(source: AssetPackSource()).load();
   final config = AppConfig.fromYaml(
     await rootBundle.loadString('assets/spec/app-config.yaml'),
@@ -61,6 +87,12 @@ Future<void> main() async {
             deviceId: account.deviceRef,
             appVersion: Env.appVersion,
             isDemo: Env.isDemo,
+          ),
+          onRejected: (sessionId, rejected) => errors.report(
+            'error',
+            'events refused: ${rejected.join('; ')}',
+            screen: 'lesson',
+            sessionId: sessionId,
           ),
         ),
         pack: pack,
