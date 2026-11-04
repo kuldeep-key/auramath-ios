@@ -7,6 +7,7 @@ import '../deps.dart';
 import '../ui/features/lesson/view_models/lesson_view_model.dart';
 import '../ui/features/lesson/views/lesson_flow.dart';
 import 'paths.dart';
+import '../ui/core/motion/screen_motion.dart';
 
 List<RouteBase> lessonRoutes(Deps deps) => [
   GoRoute(
@@ -35,13 +36,17 @@ List<RouteBase> lessonRoutes(Deps deps) => [
   ),
   GoRoute(
     path: '/lesson/:problemId',
-    builder: (context, state) => _LessonRoute(
-      // The whole URI: each visit carries its own `?s=`, so going to the
-      // same problem again still builds a fresh lesson.
-      key: ValueKey(state.uri.toString()),
-      problemId: state.pathParameters['problemId']!,
-      resumeSessionId: state.uri.queryParameters['resume'],
-      deps: deps,
+    pageBuilder: (context, state) => MotionPage(
+      key: state.pageKey,
+      arrive: Arrive.fade,
+      child: _LessonRoute(
+        // The whole URI: each visit carries its own `?s=`, so going to the
+        // same problem again still builds a fresh lesson.
+        key: ValueKey(state.uri.toString()),
+        problemId: state.pathParameters['problemId']!,
+        resumeSessionId: state.uri.queryParameters['resume'],
+        deps: deps,
+      ),
     ),
   ),
 ];

@@ -11,10 +11,18 @@ import 'views/open_screen.dart';
 import 'views/phone_joined_screen.dart';
 import 'views/removed_screen.dart';
 import 'views/which_child_screen.dart';
+import '../../core/motion/screen_motion.dart';
 
 /// The child's phone and the shared-phone picker (Open, GetCode, CodeWrong, WhichChild, IsThisYou, PhoneJoined, Removed, A1, OtherPhone).
 List<RouteBase> pairingRoutes(Deps deps) => [
-  GoRoute(path: Paths.open, builder: (_, _) => const OpenScreen()),
+  GoRoute(
+    path: Paths.open,
+    pageBuilder: (_, s) => MotionPage(
+      key: s.pageKey,
+      arrive: Arrive.fade,
+      child: const OpenScreen(),
+    ),
+  ),
   GoRoute(
     path: Paths.pair,
     builder: (_, _) =>
@@ -51,10 +59,18 @@ List<RouteBase> pairingRoutes(Deps deps) => [
   ),
   GoRoute(
     path: Paths.kids,
-    builder: (_, _) => KidsScreen(account: deps.account, family: deps.family),
+    pageBuilder: (_, s) => MotionPage(
+      key: s.pageKey,
+      arrive: Arrive.fade,
+      child: KidsScreen(account: deps.account, family: deps.family),
+    ),
   ),
   GoRoute(
     path: Paths.carryOn,
-    builder: (_, s) => CarryOnScreen(device: s.uri.queryParameters['device']),
+    pageBuilder: (_, s) => MotionPage(
+      key: s.pageKey,
+      arrive: Arrive.fade,
+      child: CarryOnScreen(device: s.uri.queryParameters['device']),
+    ),
   ),
 ];
