@@ -39,6 +39,7 @@ class _QuestionViewState extends State<QuestionView> {
             big: widget.vm.voice.resting.value,
             line: l.todaysCase,
             onSpeak: widget.vm.readQuestion,
+            speaking: widget.vm.voice.speaking,
             onHome: widget.onHome,
           ),
           const SizedBox(height: 16),

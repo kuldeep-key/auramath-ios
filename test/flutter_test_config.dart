@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:auramath/ui/core/motion/motion.dart';
 
-/// Runs before every test file: looping motion (a bobbing piece, the
-/// turning rays) never settles, so tests hold it still.
+/// Runs before every test file: motion rests, so screens settle (a bobbing
+/// piece never would) and words read whole at once.
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
-  Loop.still = true;
+  AuraMotion.still = true;
   await testMain();
 }

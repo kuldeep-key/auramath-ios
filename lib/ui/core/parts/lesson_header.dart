@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../motion/motion.dart';
 import '../theme/tokens.dart';
 import 'speech_bubble.dart';
 
@@ -12,6 +14,7 @@ class LessonHeader extends StatelessWidget {
     required this.onSpeak,
     required this.onHome,
     this.big = false,
+    this.speaking,
   });
 
   final String line;
@@ -21,16 +24,42 @@ class LessonHeader extends StatelessWidget {
   /// Big words while the voice is resting.
   final bool big;
 
+  /// While true, the speak button glows (the prototype's speakPulse).
+  final ValueListenable<bool>? speaking;
+
   @override
   Widget build(BuildContext context) => Row(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
-      _SquareButton(
-        icon: Icons.volume_up_rounded,
-        fill: AuraColors.blue,
-        fg: AuraColors.white,
-        label: 'Say it again',
-        onTap: onSpeak,
+      ValueListenableBuilder(
+        valueListenable: speaking ?? const _Quiet(),
+        builder: (context, on, button) => on
+            ? Loop(
+                period: const Duration(seconds: 1),
+                builder: (context, t, child) => DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AuraColors.blue.withValues(
+                          alpha: 0.25 * halfway(t),
+                        ),
+                        spreadRadius: 6 * halfway(t),
+                      ),
+                    ],
+                  ),
+                  child: child,
+                ),
+                child: button,
+              )
+            : button!,
+        child: _SquareButton(
+          icon: Icons.volume_up_rounded,
+          fill: AuraColors.blue,
+          fg: AuraColors.white,
+          label: 'Say it again',
+          onTap: onSpeak,
+        ),
       ),
       const SizedBox(width: 8),
       Expanded(
@@ -68,20 +97,39 @@ class _SquareButton extends StatelessWidget {
     button: true,
     label: label,
     child: GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: fill,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AuraColors.navy, width: 3),
-          boxShadow: const [
-            BoxShadow(color: AuraColors.navy, offset: Offset(0, 4)),
-          ],
+      onTap: () {
+        AuraHaptics.tap();
+        onTap();
+      },
+      child: PressScale(
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: fill,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AuraColors.navy, width: 3),
+            boxShadow: const [
+              BoxShadow(color: AuraColors.navy, offset: Offset(0, 4)),
+            ],
+          ),
+          child: Icon(icon, color: fg),
         ),
-        child: Icon(icon, color: fg),
       ),
     ),
   );
+}
+
+/// No voice to follow: never speaking.
+class _Quiet implements ValueListenable<bool> {
+  const _Quiet();
+
+  @override
+  bool get value => false;
+
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
 }

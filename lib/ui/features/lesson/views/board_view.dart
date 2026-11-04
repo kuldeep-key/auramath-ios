@@ -53,6 +53,7 @@ class _BoardViewState extends State<BoardView> {
                 big: vm.voice.resting.value,
                 line: vm.coachText,
                 onSpeak: vm.sayAgain,
+                speaking: vm.voice.speaking,
                 onHome: widget.onHome,
               ),
               const SizedBox(height: 12),

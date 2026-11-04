@@ -21,9 +21,16 @@ abstract final class AuraCurves {
   static const burst = Cubic(0.2, 1.6, 0.4, 1);
 }
 
-/// True when the phone asks for less motion.
+/// True when the phone asks for less motion, or [AuraMotion.still] is set.
 bool calmMotion(BuildContext context) =>
-    MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    AuraMotion.still || (MediaQuery.maybeDisableAnimationsOf(context) ?? false);
+
+abstract final class AuraMotion {
+  /// Holds everything at rest: loops still, entrances at their end. Tests
+  /// set it, so screens settle and read the same each run
+  /// (`test/flutter_test_config.dart`).
+  static bool still = false;
+}
 
 /// The prototype's haptics (navigator.vibrate), as the phone's own taps.
 abstract final class AuraHaptics {
@@ -98,10 +105,6 @@ class _EntranceState extends State<Entrance>
 /// Runs [builder] with a value going 0 → 1 over [period], again and again
 /// (or [times] times). Calm motion shows `t = 0`.
 class Loop extends StatefulWidget {
-  /// Holds every loop still. Tests set it, so screens settle and shots are
-  /// the same each run (`test/flutter_test_config.dart`).
-  static bool still = false;
-
   const Loop({
     super.key,
     required this.period,
@@ -132,7 +135,7 @@ class _LoopState extends State<Loop> with SingleTickerProviderStateMixin {
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    if (Loop.still || widget.times == 0 || calmMotion(context)) return;
+    if (widget.times == 0 || calmMotion(context)) return;
     _c.addStatusListener((s) {
       if (s != AnimationStatus.completed) return;
       _runs++;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
 class StripChip {
@@ -48,16 +49,18 @@ class QuestionStrip extends StatelessWidget {
           label: 'See the question',
           child: GestureDetector(
             onTap: onSeeQuestion,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AuraColors.blue,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.visibility_rounded,
-                color: AuraColors.white,
+            child: PressScale(
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AuraColors.blue,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.visibility_rounded,
+                  color: AuraColors.white,
+                ),
               ),
             ),
           ),
@@ -73,17 +76,22 @@ class _Chip extends StatelessWidget {
   final StripChip chip;
 
   @override
-  Widget build(BuildContext context) => AnimatedContainer(
+  Widget build(BuildContext context) => AnimatedScale(
+    // a chip lighting up grows a touch (the prototype's .chip.on)
+    scale: chip.lit && !calmMotion(context) ? 1.04 : 1,
     duration: const Duration(milliseconds: 300),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-    decoration: BoxDecoration(
-      color: chip.lit ? AuraColors.yellow : AuraColors.yellowTint,
-      borderRadius: BorderRadius.circular(999),
-    ),
-    child: Text(
-      chip.label,
-      style: AuraText.chip.copyWith(
-        color: chip.lit ? AuraColors.yellowFg : AuraColors.yellowInk,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: chip.lit ? AuraColors.yellow : AuraColors.yellowTint,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        chip.label,
+        style: AuraText.chip.copyWith(
+          color: chip.lit ? AuraColors.yellowFg : AuraColors.yellowInk,
+        ),
       ),
     ),
   );
