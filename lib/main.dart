@@ -5,6 +5,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/foundation.dart' show PlatformDispatcher;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -107,6 +108,8 @@ Future<void> main() async {
         outbox: db,
         store: store,
         flags: flags,
+        timeZone: () async =>
+            (await FlutterTimezone.getLocalTimezone()).identifier,
       ),
     ),
   );

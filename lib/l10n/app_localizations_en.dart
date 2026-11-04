@@ -1332,6 +1332,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupDevLink => 'Open the link (dev only)';
 
   @override
+  String get setupCodeLabel => 'Or type the 6-digit code from the email';
+
+  @override
+  String get setupCodeUse => 'Sign in with the code';
+
+  @override
+  String get setupCodeSix => 'The code is 6 numbers.';
+
+  @override
   String get setupVerifying => 'Signing you in…';
 
   @override

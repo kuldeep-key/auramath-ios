@@ -16,6 +16,9 @@ typedef AuthConfig = ({
   String? googleServerClientId,
   bool apple,
   bool emailLink,
+
+  /// The email also carries a 6-digit code to type in.
+  bool emailCode,
 });
 
 /// What a grown-up tells us about the child before signing in (ACC-04).
@@ -127,6 +130,7 @@ class AccountRepository extends ChangeNotifier {
       googleServerClientId: google == null || google.isEmpty ? null : google,
       apple: j['appleSignIn'] == true,
       emailLink: j['emailLink'] == true,
+      emailCode: j['emailCode'] == true,
     );
   }
 
@@ -144,6 +148,18 @@ class AccountRepository extends ChangeNotifier {
   Future<void> verifyEmailLink(String token) async {
     final j =
         await client.post('/api/auth/email-link/verify', {'token': token})
+            as Map<String, Object?>;
+    await _signedIn(j['token']! as String);
+  }
+
+  /// The 6-digit code from the same email; using it spends the link too.
+  /// 410 when wrong or expired, 429 after 5 tries in 15 min.
+  Future<void> verifyEmailCode(String email, String code) async {
+    final j =
+        await client.post('/api/auth/email-link/verify-code', {
+              'email': email,
+              'code': code,
+            })
             as Map<String, Object?>;
     await _signedIn(j['token']! as String);
   }
@@ -188,9 +204,18 @@ class AccountRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Signs the grown-up out of this phone. A paired child phone stays
-  /// paired.
+  /// Signs the grown-up out of this phone, and the server forgets the
+  /// token (`/api/auth/logout`). A 401 means it already has (an erased
+  /// family); any other failure throws and keeps the grown-up signed in.
+  /// A paired child phone stays paired.
   Future<void> signOut() async {
+    if (_parentToken != null) {
+      try {
+        await client.post('/api/auth/logout');
+      } on ApiException catch (e) {
+        if (e.status != 401) rethrow;
+      }
+    }
     await _social.signOut();
     _parentToken = null;
     _grownUpsUnlocked = false;

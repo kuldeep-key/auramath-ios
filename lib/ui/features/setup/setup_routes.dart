@@ -31,6 +31,7 @@ List<RouteBase> setupRoutes(Deps deps) {
     builder: (_, s) => CheckEmailScreen(
       deps: deps,
       fromSetup: fromSetup,
+      email: s.uri.queryParameters['email'],
       devToken: s.uri.queryParameters['dev'],
       token: s.uri.queryParameters['m'],
     ),

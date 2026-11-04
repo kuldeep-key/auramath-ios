@@ -101,6 +101,7 @@ Future<(Deps, FakeServer)> testDeps({
       outbox: outbox,
       store: store,
       flags: Flags(client, store, defaults: allScreensOn),
+      timeZone: () async => 'Australia/Sydney',
     ),
     server,
   );

@@ -2398,6 +2398,24 @@ abstract class AppLocalizations {
   /// **'Open the link (dev only)'**
   String get setupDevLink;
 
+  /// No description provided for @setupCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Or type the 6-digit code from the email'**
+  String get setupCodeLabel;
+
+  /// No description provided for @setupCodeUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with the code'**
+  String get setupCodeUse;
+
+  /// No description provided for @setupCodeSix.
+  ///
+  /// In en, this message translates to:
+  /// **'The code is 6 numbers.'**
+  String get setupCodeSix;
+
   /// No description provided for @setupVerifying.
   ///
   /// In en, this message translates to:

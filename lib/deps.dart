@@ -26,6 +26,7 @@ class Deps {
     required this.outbox,
     required this.store,
     required this.flags,
+    required this.timeZone,
   });
 
   final AccountRepository account;
@@ -49,4 +50,7 @@ class Deps {
 
   /// The server's feature flags: every provisional screen asks them.
   final Flags flags;
+
+  /// The phone's IANA time zone, e.g. `Australia/Sydney`.
+  final Future<String> Function() timeZone;
 }

@@ -9,25 +9,32 @@ import '../../../../routing/paths.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
+import '../../../core/parts/aura_text_field.dart';
 import '../../../core/theme/tokens.dart';
 import '../finish_setup.dart';
 import 'setup_parts.dart';
 
 /// CheckEmail (653:144), for setup and for sign-in. The emailed link opens
 /// the app at `/auth/verify`, which signs in (or, mid-setup, hands its
-/// [token] back here to finish setup). A dev server's link comes back in
-/// the reply: [devToken] offers to follow it without a mailbox.
+/// [token] back here to finish setup). Where the server sends a code too
+/// (`emailCode`), it can be typed here instead: the link may open on
+/// another device. A dev server's link comes back in the reply:
+/// [devToken] offers to follow it without a mailbox.
 class CheckEmailScreen extends StatefulWidget {
   const CheckEmailScreen({
     super.key,
     required this.deps,
     required this.fromSetup,
+    this.email,
     this.devToken,
     this.token,
   });
 
   final Deps deps;
   final bool fromSetup;
+
+  /// Where the email went; the code needs it.
+  final String? email;
   final String? devToken;
 
   /// A link to follow at once.
@@ -40,6 +47,27 @@ class CheckEmailScreen extends StatefulWidget {
 class _CheckEmailScreenState extends State<CheckEmailScreen> {
   bool _busy = false;
   String? _error;
+  final _code = TextEditingController();
+
+  /// Whether this server sends a code; no code field until it says so.
+  late final Future<bool> _codes = widget.email == null
+      ? Future.value(false)
+      : widget.deps.account.authConfig().then((c) => c.emailCode);
+
+  @override
+  void dispose() {
+    _code.dispose();
+    super.dispose();
+  }
+
+  void _useCode() => _run(() async {
+    final code = _code.text.replaceAll(RegExp(r'\D'), '');
+    if (code.length != 6) {
+      throw ApiException(AppLocalizations.of(context)!.setupCodeSix);
+    }
+    await widget.deps.account.verifyEmailCode(widget.email!, code);
+    await _done();
+  });
 
   @override
   void initState() {
@@ -107,6 +135,32 @@ class _CheckEmailScreenState extends State<CheckEmailScreen> {
             ),
           ),
           const SizedBox(height: 16),
+          FutureBuilder(
+            future: _codes,
+            builder: (context, snap) => snap.data != true
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      spacing: 10,
+                      children: [
+                        AuraTextField(
+                          label: l.setupCodeLabel,
+                          controller: _code,
+                          keyboardType: TextInputType.number,
+                          autofillHints: const [AutofillHints.oneTimeCode],
+                          onSubmitted: (_) => _useCode(),
+                        ),
+                        AuraButton(
+                          label: l.setupCodeUse,
+                          color: AuraButtonColor.white,
+                          onPressed: _busy ? null : _useCode,
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
           if (_busy)
             Row(
               children: [

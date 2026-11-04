@@ -62,6 +62,11 @@ class FamilyRepository {
     });
   }
 
+  /// The family's IANA time zone (`Australia/Sydney`): when the weekly note
+  /// goes out.
+  Future<void> setTimeZone(String zone) =>
+      _client.put('/api/family/settings/time-zone', {'timeZone': zone});
+
   // ------------------------------------------- the grown-up passcode
 
   /// `{set, length, lockedUntil}`: whether one is set, how many digits.

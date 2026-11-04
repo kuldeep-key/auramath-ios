@@ -34,6 +34,7 @@ class Gu {
     final now = DateTime.now().millisecondsSinceEpoch;
     final started = now - 13 * 60000;
     server
+      ..on('POST /api/auth/logout', null, status: 204)
       ..on('GET /api/children', {
         'children': [
           {'id': 'child-1', 'displayName': 'Aarav', 'schoolYear': 'year_2'},
