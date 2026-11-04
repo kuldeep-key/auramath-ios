@@ -2,6 +2,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/keypad.dart';
 import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
@@ -32,56 +33,40 @@ class _AnswerSheetState extends State<AnswerSheet> {
       KnowPrompt.checkPart => (l.checkOnePart, askB),
       KnowPrompt.checkTotal => (l.partRight(p.b.name), l.nowCheckAdding),
     };
-    return Stack(
+    return AuraSheet(
+      onClose: widget.vm.closeKnowIt,
       children: [
-        Positioned.fill(
-          child: GestureDetector(
-            onTap: widget.vm.closeKnowIt,
-            child: const ColoredBox(color: AuraColors.scrim),
-          ),
+        Text(title, style: AuraText.title, textAlign: TextAlign.center),
+        if (sub != null) ...[
+          const SizedBox(height: 6),
+          Text(sub, style: AuraText.body, textAlign: TextAlign.center),
+        ],
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              constraints: const BoxConstraints(minWidth: 120, minHeight: 56),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AuraColors.blueTint,
+                borderRadius: BorderRadius.circular(AuraRadii.small),
+                border: Border.all(color: AuraColors.blue, width: 3),
+              ),
+              child: _typed.isEmpty
+                  ? const BlinkCaret()
+                  : Text(_typed, style: AuraText.title.copyWith(fontSize: 30)),
+            ),
+            const SizedBox(width: 8),
+            Text(p.unit, style: AuraText.title),
+          ],
         ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: AuraSheetBody(
-            children: [
-              Text(title, style: AuraText.title, textAlign: TextAlign.center),
-              if (sub != null) ...[
-                const SizedBox(height: 6),
-                Text(sub, style: AuraText.body, textAlign: TextAlign.center),
-              ],
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    constraints: const BoxConstraints(
-                      minWidth: 120,
-                      minHeight: 56,
-                    ),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AuraColors.blueTint,
-                      borderRadius: BorderRadius.circular(AuraRadii.small),
-                      border: Border.all(color: AuraColors.blue, width: 3),
-                    ),
-                    child: Text(
-                      _typed,
-                      style: AuraText.title.copyWith(fontSize: 30),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(p.unit, style: AuraText.title),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Keypad(
-                keyHeight: widget.vm.biggerPad ? 64 : 56,
-                key: ValueKey(widget.vm.knowPrompt),
-                onChanged: (v) => setState(() => _typed = v),
-                onCheck: (v) => widget.vm.answer(int.parse(v)),
-              ),
-            ],
-          ),
+        const SizedBox(height: 12),
+        Keypad(
+          keyHeight: widget.vm.biggerPad ? 64 : 56,
+          key: ValueKey(widget.vm.knowPrompt),
+          onChanged: (v) => setState(() => _typed = v),
+          onCheck: (v) => widget.vm.answer(int.parse(v)),
         ),
       ],
     );

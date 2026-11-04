@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
 /// The number pad, drawn like the phone's own so it looks the same on iOS and
@@ -68,17 +69,23 @@ class _KeypadState extends State<Keypad> {
           label: label,
           child: GestureDetector(
             onTap: onTap,
-            child: Container(
-              height: widget.keyHeight,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: blue ? AuraColors.blue : AuraColors.white,
-                borderRadius: BorderRadius.circular(AuraRadii.key),
-                boxShadow: const [
-                  BoxShadow(color: AuraColors.keyShadow, offset: Offset(0, 1)),
-                ],
+            child: PressScale(
+              scale: 0.94,
+              child: Container(
+                height: widget.keyHeight,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: blue ? AuraColors.blue : AuraColors.white,
+                  borderRadius: BorderRadius.circular(AuraRadii.key),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AuraColors.keyShadow,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: child,
               ),
-              child: child,
             ),
           ),
         ),

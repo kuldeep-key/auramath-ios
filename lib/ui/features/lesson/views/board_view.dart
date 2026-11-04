@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/board/bar_board.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/keypad.dart';
 import '../../../core/parts/lesson_header.dart';
@@ -191,43 +192,54 @@ class _BoardViewState extends State<BoardView> {
     left: 16,
     right: 16,
     bottom: 110,
-    child: Material(
-      color: AuraColors.white,
-      elevation: 6,
-      borderRadius: BorderRadius.circular(AuraRadii.card),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l.stillThere,
-              style: AuraText.title,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            AuraButton(
-              label: l.helpMe,
-              color: AuraButtonColor.white,
-              onPressed: () {
-                vm.dismissStillThere();
-                _help();
-              },
-            ),
-            const SizedBox(height: 8),
-            AuraButton(
-              label: l.anEasierOne,
-              color: AuraButtonColor.white,
-              onPressed: () => vm.send(const EasierTaken()),
-            ),
-            const SizedBox(height: 8),
-            AuraButton(
-              label: l.stillThinking,
-              color: AuraButtonColor.blue,
-              onPressed: vm.dismissStillThere,
-            ),
-          ],
+    // arrives like the prototype's sheets
+    child: Entrance(
+      duration: const Duration(milliseconds: 420),
+      builder: (context, t, child) => Opacity(
+        opacity: t.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, 60 * (1 - AuraCurves.sheet.transform(t))),
+          child: child,
+        ),
+      ),
+      child: Material(
+        color: AuraColors.white,
+        elevation: 6,
+        borderRadius: BorderRadius.circular(AuraRadii.card),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l.stillThere,
+                style: AuraText.title,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              AuraButton(
+                label: l.helpMe,
+                color: AuraButtonColor.white,
+                onPressed: () {
+                  vm.dismissStillThere();
+                  _help();
+                },
+              ),
+              const SizedBox(height: 8),
+              AuraButton(
+                label: l.anEasierOne,
+                color: AuraButtonColor.white,
+                onPressed: () => vm.send(const EasierTaken()),
+              ),
+              const SizedBox(height: 8),
+              AuraButton(
+                label: l.stillThinking,
+                color: AuraButtonColor.blue,
+                onPressed: vm.dismissStillThere,
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -259,7 +271,9 @@ class _AnswerBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(AuraRadii.small),
         border: Border.all(color: AuraColors.blue, width: 3),
       ),
-      child: Text(text, style: AuraText.title.copyWith(fontSize: 30)),
+      child: text.isEmpty
+          ? const BlinkCaret()
+          : Text(text, style: AuraText.title.copyWith(fontSize: 30)),
     ),
   );
 }

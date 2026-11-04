@@ -98,6 +98,10 @@ class _EntranceState extends State<Entrance>
 /// Runs [builder] with a value going 0 → 1 over [period], again and again
 /// (or [times] times). Calm motion shows `t = 0`.
 class Loop extends StatefulWidget {
+  /// Holds every loop still. Tests set it, so screens settle and shots are
+  /// the same each run (`test/flutter_test_config.dart`).
+  static bool still = false;
+
   const Loop({
     super.key,
     required this.period,
@@ -128,7 +132,7 @@ class _LoopState extends State<Loop> with SingleTickerProviderStateMixin {
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    if (calmMotion(context)) return;
+    if (Loop.still || widget.times == 0 || calmMotion(context)) return;
     _c.addStatusListener((s) {
       if (s != AnimationStatus.completed) return;
       _runs++;
@@ -295,6 +299,21 @@ class _PressScaleState extends State<PressScale> {
   );
 }
 
+/// The caret in an empty answer box: blinks once a second.
+class BlinkCaret extends StatelessWidget {
+  const BlinkCaret({super.key, this.color = const Color(0xFF2F6BFF)});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Loop(
+    period: const Duration(seconds: 1),
+    builder: (context, t, child) =>
+        Opacity(opacity: t < 0.5 ? 1 : 0, child: child),
+    child: Container(width: 3, height: 36, color: color),
+  );
+}
+
 /// The prototype's wobble on a wrong move: ±7 px and ±3°, 600 ms. Plays
 /// each time [count] goes up.
 class Wobble extends StatelessWidget {
@@ -316,7 +335,10 @@ class Wobble extends StatelessWidget {
             final k = keyframes(e, [...f, (0.8, 0.57), (1.0, 0.0)]);
             return Transform.translate(
               offset: Offset(7 * k, 0),
-              child: Transform.rotate(angle: 3 * k * 3.14159 / 180, child: child),
+              child: Transform.rotate(
+                angle: 3 * k * 3.14159 / 180,
+                child: child,
+              ),
             );
           },
         );
