@@ -3,17 +3,27 @@ import '../services/api_client.dart';
 
 /// A child in the family, as `/api/children` lists them. Never a gender.
 class Child {
-  const Child({required this.id, required this.name, this.schoolYear});
+  const Child({
+    required this.id,
+    required this.name,
+    this.age,
+    this.schoolYear,
+  });
 
   factory Child.fromJson(Map<String, Object?> j) => Child(
     id: j['id']! as String,
     name: j['displayName']! as String,
-    schoolYear:
-        (j['profile'] as Map<String, Object?>?)?['schoolYear'] as String?,
+    age: j['age'] as int?,
+    schoolYear: j['schoolYear'] as String?,
   );
 
   final String id;
   final String name;
+
+  /// Sets read-aloud's default (flag `read_aloud_default_on_ages`).
+  final int? age;
+
+  /// A `/api/setup/options` year id, e.g. `year_2`.
   final String? schoolYear;
 }
 

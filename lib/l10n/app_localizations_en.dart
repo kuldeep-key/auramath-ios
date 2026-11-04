@@ -710,6 +710,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guAddChildYearHint => 'For example, Year 2';
 
   @override
+  String get guAddChildYearUnknown =>
+      'Type Kindergarten or a year from 1 to 5.';
+
+  @override
   String get guAddChildAgree => 'I agree, continue';
 
   @override

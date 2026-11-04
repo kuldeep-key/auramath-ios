@@ -39,12 +39,12 @@ class Gu {
           {
             'id': 'child-1',
             'displayName': 'Aarav',
-            'profile': {'schoolYear': 'Year 2'},
+            'schoolYear': 'year_2',
           },
           {
             'id': 'child-2',
             'displayName': 'Maya',
-            'profile': {'schoolYear': 'Year 1'},
+            'schoolYear': 'year_1',
           },
         ],
       })

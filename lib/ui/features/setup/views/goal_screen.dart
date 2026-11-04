@@ -9,14 +9,13 @@ import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/choice_tile.dart';
 import 'setup_parts.dart';
 
-/// The PRD's goals (v4 section 10) and what each sends. The server knows
-/// only `school_curriculum` and `not_sure` (services/child_profile.py), so a
-/// goal it doesn't know yet is shown but not sent.
-List<(String, String?, String?)> goalOptions(AppLocalizations l) => [
-  (l.setupGoalConfidence, l.setupGoalConfidenceDetail, null),
-  (l.setupGoalCatchUp, l.setupGoalCatchUpDetail, null),
-  (l.setupGoalAhead, l.setupGoalAheadDetail, null),
-  (l.setupGoalWordProblems, l.setupGoalWordProblemsDetail, null),
+/// The PRD's goals (v4 section 10) and the id each sends
+/// (`/api/setup/options` `goals`).
+List<(String, String?, String)> goalOptions(AppLocalizations l) => [
+  (l.setupGoalConfidence, l.setupGoalConfidenceDetail, 'build_confidence'),
+  (l.setupGoalCatchUp, l.setupGoalCatchUpDetail, 'catch_up'),
+  (l.setupGoalAhead, l.setupGoalAheadDetail, 'get_ahead'),
+  (l.setupGoalWordProblems, l.setupGoalWordProblemsDetail, 'word_problems'),
   (l.setupGoalSchool, null, 'school_curriculum'),
   (l.setupNotSure, null, 'not_sure'),
 ];

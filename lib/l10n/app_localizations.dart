@@ -1306,6 +1306,12 @@ abstract class AppLocalizations {
   /// **'For example, Year 2'**
   String get guAddChildYearHint;
 
+  /// No description provided for @guAddChildYearUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Type Kindergarten or a year from 1 to 5.'**
+  String get guAddChildYearUnknown;
+
   /// No description provided for @guAddChildAgree.
   ///
   /// In en, this message translates to:

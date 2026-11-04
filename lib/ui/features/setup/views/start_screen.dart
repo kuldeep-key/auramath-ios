@@ -10,16 +10,15 @@ import '../../../core/parts/choice_tile.dart';
 import '../../../core/theme/tokens.dart';
 import 'setup_parts.dart';
 
-/// Figma's "can already do" areas, in school order, and the skill id
-/// (`content/skill-map.yaml`) each one sends: the server refuses any other.
-/// ponytail: closest skills by hand; product to confirm the mapping.
+/// Figma's "can already do" areas, in school order, and the id each one
+/// sends (`/api/setup/options` `canDo`; the server maps them to skills).
 List<(String, String)> canDoOptions(AppLocalizations l) => [
-  (l.setupCanCount100, 'ns.count-fwd-30'),
-  (l.setupCanAdd100, 'arith.addsub-2d'),
-  (l.setupCanSub100, 'arith.addsub-2d-regroup'),
-  (l.setupCanAdd1000, 'arith.add-3d-regroup'),
-  (l.setupCanSub1000, 'arith.sub-3d-regroup'),
-  (l.setupCanWordProblems, 'cmp.compare-bars'),
+  (l.setupCanCount100, 'counting_to_100'),
+  (l.setupCanAdd100, 'adding_to_100'),
+  (l.setupCanSub100, 'taking_away_to_100'),
+  (l.setupCanAdd1000, 'adding_to_1000'),
+  (l.setupCanSub1000, 'taking_away_to_1000'),
+  (l.setupCanWordProblems, 'word_problems_with_bars'),
 ];
 
 /// Start (643:102): pick everything that feels easy, or "I'm not sure".
@@ -63,7 +62,7 @@ class _StartScreenState extends State<StartScreen> {
             onTap: () {
               draft
                 ..startingPoint = 'not_sure'
-                ..canDo = [];
+                ..canDo = ['not_sure'];
               context.push(Paths.setupNotSure);
             },
           ),

@@ -18,7 +18,7 @@ Future<(Deps, FakeServer)> ready(WidgetTester tester) async {
   deps.account.draft
     ..name = 'Aarav'
     ..age = 7
-    ..schoolYear = 'Year 2'
+    ..schoolYear = 'year_2'
     ..startingPoint = 'not_sure'
     ..agreed = true;
   server
@@ -73,7 +73,7 @@ void main() {
       expect(server.calls[4].$2, {
         'displayName': 'Aarav',
         'age': 7,
-        'schoolYear': 'Year 2',
+        'schoolYear': 'year_2',
         'startingPoint': 'not_sure',
       });
       expect(deps.account.role, Role.parent);

@@ -248,6 +248,7 @@
   "guAddChildNameNeeded": "Type a first name.",
   "guAddChildYear": "School year (optional)",
   "guAddChildYearHint": "For example, Year 2",
+  "guAddChildYearUnknown": "Type Kindergarten or a year from 1 to 5.",
   "guAddChildAgree": "I agree, continue",
 
   "guRightsTitle": "Your data and rights",
