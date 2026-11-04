@@ -96,7 +96,11 @@ class Gu {
       })
       ..on('GET /api/children/child-2/progress', {'sessions': <Object>[]})
       ..on('GET /api/sessions/s1/summary', {
-        'lines': ['Practised comparing two bars.', 'Did the second one alone.'],
+        'sentences': [
+          {'part': 'practised', 'text': 'Practised comparing two bars.'},
+          {'part': 'did_alone', 'text': 'Did the second one alone.'},
+        ],
+        'source': 'template',
       })
       ..on('GET /api/children/child-1/plan', {
         'childId': 'child-1',

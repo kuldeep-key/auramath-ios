@@ -208,12 +208,16 @@ class GrownUpRepository {
   Future<ChildPlan> plan(String childId) async =>
       ChildPlan.fromJson(await _get('/api/children/$childId/plan'));
 
-  /// The session's summary sentences. Empty when the server has none for
-  /// it (its 404: no events, or a rehearsal).
+  /// The session's note, its sentences in the server's order (practised,
+  /// did alone, help needed, next). Empty when the server has none for it
+  /// (its 404: no events, or a rehearsal).
   Future<List<String>> summary(String sessionId) async {
     try {
       final j = await _get('/api/sessions/$sessionId/summary');
-      return [for (final l in j['lines'] as List? ?? []) l as String];
+      return [
+        for (final s in (j['sentences'] as List? ?? []).cast<Map>())
+          s['text']! as String,
+      ];
     } on ApiException catch (e) {
       if (e.status == 404) return const [];
       rethrow;
