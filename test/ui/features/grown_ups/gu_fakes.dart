@@ -36,16 +36,8 @@ class Gu {
     server
       ..on('GET /api/children', {
         'children': [
-          {
-            'id': 'child-1',
-            'displayName': 'Aarav',
-            'schoolYear': 'year_2',
-          },
-          {
-            'id': 'child-2',
-            'displayName': 'Maya',
-            'schoolYear': 'year_1',
-          },
+          {'id': 'child-1', 'displayName': 'Aarav', 'schoolYear': 'year_2'},
+          {'id': 'child-2', 'displayName': 'Maya', 'schoolYear': 'year_1'},
         ],
       })
       ..on('GET /api/parent/members', {

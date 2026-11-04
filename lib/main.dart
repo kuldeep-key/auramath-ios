@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:auramath_engine/auramath_engine.dart';
@@ -16,6 +17,7 @@ import 'data/repositories/session_repository.dart';
 import 'data/services/api_client.dart';
 import 'data/services/device_lock.dart';
 import 'data/services/error_reporter.dart';
+import 'data/services/flags.dart';
 import 'data/services/key_store.dart';
 import 'data/services/outbox_db.dart';
 import 'data/services/pack_source.dart';
@@ -74,6 +76,9 @@ Future<void> main() async {
   final config = AppConfig.fromYaml(
     await rootBundle.loadString('assets/spec/app-config.yaml'),
   );
+  final flags = Flags(client, store, defaults: config.flags);
+  await flags.load();
+  unawaited(flags.refresh());
   runApp(
     AuraApp(
       deps: Deps(
@@ -101,6 +106,7 @@ Future<void> main() async {
         deviceLock: LocalDeviceLock(),
         outbox: db,
         store: store,
+        flags: flags,
       ),
     ),
   );

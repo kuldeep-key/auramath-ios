@@ -59,7 +59,10 @@ void main() {
       for (final age in ['6', '7', '8', '9', '10']) {
         expect(find.text(age), findsOneWidget);
       }
-      expect(find.text('Auramath is for ages 6 to 10 for now.'), findsOneWidget);
+      expect(
+        find.text('Auramath is for ages 6 to 10 for now.'),
+        findsOneWidget,
+      );
     });
   });
 

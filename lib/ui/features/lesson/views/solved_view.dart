@@ -95,7 +95,8 @@ class _SolvedViewState extends State<SolvedView> {
                   const Spacer(),
                   AuraButton(
                     label: _showBadge ? l.addToSash : l.next,
-                    onPressed: () => _showBadge
+                    // no badge moment while the flag is off
+                    onPressed: () => _showBadge || !widget.vm.showBadges
                         ? widget.onFinished(widget.vm.nextProblemId!)
                         : _reveal(),
                   ),

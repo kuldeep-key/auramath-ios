@@ -13,7 +13,13 @@ import 'play_icon_button.dart';
 /// The child's home: their detective, the next case, the trail and the
 /// badges. Figma: Home (649:2).
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.name, required this.grownUps});
+  const HomeScreen({
+    super.key,
+    required this.name,
+    required this.grownUps,
+    this.trail = true,
+    this.badges = true,
+  });
 
   /// The child's name; null shows the portrait alone.
   final String? name;
@@ -21,6 +27,11 @@ class HomeScreen extends StatelessWidget {
   /// Where the lock goes: the picker on a grown-up's phone, sign-in on the
   /// child's own phone.
   final String grownUps;
+
+  /// My trail and My badges, each behind its flag (`trail`,
+  /// `mastery_badges`).
+  final bool trail;
+  final bool badges;
 
   @override
   Widget build(BuildContext context) {
@@ -67,32 +78,35 @@ class HomeScreen extends StatelessWidget {
           ),
           // Figma's icons don't fit beside the labels in a half-width button
           // on a phone; they show where there is room (iPad).
-          LayoutBuilder(
-            builder: (context, c) {
-              final roomy = c.maxWidth >= 420;
-              return Row(
-                spacing: 10,
-                children: [
-                  Expanded(
-                    child: AuraButton(
-                      label: l.kidMyTrail,
-                      icon: roomy ? Icons.route_rounded : null,
-                      color: AuraButtonColor.white,
-                      onPressed: () => context.push(Paths.trail),
-                    ),
-                  ),
-                  Expanded(
-                    child: AuraButton(
-                      label: l.kidMyBadges,
-                      icon: roomy ? Icons.military_tech_rounded : null,
-                      color: AuraButtonColor.white,
-                      onPressed: () => context.push(Paths.badges),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+          if (trail || badges)
+            LayoutBuilder(
+              builder: (context, c) {
+                final roomy = c.maxWidth >= 420;
+                return Row(
+                  spacing: 10,
+                  children: [
+                    if (trail)
+                      Expanded(
+                        child: AuraButton(
+                          label: l.kidMyTrail,
+                          icon: roomy ? Icons.route_rounded : null,
+                          color: AuraButtonColor.white,
+                          onPressed: () => context.push(Paths.trail),
+                        ),
+                      ),
+                    if (badges)
+                      Expanded(
+                        child: AuraButton(
+                          label: l.kidMyBadges,
+                          icon: roomy ? Icons.military_tech_rounded : null,
+                          color: AuraButtonColor.white,
+                          onPressed: () => context.push(Paths.badges),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
         ],
       ),
     );

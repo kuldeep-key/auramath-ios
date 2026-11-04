@@ -136,14 +136,17 @@ class ExportJob {
 class LessonPrefs {
   const LessonPrefs({
     this.minutes = 15,
-    this.readAloud = true,
+    this.readAloud,
     this.biggerPad = false,
   });
 
   static const minuteChoices = [10, 15, 20, 30];
 
   final int minutes;
-  final bool readAloud;
+
+  /// Null until the grown-up chooses: then it's on for the ages the flag
+  /// `read_aloud_default_on_ages` names (NFR-06).
+  final bool? readAloud;
 
   /// The lesson always uses the app's own pad (D-41); this makes its keys
   /// bigger still.
@@ -255,21 +258,20 @@ class GrownUpRepository {
   Future<LessonPrefs> loadPrefs() async {
     const d = LessonPrefs();
     final minutes = int.tryParse(await _store.read('lesson.minutes') ?? '');
-    Future<bool> flag(String key, bool fallback) async =>
-        switch (await _store.read(key)) {
-          '1' => true,
-          '0' => false,
-          _ => fallback,
-        };
+    Future<bool?> flag(String key) async => switch (await _store.read(key)) {
+      '1' => true,
+      '0' => false,
+      _ => null,
+    };
     return LessonPrefs(
       minutes: minutes ?? d.minutes,
-      readAloud: await flag('lesson.readAloud', d.readAloud),
-      biggerPad: await flag('lesson.biggerPad', d.biggerPad),
+      readAloud: await flag('lesson.readAloud'),
+      biggerPad: await flag('lesson.biggerPad') ?? d.biggerPad,
     );
   }
 
   Future<void> savePrefs(LessonPrefs p) async {
-    String b(bool v) => v ? '1' : '0';
+    String? b(bool? v) => v == null ? null : (v ? '1' : '0');
     await _store.write('lesson.minutes', '${p.minutes}');
     await _store.write('lesson.readAloud', b(p.readAloud));
     await _store.write('lesson.biggerPad', b(p.biggerPad));

@@ -5,6 +5,7 @@ import 'package:auramath/data/repositories/family_repository.dart';
 import 'package:auramath/data/repositories/session_repository.dart';
 import 'package:auramath/data/services/api_client.dart';
 import 'package:auramath/data/services/device_lock.dart';
+import 'package:auramath/data/services/flags.dart';
 import 'package:auramath/data/services/key_store.dart';
 import 'package:auramath/data/services/social_sign_in.dart';
 import 'package:auramath/deps.dart';
@@ -99,10 +100,22 @@ Future<(Deps, FakeServer)> testDeps({
       deviceLock: FakeDeviceLock(),
       outbox: outbox,
       store: store,
+      flags: Flags(client, store, defaults: allScreensOn),
     ),
     server,
   );
 }
+
+/// Every provisional screen showing: what most tests look at.
+const allScreensOn = <String, Object?>{
+  'read_aloud': true,
+  'read_question_aloud': true,
+  'read_aloud_default_on_ages': [6, 7, 8, 9, 10],
+  'trail': true,
+  'mastery_badges': true,
+  'three_in_a_row': true,
+  'report_delivery': true,
+};
 
 /// Stored values for a child's own paired phone with a child chosen.
 const pairedChildPhone = {

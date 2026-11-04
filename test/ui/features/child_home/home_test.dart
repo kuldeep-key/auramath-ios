@@ -36,6 +36,26 @@ void main() {
     expect(find.text('went to ${Paths.badges}'), findsOneWidget);
   });
 
+  testWidgets('each button hides while its flag is off', (tester) async {
+    await show(
+      tester,
+      const HomeScreen(name: 'Mira', grownUps: Paths.kids, trail: false),
+    );
+    expect(find.text('My trail'), findsNothing);
+    expect(find.text('My badges'), findsOneWidget);
+    await show(
+      tester,
+      const HomeScreen(
+        name: 'Mira',
+        grownUps: Paths.kids,
+        trail: false,
+        badges: false,
+      ),
+    );
+    expect(find.text('My badges'), findsNothing);
+    expect(find.text('Keep going'), findsOneWidget);
+  });
+
   testWidgets('the lock goes where the role says', (tester) async {
     await show(tester, home);
     await tapAndSettle(tester, find.byTooltip('For grown-ups'));

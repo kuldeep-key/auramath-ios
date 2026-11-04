@@ -113,9 +113,9 @@ class _LessonPrefsCardState extends State<_LessonPrefsCard> {
           ),
           KvRow(
             label: l.guSetReadAloud,
-            value: onOff(_p.readAloud),
+            value: onOff(_p.readAloud ?? true),
             hint: l.guSetChangeHint,
-            onTap: () => _set(_p.copyWith(readAloud: !_p.readAloud)),
+            onTap: () => _set(_p.copyWith(readAloud: !(_p.readAloud ?? true))),
           ),
           KvRow(
             label: l.guSetBigPad,

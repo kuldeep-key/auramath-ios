@@ -260,15 +260,23 @@ class Policy {
 /// App settings that aren't teaching rules, from the spec pack's
 /// `content/app-config.yaml`.
 class AppConfig {
-  const AppConfig({required this.sessionCapMinutes});
+  const AppConfig({required this.sessionCapMinutes, this.flags = const {}});
 
   factory AppConfig.fromYaml(String text) {
     final y = loadYaml(text) as YamlMap;
     return AppConfig(
       sessionCapMinutes: (y['session'] as YamlMap)['cap_minutes'] as int,
+      flags: {
+        for (final MapEntry(:key, :value)
+            in (y['flags'] as YamlMap? ?? YamlMap()).entries)
+          key as String: value is YamlList ? value.toList() : value,
+      },
     );
   }
 
   /// SES-01, D-07: "no more than half an hour".
   final int sessionCapMinutes;
+
+  /// PLAT-06: the remote flags' defaults, used until the server answers.
+  final Map<String, Object?> flags;
 }

@@ -320,9 +320,15 @@ class LessonViewModel extends ChangeNotifier {
   /// Tapped "Hear it again": always spoken.
   void readQuestion() => _voice.say(_problem.say);
 
+  /// The flag `read_question_aloud`: the question speaks itself as it shows.
+  bool readQuestionAloud = true;
+
+  /// The flag `mastery_badges`: the badge after "case cracked".
+  bool showBadges = true;
+
   /// The question as it first shows: spoken if read-aloud is on.
   void autoReadQuestion() {
-    if (readAloud) _voice.say(_problem.say);
+    if (readAloud && readQuestionAloud) _voice.say(_problem.say);
   }
 
   /// A line the child asked to hear (a speak button).

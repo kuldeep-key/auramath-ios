@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/repositories/grown_up_repository.dart';
+import '../data/services/api.dart';
 import '../deps.dart';
 import '../ui/features/lesson/view_models/lesson_view_model.dart';
 import '../ui/features/lesson/views/lesson_flow.dart';
@@ -95,18 +96,39 @@ class _LessonRouteState extends State<_LessonRoute> {
     );
   }
 
-  /// The grown-up's lesson settings for this phone, then the lesson.
+  /// The grown-up's lesson settings for this phone and the server's flags,
+  /// then the lesson.
   Future<void> _begin() async {
-    final prefs = await GrownUpRepository(
-      widget.deps.client,
-      widget.deps.store,
-    ).loadPrefs();
+    final deps = widget.deps;
+    await deps.flags.refresh();
+    final prefs = await GrownUpRepository(deps.client, deps.store).loadPrefs();
+    final age = prefs.readAloud == null ? await _childAge() : null;
     if (!mounted) return;
+    final flags = deps.flags;
     _vm
-      ..readAloud = prefs.readAloud
+      ..readAloud =
+          flags.on('read_aloud') &&
+          (prefs.readAloud ??
+              (age == null || flags.readAloudAges.contains(age)))
+      ..readQuestionAloud = flags.on('read_question_aloud')
+      ..showBadges = flags.on('mastery_badges')
       ..biggerPad = prefs.biggerPad;
     widget.deps.sitting.useMinutes(prefs.minutes);
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
+  }
+
+  /// The child's age, which sets read-aloud's default; null when it can't
+  /// be read (then read-aloud stays on, as before ages were known).
+  Future<int?> _childAge() async {
+    try {
+      final kids = await widget.deps.family.children();
+      return kids
+          .where((c) => c.id == widget.deps.account.childId)
+          .firstOrNull
+          ?.age;
+    } on ApiException {
+      return null;
+    }
   }
 
   @override

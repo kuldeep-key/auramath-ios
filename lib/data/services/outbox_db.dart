@@ -56,7 +56,7 @@ class OutboxDb {
     whereArgs: [sessionId],
   )).isNotEmpty;
 
-  Future<void> insert(LessonEvent e) =>_db.insert('events', {
+  Future<void> insert(LessonEvent e) => _db.insert('events', {
     'session_id': e.sessionId,
     'seq': e.seq,
     'body': jsonEncode(e.toJson()),
