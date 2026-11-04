@@ -1,7 +1,12 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../motion/motion.dart';
+import '../motion/sparkle_burst.dart';
 import '../theme/tokens.dart';
 import 'bar.dart';
 import 'brace.dart';
@@ -22,6 +27,7 @@ class BarBoard extends StatefulWidget {
     required this.onInput,
     this.glowPiece = false,
     this.showHand = false,
+    this.wobbles = 0,
   });
 
   final ComparisonProblem problem;
@@ -30,19 +36,93 @@ class BarBoard extends StatefulWidget {
   final bool glowPiece;
   final bool showHand;
 
+  /// Goes up on each wrong move: bar B wobbles while it's being sized.
+  final int wobbles;
+
   @override
   State<BarBoard> createState() => _BarBoardState();
 }
+
+/// Something that just landed, for its star burst.
+enum _Landed { barA, barB, gap, total }
 
 class _BarBoardState extends State<BarBoard> {
   BoardPiece? _armed;
   double? _dragStartY;
   double _dragDy = 0;
 
+  // the prototype's board motion
+  bool _dragging = false;
+  int _homeBack = 0; // a drop that missed: the piece springs home
+  int _cheers = 0; // a right answer: the bars bounce
+  int _barWobble = 0;
+  int _bursts = 0;
+  _Landed? _landed;
+  Timer? _hintTimer;
+  bool _hinting = false; // the hand shows the move, 5 s after a piece
+
+  @override
+  void initState() {
+    super.initState();
+    _hintSoon();
+  }
+
   @override
   void didUpdateWidget(BarBoard old) {
     super.didUpdateWidget(old);
-    if (old.state.step != widget.state.step) _armed = null;
+    final was = old.state, now = widget.state;
+    if (was.step != now.step) {
+      _armed = null;
+      _hintSoon();
+    }
+    final landed = !was.barA && now.barA
+        ? _Landed.barA
+        : !was.barB && now.barB
+        ? _Landed.barB
+        : !was.gapPlaced && now.gapPlaced
+        ? _Landed.gap
+        : !was.totalPlaced && now.totalPlaced
+        ? _Landed.total
+        : null;
+    if (landed != null) {
+      _landed = landed;
+      _bursts++;
+      AuraHaptics.snap();
+    }
+    bool found(LessonState s) => s.step.index > LessonStep.findB.index;
+    if (!found(was) && found(now) ||
+        was.step != LessonStep.solved && now.step == LessonStep.solved) {
+      _cheers++;
+    }
+    if (widget.wobbles > old.wobbles && now.step == LessonStep.sizeB) {
+      _barWobble++;
+    }
+  }
+
+  @override
+  void dispose() {
+    _hintTimer?.cancel();
+    super.dispose();
+  }
+
+  /// A few quiet seconds after a piece shows, a hand shows its move once.
+  void _hintSoon() {
+    _hintTimer?.cancel();
+    _hinting = false;
+    if (_piece == null) return;
+    _hintTimer = Timer(const Duration(seconds: 5), () {
+      if (!mounted || _dragging || _armed != null) return;
+      setState(() => _hinting = true);
+      _hintTimer = Timer(const Duration(seconds: 2), () {
+        if (mounted) setState(() => _hinting = false);
+      });
+    });
+  }
+
+  /// The child picked the piece up: no hint now.
+  void _touched() {
+    _hintTimer?.cancel();
+    if (_hinting) setState(() => _hinting = false);
   }
 
   LessonStep get _step => widget.state.step;
@@ -68,7 +148,10 @@ class _BarBoardState extends State<BarBoard> {
       ),
       _ => null,
     };
-    setState(() => _armed = null);
+    setState(() {
+      _armed = null;
+      if (input == null) _homeBack++;
+    });
     if (input != null) widget.onInput(input);
   }
 
@@ -86,14 +169,26 @@ class _BarBoardState extends State<BarBoard> {
     if (zone == _Zone.slotA || zone == _Zone.slotB) _drop(BoardPiece.bar, zone);
   }
 
-  /// A drop target that also accepts the tap alternative.
-  Widget _zone(_Zone zone, Widget child) => DragTarget<BoardPiece>(
-    onAcceptWithDetails: (d) => _drop(d.data, zone),
-    builder: (context, candidates, _) => GestureDetector(
-      key: Key(zone.name),
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _tapZone(zone),
-      child: child,
+  /// A drop target that also accepts the tap alternative; [child] is told
+  /// when a piece is over it.
+  Widget _zone(_Zone zone, Widget Function(bool hot) child) =>
+      DragTarget<BoardPiece>(
+        onAcceptWithDetails: (d) => _drop(d.data, zone),
+        builder: (context, candidates, _) => GestureDetector(
+          key: Key(zone.name),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _tapZone(zone),
+          child: child(candidates.isNotEmpty),
+        ),
+      );
+
+  /// A dashed slot that pulses while its piece is on the way.
+  Widget _slot(_Zone zone, String label) => _zone(
+    zone,
+    (hot) => DashedSlot(
+      label: label,
+      waiting: _armed != null || _dragging || _hinting,
+      hot: hot,
     ),
   );
 
@@ -177,23 +272,18 @@ class _BarBoardState extends State<BarBoard> {
             ),
             // bar A, or its slot
             if (!s.barA)
-              at(
-                xA,
-                base,
-                bw,
-                0.7 * maxH,
-                _zone(
-                  _Zone.slotA,
-                  DashedSlot(label: p.a.name, highlight: _armed != null),
-                ),
-              )
+              at(xA, base, bw, 0.7 * maxH, _slot(_Zone.slotA, p.a.name))
             else ...[
               at(
                 xA,
                 base,
                 bw,
                 hA,
-                _zone(_Zone.barA, const Bar(color: AuraColors.yellow)),
+                _zone(
+                  _Zone.barA,
+                  (_) =>
+                      _grown(_cheered(0, const Bar(color: AuraColors.yellow))),
+                ),
               ),
               at(
                 xA - 20,
@@ -201,25 +291,18 @@ class _BarBoardState extends State<BarBoard> {
                 bw + 40,
                 30,
                 Center(
-                  child: Text(
-                    '${p.aValue} ${p.unit}',
-                    style: AuraText.barValue,
+                  child: Pop(
+                    child: Text(
+                      '${p.aValue} ${p.unit}',
+                      style: AuraText.barValue,
+                    ),
                   ),
                 ),
               ),
             ],
             // bar B, or its slot
             if (s.barA && !s.barB)
-              at(
-                xB,
-                base,
-                bw,
-                0.7 * maxH,
-                _zone(
-                  _Zone.slotB,
-                  DashedSlot(label: p.b.name, highlight: _armed != null),
-                ),
-              ),
+              at(xB, base, bw, 0.7 * maxH, _slot(_Zone.slotB, p.b.name)),
             if (s.barB) ...[
               at(
                 xB,
@@ -228,12 +311,32 @@ class _BarBoardState extends State<BarBoard> {
                 hB,
                 _zone(
                   _Zone.barB,
-                  Bar(
-                    color: AuraColors.blue,
-                    child: Text(
-                      bFound ? '${p.bValue}\n${p.unit}' : '?\n${p.unit}',
-                      textAlign: TextAlign.center,
-                      style: AuraText.barInside,
+                  (_) => Wobbly(
+                    count: _barWobble,
+                    child: _cheered(
+                      1,
+                      Bar(
+                        color: AuraColors.blue,
+                        child: bFound
+                            // found: the answer grows in (from 1.4×)
+                            ? Entrance(
+                                duration: const Duration(milliseconds: 400),
+                                builder: (context, t, child) => Transform.scale(
+                                  scale: 1.4 - 0.4 * t,
+                                  child: child,
+                                ),
+                                child: Text(
+                                  '${p.bValue}\n${p.unit}',
+                                  textAlign: TextAlign.center,
+                                  style: AuraText.barInside,
+                                ),
+                              )
+                            : Text(
+                                '?\n${p.unit}',
+                                textAlign: TextAlign.center,
+                                style: AuraText.barInside,
+                              ),
+                      ),
                     ),
                   ),
                 ),
@@ -269,13 +372,7 @@ class _BarBoardState extends State<BarBoard> {
                 base + lo,
                 bw,
                 (hi - lo).clamp(30.0, maxH),
-                _zone(
-                  _Zone.gapSlot,
-                  DashedSlot(
-                    label: '${l.pieceGap}?',
-                    highlight: _armed != null,
-                  ),
-                ),
+                _slot(_Zone.gapSlot, '${l.pieceGap}?'),
               ),
             if (s.gapPlaced)
               at(
@@ -283,7 +380,7 @@ class _BarBoardState extends State<BarBoard> {
                 base + lo,
                 bw,
                 (hi - lo).clamp(30.0, maxH),
-                GapSegment(label: '${p.diff}'),
+                Pop(child: GapSegment(label: '${p.diff}')),
               ),
             // captions
             for (final (x, item) in [(xA, p.a), (xB, p.b)])
@@ -316,21 +413,17 @@ class _BarBoardState extends State<BarBoard> {
                 width: xB + bw - xA,
                 bottom: trayH + 8,
                 height: 44,
-                child: _zone(
-                  _Zone.totalSlot,
-                  DashedSlot(
-                    label: '${l.pieceTotal}?',
-                    highlight: _armed != null,
-                  ),
-                ),
+                child: _slot(_Zone.totalSlot, '${l.pieceTotal}?'),
               ),
             if (s.totalPlaced)
               Positioned(
                 left: xA,
                 width: xB + bw - xA,
                 bottom: trayH + 4,
-                child: Brace(
-                  label: solved ? '${p.total} ${p.unit}' : '? ${p.unit}',
+                child: Pop(
+                  child: Brace(
+                    label: solved ? '${p.total} ${p.unit}' : '? ${p.unit}',
+                  ),
                 ),
               ),
             // the tray
@@ -398,8 +491,59 @@ class _BarBoardState extends State<BarBoard> {
                   ),
                 ),
               ),
-            if (widget.showHand && piece != null)
-              Positioned(left: w / 2, bottom: trayH / 2, child: const _Hand()),
+            // star bursts where a piece landed, and on the bars when right
+            if (_landed case final landed?)
+              Positioned(
+                key: ValueKey('burst$_bursts'),
+                left: switch (landed) {
+                  _Landed.barA => xA + bw / 2,
+                  _Landed.barB => xB + bw / 2,
+                  _Landed.gap => shortX + bw / 2,
+                  _Landed.total => xA + (xB + bw - xA) / 2,
+                },
+                top:
+                    h -
+                    switch (landed) {
+                      _Landed.barA => base + hA / 2,
+                      _Landed.barB => base + hB / 2,
+                      _Landed.gap => base + (lo + hi) / 2,
+                      _Landed.total => trayH + 20,
+                    },
+                child: const SparkleBurst(),
+              ),
+            if (_cheers > 0)
+              for (final (i, (x, hBar)) in [(xA, hA), (xB, hB)].indexed)
+                Positioned(
+                  key: ValueKey('cheer$_cheers$i'),
+                  left: x + bw / 2,
+                  top: h - (base + hBar / 2),
+                  child: const SparkleBurst(count: 8),
+                ),
+            // the hand: from the piece to where it goes, once at 5 s; twice
+            // for a quiet child (40 s)
+            if (piece != null && (widget.showHand || _hinting))
+              Positioned.fill(
+                child: _Hand(
+                  key: ValueKey(widget.showHand),
+                  from: Offset(w / 2, h - (trayH - 8) / 2),
+                  to: switch (_step) {
+                    LessonStep.drawA => Offset(
+                      xA + bw / 2,
+                      h - base - 0.35 * maxH,
+                    ),
+                    LessonStep.placeB => Offset(
+                      xB + bw / 2,
+                      h - base - 0.35 * maxH,
+                    ),
+                    LessonStep.placeGap => Offset(
+                      shortX + bw / 2,
+                      h - base - (lo + hi) / 2,
+                    ),
+                    _ => Offset(xA + (xB + bw - xA) / 2, h - trayH - 30),
+                  },
+                  times: widget.showHand ? 2 : 1,
+                ),
+              ),
           ],
         );
       },
@@ -413,17 +557,128 @@ class _BarBoardState extends State<BarBoard> {
       armed: _armed == piece,
       glow: widget.glowPiece,
     );
+    // picked up: bigger, tilted, a deeper shadow (the prototype's .dragging)
+    final lifted = Transform.rotate(
+      angle: -3 * math.pi / 180,
+      child: Transform.scale(
+        scale: 1.1,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AuraRadii.panel),
+            boxShadow: [
+              BoxShadow(
+                color: AuraColors.navy.withValues(alpha: 0.45),
+                offset: const Offset(0, 18),
+                blurRadius: 26,
+                spreadRadius: -8,
+              ),
+            ],
+          ),
+          child: visual,
+        ),
+      ),
+    );
+    void dropped({required bool accepted}) {
+      setState(() {
+        _dragging = false;
+        if (!accepted) _homeBack++;
+      });
+    }
+
     return Draggable<BoardPiece>(
       key: const Key('piece'),
       data: piece,
-      feedback: Material(color: Colors.transparent, child: visual),
-      childWhenDragging: Opacity(opacity: 0.3, child: visual),
+      feedback: Material(color: Colors.transparent, child: lifted),
+      // the piece itself moves with the finger
+      childWhenDragging: Opacity(opacity: 0, child: visual),
+      onDragStarted: () {
+        _touched();
+        setState(() => _dragging = true);
+      },
+      onDragEnd: (d) => dropped(accepted: d.wasAccepted),
       child: GestureDetector(
-        onTap: () => setState(() => _armed = _armed == piece ? null : piece),
-        child: visual,
+        onTap: () {
+          _touched();
+          setState(() => _armed = _armed == piece ? null : piece);
+        },
+        // a new piece pops into the tray; it bobs while it waits; a miss
+        // springs it home
+        child: Entrance(
+          key: ValueKey('in${widget.state.step}'),
+          duration: const Duration(milliseconds: 380),
+          builder: (context, t, child) => Opacity(
+            opacity: t,
+            child: Transform.scale(
+              scale: 0.4 + 0.6 * AuraCurves.spring.transform(t),
+              child: child,
+            ),
+          ),
+          child: Entrance(
+            key: ValueKey('home$_homeBack'),
+            duration: Duration(milliseconds: _homeBack == 0 ? 1 : 450),
+            builder: (context, t, child) {
+              if (_homeBack == 0) return child!;
+              final e = AuraCurves.spring.transform(t);
+              final scale = keyframes(e, const [
+                (0, 0.85),
+                (0.6, 1.06),
+                (1, 1),
+              ]);
+              final turn = keyframes(e, const [(0, 4), (0.6, -2), (1, 0)]);
+              return Transform.rotate(
+                angle: turn * math.pi / 180,
+                child: Transform.scale(scale: scale, child: child),
+              );
+            },
+            child: Loop(
+              period: const Duration(milliseconds: 2600),
+              builder: (context, t, child) => Transform.translate(
+                offset: Offset(0, -5 * halfway(t)),
+                child: Transform.rotate(
+                  angle: -1.5 * halfway(t) * math.pi / 180,
+                  child: child,
+                ),
+              ),
+              child: visual,
+            ),
+          ),
+        ),
       ),
     );
   }
+
+  /// Bar A grows up from the baseline when it's first drawn.
+  Widget _grown(Widget bar) => Entrance(
+    duration: const Duration(milliseconds: 450),
+    builder: (context, t, child) => Transform.scale(
+      alignment: Alignment.bottomCenter,
+      scaleX: 1,
+      scaleY: 0.5 + 0.5 * AuraCurves.spring.transform(t),
+      child: child,
+    ),
+    child: bar,
+  );
+
+  /// A right answer: the bar squashes and stretches (620 ms), B 90 ms later.
+  Widget _cheered(int i, Widget bar) => _cheers == 0
+      ? bar
+      : Entrance(
+          key: ValueKey('cheer$_cheers'),
+          delay: Duration(milliseconds: 90 * i),
+          duration: const Duration(milliseconds: 620),
+          builder: (context, t, child) {
+            final e = Curves.easeOut.transform(t);
+            const x = [(0.0, 1.0), (0.25, 1.06), (0.55, 0.96), (1.0, 1.0)];
+            const y = [(0.0, 1.0), (0.25, 0.9), (0.55, 1.08), (1.0, 1.0)];
+            return Transform.scale(
+              alignment: Alignment.bottomCenter,
+              scaleX: keyframes(e, x),
+              scaleY: keyframes(e, y),
+              child: child,
+            );
+          },
+          child: bar,
+        );
 
   /// Tap alternative to dragging B's handle. Not in Figma: drawn as a tray
   /// piece, with a picture of B next to A so it reads without reading.
@@ -482,40 +737,57 @@ class _BarBoardState extends State<BarBoard> {
   }
 }
 
-/// The quiet-child hand: shows where the piece goes, once.
-class _Hand extends StatefulWidget {
-  const _Hand();
+/// The hand that shows a move: it appears on the piece, presses, carries it
+/// to where it goes and lets go (2 s); a quiet child sees it twice.
+class _Hand extends StatelessWidget {
+  const _Hand({
+    super.key,
+    required this.from,
+    required this.to,
+    required this.times,
+  });
+
+  final Offset from;
+  final Offset to;
+  final int times;
 
   @override
-  State<_Hand> createState() => _HandState();
-}
-
-class _HandState extends State<_Hand> with SingleTickerProviderStateMixin {
-  late final _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 2000),
-  )..forward();
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-    animation: _c,
-    builder: (context, _) => Opacity(
-      // clamped: (1 - 0.85) / 0.15 rounds to just over 1
-      opacity: _c.value < 0.85 ? 1 : ((1 - _c.value) / 0.15).clamp(0.0, 1.0),
-      child: Transform.translate(
-        offset: Offset(0, -160 * Curves.easeInOut.transform(_c.value)),
-        child: const Icon(
-          Icons.touch_app_rounded,
-          size: 44,
-          color: AuraColors.navy,
-        ),
-      ),
+  Widget build(BuildContext context) => IgnorePointer(
+    child: Loop(
+      period: const Duration(milliseconds: 2000),
+      times: times,
+      builder: (context, t, _) {
+        final e = Curves.easeInOut.transform(t);
+        final k = ((e - 0.25) / 0.5).clamp(0.0, 1.0);
+        final at = Offset.lerp(from, to, k)!;
+        final rise = keyframes(e, const [(0, 30), (0.15, 10), (1, 10)]);
+        return Stack(
+          children: [
+            Positioned(
+              left: at.dx - 14,
+              top: at.dy + rise - 30,
+              child: Opacity(
+                opacity: keyframes(e, const [
+                  (0, 0),
+                  (0.15, 1),
+                  (0.75, 1),
+                  (1, 0),
+                ]),
+                child: Transform.scale(
+                  scale: keyframes(e, const [
+                    (0, 0.8),
+                    (0.15, 1),
+                    (0.25, 0.85),
+                    (0.75, 0.85),
+                    (1, 1),
+                  ]),
+                  child: const Text('👆', style: TextStyle(fontSize: 40)),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     ),
   );
 }

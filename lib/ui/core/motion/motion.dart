@@ -319,8 +319,8 @@ class BlinkCaret extends StatelessWidget {
 
 /// The prototype's wobble on a wrong move: ±7 px and ±3°, 600 ms. Plays
 /// each time [count] goes up.
-class Wobble extends StatelessWidget {
-  const Wobble({super.key, required this.count, required this.child});
+class Wobbly extends StatelessWidget {
+  const Wobbly({super.key, required this.count, required this.child});
 
   final int count;
   final Widget child;

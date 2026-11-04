@@ -31,7 +31,26 @@ class _BoardViewState extends State<BoardView> {
   bool _helpOpen = false;
   String _typed = '';
 
+  /// A fresh board straight from the question: the strip flies down into
+  /// place and the board fades in (the prototype's M0 → M1).
+  late final bool _fromQuestion =
+      vm.state.step == LessonStep.drawA && !vm.state.barA;
+
+  late int _wobbles = vm.wobbles;
+
+  /// The sum button tapped last, which wobbles if it was the wrong one,
+  /// and the wrong moves before that tap.
+  Op? _lastOp;
+  int _wobblesAtTap = 0;
+
   LessonViewModel get vm => widget.vm;
+
+  @override
+  void didUpdateWidget(BoardView old) {
+    super.didUpdateWidget(old);
+    if (vm.wobbles > _wobbles) AuraHaptics.wrong();
+    _wobbles = vm.wobbles;
+  }
 
   void _help() => setState(() => _helpOpen = true);
 
@@ -57,24 +76,46 @@ class _BoardViewState extends State<BoardView> {
                 onHome: widget.onHome,
               ),
               const SizedBox(height: 12),
-              QuestionStrip(
-                chips: [
-                  StripChip(label: '${p.a.pic} ${p.aValue}', lit: true),
-                  StripChip(
-                    label: '${p.diff} ${rel.toLowerCase()}',
-                    lit: s.gapPlaced,
+              _arrive(
+                duration: 650,
+                builder: (t, child) => Opacity(
+                  opacity: 0.3 + 0.7 * t.clamp(0.0, 1.0),
+                  child: Transform.translate(
+                    offset: Offset(
+                      0,
+                      220 * (1 - AuraCurves.sheet.transform(t)),
+                    ),
+                    child: Transform.scale(
+                      scale: 1.18 - 0.18 * AuraCurves.sheet.transform(t),
+                      child: child,
+                    ),
                   ),
-                ],
-                onSeeQuestion: vm.readQuestion,
+                ),
+                child: QuestionStrip(
+                  chips: [
+                    StripChip(label: '${p.a.pic} ${p.aValue}', lit: true),
+                    StripChip(
+                      label: '${p.diff} ${rel.toLowerCase()}',
+                      lit: s.gapPlaced,
+                    ),
+                  ],
+                  onSeeQuestion: vm.readQuestion,
+                ),
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: BarBoard(
-                  problem: p,
-                  state: s,
-                  onInput: vm.send,
-                  glowPiece: vm.glowPiece,
-                  showHand: vm.showHand,
+                child: _arrive(
+                  duration: 500,
+                  delay: 300,
+                  builder: (t, child) => Opacity(opacity: t, child: child),
+                  child: BarBoard(
+                    problem: p,
+                    state: s,
+                    onInput: vm.send,
+                    glowPiece: vm.glowPiece,
+                    showHand: vm.showHand,
+                    wobbles: vm.wobbles,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -96,6 +137,21 @@ class _BoardViewState extends State<BoardView> {
     );
   }
 
+  /// Plays [builder]'s entrance only on a board fresh from the question.
+  Widget _arrive({
+    required int duration,
+    int delay = 0,
+    required Widget Function(double t, Widget child) builder,
+    required Widget child,
+  }) => !_fromQuestion
+      ? child
+      : Entrance(
+          duration: Duration(milliseconds: duration),
+          delay: Duration(milliseconds: delay),
+          builder: (context, t, child) => builder(t, child!),
+          child: child,
+        );
+
   Widget _bottom(AppLocalizations l, ComparisonProblem p, LessonState s) {
     switch (s.step) {
       case LessonStep.chooseOp:
@@ -107,10 +163,19 @@ class _BoardViewState extends State<BoardView> {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: AuraButton(
-                        label: '${p.aValue} $sign ${p.diff}',
-                        color: AuraButtonColor.white,
-                        onPressed: () => vm.send(OpChosen(op)),
+                      child: Wobbly(
+                        count: _lastOp == op ? vm.wobbles - _wobblesAtTap : 0,
+                        child: AuraButton(
+                          label: '${p.aValue} $sign ${p.diff}',
+                          color: AuraButtonColor.white,
+                          onPressed: () {
+                            setState(() {
+                              _lastOp = op;
+                              _wobblesAtTap = vm.wobbles;
+                            });
+                            vm.send(OpChosen(op));
+                          },
+                        ),
                       ),
                     ),
                   ),
