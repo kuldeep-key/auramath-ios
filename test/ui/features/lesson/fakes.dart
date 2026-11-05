@@ -37,6 +37,9 @@ Pack samplePack() => Pack.fromJson(
 /// Sessions over an in-memory outbox and a fake server, with the first
 /// session (`s1`) already opened, as the lesson route does before a lesson.
 /// With [withTemplate], Julia's bundled template draws left cases.
+/// What the lesson reported through `onFailed` ("session: message").
+final failedReports = <String>[];
+
 Future<(SessionRepository, OutboxDb, FakeApi)> memorySessions({
   bool withTemplate = false,
 }) async {
@@ -47,6 +50,7 @@ Future<(SessionRepository, OutboxDb, FakeApi)> memorySessions({
     api: api,
     identity: testIdentity,
     nowMs: () => 1791400000000,
+    onFailed: (sessionId, message) => failedReports.add('$sessionId: $message'),
     template: withTemplate
         ? ComparisonTemplate.fromYaml(
             File('assets/spec/comparison-two-step.yaml').readAsStringSync(),

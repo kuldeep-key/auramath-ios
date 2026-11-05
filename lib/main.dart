@@ -134,6 +134,8 @@ Future<void> main() async {
       screen: 'lesson',
       sessionId: sessionId,
     ),
+    onFailed: (sessionId, message) =>
+        errors.report('error', message, screen: 'lesson', sessionId: sessionId),
     template: await served(
       (b) async => ComparisonTemplate.fromYaml(
         b?.yamlOf('comparison-two-step.yaml') ??

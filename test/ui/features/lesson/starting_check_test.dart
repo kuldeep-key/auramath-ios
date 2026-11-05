@@ -1,8 +1,10 @@
+import 'package:auramath/data/services/api.dart';
 import 'package:auramath/data/services/fake_api.dart';
 import 'package:auramath/l10n/app_localizations.dart';
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
 import 'package:auramath/ui/features/lesson/view_models/sitting.dart';
 import 'package:auramath/ui/features/lesson/views/lesson_flow.dart';
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -132,6 +134,57 @@ void main() {
       expect(api.startingChecks, isEmpty);
     },
   );
+
+  test(
+    'a quiet tick during the sums does nothing: there is no case yet',
+    () async {
+      final (vm, api) = await makeVm();
+      addTearDown(vm.dispose);
+      await vm.start();
+      expect(vm.inStartingCheck, isTrue);
+      final before = api.received.length;
+      await vm.send(const QuietFor(60000)); // threw on `_p!` before
+      expect(api.received.length, before);
+    },
+  );
+
+  test(
+    'a refused result (5xx) still starts the case, and is reported',
+    () async {
+      final (vm, api) = await makeVm();
+      addTearDown(vm.dispose);
+      api.startingRefused = const ApiException('down', status: 503);
+      failedReports.clear();
+      await vm.start();
+      for (final s in sums) {
+        await vm.answerStarting(s['answer']! as int);
+      }
+      expect(vm.ready, isTrue);
+      expect(failedReports.single, contains('starting check not sent'));
+    },
+  );
+
+  test("sums the server can't give (404, 429, 5xx) skip the check, and are "
+      'reported', () async {
+    final (vm, api) = await makeVm();
+    addTearDown(vm.dispose);
+    api.startingSums.clear(); // the fake answers 404 with no sums
+    failedReports.clear();
+    await vm.start();
+    expect(vm.ready, isTrue);
+    expect(failedReports.single, contains('starting sums not fetched'));
+  });
+
+  test('the next sum is ready before its answer reaches the server', () async {
+    final (vm, api) = await makeVm();
+    addTearDown(vm.dispose);
+    await vm.start();
+    api.failNext = 1; // the upload waits on a retry; the sum shouldn't
+    final answering = vm.answerStarting(83);
+    expect(vm.startingAt, 1);
+    await answering.timeout(const Duration(milliseconds: 200));
+    expect(vm.inStartingCheck, isTrue);
+  });
 
   test('offline as the result is sent: "need the internet", and Try again '
       'sends it', () async {

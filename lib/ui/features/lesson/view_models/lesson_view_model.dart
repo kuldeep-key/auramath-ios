@@ -170,7 +170,12 @@ class LessonViewModel extends ChangeNotifier {
         }
         _p = await next(sessionId, level: _askLevel);
         _askLevel = null;
+      } else if (next != null && _sessions.checkDue(sessionId)) {
+        // a case fetched ahead last session: the check due here comes first
+        _p = await next(sessionId);
       }
+      // the session's first case is known: a fetch ahead isn't the check
+      _sessions.checkShown(sessionId);
     } on ApiException catch (e) {
       startError = e;
       notifyListeners();
@@ -215,8 +220,9 @@ class LessonViewModel extends ChangeNotifier {
         startingSums = await _sessions.startingSums(id);
       } on ApiException catch (e) {
         if (e.offline) rethrow;
-        // the server has no sums for it: the case starts at the age's level
-        debugPrint('starting sums not fetched: $e');
+        // no sums (throttled, a server error): the case starts at the age's
+        // level, and we hear about it
+        _sessions.failed(sessionId, 'starting sums not fetched: $e');
       }
       if (startingSums.isEmpty) {
         _startingChecked = true;
@@ -237,8 +243,9 @@ class LessonViewModel extends ChangeNotifier {
       );
     } on ApiException catch (e) {
       if (e.offline) rethrow;
-      // not placed: the case starts at the level the server already has
-      debugPrint('starting check not sent: $e');
+      // not placed: the case starts at the level the server already has,
+      // the four answers are in the log, and we hear about it
+      _sessions.failed(sessionId, 'starting check not sent: $e');
     }
     _startingChecked = true;
     startingSums = const [];
@@ -254,7 +261,9 @@ class LessonViewModel extends ChangeNotifier {
     final now = _now();
     final at = startingAt++;
     notifyListeners();
-    await _record([
+    // saved without waiting on the network, so the next sum is heard at
+    // once; the last one is waited for before the case starts
+    final saving = _record([
       SpecEvent('placement_answered', {
         'item_id': 'start-${at + 1}',
         'value': value,
@@ -263,7 +272,9 @@ class LessonViewModel extends ChangeNotifier {
       }),
     ]);
     _itemAt = now;
-    if (!inStartingCheck) await start();
+    if (inStartingCheck) return unawaited(saving);
+    await saving;
+    await start();
   }
 
   Future<void> _record(List<SpecEvent> events) async {
@@ -443,9 +454,9 @@ class LessonViewModel extends ChangeNotifier {
 
   Future<void> send(LessonInput input) async {
     final sessionId = _sessionId;
-    // no session yet, paused for the connection, or over: the board isn't
-    // live
-    if (sessionId == null || !online || endedByServer) return;
+    // no session yet, no case yet (the starting sums, a left case on
+    // offer), paused for the connection, or over: the board isn't live
+    if (sessionId == null || _p == null || !online || endedByServer) return;
     final r = step(_pack, _problem, _state, input);
     if (identical(r.state, _state) && r.decisions.isEmpty) return;
     final now = _now();

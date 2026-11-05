@@ -23,6 +23,7 @@ class SessionRepository {
     required this._api,
     required this.identity,
     this.onRejected,
+    this.onFailed,
     this.template,
     String Function()? newId,
     int Function()? nowMs,
@@ -39,6 +40,22 @@ class SessionRepository {
   /// contract change. Resending can't fix them, so they're reported, and
   /// the outbox moves on (the rest of their batch was stored).
   final void Function(String sessionId, List<String> rejected)? onRejected;
+
+  /// A call that failed for a reason other than the network, which the
+  /// lesson worked around: reported, so it isn't only a debug line.
+  final void Function(String sessionId, String message)? onFailed;
+
+  void failed(String sessionId, String message) {
+    debugPrint(message);
+    onFailed?.call(sessionId, message);
+  }
+
+  /// A spaced check or re-test is due as [sessionId]'s first case.
+  bool checkDue(String sessionId) => _checks.containsKey(sessionId);
+
+  /// [sessionId]'s first case is shown: a case fetched ahead in it is never
+  /// the check (the next session asks for its own).
+  void checkShown(String sessionId) => _checks.remove(sessionId);
 
   /// Julia's comparison template (served, else bundled): draws a left case
   /// from its ids and numbers, as the first phone did.
@@ -120,11 +137,13 @@ class SessionRepository {
     String? level,
   }) async {
     final check = level == null && _checks.containsKey(sessionId);
-    final checkLevel = _checks.remove(sessionId);
+    final checkLevel = _checks[sessionId];
     final j = {
       ...await _api.nextProblem(sessionId, level: level ?? checkLevel),
       if (check) 'variant': 'check',
     };
+    // gone only once fetched: offline, Try again asks for the check again
+    if (check) _checks.remove(sessionId);
     final problem = problemFromServer(j);
     await _db.saveProblem(problem.id, j);
     _serve(pack, problem);

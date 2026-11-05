@@ -168,6 +168,75 @@ void main() {
       vm.dispose();
     });
 
+    test('a case fetched ahead last session gives way to the check due now; '
+        'the next fetch ahead is standard', () async {
+      final pack = samplePack();
+      final (sessions, _, api) = await memorySessions(withTemplate: true);
+      api.problems.addAll([
+        served(),
+        served(id: 'g_2'),
+        served(id: 'g_3'),
+        served(id: 'g_4'),
+      ]);
+      // session 1, no check: its case, then the next fetched ahead
+      final s1 = await sessions.open();
+      await sessions.nextProblem(pack, s1);
+      final ahead = await sessions.nextProblem(pack, s1);
+      // session 2 opens with a check due and the case fetched ahead
+      api.checkLevel = 'L2';
+      final vm = LessonViewModel(
+        pack: pack,
+        problemId: ahead.id,
+        sessions: sessions,
+        voice: FakeVoice(),
+        nowMs: () => 0,
+        openSession: sessions.open,
+        nextProblem: (s, {level}) =>
+            sessions.nextProblem(pack, s, level: level),
+        sitting: Sitting(capMs: 30 * 60 * 1000),
+        tickEvery: null,
+      );
+      addTearDown(vm.dispose);
+      await vm.start();
+      expect(vm.problem.variant, 'check');
+      expect(api.asked.last.$2, 'L2');
+      // the end-of-case fetch ahead in this session isn't a check
+      final next = await sessions.nextProblem(pack, vm.sessionId);
+      expect(next.variant, 'standard');
+    });
+
+    test(
+      'offline fetching the check: Try again still gets the check',
+      () async {
+        final pack = samplePack();
+        final (sessions, _, api) = await memorySessions(withTemplate: true);
+        api
+          ..checkLevel = 'L2'
+          ..problems.add(served());
+        final sessionId = await sessions.open();
+        api.failNext = 1; // the problem fetch, not the session
+        final vm = LessonViewModel(
+          pack: pack,
+          problemId: LessonViewModel.newProblem,
+          sessionId: sessionId,
+          sessions: sessions,
+          voice: FakeVoice(),
+          nowMs: () => 0,
+          openSession: sessions.open,
+          nextProblem: (s, {level}) =>
+              sessions.nextProblem(pack, s, level: level),
+          sitting: Sitting(capMs: 30 * 60 * 1000),
+          tickEvery: null,
+        );
+        addTearDown(vm.dispose);
+        await vm.start();
+        expect(vm.startError, isNotNull);
+        await vm.start();
+        expect(vm.problem.variant, 'check');
+        expect(api.asked.last.$2, 'L2');
+      },
+    );
+
     test('a re-test due (retestDue) makes the first problem a check at the '
         "child's level, logged as variant check; the next is standard "
         '(SKL-06)', () async {

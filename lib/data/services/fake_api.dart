@@ -7,6 +7,10 @@ class FakeApi implements Api {
   /// How many calls fail before the next one succeeds.
   int failNext = 0;
 
+  /// The starting check's calls answer this server error instead (a 5xx or
+  /// 429: not offline).
+  ApiException? startingRefused;
+
   final List<LessonEvent> received = [];
   final List<(String, List<LessonEvent>)> batches = [];
   final Set<(String, int)> _seen = {};
@@ -118,6 +122,7 @@ class FakeApi implements Api {
       failNext--;
       throw const ApiException('offline');
     }
+    if (startingRefused case final e?) throw e;
     startingChecks.add((childId, correct));
     startingCheckDue = false;
     return placedAt;
