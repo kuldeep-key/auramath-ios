@@ -236,7 +236,11 @@ bool _carries(int x, int y) {
 /// Julia's tutor rules that the engine runs on, from the spec pack's
 /// `tutor/policy.yaml`.
 class Policy {
-  const Policy({required this.timers, required this.maxSideLessons});
+  const Policy({
+    required this.timers,
+    required this.maxSideLessons,
+    required this.noProgressMs,
+  });
 
   factory Policy.fromYaml(String text) {
     final y = loadYaml(text) as YamlMap;
@@ -250,11 +254,15 @@ class Policy {
         stillMs: ms('still_there_after_s'),
       ),
       maxSideLessons: (y['side_lessons'] as YamlMap)['max_per_session'] as int,
+      noProgressMs: (y['no_progress_minutes'] as int) * 60 * 1000,
     );
   }
 
   final Timers timers;
   final int maxSideLessons;
+
+  /// `no_progress_minutes`: this long on one step means too hard (TUT-10).
+  final int noProgressMs;
 }
 
 /// App settings that aren't teaching rules, from the spec pack's

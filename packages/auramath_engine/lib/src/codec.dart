@@ -24,7 +24,10 @@ Map<String, Object?> inputToJson(LessonInput i) => switch (i) {
   },
   HintTaken() => {'type': 'hintTaken'},
   ShowMeHowTaken() => {'type': 'showMeHowTaken'},
-  EasierTaken() => {'type': 'easierTaken'},
+  EasierTaken(:final noProgress) => {
+    'type': 'easierTaken',
+    if (noProgress) 'noProgress': true,
+  },
   QuietFor(:final ms) => {'type': 'quietFor', 'ms': ms},
 };
 
@@ -48,7 +51,7 @@ LessonInput inputFromJson(Map<String, Object?> j) {
     'knowTotalChecked' => KnowTotalChecked(n('value')),
     'hintTaken' => const HintTaken(),
     'showMeHowTaken' => const ShowMeHowTaken(),
-    'easierTaken' => const EasierTaken(),
+    'easierTaken' => EasierTaken(noProgress: j['noProgress'] == true),
     'quietFor' => QuietFor(n('ms')),
     final t => throw FormatException('unknown input type: $t'),
   };

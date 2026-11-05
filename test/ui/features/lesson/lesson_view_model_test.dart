@@ -53,6 +53,25 @@ void main() {
     expect(vm.coachText, pack.lines['cmp.sideBack']);
   });
 
+  test('five minutes on one step, moving or not, offers a way out once '
+      '(TUT-10)', () async {
+    final vm = await makeVm();
+    addTearDown(vm.dispose);
+    await vm.send(const Started());
+    await vm.send(const BarADrawn());
+    for (var i = 0; i < 5; i++) {
+      now += 60 * 1000;
+      await vm.send(const PieceDropped(Piece.gap, Target.barA)); // wrong
+      await vm.tick();
+    }
+    expect(vm.tooHard, isTrue);
+    expect(vm.stillThere, isTrue);
+    vm.dismissStillThere();
+    now += 60 * 1000;
+    await vm.tick();
+    expect(vm.tooHard, isFalse, reason: 'once per step');
+  });
+
   test('accepted input is recorded, ignored input is not', () async {
     final vm = await makeVm();
     await vm.send(const Started());

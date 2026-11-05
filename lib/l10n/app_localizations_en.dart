@@ -96,6 +96,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stillThere => 'Still there?';
 
   @override
+  String get tooHardTitle => 'This one\'s tricky. Want a hand?';
+
+  @override
   String get stillThinking => 'I\'m still thinking';
 
   @override

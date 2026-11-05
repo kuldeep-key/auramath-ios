@@ -19,6 +19,7 @@ class PackRepository {
     return pack.copyWith(
       timers: policy.timers,
       maxSideLessons: policy.maxSideLessons,
+      noProgressMs: policy.noProgressMs,
     );
   }
 }

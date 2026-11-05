@@ -152,6 +152,12 @@ class LessonViewModel extends ChangeNotifier {
   bool glowPiece = false;
   bool showHand = false;
   bool stillThere = false;
+
+  /// [stillThere] is open because the child has been on one step for policy
+  /// `no_progress_minutes`, moving or not: too hard, so offer a way out
+  /// (TUT-10). Once per step.
+  bool tooHard = false;
+  bool _wayOutOffered = false;
   int wobbles = 0;
   KnowPrompt? knowPrompt;
   SideLesson? sideLesson;
@@ -201,8 +207,21 @@ class LessonViewModel extends ChangeNotifier {
       timeUp = true;
       notifyListeners();
     }
+    if (!_wayOutOffered &&
+        _pausedAt == null &&
+        _onBoard &&
+        now - _stepAt >= _pack.noProgressMs) {
+      _wayOutOffered = tooHard = stillThere = true;
+      notifyListeners();
+    }
     await send(QuietFor(now - _lastMoveMs));
   }
+
+  bool get _onBoard => !const {
+    LessonStep.question,
+    LessonStep.sideLesson,
+    LessonStep.solved,
+  }.contains(_state.step);
 
   /// Time's up mid-problem: the child may finish it. A problem not begun
   /// yet waits for tomorrow.
@@ -314,7 +333,7 @@ class LessonViewModel extends ChangeNotifier {
     }
     if (input is! QuietFor) {
       _lastMoveMs = now;
-      glowPiece = showHand = stillThere = false;
+      glowPiece = showHand = stillThere = tooHard = false;
       if (helpAttention == Attention.pulse) helpAttention = Attention.none;
     }
     final entering = r.state.step != _state.step ? r.state.step : null;
@@ -335,7 +354,10 @@ class LessonViewModel extends ChangeNotifier {
               maxSideLessons: _pack.maxSideLessons,
             ),
     ];
-    if (entering != null) _signals.reset();
+    if (entering != null) {
+      _signals.reset();
+      _wayOutOffered = false;
+    }
     _state = r.state;
     _seq += events.length;
     _apply(r.decisions);
@@ -451,7 +473,7 @@ class LessonViewModel extends ChangeNotifier {
   }
 
   void dismissStillThere() {
-    stillThere = false;
+    stillThere = tooHard = false;
     notifyListeners();
   }
 

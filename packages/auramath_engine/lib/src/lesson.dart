@@ -105,7 +105,11 @@ final class ShowMeHowTaken extends LessonInput {
 }
 
 final class EasierTaken extends LessonInput {
-  const EasierTaken();
+  const EasierTaken({this.noProgress = false});
+
+  /// Offered because the child made no progress for a while (TUT-10),
+  /// not chosen from Help me.
+  final bool noProgress;
 }
 
 /// How long the child has gone without a move. The app sends it on a timer;

@@ -42,6 +42,7 @@ class Pack {
     required this.lines,
     required this.problems,
     this.maxSideLessons = 2,
+    this.noProgressMs = 5 * 60 * 1000,
   });
 
   factory Pack.fromJson(Map<String, Object?> j) => Pack(
@@ -61,15 +62,17 @@ class Pack {
     },
   );
 
-  Pack copyWith({Timers? timers, int? maxSideLessons}) => Pack(
-    version: version,
-    timers: timers ?? this.timers,
-    hintLineIds: hintLineIds,
-    badges: badges,
-    lines: lines,
-    problems: problems,
-    maxSideLessons: maxSideLessons ?? this.maxSideLessons,
-  );
+  Pack copyWith({Timers? timers, int? maxSideLessons, int? noProgressMs}) =>
+      Pack(
+        version: version,
+        timers: timers ?? this.timers,
+        hintLineIds: hintLineIds,
+        badges: badges,
+        lines: lines,
+        problems: problems,
+        maxSideLessons: maxSideLessons ?? this.maxSideLessons,
+        noProgressMs: noProgressMs ?? this.noProgressMs,
+      );
 
   final String version;
   final Timers timers;
@@ -77,6 +80,10 @@ class Pack {
   /// Tutor policy `side_lessons.max_per_session`; past it the child gets
   /// the step's usual help instead.
   final int maxSideLessons;
+
+  /// Policy `no_progress_minutes`: this long on one step without moving
+  /// on, the child is offered a way out (TUT-10).
+  final int noProgressMs;
   final List<String> hintLineIds;
   final Map<String, BadgeInfo> badges;
   final Map<String, String> lines;

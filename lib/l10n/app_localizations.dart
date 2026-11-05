@@ -268,6 +268,12 @@ abstract class AppLocalizations {
   /// **'Still there?'**
   String get stillThere;
 
+  /// No description provided for @tooHardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This one\'s tricky. Want a hand?'**
+  String get tooHardTitle;
+
   /// No description provided for @stillThinking.
   ///
   /// In en, this message translates to:
