@@ -1,0 +1,204 @@
+# Tutor policy: when help appears, how it escalates, and the rules lines must follow.
+# All values are provisional content (PLAT-03). Changing them needs no app release.
+version: 0.3.0
+updated: 2026-10-09
+status: provisional
+
+quiet:                          # TUT-07, decision D-06. Order and lines follow Figma journey 16
+  help_pulse_after_s: 15        # proposed, not in Figma yet. Julia, 2 Oct: "10-15 seconds before you let the button blink to ask them to click to ask for help"
+  glow_after_s: 25              # Figma 16.1: the next move glows
+  glow_line: line.quiet.draw-story
+  demo_after_s: 40              # Figma 16.2: a hand shows the drag
+  demo_line: line.quiet.watch-me
+  still_there_after_s: 60       # Figma 16.3 has no time on the map; placeholder
+  still_there_line: line.quiet.want-a-hand
+  still_there_options: [help_me, easier_one, still_thinking]   # Figma 16.3
+  then: first_hint              # Figma 16.4
+  timer_starts: board_shown     # not while the child reads the question on M0 (reading time is kept apart, SKL-09)
+  timer_restarts_on: [any_child_action, still_thinking]
+  counts_as_help: [demo, still_there]   # scored as with_hints; the pulse and the glow are nudges, not help (D-05)
+  sources: [SR-C-2OCT, FLOW-16]
+
+wrong:                          # LES-07, LES-08
+  help_attention_after: 2       # Figma W4 "Two wrong moves: Help me shakes"
+  automatic_hint_after_wrong_counts_as_help: false   # Figma W2 -> H1·5; the wrong move is charged instead (D-05)
+  never: [show_answer, show_red, remove_child_piece]
+  sources: [FLOW-12-15]
+
+no_progress_minutes: 5          # TUT-10. Julia: about 5 minutes without progress means too hard (ASK-J08)
+
+side_lessons:                   # TUT-08. The single rule for when a side lesson starts (provisional, D-05)
+  max_per_session: 2            # ASK-J30, SR-5
+  return_to: same_step          # from the answer sheet (LES-05), back to the answer sheet to type the answer again
+  trigger:
+    immediate_error_types: from skill map error_types where side_lesson is immediate   # regrouping slips, ASK-J15
+    on_repeat:
+      same_error_type_in_problems: 2        # SR-4
+      skill_score_below: 40                 # SR-4
+      arithmetic_ledger_below: 40           # SR-5
+      same_operation_wrong_in_session: 2    # SR-5
+    over_limit: queue_for_review            # past max_per_session, the skill returns as warm-up practice
+    one_off_review_days: 14                 # SR-4: one-off errors come back in about two weeks
+  regrouping_layout: >           # TUT-08, following Julia's slide 8 (9 Oct). Figma 11.2 T1 to change (design-map)
+    The column of the child's own sum where the slip happened (the ones of 186 - 107), in a hundreds,
+    tens and ones chart with the ones drawn as dots, in Julia's four steps: (1) ask, don't tell: "Can we
+    cross out 7?" (hers: "Can we cross out / subtract 7?"); (2) the child crosses out the 6 ones and finds
+    there are not enough ("We do not have enough ones. We need to regroup from the tens." Hers: "We do not
+    have enough ones to cross out we will need to regroup from the tens column"); (3) one ten becomes ten
+    ones: the tens digit is marked 8 -> 7 and the ones become 16; (4) the child crosses out 7 of the 16
+    dots and types 16 - 7 = 9. Crossings-out are not red (NFR-03). Then back. The child-facing lines are
+    drafted from her words; she sees them in her check (CON-09). The sum is stacked (in columns), as she asks.
+  practice_if_unsure: 3          # Key's number for Julia's "a few". Julia (Figma 11.2, 8 Oct): "If this is too overwhelming for the child, create smaller numbers
+                                 # ... eg. 56 - 19, and repeat a few subtraction questions of the same type before going back".
+                                 # Trigger: the child gets the walk-through's own sum (16 - 7) wrong. Then this many smaller sums of the
+                                 # same kind (arithmetic generator, e.g. A6 for taking away within 100 with regrouping), then back.
+                                 # Logged as quick_sum_answered with context side_lesson.
+  sources: [ASK-J15, ASK-J16, SR-4, SR-5, VIF-S8-1009]
+
+answer_sheet:                   # LES-05. What a wrong answer on the I-know-it answer sheet leads to. Code decides (D-26)
+  order: >                      # Julia, Figma journey 12 (9 Oct): "Before drawing, try to determine where the error is."
+    1. A wrong total that equals the unknown: ask_question_again. If the next total is also wrong, the fig tree
+       is known to be right, so the total_after_unknown rules apply (step 4).
+    2. Any other wrong total: ask for the unknown first (line.check.unknown-first: "How tall is the fig tree?").
+       At levels 1 and 2 the sheet already asks for the unknown, so this step is where they start.
+    3. The unknown is wrong: match it against the template's unknown-stage rules and follow route_by_error_type
+       (a side lesson returns to the unknown; an unmatched unknown goes to draw_it).
+    4. The unknown is right: line.check.adding ("The fig tree is right. Now check your adding.") and the total
+       again. Right: solved. Wrong: match the total_after_unknown rules (a dropped carry goes to the adding side
+       lesson and then the total again; anything else goes to draw_it).
+    A second wrong answer at any one stage goes to draw_it.
+  routes:
+    side_lesson_then_answer: Run one side lesson, for the skill of the error type, then return to the stage where the answer was wrong. Counts toward side_lessons.max_per_session; past the limit, draw_it.
+    draw_it: '"Not yet: let''s draw it" (today''s behaviour). The board opens at the child''s current step (the first drawing step if nothing is drawn yet). The opening_line shows as the first hint only when the board opens on the step that line belongs to (line.hint.two-bars on the first bar, line.hint.which-taller on the second).'
+    ask_question_again: Show line.hint.what-does-it-ask, then the answer sheet once more; a second miss goes to draw_it.
+    check_again: Show line.check.again, then the same answer once more; a second miss goes to draw_it.
+  route_by_error_type:          # template answer_sheet_rules set the error type; Julia's slide 9 (9 Oct)
+    sub_smaller_from_larger: side_lesson_then_answer   # 81 for the fig tree (Julia's 267 and 167)
+    carry_dropped: side_lesson_then_answer             # the adding-across-a-ten side lesson
+    difference_as_amount: draw_it                      # 107 for the fig tree
+    relation_reversed: draw_it                         # 293 for the fig tree (Julia's 479): thought it was taller
+    keyword_strategy: draw_it                          # level 5: subtracted because of "shorter"
+    answered_wrong_question: ask_question_again        # gave the unknown, not the total (ours)
+    transposition: check_again
+    unmatched: draw_it
+  opening_line:
+    difference_as_amount: line.hint.two-bars           # Julia J47
+    relation_reversed: line.hint.which-taller          # Julia J47
+    keyword_strategy: line.hint.which-taller
+  relation_reversed_side_lesson: The on-repeat side lesson for relation_reversed is Show me how (the smaller Building A and B example). Julia's bar-sense lessons replace it only if TUT-17 is built (tentative, if time permits; D-28).
+  charge: >
+    Each wrong answer is recorded (SKL-08) with its stage and error type, and scored as a wrong answer.
+    Credit for knowing the steps (a wrong total, then a fig tree that shows the right method with a slip)
+    comes with arithmetic scored apart from the drawing (SKL-03, M2+).
+  sources: [VIF-S9-1009, FIGMA-C-1009, ASK-J47, FLOW-12-15]
+
+help_menu:                      # TUT-03, Figma H0 ("How can I help? Pick one.")
+  options: [hint, show_me_how, something_easier]   # a hint first: guide, don't tell. Figma H0 still makes Show me how primary (design review finding 5)
+  also_offers: [easier_number_sentence]   # TUT-09, Figma journey 37 (H0 -> J28)
+  sources: [ASK-J43, ASK-J50]
+
+hint_ladder:                    # TUT-04. Start at the rung for the child's current step (template steps[].hint_start_rung)
+  escalate: one_rung_per_request
+  # Rungs and lines follow Figma journeys 7 and 15. D4w uses the line the Figma 15.2 note gives as Julia's.
+  # Her J47 hint lines are not yet used word for word; julia_lines_to_place lists them for Apoorv and Julia.
+  rungs:
+    - {id: H1-1, figma: "H1·1", step: draw_known_bar,   lines: ["line.hint.height-of-a"]}
+    - {id: H1-2, figma: "H1·2", step: draw_known_bar,   lines: ["line.nudge.reach-A"]}
+    - {id: H1-3, figma: "H1·3", step: size_second_bar,  lines: ["line.hint.now-b"]}
+    - {id: H1-4, figma: "H1·4", step: size_second_bar,  lines: ["line.hint.taller-or-shorter"], choice: [taller, shorter], choice_mass: [heavier, lighter]}
+    - {id: H1-4a, figma: "TBD (Apoorv)", step: size_second_bar, lines: ["line.hint.which-is-it"], choice: [a, b]}   # TUT-16, Julia's slide 8: "Which tree does 'It' mean?" A wrong pick wobbles, is logged and leads to H1-4b
+    - {id: H1-4b, figma: "TBD (Apoorv)", step: size_second_bar, lines: ["line.hint.look-at-colours"], highlight: it_to_a}   # TUT-16: her option 2, highlight the words
+    - {id: H1-5, figma: "H1·5", step: place_difference, lines: ["line.hint.D-tall-or-relation"]}
+    - {id: H1-6, figma: "H1·6", step: any,              lines: ["line.hint.grown-up-and-you"], everyday_example: true}   # TUT-06, ASK-J13
+    - {id: D4w,  figma: "D4w",  step: choose_operation, lines: ["line.hint.longer-or-shorter-bar"]}
+  after_last_rung: show_me_how
+  # Julia (slide 8): if a child is unsure about "it", either a similar question with smaller numbers
+  # (Show me how, Building A and B, journey 8) or highlighting the words. Rule: the hint ladder gives the
+  # highlight; Help me > Show me how gives the smaller question. The child's choice decides.
+  julia_lines_to_place: [line.hint.two-bars, line.hint.which-taller, line.hint.taller-longer]
+  steps_without_rung: >
+    place_total, find_unknown, find_total and number_sentence have no hint rung on the Figma map.
+    There, Help me offers show me how, something easier and the easier number sentence; arithmetic
+    errors go to side lessons. Key drafts hint lines for these steps with AI; Julia sees them in her check (CON-09).
+  review_note: >
+    Figma H1·2 ("make it reach 186 cm") uses a number from the question, while Julia's J51 says hints
+    use comparison words, not numbers. The same applies to H1·5 ("107 tall or 107 shorter?"). The numbers
+    come from the question, not the answer, so they are allowed (TUT-02); Julia sees them in her check (CON-09).
+
+question_buttons:               # TUT-13 (D-01): tap-to-ask buttons per step; answers are library lines; no free text
+  every_step: [line.q.what-now]
+  by_step:
+    size_second_bar: [line.q.taller-means]
+    place_difference: [line.q.what-is-gap]
+    choose_operation: [line.q.add-or-take]
+  rule: An answer explains a word or points back to the drawing; it never says which bar is longer or what the answer is.
+
+story_generation:               # CON-08 (D-26): AI proposes story pieces offline; code renders the sentence
+  model_outputs: [object_a, object_b, kind, plural, unit, quantity, comparison_word]   # kind = the shared noun, e.g. tree, building
+  checks: [age_word_list, plausible_numbers_for_objects, safe_content, no_brands, names_from_fixed_list_only, no_duplicates]
+  age_word_list: TBD            # drafted by Key from Julia's materials and NSW Stage 1-2 texts; Julia sees it in CON-09
+  in_session_model_calls: none
+  this_term: AI writes height stories only. Weights this term are Julia's bowl and mug with new numbers (CON-11, frames_by_quantity.mass); AI weight stories and other quantities next term
+
+model:                          # TUT-01, TUT-11. NEXT TERM: no model is called in a child's session this term (D-26)
+  role: reword_approved_line_only   # next term, behind evals
+  timeout_ms: 700               # next term; legacy NFR-02; re-measure from Australia (legacy NFR-03)
+  on_timeout: use_library_line_silently
+  never_sends: [child_name, child_id, family_id, free_text]
+  sources: [LEG-TUT-01, LEG-TUT-09, LEG-NFR-02, LEG-ONB-04]
+
+lines:
+  rules:
+    - Never state the answer to the current step before the child has attempted it (TUT-02).
+    - Hints use comparison words and add no number that is not already in the question (ASK-J51; see review_note).
+    - Praise on the child's screen is short and simple, and names the problem in plain words ("You solved the Tree Word Problem!"). What the child did step by step goes to the parent note, not the child's screen (TUT-12; Julia, Figma comments 9 Oct).
+  forbidden_phrases:            # legacy RWD-18; lint in evals/tutor-lines
+    - "great job"
+    - "well done"
+    - "good job"
+    - "nice try"
+    - "oops"
+    - "try again"
+    - "not quite"
+    - "wrong"
+    - "correct"
+  # Lines sourced to ASK-J42 and ASK-J47 are Julia's own words (2 Oct slides). Lines sourced to FLOW-*
+  # are as written on the Figma screens. Lines marked drafted are ours. All need Julia's approval.
+  pack:                         # approved: false until Julia approves the pack (CON-04)
+    - {id: line.quiet.draw-story,             text: "Can you draw the story out?",                         source: ASK-J42, approved: false}
+    - {id: line.quiet.watch-me,               text: "Watch me, then you try.",                              source: FLOW-16, approved: false}
+    - {id: line.quiet.want-a-hand,            text: "Want a hand?",                                         source: FLOW-16, approved: false}
+    - {id: line.help.how-can-i-help,          text: "How can I help? Pick one.",                            source: FLOW-7-11, approved: false}
+    - {id: line.hint.two-bars,                text: "We need two bars.",                                    source: ASK-J47, approved: false}
+    - {id: line.hint.which-taller,            text: "Do we know which {kind} is taller?",                     source: ASK-J47, approved: false, variants: {mass: "Do we know which one is heavier?"}}
+    - {id: line.hint.taller-longer,           text: "Show the taller {kind} with a longer bar.",              source: ASK-J47, approved: false, variants: {mass: "Show the heavier one with a longer bar."}}
+    - {id: line.hint.height-of-a,             text: "What height is the {a}?",                              source: FLOW-7-11, approved: false, variants: {mass: "How heavy is the {a}?"}}
+    - {id: line.nudge.reach-A,                text: "Nearly! Make the {a} bar reach {A} {unit}.",           source: FLOW-7-11, approved: false}
+    - {id: line.hint.now-b,                   text: "Good! Now, what is the height of the {b}?",            source: FLOW-7-11, approved: false, variants: {mass: "Good! Now, how heavy is the {b}?"}}
+    - {id: line.hint.taller-or-shorter,       text: "Is the {b} taller or shorter than the {a}?",           source: FLOW-7-11, approved: false, variants: {mass: "Is the {b} heavier or lighter than the {a}?"}}
+    - {id: line.hint.D-tall-or-relation,      text: "Is the {b} {D} {unit} tall, or {D} {unit} {b_word} than the {a}?", source: FLOW-12-15, approved: false, drafted: true, variants: {mass: "Does the {b} weigh {D} {unit}, or {D} {unit} {b_word} than the {a}?"}}
+    - {id: line.hint.grown-up-and-you,        text: "Think of a grown-up and you. Who is taller?",          source: ASK-J13, approved: false, drafted: true, variants: {mass: "Think of a grown-up and you. Who is heavier?"}}
+    - {id: line.hint.longer-or-shorter-bar,   text: "Is the {b} taller than the {a}? Would a taller {kind} have a longer bar or a shorter bar?", source: FLOW-12-15, approved: false, note: "Second sentence is given as Julia's words in the Figma 15.2 note (2 Oct), with {kind} for 'tree'; Julia sees it in her check (CON-09)", variants: {mass: "Is the {b} heavier than the {a}? Would a heavier one have a longer bar or a shorter bar?"}}
+    - {id: line.check.again,                  text: "Check your sum again.",                                source: ASK-J17, approved: false}
+    - {id: line.hint.which-is-it,             text: "Which {kind} does 'it' mean: the {a} or the {b}?",     source: VIF-S8-1009, approved: false, note: "Julia's words, slide 8: Which tree does \"It\" mean? Lemon or Fig? Used in lesson stories, which all name things with 'the' (the building story is a worked example only)", variants: {mass: "Which one does 'it' mean: the {a} or the {b}?"}}
+    - {id: line.hint.look-at-colours,         text: "Look at the words in colour. Which {kind} is 'it'?",   source: VIF-S8-1009, approved: false, drafted: true, variants: {mass: "Look at the words in colour. Which one is 'it'?"}}
+    - {id: line.check.unknown-first,          text: "Let's check one part. How tall is the {b}?",           source: FIGMA-C-1009, approved: false, drafted: true, variants: {mass: "Let's check one part. How heavy is the {b}?"}, note: "Julia, journey 12: 'Ask for height of fig tree.'"}
+    - {id: line.check.adding,                 text: "The {b} is right. Now check your adding.",             source: FIGMA-C-1009, approved: false, drafted: true, note: "Julia, journey 12: 'If fig tree is correct - then the addition of both trees is a calculation error.'"}
+    - {id: line.praise.solved-short,          text: "You solved this!",                                     source: FIGMA-C-1009, approved: false, note: "Julia's words (Figma 41.2)"}
+    - {id: line.praise.solved,                text: "You solved the {problem_name}!",                       source: FIGMA-C-1009, approved: false, note: "Julia's words (Figma 25.1, 24.2): 'You solved the Tree Word Problem'"}
+    - {id: line.move-up.new-skill,            text: "Try a new skill",                                      source: FIGMA-C-1009, approved: false, note: "Julia's words (Figma 24.2)"}
+    - {id: line.hint.what-does-it-ask,        text: "What does the question ask you to find?",              source: PM-1009, approved: false, drafted: true}
+    - {id: line.q.what-now,                   text: "What do I do now? | Look at the question at the top. What does it ask you to find?", source: PM-1008, approved: false, drafted: true}
+    - {id: line.q.taller-means,               text: "What does taller mean? | Taller means it reaches higher. Show the taller {kind} with a longer bar.", source: ASK-J47, approved: false, drafted: true, variants: {mass: "What does more mean? | More means it is heavier. Show the heavier one with a longer bar."}}
+    - {id: line.q.what-is-gap,                text: "What is the gap? | The gap is how much more one bar is than the other.", source: PM-1008, approved: false, drafted: true}
+    - {id: line.q.add-or-take,                text: "Add or take away? | Look at your bars. Is the bar you need longer or shorter?", source: PM-1008, approved: false, drafted: true}
+  # Lines drawn on Figma screens that are not in the pack yet. Each needs a pack line (and Julia's
+  # approval) or a design change before it can be built (TUT-11). Listed for Apoorv; not loaded by the app.
+  figma_lines_to_reconcile:
+    - {figma: "12.2 W1", text: "Hmm, not quite.", issue: "contains the forbidden phrase 'not quite'"}
+    - {figma: "38.2", text: "So close! Check your adding again", issue: "pack has Julia's 'Check your sum again.' (J17); pick one"}
+    - {figma: "14.2", text: "Tricky one? Tap me!", issue: "a callout over Help me; the screen note says no popup, so confirm it is wanted and add it to the pack"}
+    - {figma: "15.2", text: "Let's think about it.", issue: "not in the pack"}
+    - {figma: "13.4 W3", text: "You fixed it!", issue: "not in the pack; Julia's simple praise style fits (TUT-12), so add it to the pack or use line.praise.solved-short"}
+    - {figma: "12.3 S2", text: "Hmm. Let's draw it out.", issue: "not in the pack; the screen's note says Julia's 'Can you draw the story out?' is the offer here"}
+    - {figma: "38.3, 6.3, 24.1", text: "You found the gap, then added", issue: "Julia (9 Oct): remove; step details are for the parent report, not the child (TUT-12)"}

@@ -1,0 +1,14 @@
+name: auramath_engine
+description: Every Auramath teaching decision. Pure Dart, no IO, no clock.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.12.2
+
+dev_dependencies:
+  json_schema: ^5.2.2
+  lints: ^6.0.0
+  test: ^1.26.0
+dependencies:
+  yaml: ^3.1.4

@@ -1,0 +1,24 @@
+# App-level settings that are not teaching rules. Provisional values; change without a release (PLAT-03).
+version: 0.3.0
+updated: 2026-10-09
+session:
+  cap_minutes: 30               # SES-01, D-07. Julia: "no more than half an hour"
+devices:
+  join_code_ttl_minutes: 10     # DEV-02, legacy PAC-06
+  join_code_charset: digits      # Figma journey 3: "Six digits"
+  join_code_length: 6
+  join_code_max_attempts: 5     # Figma journey 32: "5 tries"
+report:
+  send_within_minutes: 5        # PAR-01, provisional
+  default_frequency: each_session   # D-16
+flags:                          # PLAT-06. Remote flags; defaults shown
+  three_in_a_row: false         # REW-02, D-10
+  child_questions: false        # TUT-13, D-01 closed: tap-to-ask buttons only (M2+)
+  quick_sums: false             # LES-16, D-22 (M2+)
+  total_and_difference: false   # CON-07, D-20 (target M3)
+  read_aloud: false             # NFR-06, D-13: text only at M2; on by M3
+  read_aloud_default_on_ages: [6, 7]   # NFR-06, D-13
+  model_rewording: false        # TUT-11, D-26: off all term; live AI lines are next term
+  report_delivery: false        # REW-01: Y4 'Sent to your grown-up' shows only when on (M3)
+  real_families: false          # PRV-05: only with recorded legal review sign-off
+  weight_stories: false         # CON-11 (M2+): the selector skips stories whose quantity is mass while off
