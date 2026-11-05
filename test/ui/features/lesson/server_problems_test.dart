@@ -80,6 +80,17 @@ void main() {
     expect(restarted.problems['g_1']!.aValue, 186);
   });
 
+  test('signing out forgets the served problems too (DEV-06)', () async {
+    final (sessions, db, api) = await memorySessions();
+    api.problems.add(served());
+    final pack = samplePack();
+    await sessions.nextProblem(pack, 's1');
+    await sessions.forget();
+    expect(pack.problems['g_1'], isNull);
+    expect(pack.problems['lemon'], isNotNull); // the bundled ones stay
+    expect(await db.problems(), isEmpty);
+  });
+
   test('easierLevel goes one rung down, never below L1', () {
     expect(easierLevel('L4'), 'L3');
     expect(easierLevel('L1'), 'L1');

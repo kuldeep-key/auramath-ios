@@ -88,9 +88,7 @@ class SessionRepository {
     );
     final problem = problemFromServer(j);
     await _db.saveProblem(problem.id, j);
-    // ponytail: the pack's map doubles as the problem store; give problems
-    // their own store if the pack ever becomes read-only
-    pack.problems[problem.id] = problem;
+    _serve(pack, problem);
     return problem;
   }
 
@@ -98,9 +96,16 @@ class SessionRepository {
   /// left part way resumes after the app restarts.
   Future<void> loadProblems(Pack pack) async {
     for (final j in await _db.problems()) {
-      final p = problemFromServer(j);
-      pack.problems[p.id] = p;
+      _serve(pack, problemFromServer(j));
     }
+  }
+
+  // ponytail: the pack's map doubles as the problem store; give problems
+  // their own store if the pack ever becomes read-only
+  final List<(Pack, String)> _served = [];
+  void _serve(Pack pack, ComparisonProblem p) {
+    pack.problems[p.id] = p;
+    _served.add((pack, p.id));
   }
 
   /// Saves [events] as seq [firstSeq] onwards, then tries to send them.
@@ -159,6 +164,11 @@ class SessionRepository {
   Future<void> forget() async {
     _retry?.cancel();
     _childRefs.clear();
+    _checkLevels.clear();
+    for (final (pack, id) in _served) {
+      pack.problems.remove(id);
+    }
+    _served.clear();
     await _db.clear();
   }
 

@@ -141,19 +141,24 @@ class ProgressRepository {
 
   String? _name;
 
+  /// The child [_name] belongs to: after a sign-out or a switch it is
+  /// another child's, and not shown (DEV-06).
+  String? _nameOf;
+
   /// The child's name from the last successful read, for Home's first
   /// frame.
-  String? get cachedName => _name;
+  String? get cachedName => _nameOf == _account.childId ? _name : null;
 
   /// The active child's name (`/api/children`). Offline or on a server
   /// error, the last name read; Home shows no name rather than a wrong one.
   Future<String?> childName() async {
+    final id = _account.childId;
     try {
-      final id = _account.childId;
       final kids = await _family.children();
+      _nameOf = id;
       return _name = kids.where((c) => c.id == id).firstOrNull?.name;
     } on ApiException {
-      return _name;
+      return cachedName;
     }
   }
 
