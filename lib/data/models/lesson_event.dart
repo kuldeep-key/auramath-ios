@@ -11,8 +11,14 @@ String childRefFor(String childId) {
 
 /// Which phone and build is writing events: the envelope fields that don't
 /// change per session. The `child_ref` comes from the server with each
-/// session (online-first).
-typedef Identity = ({String deviceId, String appVersion, bool isDemo});
+/// session (online-first). [contentVersions] names the content files this
+/// launch teaches from (`session_started`, PLAT-04).
+typedef Identity = ({
+  String deviceId,
+  String appVersion,
+  bool isDemo,
+  Map<String, String> contentVersions,
+});
 
 /// One saved event in the backend's contract
 /// (`auramath-backend/spec/contracts/events.schema.json`): the engine's

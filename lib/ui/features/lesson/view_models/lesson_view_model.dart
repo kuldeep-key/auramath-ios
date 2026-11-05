@@ -119,8 +119,9 @@ class LessonViewModel extends ChangeNotifier {
     notifyListeners();
     final events = [
       SpecEvent('session_started', {
-        'launch_source': 'child_opened',
+        'launch_source': launchSource,
         'content_versions': {
+          ..._sessions.identity.contentVersions,
           'template.${_problem.templateId}': _problem.templateVersion,
         },
         'is_demo': _sessions.identity.isDemo,
@@ -353,6 +354,10 @@ class LessonViewModel extends ChangeNotifier {
 
   /// The flag `mastery_badges`: the badge after "case cracked".
   bool showBadges = true;
+
+  /// Why the lesson opened (`session_started`, DAT-05): the child on their
+  /// own phone, or a grown-up's phone handed over.
+  String launchSource = 'child_opened';
 
   /// The question as it first shows: spoken if read-aloud is on.
   void autoReadQuestion() {

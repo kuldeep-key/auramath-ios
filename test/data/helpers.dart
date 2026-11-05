@@ -26,6 +26,7 @@ const testIdentity = (
   deviceId: 'dv_test1234',
   appVersion: '0.1.0',
   isDemo: true,
+  contentVersions: {'policy': '0.3.0'},
 );
 
 /// A saved event with a made-up payload, for outbox plumbing tests.

@@ -258,6 +258,29 @@ void main() {
       vm.dispose();
     });
 
+    test('session_started names why it opened and every content version '
+        '(DAT-05, PLAT-04)', () async {
+      final (sessions, db, _) = await memorySessions();
+      final vm = LessonViewModel(
+        pack: pack,
+        problemId: 'lemon',
+        sessions: sessions,
+        voice: FakeVoice(),
+        nowMs: () => now,
+        openSession: sessions.open,
+        sitting: Sitting(capMs: 30 * 60 * 1000),
+        tickEvery: null,
+      )..launchSource = 'parent_handover';
+      addTearDown(vm.dispose);
+      await vm.start();
+      final started = (await db.forSession(vm.sessionId)).first;
+      expect(started.payload['launch_source'], 'parent_handover');
+      expect(started.payload['content_versions'], {
+        'policy': '0.3.0',
+        'template.cmp.comparison': isNotEmpty,
+      });
+    });
+
     test('the board pauses while the connection is gone', () async {
       final (sessions, db, api) = await memorySessions();
       final vm = LessonViewModel(
