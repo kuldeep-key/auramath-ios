@@ -143,6 +143,22 @@ void main() {
     expect(paused.payload['reason'], 'child');
   });
 
+  test('leaving this one ends the session, and next time is a new case '
+      '(SES-06)', () async {
+    await vm.send(const BarADrawn());
+    vm.askBreak();
+    await vm.leaveProblem();
+    expect(vm.askingBreak, isFalse);
+    final events = await db.forSession('s1');
+    final left = events[events.length - 2];
+    expect(left.name, 'problem_left');
+    expect(left.payload, {'problem_id': 'lemon', 'step_id': 'size_second_bar'});
+    expect(events.last.payload, {'reason': 'left'});
+    final next = await vm.sessions.whereNext(pack);
+    expect(next?.resumeSessionId, isNull);
+    expect(next?.problemId, pack.problems['lemon']!.next.fast);
+  });
+
   test("the grown-up's time each day only shortens the cap", () {
     final sitting = Sitting(capMs: 30 * 60 * 1000);
     sitting.useMinutes(15);

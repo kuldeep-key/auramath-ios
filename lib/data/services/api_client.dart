@@ -121,8 +121,10 @@ class HttpApi implements Api {
   final ApiClient _client;
 
   @override
-  Future<({String sessionId, String childRef, String? checkLevel})>
-  startSession({String? childId, required bool isDemo}) async {
+  Future<StartedSession> startSession({
+    String? childId,
+    required bool isDemo,
+  }) async {
     final json =
         await _client.post('/api/sessions', {
               'childId': ?childId,
@@ -134,6 +136,7 @@ class HttpApi implements Api {
       sessionId: json['id']! as String,
       childRef: json['childRef']! as String,
       checkLevel: check?['level'] as String?,
+      leftProblem: json['leftProblem'] as Map<String, Object?>?,
     );
   }
 

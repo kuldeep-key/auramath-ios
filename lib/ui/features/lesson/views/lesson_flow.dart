@@ -32,6 +32,15 @@ class LessonFlow extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: vm,
     builder: (context, _) {
+      if (vm.offerLeft case final left?) {
+        return Scaffold(
+          body: OfferLeftView(
+            problem: left,
+            onAgain: () => vm.takeLeft(again: true),
+            onNew: () => vm.takeLeft(again: false),
+          ),
+        );
+      }
       if (!vm.ready) {
         final error = vm.startError;
         return error == null
@@ -105,6 +114,10 @@ class LessonFlow extends StatelessWidget {
                       onGoHome: () async {
                         await vm.leave();
                         onHome();
+                      },
+                      onLeave: () async {
+                        await vm.leaveProblem();
+                        onFinished(LessonViewModel.newProblem);
                       },
                     ),
                 ],

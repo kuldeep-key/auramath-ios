@@ -101,11 +101,13 @@ void main() {
     Future<(LessonViewModel, List<(String, String?)>)> makeVm({
       String? checkLevel,
       List<Map<String, Object?>>? problems,
+      Map<String, Object?>? left,
     }) async {
       final pack = samplePack();
       final (sessions, _, api) = await memorySessions();
       api
         ..checkLevel = checkLevel
+        ..leftProblem = left
         ..problems.addAll(problems ?? [served()]);
       final vm = LessonViewModel(
         pack: pack,
@@ -131,6 +133,57 @@ void main() {
       expect(asked, [(vm.sessionId, null)]);
       expect(vm.recorded, 2); // session_started, problem_shown
       vm.dispose();
+    });
+
+    test('a case left last time is offered back as it was shown, and taken '
+        'without asking for another (SES-06)', () async {
+      final (vm, asked) = await makeVm(
+        left: {
+          'id': 'lp_1',
+          'problemId': 'g_left',
+          'problem': served(id: 'g_left', a: 150, d: 40),
+          'stepId': 'find_unknown',
+        },
+      );
+      addTearDown(vm.dispose);
+      await vm.start();
+      expect(vm.ready, isFalse);
+      expect(vm.offerLeft?.id, 'g_left');
+      await vm.takeLeft(again: true);
+      expect(vm.ready, isTrue);
+      expect(vm.problem.aValue, 150);
+      expect(asked, isEmpty);
+    });
+
+    test('"something new" instead asks the server', () async {
+      final (vm, asked) = await makeVm(
+        left: {
+          'problemId': 'g_left',
+          'problem': served(id: 'g_left'),
+        },
+      );
+      addTearDown(vm.dispose);
+      await vm.start();
+      await vm.takeLeft(again: false);
+      expect(vm.problem.id, 'g_1');
+      expect(asked, hasLength(1));
+    });
+
+    test('a left case only its numbers name, never seen here, is not '
+        'offered', () async {
+      final (vm, _) = await makeVm(
+        left: {
+          'problemId': 'g_elsewhere',
+          'problem': {
+            'problem_id': 'g_elsewhere',
+            'numbers': {'A': 1},
+          },
+        },
+      );
+      addTearDown(vm.dispose);
+      await vm.start();
+      expect(vm.offerLeft, isNull);
+      expect(vm.problem.id, 'g_1');
     });
 
     test('a spaced check due asks its level for the first problem', () async {

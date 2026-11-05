@@ -107,6 +107,30 @@ class LessonViewModel extends ChangeNotifier {
   /// Events saved for the current session.
   int get recorded => _seq;
 
+  /// The case the child left last time, waiting for "try it again?".
+  ComparisonProblem? offerLeft;
+
+  /// The child's answer to [offerLeft]: that case, shown as it was, or
+  /// the server's next one.
+  Future<void> takeLeft({required bool again}) {
+    if (again) _p = offerLeft;
+    offerLeft = null;
+    return start();
+  }
+
+  /// "Leave this one" (SES-06): the server keeps it to offer back another
+  /// day, and this session ends.
+  Future<void> leaveProblem() async {
+    askingBreak = false;
+    await _record([
+      SpecEvent('problem_left', {
+        'problem_id': _problem.id,
+        'step_id': specStepId(_state.step),
+      }),
+      const SpecEvent('session_ended', {'reason': 'left'}),
+    ]);
+  }
+
   /// Opens a new session on this problem (asking the server for it, when
   /// problems are the server's): `session_started`, `problem_shown`.
   Future<void> start() async {
@@ -115,6 +139,13 @@ class LessonViewModel extends ChangeNotifier {
       final sessionId = _sessionId ??= await _openSession();
       final next = _nextProblem;
       if (_p == null && next != null) {
+        // a case left last time: offered back first (SES-06)
+        final left = _sessions.leftProblem(_pack, sessionId);
+        if (left != null) {
+          offerLeft = left;
+          notifyListeners();
+          return;
+        }
         _p = await next(sessionId, level: _askLevel);
         _askLevel = null;
       }

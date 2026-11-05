@@ -271,6 +271,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goHome => 'Go home';
 
   @override
+  String get leaveThisOne => 'Try a different case';
+
+  @override
+  String get leftWaitingTitle => 'A case is waiting';
+
+  @override
+  String leftWaitingBody(String item) {
+    return 'Last time you left the $item case. Want to try it again?';
+  }
+
+  @override
+  String get leftTryAgain => 'Try it again';
+
+  @override
+  String get leftSomethingNew => 'Something new';
+
+  @override
   String get timeUpTitle => 'That\'s today\'s time!';
 
   @override

@@ -538,6 +538,36 @@ abstract class AppLocalizations {
   /// **'Go home'**
   String get goHome;
 
+  /// No description provided for @leaveThisOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different case'**
+  String get leaveThisOne;
+
+  /// No description provided for @leftWaitingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A case is waiting'**
+  String get leftWaitingTitle;
+
+  /// No description provided for @leftWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time you left the {item} case. Want to try it again?'**
+  String leftWaitingBody(String item);
+
+  /// No description provided for @leftTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try it again'**
+  String get leftTryAgain;
+
+  /// No description provided for @leftSomethingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Something new'**
+  String get leftSomethingNew;
+
   /// No description provided for @timeUpTitle.
   ///
   /// In en, this message translates to:

@@ -1,3 +1,4 @@
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -9,16 +10,21 @@ import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'help_sheet.dart';
 
-/// "Take a break?" when Home is tapped mid-lesson. Figma M1-pause (666:70).
+/// "Take a break?" when Home is tapped mid-lesson. Figma M1-pause (666:70),
+/// plus "leave this one" (SES-06), which the design doesn't have yet.
 class BreakSheet extends StatelessWidget {
   const BreakSheet({
     super.key,
     required this.onKeepGoing,
     required this.onGoHome,
+    this.onLeave,
   });
 
   final VoidCallback onKeepGoing;
   final VoidCallback onGoHome;
+
+  /// A new case now; this one comes back another day.
+  final VoidCallback? onLeave;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +58,69 @@ class BreakSheet extends StatelessWidget {
           icon: Icons.home_outlined,
           onPressed: onGoHome,
         ),
+        if (onLeave case final onLeave?) ...[
+          const SizedBox(height: 10),
+          AuraButton(
+            label: l.leaveThisOne,
+            color: AuraButtonColor.white,
+            onPressed: onLeave,
+          ),
+        ],
       ],
+    );
+  }
+}
+
+/// "Try it again?" for the case the child left last time (SES-06). Not in
+/// Figma yet.
+class OfferLeftView extends StatelessWidget {
+  const OfferLeftView({
+    super.key,
+    required this.problem,
+    required this.onAgain,
+    required this.onNew,
+  });
+
+  final ComparisonProblem problem;
+  final VoidCallback onAgain;
+  final VoidCallback onNew;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return PlayBackdrop(
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Spacer(),
+              Burst(
+                child: Text(
+                  problem.a.pic,
+                  style: const TextStyle(fontSize: 96),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Ribbon(text: l.leftWaitingTitle),
+              const SizedBox(height: 16),
+              Text(
+                l.leftWaitingBody(problem.a.name.toLowerCase()),
+                style: AuraText.play,
+                textAlign: TextAlign.center,
+              ),
+              const Spacer(),
+              AuraButton(label: l.leftTryAgain, onPressed: onAgain),
+              const SizedBox(height: 10),
+              AuraButton(
+                label: l.leftSomethingNew,
+                color: AuraButtonColor.white,
+                onPressed: onNew,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

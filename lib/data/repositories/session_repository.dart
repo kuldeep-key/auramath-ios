@@ -67,11 +67,33 @@ class SessionRepository {
     );
     _childRefs[s.sessionId] = s.childRef;
     if (s.checkLevel != null) _checkLevels[s.sessionId] = s.checkLevel!;
+    if (s.leftProblem != null) _left[s.sessionId] = s.leftProblem!;
     return s.sessionId;
   }
 
   /// A spaced check due when the session opened: its first problem only.
   final Map<String, String> _checkLevels = {};
+  final Map<String, Map<String, Object?>> _left = {};
+
+  /// The problem the child left last time, which [sessionId] offers back
+  /// (once): as the server sent it, else as this phone saved it. Null when
+  /// there's none, or it can't be drawn here (left on another phone with
+  /// only its numbers).
+  ComparisonProblem? leftProblem(Pack pack, String sessionId) {
+    final left = _left.remove(sessionId);
+    if (left == null) return null;
+    final shown = left['problem'] as Map<String, Object?>?;
+    if (shown != null && shown.containsKey('questionText')) {
+      try {
+        final p = problemFromServer(shown);
+        _serve(pack, p);
+        return p;
+      } on ApiException catch (e) {
+        debugPrint('left problem not drawable: $e');
+      }
+    }
+    return pack.problems[left['problemId']];
+  }
 
   /// The server's next problem for [sessionId], saved on the phone (a
   /// resume rebuilds it) and added to [pack] for the lesson's screens.
@@ -171,6 +193,7 @@ class SessionRepository {
     _retry?.cancel();
     _childRefs.clear();
     _checkLevels.clear();
+    _left.clear();
     for (final (pack, id) in _served) {
       pack.problems.remove(id);
     }
@@ -259,6 +282,14 @@ class SessionRepository {
         ? pack.problems[shown!.payload['problem_id']]
         : null;
     if (problem == null) return null;
+    // left for another day (SES-06): a new case now; the server offers the
+    // left one back later
+    if (events.any((e) => e.name == 'problem_left')) {
+      final next = problem.next.fast;
+      return pack.problems.containsKey(next)
+          ? (problemId: next, resumeSessionId: null, startedOn: null)
+          : null;
+    }
     var state = initialState();
     for (final input in inputsFrom(pack, problem, events)) {
       final r = step(pack, problem, state, input);
