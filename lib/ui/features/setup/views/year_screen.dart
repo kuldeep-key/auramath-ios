@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../data/repositories/account_repository.dart';
+import '../../../../data/repositories/setup_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
@@ -10,14 +11,29 @@ import '../../../core/parts/choice_tile.dart';
 import 'setup_parts.dart';
 
 /// NSW school years, Kindergarten to Year 5: the usual year for ages 5 to
-/// 10 (Year = age − 5). The server stores the text as given (≤ 20 chars).
+/// 10 (Year = age − 5). Sent as the ids of `/api/setup/options`.
 const setupYears = [0, 1, 2, 3, 4, 5];
 
-String yearValue(int year) => year == 0 ? 'Kindergarten' : 'Year $year';
+String yearValue(int year) => year == 0 ? 'kindergarten' : 'year_$year';
 
-String yearLabel(AppLocalizations l, String value) => value == 'Kindergarten'
-    ? l.setupKindergarten
-    : l.setupYearN(int.parse(value.substring(5)));
+/// The year's label; a value that isn't one of the ids (a child added
+/// before the ids) reads as it was stored.
+String yearLabel(AppLocalizations l, String value) => switch (value) {
+  'kindergarten' => l.setupKindergarten,
+  _ when value.startsWith('year_') => l.setupYearN(
+    int.parse(value.substring(5)),
+  ),
+  _ => value,
+};
+
+/// The year id for what a grown-up typed ("Year 2", "2", "Kindy"), or null
+/// when it isn't Kindergarten to Year 5.
+String? yearIdFrom(String typed) {
+  final t = typed.trim().toLowerCase();
+  if (t.startsWith('k')) return 'kindergarten';
+  final n = int.tryParse(t.replaceFirst(RegExp(r'^(year|yr)\s*'), ''));
+  return n != null && n > 0 && setupYears.contains(n) ? yearValue(n) : null;
+}
 
 /// Year (643:66). The usual year for the child's age is flagged and
 /// chosen to start with.
@@ -50,12 +66,22 @@ class _YearScreenState extends State<YearScreen> {
               l.setupYearTitle(childName(context, widget.draft.name)),
             ),
           ),
-          for (final y in setupYears) ...[
+          for (final (:id, :label) in inServerOrder(
+            [
+              for (final y in setupYears)
+                (id: yearValue(y), label: yearLabel(l, yearValue(y))),
+            ],
+            (o) => o.id,
+            widget.draft.options?.schoolYears,
+            (s) => s,
+          )) ...[
             ChoiceTile(
-              label: yearLabel(l, yearValue(y)),
-              flag: y == _usual ? l.setupYearUsual(widget.draft.age!) : null,
-              selected: _year == yearValue(y),
-              onTap: () => setState(() => _year = yearValue(y)),
+              label: label,
+              flag: _usual != null && id == yearValue(_usual)
+                  ? l.setupYearUsual(widget.draft.age!)
+                  : null,
+              selected: _year == id,
+              onTap: () => setState(() => _year = id),
             ),
             const SizedBox(height: 12),
           ],

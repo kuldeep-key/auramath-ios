@@ -98,25 +98,36 @@ void main() {
     expect(find.text('went to ${Paths.grownUps}'), findsOneWidget);
   });
 
-  testWidgets('after forgot + a fresh sign-in it asks for a new one', (
+  testWidgets('after forgot + a fresh sign-in the server resets it', (
     tester,
   ) async {
     final g = await Gu.make(tester);
     // asked with an older credential
     await tester.runAsync(() => g.repo.startPasscodeReset('old-token'));
-    g.server.on('PUT /api/family/passcode', {
-      'error': "that passcode didn't match",
-    }, status: 403);
+    g.server.on('POST /api/family/passcode/reset', null, status: 204);
     await tester.pumpWidget(shotApp(screen(g)));
     await tester.pumpAndSettle();
     expect(find.text('Choose a new passcode'), findsOneWidget);
     await type(tester, '1357');
     await type(tester, '1357');
-    // the backend still wants the old one: said plainly, not faked
-    expect(
-      find.textContaining('still asks for the old passcode'),
-      findsOneWidget,
-    );
+    expect(g.bodyOf('POST /api/family/passcode/reset'), {'passcode': '1357'});
+    expect(g.deps.account.grownUpsUnlocked, isTrue);
+    expect(g.store.values['passcodeReset'], isNull);
+  });
+
+  testWidgets('a reset too long after signing in asks to sign in again', (
+    tester,
+  ) async {
+    final g = await Gu.make(tester);
+    await tester.runAsync(() => g.repo.startPasscodeReset('old-token'));
+    g.server.on('POST /api/family/passcode/reset', {
+      'error': 'sign in again to reset the passcode',
+    }, status: 403);
+    await tester.pumpWidget(shotApp(screen(g)));
+    await tester.pumpAndSettle();
+    await type(tester, '1357');
+    await type(tester, '1357');
+    expect(find.textContaining('Sign in again'), findsOneWidget);
     expect(g.deps.account.grownUpsUnlocked, isFalse);
   });
 

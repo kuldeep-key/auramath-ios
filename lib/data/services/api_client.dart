@@ -39,11 +39,34 @@ class ApiClient {
 
   Future<Object?> delete(String path) => _send('DELETE', path);
 
+  /// A GET that sends the [etag] held: null when the server says it is
+  /// unchanged (304), else the new JSON and its ETag.
+  Future<({Object? json, String? etag})?> getIfChanged(
+    String path, {
+    String? etag,
+  }) async {
+    String? fresh;
+    try {
+      final json = await _send(
+        'GET',
+        path,
+        headers: {'If-None-Match': ?etag},
+        onResponse: (r) => fresh = r.headers['etag'],
+      );
+      return (json: json, etag: fresh);
+    } on ApiException catch (e) {
+      if (e.status == 304) return null;
+      rethrow;
+    }
+  }
+
   Future<Object?> _send(
     String method,
     String path, {
     Object? body,
     Map<String, String>? query,
+    Map<String, String>? headers,
+    void Function(http.Response)? onResponse,
   }) async {
     final request = http.Request(
       method,
@@ -54,6 +77,7 @@ class ApiClient {
       'Accept': 'application/json',
       if (body != null) 'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
+      ...?headers,
     });
     if (body != null) request.body = jsonEncode(body);
 
@@ -66,6 +90,7 @@ class ApiClient {
       // socket, TLS, timeout: the server never answered
       throw ApiException("Can't reach the server ($e)");
     }
+    onResponse?.call(response);
 
     final text = response.body;
     final Object? json;
@@ -96,7 +121,7 @@ class HttpApi implements Api {
   final ApiClient _client;
 
   @override
-  Future<({String sessionId, String childRef})> startSession({
+  Future<StartedSession> startSession({
     String? childId,
     required bool isDemo,
   }) async {
@@ -106,15 +131,50 @@ class HttpApi implements Api {
               'isDemo': isDemo,
             })
             as Map<String, Object?>;
+    final check = json['spacedCheckDue'] as Map<String, Object?>?;
     return (
       sessionId: json['id']! as String,
       childRef: json['childRef']! as String,
+      checkLevel: check?['level'] as String?,
+      leftProblem: json['leftProblem'] as Map<String, Object?>?,
     );
   }
 
   @override
-  Future<({List<LessonEvent> events, bool sameDevice, String? startedOn})?>
-  resumable({String? childId}) async {
+  Future<Map<String, Object?>> nextProblem(
+    String sessionId, {
+    String? level,
+  }) async {
+    final json =
+        await _client.post('/api/sessions/$sessionId/problems/next', {
+              'level': ?level,
+            })
+            as Map<String, Object?>;
+    return json['problem']! as Map<String, Object?>;
+  }
+
+  @override
+  Future<Map<String, Object?>> decide(
+    String sessionId,
+    Map<String, Object?> body,
+  ) async =>
+      await _client.post('/api/sessions/$sessionId/decisions', body)
+          as Map<String, Object?>;
+
+  @override
+  Future<List<Map<String, Object?>>> arithmetic(
+    String childId, {
+    required String purpose,
+  }) async {
+    final json = await _client.post('/api/children/$childId/arithmetic', {
+      'purpose': purpose,
+    });
+    final items = (json as Map<String, Object?>)['items']! as List;
+    return [for (final i in items) (i as Map).cast<String, Object?>()];
+  }
+
+  @override
+  Future<OpenCase?> resumable({String? childId}) async {
     final json =
         await _client.get(
               '/api/sessions/resumable',
@@ -147,25 +207,34 @@ class HttpApi implements Api {
       events: events,
       sameDevice: offer?['sameDevice'] == true,
       startedOn: on?['label'] as String?,
+      closed: offer?['closed'] != null,
     );
   }
 
   @override
-  Future<void> sendEvents(String sessionId, List<LessonEvent> events) async {
-    final json =
-        await _client.post('/api/sessions/$sessionId/events', {
-              'events': [for (final e in events) e.toJson()],
-            })
-            as Map<String, Object?>;
-    final rejected = json['rejected'];
-    // A refused event is a bug in the app or a contract change: retrying
-    // can't fix it, so it surfaces instead of being dropped.
-    if (rejected is List && rejected.isNotEmpty) {
-      throw ApiException(
-        'The server refused ${rejected.length} event(s): '
-        '${rejected.map((r) => '${(r as Map)['name']}: ${r['reasons']}').join('; ')}',
-        status: 422,
-      );
+  Future<EventsReply> sendEvents(
+    String sessionId,
+    List<LessonEvent> events,
+  ) async {
+    final Map<String, Object?> json;
+    try {
+      json =
+          await _client.post('/api/sessions/$sessionId/events', {
+                'events': [for (final e in events) e.toJson()],
+              })
+              as Map<String, Object?>;
+    } on ApiException catch (e) {
+      // the lesson's log is full: nothing more is stored for it
+      if (e.status == 413) return (rejected: const <String>[], ended: 'full');
+      rethrow;
     }
+    final ended = json['sessionEnded'] as Map<String, Object?>?;
+    return (
+      rejected: [
+        for (final r in (json['rejected'] as List? ?? []).cast<Map>())
+          '${r['name']}: ${r['reasons']}',
+      ],
+      ended: ended == null ? null : '${ended['reason']}',
+    );
   }
 }

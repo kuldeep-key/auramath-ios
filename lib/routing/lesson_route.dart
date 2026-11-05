@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
+import '../data/repositories/account_repository.dart';
 import '../data/repositories/grown_up_repository.dart';
+import '../data/services/api.dart';
+import '../config/env.dart';
 import '../deps.dart';
 import '../ui/features/lesson/view_models/lesson_view_model.dart';
 import '../ui/features/lesson/views/lesson_flow.dart';
@@ -17,8 +20,11 @@ List<RouteBase> lessonRoutes(Deps deps) => [
         deps.pack,
         childId: deps.account.childId,
       );
-      // ponytail: lemon is the first case until the server says the level
-      final id = next?.problemId ?? 'lemon';
+      // the server's next problem; a build on the bundled pack starts at
+      // lemon
+      final id =
+          next?.problemId ??
+          (Env.serverProblems ? LessonViewModel.newProblem : 'lemon');
       final resume = next?.resumeSessionId;
       // a case started on another phone: offer to carry on here first
       // (DEV-05); "Carry on here" comes back with ?here=1
@@ -79,6 +85,13 @@ class _LessonRouteState extends State<_LessonRoute> {
     voice: widget.deps.voice,
     openSession: () =>
         widget.deps.sessions.open(childId: widget.deps.account.childId),
+    nextProblem: Env.serverProblems
+        ? (sessionId, {level}) => widget.deps.sessions.nextProblem(
+            widget.deps.pack,
+            sessionId,
+            level: level,
+          )
+        : null,
     sitting: widget.deps.sitting,
   );
 
@@ -95,18 +108,44 @@ class _LessonRouteState extends State<_LessonRoute> {
     );
   }
 
-  /// The grown-up's lesson settings for this phone, then the lesson.
+  /// The grown-up's lesson settings for this phone and the server's flags,
+  /// then the lesson.
   Future<void> _begin() async {
-    final prefs = await GrownUpRepository(
-      widget.deps.client,
-      widget.deps.store,
-    ).loadPrefs();
+    final deps = widget.deps;
+    await deps.flags.refresh();
+    final prefs = await GrownUpRepository(deps.client, deps.store).loadPrefs();
+    final age = prefs.readAloud == null ? await _childAge() : null;
     if (!mounted) return;
+    final flags = deps.flags;
     _vm
-      ..readAloud = prefs.readAloud
+      ..readAloud =
+          flags.on('read_aloud') &&
+          (prefs.readAloud ??
+              (age == null || flags.readAloudAges.contains(age)))
+      ..readQuestionAloud = flags.on('read_question_aloud')
+      ..showBadges = flags.on('mastery_badges')
+      ..askDecisions = Env.serverProblems
+      ..childId = deps.account.childId
+      ..launchSource = deps.account.role == Role.parent
+          ? 'parent_handover'
+          : 'child_opened'
       ..biggerPad = prefs.biggerPad;
     widget.deps.sitting.useMinutes(prefs.minutes);
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
+  }
+
+  /// The child's age, which sets read-aloud's default; null when it can't
+  /// be read (then read-aloud stays on, as before ages were known).
+  Future<int?> _childAge() async {
+    try {
+      final kids = await widget.deps.family.children();
+      return kids
+          .where((c) => c.id == widget.deps.account.childId)
+          .firstOrNull
+          ?.age;
+    } on ApiException {
+      return null;
+    }
   }
 
   @override
@@ -120,9 +159,14 @@ class _LessonRouteState extends State<_LessonRoute> {
   Widget build(BuildContext context) => LessonFlow(
     vm: _vm,
     onHome: () => context.go(Paths.home),
-    // past the cap, a finished problem ends the sitting instead of starting one
+    // past the cap, a finished problem ends the sitting instead of starting
+    // one; a next case the server couldn't send yet is asked for again
     onFinished: (next) => context.go(
-      widget.deps.sitting.over ? Paths.home : Paths.afterCaseNext(next),
+      widget.deps.sitting.over
+          ? Paths.home
+          : next == LessonViewModel.newProblem
+          ? Paths.lessonNext
+          : Paths.afterCaseNext(next),
     ),
   );
 }

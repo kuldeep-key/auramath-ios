@@ -22,3 +22,8 @@ flags:                          # PLAT-06. Remote flags; defaults shown
   report_delivery: false        # REW-01: Y4 'Sent to your grown-up' shows only when on (M3)
   real_families: false          # PRV-05: only with recorded legal review sign-off
   weight_stories: false         # CON-11 (M2+): the selector skips stories whose quantity is mass while off
+  # app-side: flags the app reads that this pack doesn't name yet; off
+  # until the server says (until spec v0.4.1 is bundled)
+  trail: false                  # REW-04
+  mastery_badges: false         # REW-06
+  read_question_aloud: false    # NFR-08

@@ -37,6 +37,41 @@ void main() {
     );
   });
 
+  test('a side lesson from "check one part" returns to that sheet, with '
+      'the bridge line (TUT-18)', () async {
+    final vm = await makeVm();
+    addTearDown(vm.dispose);
+    for (final i in const <LessonInput>[
+      Started(),
+      KnowIt(300),
+      PartChecked(81),
+      SideLessonDone(),
+    ]) {
+      await vm.send(i);
+    }
+    expect(vm.knowPrompt, KnowPrompt.checkPart);
+    expect(vm.coachText, pack.lines['cmp.sideBack']);
+  });
+
+  test('five minutes on one step, moving or not, offers a way out once '
+      '(TUT-10)', () async {
+    final vm = await makeVm();
+    addTearDown(vm.dispose);
+    await vm.send(const Started());
+    await vm.send(const BarADrawn());
+    for (var i = 0; i < 5; i++) {
+      now += 60 * 1000;
+      await vm.send(const PieceDropped(Piece.gap, Target.barA)); // wrong
+      await vm.tick();
+    }
+    expect(vm.tooHard, isTrue);
+    expect(vm.stillThere, isTrue);
+    vm.dismissStillThere();
+    now += 60 * 1000;
+    await vm.tick();
+    expect(vm.tooHard, isFalse, reason: 'once per step');
+  });
+
   test('accepted input is recorded, ignored input is not', () async {
     final vm = await makeVm();
     await vm.send(const Started());
@@ -256,6 +291,29 @@ void main() {
       expect(vm.sessionId, 's2');
       expect(vm.recorded, 2); // session_started, problem_shown
       vm.dispose();
+    });
+
+    test('session_started names why it opened and every content version '
+        '(DAT-05, PLAT-04)', () async {
+      final (sessions, db, _) = await memorySessions();
+      final vm = LessonViewModel(
+        pack: pack,
+        problemId: 'lemon',
+        sessions: sessions,
+        voice: FakeVoice(),
+        nowMs: () => now,
+        openSession: sessions.open,
+        sitting: Sitting(capMs: 30 * 60 * 1000),
+        tickEvery: null,
+      )..launchSource = 'parent_handover';
+      addTearDown(vm.dispose);
+      await vm.start();
+      final started = (await db.forSession(vm.sessionId)).first;
+      expect(started.payload['launch_source'], 'parent_handover');
+      expect(started.payload['content_versions'], {
+        'policy': '0.3.0',
+        'template.cmp.comparison': isNotEmpty,
+      });
     });
 
     test('the board pauses while the connection is gone', () async {

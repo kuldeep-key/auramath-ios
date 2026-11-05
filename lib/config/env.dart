@@ -13,5 +13,16 @@ abstract final class Env {
     'GOOGLE_IOS_CLIENT_ID',
   );
 
+  /// `server`: problems come from `problems/next` at the child's level.
+  /// `bundled` (the default): the sample pack's fixed chain, for a server
+  /// without that route (a local backend older than spec v0.4.1).
+  static const serverProblems =
+      String.fromEnvironment('PROBLEMS', defaultValue: 'bundled') == 'server';
+
+  /// Flags this build switches on (or off with `-`) over the server's, to
+  /// try screens behind flags that are off: `trail,mastery_badges`. Never
+  /// set in `env/prod.json`.
+  static const flagOverrides = String.fromEnvironment('FLAGS');
+
   static bool get isDev => name == 'dev';
 }

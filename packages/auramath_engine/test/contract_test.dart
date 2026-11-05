@@ -211,4 +211,15 @@ void main() {
       );
     }
   });
+
+  test('an easier one offered for no progress says so, and reads back', () {
+    final inputs = [...toFindB, const EasierTaken(noProgress: true)];
+    final events = play(lemon, inputs);
+    final chosen = events.singleWhere((e) => e.name == 'easier_chosen');
+    expect(chosen.payload['trigger'], 'no_progress');
+    expect(
+      inputsFrom(pack, lemon, events).map(inputToJson).toList(),
+      inputs.map(inputToJson).toList(),
+    );
+  });
 }

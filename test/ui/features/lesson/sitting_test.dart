@@ -1,3 +1,4 @@
+import 'package:auramath/data/services/key_store.dart';
 import 'package:auramath/data/services/outbox_db.dart';
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
 import 'package:auramath/ui/features/lesson/view_models/sitting.dart';
@@ -78,6 +79,48 @@ void main() {
     },
   );
 
+  test('after finishing one past the cap, the next lesson stops at once, '
+      'with nothing to finish', () async {
+    await spend(30 * minute);
+    vm.finishThisOne();
+    final (sessions, _, _) = await memorySessions();
+    final next = LessonViewModel(
+      pack: pack,
+      problemId: 'lemon',
+      sessions: sessions,
+      voice: FakeVoice(),
+      sitting: sitting,
+      nowMs: () => now,
+      openSession: sessions.open,
+      tickEvery: null,
+    );
+    addTearDown(next.dispose);
+    await next.start();
+    now += 1000;
+    await next.tick();
+    expect(next.timeUp, isTrue);
+    expect(next.canFinish, isFalse);
+  });
+
+  test("the day's time outlives the app; a new day starts again", () async {
+    final store = MemoryKeyStore();
+    var clock = DateTime(2026, 11, 5, 9).millisecondsSinceEpoch;
+    final today = Sitting(capMs: 30 * minute, store: store, nowMs: () => clock);
+    today.activeMs = 20 * minute;
+    await today.save();
+
+    final relaunched = Sitting(
+      capMs: 30 * minute,
+      store: store,
+      nowMs: () => clock,
+    );
+    await relaunched.load();
+    expect(relaunched.activeMs, 20 * minute);
+
+    clock = DateTime(2026, 11, 6, 9).millisecondsSinceEpoch;
+    expect(relaunched.activeMs, 0);
+  });
+
   test('time with the phone locked does not count', () async {
     await vm.paused();
     expect(await lastEvent(), 'session_paused');
@@ -98,6 +141,22 @@ void main() {
     final paused = (await db.forSession('s1')).last;
     expect(paused.name, 'session_paused');
     expect(paused.payload['reason'], 'child');
+  });
+
+  test('leaving this one ends the session, and next time is a new case '
+      '(SES-06)', () async {
+    await vm.send(const BarADrawn());
+    vm.askBreak();
+    await vm.leaveProblem();
+    expect(vm.askingBreak, isFalse);
+    final events = await db.forSession('s1');
+    final left = events[events.length - 2];
+    expect(left.name, 'problem_left');
+    expect(left.payload, {'problem_id': 'lemon', 'step_id': 'size_second_bar'});
+    expect(events.last.payload, {'reason': 'left'});
+    final next = await vm.sessions.whereNext(pack);
+    expect(next?.resumeSessionId, isNull);
+    expect(next?.problemId, pack.problems['lemon']!.next.fast);
   });
 
   test("the grown-up's time each day only shortens the cap", () {

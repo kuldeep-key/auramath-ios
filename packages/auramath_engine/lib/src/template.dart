@@ -141,7 +141,9 @@ class ComparisonTemplate {
     throw StateError('$levelId: no numbers pass ${l.constraints}');
   }
 
-  /// The problem for exact numbers, rendered from the story's frame.
+  /// The problem for exact numbers, rendered from the story's frame. [id]
+  /// and [variant] keep a served problem's own (a case rebuilt from its
+  /// `problem_shown`).
   ComparisonProblem problem(
     String levelId,
     String storyId, {
@@ -150,6 +152,8 @@ class ComparisonTemplate {
     String? relation,
     required Map<String, String> pics,
     required NextProblems next,
+    String? id,
+    String variant = 'standard',
   }) {
     final l = level(levelId);
     final s = story(storyId);
@@ -167,7 +171,7 @@ class ComparisonTemplate {
       pic: pics[name] ?? (throw ArgumentError('no picture for "$name"')),
     );
     return ComparisonProblem(
-      id: '$storyId-$levelId-$a-$d'.toLowerCase(),
+      id: id ?? '$storyId-$levelId-$a-$d'.toLowerCase(),
       a: item(s.a),
       b: item(s.b),
       aValue: a,
@@ -178,10 +182,10 @@ class ComparisonTemplate {
       text: render(s.unit),
       say: render(_spoken[s.unit] ?? s.unit),
       next: next,
-      templateId: id,
+      templateId: this.id,
       templateVersion: version,
       storyId: storyId,
-      variant: 'standard',
+      variant: variant,
       level: levelId,
     );
   }
@@ -236,7 +240,12 @@ bool _carries(int x, int y) {
 /// Julia's tutor rules that the engine runs on, from the spec pack's
 /// `tutor/policy.yaml`.
 class Policy {
-  const Policy({required this.timers, required this.maxSideLessons});
+  const Policy({
+    required this.timers,
+    required this.maxSideLessons,
+    required this.noProgressMs,
+    required this.practiceSums,
+  });
 
   factory Policy.fromYaml(String text) {
     final y = loadYaml(text) as YamlMap;
@@ -250,25 +259,43 @@ class Policy {
         stillMs: ms('still_there_after_s'),
       ),
       maxSideLessons: (y['side_lessons'] as YamlMap)['max_per_session'] as int,
+      noProgressMs: (y['no_progress_minutes'] as int) * 60 * 1000,
+      practiceSums:
+          (y['side_lessons'] as YamlMap)['practice_if_unsure'] as int? ?? 3,
     );
   }
 
   final Timers timers;
   final int maxSideLessons;
+
+  /// `no_progress_minutes`: this long on one step means too hard (TUT-10).
+  final int noProgressMs;
+
+  /// `side_lessons.practice_if_unsure`: smaller sums after a side lesson
+  /// whose own sum the child got wrong.
+  final int practiceSums;
 }
 
 /// App settings that aren't teaching rules, from the spec pack's
 /// `content/app-config.yaml`.
 class AppConfig {
-  const AppConfig({required this.sessionCapMinutes});
+  const AppConfig({required this.sessionCapMinutes, this.flags = const {}});
 
   factory AppConfig.fromYaml(String text) {
     final y = loadYaml(text) as YamlMap;
     return AppConfig(
       sessionCapMinutes: (y['session'] as YamlMap)['cap_minutes'] as int,
+      flags: {
+        for (final MapEntry(:key, :value)
+            in (y['flags'] as YamlMap? ?? YamlMap()).entries)
+          key as String: value is YamlList ? value.toList() : value,
+      },
     );
   }
 
   /// SES-01, D-07: "no more than half an hour".
   final int sessionCapMinutes;
+
+  /// PLAT-06: the remote flags' defaults, used until the server answers.
+  final Map<String, Object?> flags;
 }

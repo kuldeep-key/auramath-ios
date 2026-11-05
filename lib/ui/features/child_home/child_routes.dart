@@ -51,11 +51,16 @@ List<RouteBase> childRoutes(Deps deps) {
         key: s.pageKey,
         arrive: Arrive.fade,
         child: named(
-          (name) => HomeScreen(
-            name: name,
-            grownUps: deps.account.role == Role.device
-                ? Paths.signIn
-                : Paths.kids,
+          (name) => ListenableBuilder(
+            listenable: deps.flags,
+            builder: (_, _) => HomeScreen(
+              name: name,
+              grownUps: deps.account.role == Role.device
+                  ? Paths.signIn
+                  : Paths.kids,
+              trail: deps.flags.on('trail'),
+              badges: deps.flags.on('mastery_badges'),
+            ),
           ),
         ),
       ),
@@ -134,7 +139,17 @@ List<RouteBase> childRoutes(Deps deps) {
             familyHears:
                 deps.account.role != Role.none && deps.sessions.online.value,
           ),
-          builder: (after) => AfterCaseScreen(after: after),
+          // each moment behind its flag: Y4 report_delivery, Streak
+          // three_in_a_row, Up trail
+          builder: (a) => AfterCaseScreen(
+            after: (
+              solved: a.solved,
+              next: a.next,
+              sentBadge: deps.flags.on('report_delivery') ? a.sentBadge : null,
+              streak: deps.flags.on('three_in_a_row') && a.streak,
+              opened: deps.flags.on('trail') ? a.opened : null,
+            ),
+          ),
         ),
       ),
     ),

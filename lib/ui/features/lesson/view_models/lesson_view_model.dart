@@ -8,9 +8,14 @@ import '../../../../data/services/api.dart';
 import '../../../../data/services/voice.dart';
 import '../../../core/parts/standing_button.dart';
 import 'sitting.dart';
+import 'step_decision.dart';
 
 /// Which answer sheet is open during "I know it".
 enum KnowPrompt { answer, whatAsked, recheck, checkPart, checkTotal }
+
+/// Where a side lesson is once its blocks are worked: the child types the
+/// sum, practises a few if it was wrong, then goes back.
+enum SideStage { ownSum, practice, back }
 
 /// Replaces each `{key}` in a pack line with its slot value.
 String fillLine(String template, Map<String, String> slots) => template
@@ -29,14 +34,22 @@ class LessonViewModel extends ChangeNotifier {
 
     /// An already-open session: a resumed case.
     this._sessionId,
+
+    /// Problems come from the server (`problems/next`): [problemId]
+    /// [newProblem] waits for one, and "something easier" and the next
+    /// case ask for them. Null: the bundled pack's own chain.
+    this._nextProblem,
     int Function()? nowMs,
     Duration? tickEvery = const Duration(seconds: 1),
   }) : _pack = pack,
-       _problem = pack.problems[problemId]!,
+       _p = pack.problems[problemId],
        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch) {
+    assert(_p != null || _nextProblem != null, 'no problem $problemId');
     _lastMoveMs = _shownAt = _stepAt = _lastTickMs = _now();
+    _sitting.newLesson();
     if (tickEvery != null) _ticker = Timer.periodic(tickEvery, (_) => tick());
     _sessions.online.addListener(_onlineChanged);
+    _sessions.ended.addListener(_endedByServer);
     _voice.resting.addListener(_voiceResting);
   }
 
@@ -47,10 +60,26 @@ class LessonViewModel extends ChangeNotifier {
 
   /// Asks the server for a new session (online-first).
   final Future<String> Function() _openSession;
+  final Future<ComparisonProblem> Function(String sessionId, {String? level})?
+  _nextProblem;
   final int Function() _now;
   Timer? _ticker;
 
-  ComparisonProblem _problem;
+  /// Each committed step goes to the server's `decisions` (TUT-01, AI-04),
+  /// so its evaluator can judge steps once it's on. Off for a server older
+  /// than spec v0.4.1 (no such route).
+  bool askDecisions = false;
+  final _signals = StepSignals();
+
+  /// The problem id that means "the server's next one".
+  static const newProblem = 'new';
+
+  /// Null while the server's next problem is on its way.
+  ComparisonProblem? _p;
+  ComparisonProblem get _problem => _p!;
+
+  /// The level to ask for with the next problem ("something easier").
+  String? _askLevel;
 
   /// Null until the server opened the session.
   String? _sessionId;
@@ -68,8 +97,9 @@ class LessonViewModel extends ChangeNotifier {
   ComparisonProblem get problem => _problem;
   String get sessionId => _sessionId ?? '';
 
-  /// The server opened this lesson's session; until then nothing is drawn.
-  bool get ready => _sessionId != null;
+  /// The server opened this lesson's session (and sent its problem); until
+  /// then nothing is drawn.
+  bool get ready => _sessionId != null && _p != null;
 
   /// The session couldn't be opened: no connection, or the server said no.
   /// The lesson waits on a "need the internet" screen with Try again.
@@ -81,23 +111,59 @@ class LessonViewModel extends ChangeNotifier {
   /// Events saved for the current session.
   int get recorded => _seq;
 
-  /// Opens a new session on this problem: `session_started`, `problem_shown`.
+  /// The case the child left last time, waiting for "try it again?".
+  ComparisonProblem? offerLeft;
+
+  /// The child's answer to [offerLeft]: that case, shown as it was, or
+  /// the server's next one.
+  Future<void> takeLeft({required bool again}) {
+    if (again) _p = offerLeft;
+    offerLeft = null;
+    return start();
+  }
+
+  /// "Leave this one" (SES-06): the server keeps it to offer back another
+  /// day, and this session ends.
+  Future<void> leaveProblem() async {
+    askingBreak = false;
+    await _record([
+      SpecEvent('problem_left', {
+        'problem_id': _problem.id,
+        'step_id': specStepId(_state.step),
+      }),
+      const SpecEvent('session_ended', {'reason': 'left'}),
+    ]);
+  }
+
+  /// Opens a new session on this problem (asking the server for it, when
+  /// problems are the server's): `session_started`, `problem_shown`.
   Future<void> start() async {
     startError = null;
-    if (_sessionId == null) {
-      try {
-        _sessionId = await _openSession();
-      } on ApiException catch (e) {
-        startError = e;
-        notifyListeners();
-        return;
+    try {
+      final sessionId = _sessionId ??= await _openSession();
+      final next = _nextProblem;
+      if (_p == null && next != null) {
+        // a case left last time: offered back first (SES-06)
+        final left = _sessions.leftProblem(_pack, sessionId);
+        if (left != null) {
+          offerLeft = left;
+          notifyListeners();
+          return;
+        }
+        _p = await next(sessionId, level: _askLevel);
+        _askLevel = null;
       }
+    } on ApiException catch (e) {
+      startError = e;
       notifyListeners();
+      return;
     }
+    notifyListeners();
     final events = [
       SpecEvent('session_started', {
-        'launch_source': 'child_opened',
+        'launch_source': launchSource,
         'content_versions': {
+          ..._sessions.identity.contentVersions,
           'template.${_problem.templateId}': _problem.templateVersion,
         },
         'is_demo': _sessions.identity.isDemo,
@@ -109,7 +175,8 @@ class LessonViewModel extends ChangeNotifier {
 
   Future<void> _record(List<SpecEvent> events) async {
     final sessionId = _sessionId;
-    if (sessionId == null) return; // nothing happened yet to record
+    // nothing happened yet to record, or the server closed the log
+    if (sessionId == null || endedByServer) return;
     final first = _seq;
     _seq += events.length;
     await _sessions.record(sessionId, first, events);
@@ -120,6 +187,12 @@ class LessonViewModel extends ChangeNotifier {
   bool glowPiece = false;
   bool showHand = false;
   bool stillThere = false;
+
+  /// [stillThere] is open because the child has been on one step for policy
+  /// `no_progress_minutes`, moving or not: too hard, so offer a way out
+  /// (TUT-10). Once per step.
+  bool tooHard = false;
+  bool _wayOutOffered = false;
   int wobbles = 0;
   KnowPrompt? knowPrompt;
   SideLesson? sideLesson;
@@ -169,8 +242,25 @@ class LessonViewModel extends ChangeNotifier {
       timeUp = true;
       notifyListeners();
     }
+    if (!_wayOutOffered &&
+        _pausedAt == null &&
+        _onBoard &&
+        now - _stepAt >= _pack.noProgressMs) {
+      _wayOutOffered = tooHard = stillThere = true;
+      notifyListeners();
+    }
     await send(QuietFor(now - _lastMoveMs));
   }
+
+  bool get _onBoard => !const {
+    LessonStep.question,
+    LessonStep.sideLesson,
+    LessonStep.solved,
+  }.contains(_state.step);
+
+  /// Time's up mid-problem: the child may finish it. A problem not begun
+  /// yet waits for tomorrow.
+  bool get canFinish => _state.step != LessonStep.question;
 
   /// Time's up, and the child keeps going until this problem is done.
   void finishThisOne() {
@@ -183,6 +273,7 @@ class LessonViewModel extends ChangeNotifier {
   Future<void> callItADay() async {
     timeUp = false;
     notifyListeners();
+    await _sitting.save();
     await _record([
       SpecEvent('session_ended', {
         'reason': 'time_up',
@@ -195,6 +286,8 @@ class LessonViewModel extends ChangeNotifier {
   Future<void> paused() async {
     if (_pausedAt != null) return;
     _pausedAt = _now();
+    _signals.backgrounded = true;
+    await _sitting.save();
     await _record(const [
       SpecEvent('session_paused', {'reason': 'lock'}),
     ]);
@@ -236,6 +329,16 @@ class LessonViewModel extends ChangeNotifier {
     ]);
   }
 
+  /// The server ended this lesson (offline 10+ min, idle 30 min, or a full
+  /// log): "we'll keep this for next time", and nothing more is recorded.
+  bool endedByServer = false;
+
+  void _endedByServer() {
+    if (_sessionId == null || _sessions.ended.value != _sessionId) return;
+    endedByServer = true;
+    notifyListeners();
+  }
+
   /// The child chose to go home: the drawing is kept for next time.
   Future<void> leave() async {
     askingBreak = false;
@@ -246,8 +349,9 @@ class LessonViewModel extends ChangeNotifier {
 
   Future<void> send(LessonInput input) async {
     final sessionId = _sessionId;
-    // no session yet, or paused for the connection: the board isn't live
-    if (sessionId == null || !online) return;
+    // no session yet, paused for the connection, or over: the board isn't
+    // live
+    if (sessionId == null || !online || endedByServer) return;
     final r = step(_pack, _problem, _state, input);
     if (identical(r.state, _state) && r.decisions.isEmpty) return;
     final now = _now();
@@ -258,25 +362,75 @@ class LessonViewModel extends ChangeNotifier {
     ));
     if (input is Started) _startedAt = now;
     if (input is ShowMeHowTaken) showingExample = true;
+    if (input is Undo) _signals.undos++;
+    if (input is HintTaken || input is ShowMeHowTaken || input is EasierTaken) {
+      _signals.helpOpened = true;
+    }
     if (input is! QuietFor) {
       _lastMoveMs = now;
-      glowPiece = showHand = stillThere = false;
+      glowPiece = showHand = stillThere = tooHard = false;
       if (helpAttention == Attention.pulse) helpAttention = Attention.none;
     }
     final entering = r.state.step != _state.step ? r.state.step : null;
     if (entering != null) _stepAt = now;
-    _state = r.state;
     final first = _seq;
+    final asks = [
+      if (askDecisions)
+        for (final (i, e) in events.indexed)
+          if (e.name == 'step_committed')
+            afterStepDecision(
+              problem: _problem,
+              after: r.state,
+              input: input,
+              decisions: r.decisions,
+              committed: e,
+              seq: first + i,
+              signals: _signals,
+              maxSideLessons: _pack.maxSideLessons,
+            ),
+    ];
+    if (entering != null) {
+      _signals.reset();
+      _wayOutOffered = false;
+    }
+    _state = r.state;
     _seq += events.length;
     _apply(r.decisions);
+    // back from a side lesson opened on "check one part": that sheet again
+    if (input is SideLessonDone && _state.knowFlow == KnowFlow.checkingPart) {
+      knowPrompt = KnowPrompt.checkPart;
+    }
     final stepLine = _stepLines[entering];
     if (stepLine != null && !r.decisions.any((d) => d is Coach)) {
       _coach(stepLine, const {});
     }
     notifyListeners();
     await _sessions.record(sessionId, first, events);
+    for (final ask in asks) {
+      unawaited(_askServer(sessionId, ask));
+    }
     // something easier: the easier problem gets its own session
     if (_sessionId == null) await start();
+  }
+
+  /// Sends one decision. The rules' choice already happened on the phone.
+  // ponytail: the server's answer isn't acted on: with the AI off (dev,
+  // R1) it is our own default anyway, and nothing waits for it, so there's
+  // no thinking cue yet. Acting on a different answer needs an event that
+  // a resume can replay; add it, the 1 s cue and the 4 s fallback when the
+  // evaluator is switched on (M3).
+  Future<void> _askServer(String sessionId, Map<String, Object?> ask) async {
+    try {
+      final reply = await _sessions.decide(sessionId, ask);
+      if (reply['action'] != ask['rulesDefault']) {
+        debugPrint(
+          'decision: the server chose ${reply['action']}, '
+          'the rules ${ask['rulesDefault']} (kept)',
+        );
+      }
+    } on ApiException catch (e) {
+      debugPrint('decision not asked: $e');
+    }
   }
 
   Voice get voice => _voice;
@@ -305,15 +459,31 @@ class LessonViewModel extends ChangeNotifier {
   bool biggerPad = false;
 
   /// Tapped "Hear it again": always spoken.
-  void readQuestion() => _voice.say(_problem.say);
+  void readQuestion() {
+    _signals.readAloudUsed = true;
+    _voice.say(_problem.say);
+  }
+
+  /// The flag `read_question_aloud`: the question speaks itself as it shows.
+  bool readQuestionAloud = true;
+
+  /// The flag `mastery_badges`: the badge after "case cracked".
+  bool showBadges = true;
+
+  /// Why the lesson opened (`session_started`, DAT-05): the child on their
+  /// own phone, or a grown-up's phone handed over.
+  String launchSource = 'child_opened';
 
   /// The question as it first shows: spoken if read-aloud is on.
   void autoReadQuestion() {
-    if (readAloud) _voice.say(_problem.say);
+    if (readAloud && readQuestionAloud) _voice.say(_problem.say);
   }
 
   /// A line the child asked to hear (a speak button).
-  void say(String text) => _voice.say(text);
+  void say(String text) {
+    _signals.readAloudUsed = true;
+    _voice.say(text);
+  }
 
   /// A line a screen shows on its own (the board's steps, the example):
   /// spoken if read-aloud is on.
@@ -332,10 +502,71 @@ class LessonViewModel extends ChangeNotifier {
     return (left: p.aValue, right: p.diff, subtract: p.big == BigSide.a);
   }
 
-  void sayAgain() => _voice.say(coachText);
+  /// The child, for the practice sums' `/arithmetic` (set by the route).
+  String? childId;
+
+  /// After the walk-through the child types its sum. Wrong: [practice]
+  /// smaller sums of the same kind (policy `practice_if_unsure`, TUT-08),
+  /// then back to the case.
+  SideStage sideStage = SideStage.ownSum;
+  bool ownSumRight = false;
+  List<({String text, int answer, String level})> practice = const [];
+  int practiceAt = 0;
+  int practiceRight = 0;
+  int _itemAt = 0;
+
+  /// Every practice sum was wrong: a kind ending, then back (TUT-18).
+  bool get practiceAllWrong => practice.isNotEmpty && practiceRight == 0;
+
+  Future<void> checkOwnSum(int value) async {
+    final s = sideSum;
+    ownSumRight = value == (s.subtract ? s.left - s.right : s.left + s.right);
+    final id = childId;
+    if (!ownSumRight && id != null) {
+      try {
+        practice = (await _sessions.practiceSums(
+          id,
+        )).take(_pack.practiceSums).toList();
+      } on ApiException catch (e) {
+        // no sums to practise: the answer, then back to the case
+        debugPrint('practice sums not fetched: $e');
+      }
+    }
+    sideStage = practice.isEmpty ? SideStage.back : SideStage.practice;
+    _itemAt = _now();
+    notifyListeners();
+  }
+
+  /// One practice sum typed: logged as `quick_sum_answered` (context
+  /// `side_lesson`).
+  Future<void> answerPractice(int value) async {
+    final item = practice[practiceAt];
+    final correct = value == item.answer;
+    if (correct) practiceRight++;
+    final now = _now();
+    final at = practiceAt++;
+    if (practiceAt == practice.length) sideStage = SideStage.back;
+    notifyListeners();
+    await _record([
+      SpecEvent('quick_sum_answered', {
+        'context': 'side_lesson',
+        'item_id': 'practice-${at + 1}',
+        'level': item.level,
+        'value': value,
+        'correct': correct,
+        'ms_from_item_start': now - _itemAt,
+      }),
+    ]);
+    _itemAt = now;
+  }
+
+  void sayAgain() {
+    _signals.readAloudUsed = true;
+    _voice.say(coachText);
+  }
 
   void dismissStillThere() {
-    stillThere = false;
+    stillThere = tooHard = false;
     notifyListeners();
   }
 
@@ -363,9 +594,15 @@ class LessonViewModel extends ChangeNotifier {
     _ => KnowIt(value),
   });
 
-  /// Starts the next problem the engine chose.
+  /// Starts the next problem the engine chose; with the server's problems,
+  /// one a level easier than this one, from the server.
   void goTo(String problemId) {
-    _problem = _pack.problems[problemId]!;
+    if (_nextProblem != null) {
+      _askLevel = easierLevel(_problem.level);
+      _p = null;
+    } else {
+      _p = _pack.problems[problemId]!;
+    }
     _sessionId = null; // the next start() asks the server for one
     _state = initialState();
     _seq = 0;
@@ -375,6 +612,19 @@ class LessonViewModel extends ChangeNotifier {
     helpAttention = Attention.none;
     glowPiece = showHand = stillThere = false;
     knowPrompt = sideLesson = badgeId = nextProblemId = null;
+    notifyListeners();
+  }
+
+  /// Solved, with the server's problems: the next case is asked for now,
+  /// in this session, while "case cracked" shows. Unreachable, it is
+  /// [newProblem]: the next lesson asks again.
+  Future<void> _fetchNext() async {
+    try {
+      nextProblemId = (await _nextProblem!(_sessionId!)).id;
+    } on ApiException catch (e) {
+      debugPrint('next problem not fetched: $e');
+      nextProblemId = newProblem;
+    }
     notifyListeners();
   }
 
@@ -400,6 +650,10 @@ class LessonViewModel extends ChangeNotifier {
         case OpenSideLesson(:final kind):
           sideLesson = kind;
           knowPrompt = null;
+          sideStage = SideStage.ownSum;
+          ownSumRight = false;
+          practice = const [];
+          practiceAt = practiceRight = 0;
         case AskWhatQuestionAsks():
           knowPrompt = KnowPrompt.whatAsked;
         case OpenRecheck():
@@ -415,7 +669,11 @@ class LessonViewModel extends ChangeNotifier {
         case Solved(:final badgeId, nextProblemId: final next):
           knowPrompt = null;
           this.badgeId = badgeId;
-          nextProblemId = next;
+          if (_nextProblem == null) {
+            nextProblemId = next;
+          } else {
+            _fetchNext();
+          }
       }
     }
     if (_state.knowFlow == KnowFlow.checkingTotal) {
@@ -446,9 +704,18 @@ class LessonViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _sessions.online.removeListener(_onlineChanged);
+    _sessions.ended.removeListener(_endedByServer);
     _voice.resting.removeListener(_voiceResting);
     _ticker?.cancel();
+    unawaited(_sitting.save());
     _voice.stop();
     super.dispose();
   }
+}
+
+/// One level down the ladder (`L4` → `L3`), never below `L1`; null leaves
+/// it to the server.
+String? easierLevel(String? level) {
+  final n = int.tryParse(level?.substring(1) ?? '');
+  return n == null ? null : 'L${n > 1 ? n - 1 : 1}';
 }

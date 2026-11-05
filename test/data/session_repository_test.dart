@@ -40,6 +40,53 @@ void main() {
     await db.close();
   });
 
+  test('a refused event is reported and the outbox moves on', () async {
+    final db = await memoryOutbox();
+    final api = FakeApi()..refuse.add('step_entered');
+    final reported = <String>[];
+    final repo = SessionRepository(
+      db: db,
+      api: api,
+      identity: testIdentity,
+      onRejected: (s, r) => reported.add('$s ${r.join()}'),
+      nowMs: () => 5,
+    );
+    await repo.open();
+    await repo.record('s1', 1, const [step]);
+    expect(reported, ['s1 step_entered: refused']);
+    expect(await db.unsent(), isEmpty);
+    expect(repo.online.value, isTrue);
+    repo.dispose();
+    await db.close();
+  });
+
+  test('a session the server ended is announced and never resumed', () async {
+    final pack = samplePack();
+    final db = await memoryOutbox();
+    final api = FakeApi()..ended['s1'] = 'idle';
+    final repo = SessionRepository(
+      db: db,
+      api: api,
+      identity: testIdentity,
+      nowMs: () => 5,
+    );
+    final lemon = pack.problems['lemon']!;
+    await repo.record(
+      await repo.open(),
+      0,
+      lessonEvents(pack, lemon, const [Started(), BarADrawn()]),
+    );
+    expect(repo.ended.value, 's1');
+    // the case starts again from its question, in a new session
+    expect(await repo.whereNext(pack), (
+      problemId: 'lemon',
+      resumeSessionId: null,
+      startedOn: null,
+    ));
+    repo.dispose();
+    await db.close();
+  });
+
   group('signing out (DEV-06)', () {
     test('sends what is unsent, then keeps no lesson on the phone', () async {
       final db = await memoryOutbox();
@@ -313,6 +360,7 @@ void main() {
         ],
         sameDevice: false,
         startedOn: 'Phone A',
+        closed: false,
       );
       expect(await repo.whereNext(pack), (
         problemId: 'lemon',
@@ -344,6 +392,7 @@ void main() {
         ],
         sameDevice: true,
         startedOn: 'Phone A',
+        closed: false,
       );
       expect((await repo.whereNext(pack))?.startedOn, isNull);
       repo.dispose();

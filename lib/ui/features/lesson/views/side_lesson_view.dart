@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
+import '../../../core/parts/keypad.dart';
 import '../../../core/parts/lesson_header.dart';
 import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
@@ -63,8 +64,38 @@ class _SideLessonViewState extends State<SideLessonView> {
     PlaceStep.addHundreds => [l.lessonAddHundreds(_sum.rightHundreds)],
     PlaceStep.makeTen => [l.lessonMakeATen(_sum.ones)],
     PlaceStep.makeHundred => [l.lessonMakeAHundred(_sum.tens)],
-    PlaceStep.done => [l.lessonSideDone(_sumText, _sum.answer)],
+    PlaceStep.done => [_doneLine(l)],
   };
+
+  /// Once the blocks are worked: type the sum, practise, then back.
+  String _doneLine(AppLocalizations l) {
+    final vm = widget.vm;
+    return switch (vm.sideStage) {
+      SideStage.ownSum => l.sideTypeIt(_sumText),
+      SideStage.practice => l.sidePractice(vm.practice[vm.practiceAt].text),
+      SideStage.back when vm.ownSumRight => l.lessonSideDone(
+        _sumText,
+        _sum.answer,
+      ),
+      SideStage.back when vm.practiceAllWrong => l.sideKindEnd,
+      SideStage.back when vm.practice.isNotEmpty => l.sidePracticeDone,
+      SideStage.back => l.sideAnswerIs(_sumText, _sum.answer),
+    };
+  }
+
+  /// Digits typed so far on the side lesson's keypad.
+  String _typed = '';
+
+  Future<void> _typedIn(String digits) async {
+    final value = int.tryParse(digits);
+    setState(() => _typed = '');
+    if (value == null) return;
+    final vm = widget.vm;
+    await (vm.sideStage == SideStage.ownSum
+        ? vm.checkOwnSum(value)
+        : vm.answerPractice(value));
+    if (mounted) vm.autoSay(_lines(AppLocalizations.of(context)!).join(' '));
+  }
 
   /// Steps done by tapping the blocks; the others have a button.
   PlaceStep? get _tapStep => switch (_sum.step) {
@@ -182,7 +213,20 @@ class _SideLessonViewState extends State<SideLessonView> {
             ),
           ),
           const SizedBox(height: 12),
-          if (_sum.step == PlaceStep.done)
+          if (_sum.step == PlaceStep.done &&
+              widget.vm.sideStage != SideStage.back) ...[
+            Text(
+              _typed.isEmpty ? '?' : _typed,
+              textAlign: TextAlign.center,
+              style: AuraText.title.copyWith(fontSize: 30),
+            ),
+            const SizedBox(height: 8),
+            Keypad(
+              keyHeight: widget.vm.biggerPad ? 64 : 56,
+              onChanged: (s) => setState(() => _typed = s),
+              onCheck: _typedIn,
+            ),
+          ] else if (_sum.step == PlaceStep.done)
             AuraButton(
               label: l.backToProblem,
               color: AuraButtonColor.blue,

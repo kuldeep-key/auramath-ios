@@ -1,6 +1,7 @@
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/child_home/views/home_screen.dart';
 import 'package:auramath/ui/features/child_home/views/welcome_back_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers.dart';
@@ -36,6 +37,26 @@ void main() {
     expect(find.text('went to ${Paths.badges}'), findsOneWidget);
   });
 
+  testWidgets('each button hides while its flag is off', (tester) async {
+    await show(
+      tester,
+      const HomeScreen(name: 'Mira', grownUps: Paths.kids, trail: false),
+    );
+    expect(find.text('My trail'), findsNothing);
+    expect(find.text('My badges'), findsOneWidget);
+    await show(
+      tester,
+      const HomeScreen(
+        name: 'Mira',
+        grownUps: Paths.kids,
+        trail: false,
+        badges: false,
+      ),
+    );
+    expect(find.text('My badges'), findsNothing);
+    expect(find.text('Keep going'), findsOneWidget);
+  });
+
   testWidgets('the lock goes where the role says', (tester) async {
     await show(tester, home);
     await tapAndSettle(tester, find.byTooltip('For grown-ups'));
@@ -62,5 +83,11 @@ void main() {
 
     await show(tester, const WelcomeBackScreen(name: null));
     expect(find.text('Welcome back!'), findsOneWidget);
+  });
+
+  testWidgets('WelcomeBack has a way home (SES-07)', (tester) async {
+    await show(tester, const WelcomeBackScreen(name: 'Mira'));
+    await tapAndSettle(tester, find.byIcon(Icons.home_outlined));
+    expect(find.text('went to ${Paths.home}'), findsOneWidget);
   });
 }
