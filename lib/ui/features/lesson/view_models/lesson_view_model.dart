@@ -18,6 +18,22 @@ enum KnowPrompt { answer, whatAsked, recheck, checkPart, checkTotal }
 enum SideStage { ownSum, practice, back }
 
 /// Replaces each `{key}` in a pack line with its slot value.
+/// The arithmetic level of a side lesson's practice sums: the kind of the
+/// child's own sum, within 100 (policy `practice_if_unsure`: "smaller
+/// numbers ... of the same type"). A carry or a borrow in any column, as
+/// the server counts them, makes it a regrouping level.
+String practiceLevel(({int left, int right, bool subtract}) sum) {
+  var (a, b) = (sum.left, sum.right);
+  var regroups = false;
+  while ((a > 0 || b > 0) && !regroups) {
+    regroups = sum.subtract ? a % 10 < b % 10 : a % 10 + b % 10 >= 10;
+    a ~/= 10;
+    b ~/= 10;
+  }
+  if (sum.subtract) return regroups ? 'A6' : 'A4';
+  return regroups ? 'A5' : 'A3';
+}
+
 String fillLine(String template, Map<String, String> slots) => template
     .replaceAllMapped(RegExp(r'\{(\w+)\}'), (m) => slots[m[1]] ?? m[0]!);
 
@@ -117,7 +133,11 @@ class LessonViewModel extends ChangeNotifier {
   /// The child's answer to [offerLeft]: that case, shown as it was, or
   /// the server's next one.
   Future<void> takeLeft({required bool again}) {
-    if (again) _p = offerLeft;
+    if (again) {
+      _p = offerLeft;
+      // the child chose this case: a check due waits for the next session
+      _sessions.checkShown(_sessionId!);
+    }
     offerLeft = null;
     return start();
   }
@@ -143,6 +163,8 @@ class LessonViewModel extends ChangeNotifier {
       final sessionId = _sessionId ??= await _openSession();
       final next = _nextProblem;
       if (_p == null && next != null) {
+        // a new child's four starting sums come first (SKL-07)
+        if (await _startingCheck(sessionId)) return;
         // a case left last time: offered back first (SES-06)
         final left = _sessions.leftProblem(_pack, sessionId);
         if (left != null) {
@@ -152,7 +174,12 @@ class LessonViewModel extends ChangeNotifier {
         }
         _p = await next(sessionId, level: _askLevel);
         _askLevel = null;
+      } else if (next != null && _sessions.checkDue(sessionId)) {
+        // a case fetched ahead last session: the check due here comes first
+        _p = await next(sessionId);
       }
+      // the session's first case is known: a fetch ahead isn't the check
+      _sessions.checkShown(sessionId);
     } on ApiException catch (e) {
       startError = e;
       notifyListeners();
@@ -172,6 +199,86 @@ class LessonViewModel extends ChangeNotifier {
       problemShown(_problem),
     ];
     await _record(events);
+  }
+
+  /// The starting check's four sums (SKL-07), while a new child does them
+  /// before the first case; empty once done, or when there's none.
+  List<Sum> startingSums = const [];
+  int startingAt = 0;
+  int _startingRight = 0;
+  bool _startingChecked = false;
+
+  /// The child is on the starting sums: no case yet.
+  bool get inStartingCheck =>
+      startingSums.isNotEmpty && startingAt < startingSums.length;
+
+  /// True while the child is on the starting sums. Loads them the first
+  /// time; once all four are typed, sends the result, and the case is asked
+  /// at the level the server places the child at.
+  Future<bool> _startingCheck(String sessionId) async {
+    final id = childId;
+    if (id == null || _startingChecked) return false;
+    if (!_sessions.startingCheckDue(sessionId)) return false;
+    if (startingSums.isEmpty) {
+      try {
+        startingSums = await _sessions.startingSums(id);
+      } on ApiException catch (e) {
+        if (e.offline) rethrow;
+        // no sums (throttled, a server error): the case starts at the age's
+        // level, and we hear about it
+        _sessions.failed(sessionId, 'starting sums not fetched: $e');
+      }
+      if (startingSums.isEmpty) {
+        _startingChecked = true;
+        return false;
+      }
+      startingAt = _startingRight = 0;
+      _itemAt = _now();
+    }
+    if (inStartingCheck) {
+      notifyListeners();
+      return true;
+    }
+    try {
+      _askLevel = await _sessions.sendStartingCheck(
+        sessionId,
+        id,
+        correct: _startingRight,
+      );
+    } on ApiException catch (e) {
+      if (e.offline) rethrow;
+      // not placed: the case starts at the level the server already has,
+      // the four answers are in the log, and we hear about it
+      _sessions.failed(sessionId, 'starting check not sent: $e');
+    }
+    _startingChecked = true;
+    startingSums = const [];
+    return false;
+  }
+
+  /// One starting sum typed: logged as `placement_answered`, with its time
+  /// (never shown). After the last one the lesson starts.
+  Future<void> answerStarting(int value) async {
+    final item = startingSums[startingAt];
+    final correct = value == item.answer;
+    if (correct) _startingRight++;
+    final now = _now();
+    final at = startingAt++;
+    notifyListeners();
+    // saved without waiting on the network, so the next sum is heard at
+    // once; the last one is waited for before the case starts
+    final saving = _record([
+      SpecEvent('placement_answered', {
+        'item_id': 'start-${at + 1}',
+        'value': value,
+        'correct': correct,
+        'ms_from_item_start': now - _itemAt,
+      }),
+    ]);
+    _itemAt = now;
+    if (inStartingCheck) return unawaited(saving);
+    await saving;
+    await start();
   }
 
   Future<void> _record(List<SpecEvent> events) async {
@@ -351,9 +458,9 @@ class LessonViewModel extends ChangeNotifier {
 
   Future<void> send(LessonInput input) async {
     final sessionId = _sessionId;
-    // no session yet, paused for the connection, or over: the board isn't
-    // live
-    if (sessionId == null || !online || endedByServer) return;
+    // no session yet, no case yet (the starting sums, a left case on
+    // offer), paused for the connection, or over: the board isn't live
+    if (sessionId == null || _p == null || !online || endedByServer) return;
     final r = step(_pack, _problem, _state, input);
     if (identical(r.state, _state) && r.decisions.isEmpty) return;
     final now = _now();
@@ -397,9 +504,8 @@ class LessonViewModel extends ChangeNotifier {
     }
     _state = r.state;
     _seq += events.length;
-    // solved: the session ends as finished (SES-01), its seq taken now so
-    // a tick meanwhile can't take it
-    final endAt = r.decisions.any((d) => d is Solved) ? _seq++ : null;
+    final solved = r.decisions.any((d) => d is Solved);
+    final reads = _heldReads = [];
     _apply(r.decisions);
     // back from a side lesson opened on "check one part": that sheet again
     if (input is SideLessonDone && _state.knowFlow == KnowFlow.checkingPart) {
@@ -409,8 +515,14 @@ class LessonViewModel extends ChangeNotifier {
     if (stepLine != null && !r.decisions.any((d) => d is Coach)) {
       _coach(stepLine, const {});
     }
+    // lines read aloud on this step follow its events, in this session
+    _heldReads = null;
+    if (_sessionId == sessionId) _seq += reads.length;
+    // solved: the session ends as finished (SES-01), after this step's
+    // events and reads; its seq taken now so a tick meanwhile can't take it
+    final endAt = solved && _sessionId == sessionId ? _seq++ : null;
     notifyListeners();
-    await _sessions.record(sessionId, first, events);
+    await _sessions.record(sessionId, first, [...events, ...reads]);
     for (final ask in asks) {
       unawaited(_askServer(sessionId, ask));
     }
@@ -467,7 +579,7 @@ class LessonViewModel extends ChangeNotifier {
   /// Tapped "Hear it again": always spoken.
   void readQuestion() {
     _signals.readAloudUsed = true;
-    _voice.say(_problem.say);
+    _speak(_problem.say, 'question');
   }
 
   /// The flag `read_question_aloud`: the question speaks itself as it shows.
@@ -482,19 +594,39 @@ class LessonViewModel extends ChangeNotifier {
 
   /// The question as it first shows: spoken if read-aloud is on.
   void autoReadQuestion() {
-    if (readAloud && readQuestionAloud) _voice.say(_problem.say);
+    if (readAloud && readQuestionAloud) _speak(_problem.say, 'question');
   }
 
-  /// A line the child asked to hear (a speak button).
-  void say(String text) {
+  /// A line the child asked to hear (a speak button). [target] is what
+  /// `read_aloud_played` says was read: the question, else a helping line.
+  void say(String text, {String target = 'hint'}) {
     _signals.readAloudUsed = true;
-    _voice.say(text);
+    _speak(text, target);
   }
 
   /// A line a screen shows on its own (the board's steps, the example):
   /// spoken if read-aloud is on.
-  void autoSay(String text) {
-    if (readAloud) _voice.say(text);
+  void autoSay(String text, {String target = 'hint'}) {
+    if (readAloud) _speak(text, target);
+  }
+
+  /// Set while [send] works out a step: lines read then are saved after
+  /// its events, so the seqs stay in order.
+  List<SpecEvent>? _heldReads;
+
+  /// Reads [text] aloud and logs `read_aloud_played` (NFR-08): its target
+  /// only, never the words, so no name or child text is in the log.
+  void _speak(String text, String target) {
+    _voice.say(text);
+    // nothing to hear: an empty line, or the phone's voice isn't working
+    if (text.isEmpty || _voice.resting.value) return;
+    final played = SpecEvent('read_aloud_played', {'target': target});
+    final held = _heldReads;
+    if (held != null) {
+      held.add(played);
+    } else {
+      unawaited(_record([played]));
+    }
   }
 
   /// The sum the side lesson works through: the one the child was on.
@@ -516,7 +648,7 @@ class LessonViewModel extends ChangeNotifier {
   /// then back to the case.
   SideStage sideStage = SideStage.ownSum;
   bool ownSumRight = false;
-  List<({String text, int answer, String level})> practice = const [];
+  List<Sum> practice = const [];
   int practiceAt = 0;
   int practiceRight = 0;
   int _itemAt = 0;
@@ -532,6 +664,7 @@ class LessonViewModel extends ChangeNotifier {
       try {
         practice = (await _sessions.practiceSums(
           id,
+          level: practiceLevel(s),
         )).take(_pack.practiceSums).toList();
       } on ApiException catch (e) {
         // no sums to practise: the answer, then back to the case
@@ -568,7 +701,7 @@ class LessonViewModel extends ChangeNotifier {
 
   void sayAgain() {
     _signals.readAloudUsed = true;
-    _voice.say(coachText);
+    _speak(coachText, 'hint');
   }
 
   void dismissStillThere() {

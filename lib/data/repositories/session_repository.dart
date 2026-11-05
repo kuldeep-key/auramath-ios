@@ -10,6 +10,10 @@ import '../models/server_problem.dart';
 import '../services/api.dart';
 import '../services/outbox_db.dart';
 
+/// A sum from the server's arithmetic generator: its text ("56 - 19 = ?"),
+/// answer and arithmetic level (`A6`).
+typedef Sum = ({String text, int answer, String level});
+
 /// The lesson's record, online-first: the server opens each session and
 /// names its child; every event is saved on the phone first, then sent,
 /// and held and resent through a dropped connection.
@@ -19,6 +23,7 @@ class SessionRepository {
     required this._api,
     required this.identity,
     this.onRejected,
+    this.onFailed,
     this.template,
     String Function()? newId,
     int Function()? nowMs,
@@ -35,6 +40,22 @@ class SessionRepository {
   /// contract change. Resending can't fix them, so they're reported, and
   /// the outbox moves on (the rest of their batch was stored).
   final void Function(String sessionId, List<String> rejected)? onRejected;
+
+  /// A call that failed for a reason other than the network, which the
+  /// lesson worked around: reported, so it isn't only a debug line.
+  final void Function(String sessionId, String message)? onFailed;
+
+  void failed(String sessionId, String message) {
+    debugPrint(message);
+    onFailed?.call(sessionId, message);
+  }
+
+  /// A spaced check or re-test is due as [sessionId]'s first case.
+  bool checkDue(String sessionId) => _checks.containsKey(sessionId);
+
+  /// [sessionId]'s first case is shown: a case fetched ahead in it is never
+  /// the check (the next session asks for its own).
+  void checkShown(String sessionId) => _checks.remove(sessionId);
 
   /// Julia's comparison template (served, else bundled): draws a left case
   /// from its ids and numbers, as the first phone did.
@@ -71,13 +92,21 @@ class SessionRepository {
       isDemo: identity.isDemo,
     );
     _childRefs[s.sessionId] = s.childRef;
-    if (s.checkLevel != null) _checkLevels[s.sessionId] = s.checkLevel!;
+    if (s.checkLevel != null || s.retestDueAt != null) {
+      _checks[s.sessionId] = s.checkLevel;
+    }
+    if (s.startingCheckDue) _startingChecks.add(s.sessionId);
     if (s.leftProblem != null) _left[s.sessionId] = s.leftProblem!;
     return s.sessionId;
   }
 
-  /// A spaced check due when the session opened: its first problem only.
-  final Map<String, String> _checkLevels = {};
+  /// A spaced check or re-test due when the session opened: its first
+  /// problem only, at the check's level (a re-test has none: the child's
+  /// own level).
+  final Map<String, String?> _checks = {};
+
+  /// Sessions opened with the starting check still to do (SKL-07).
+  final Set<String> _startingChecks = {};
   final Map<String, Map<String, Object?>> _left = {};
 
   /// The problem the child left last time, which [sessionId] offers back
@@ -98,17 +127,23 @@ class SessionRepository {
 
   /// The server's next problem for [sessionId], saved on the phone (a
   /// resume rebuilds it) and added to [pack] for the lesson's screens.
-  /// [level] asks one at that level ("something easier"); else the first
-  /// problem of a session with a spaced check due is at the check's level.
+  /// [level] asks one at that level ("something easier", the starting
+  /// check's placement); else the first problem of a session with a spaced
+  /// check or re-test due is that check, at its level, shown with `variant:
+  /// check` so the server counts it as the check (SKL-06).
   Future<ComparisonProblem> nextProblem(
     Pack pack,
     String sessionId, {
     String? level,
   }) async {
-    final j = await _api.nextProblem(
-      sessionId,
-      level: level ?? _checkLevels.remove(sessionId),
-    );
+    final check = level == null && _checks.containsKey(sessionId);
+    final checkLevel = _checks[sessionId];
+    final j = {
+      ...await _api.nextProblem(sessionId, level: level ?? checkLevel),
+      if (check) 'variant': 'check',
+    };
+    // gone only once fetched: offline, Try again asks for the check again
+    if (check) _checks.remove(sessionId);
     final problem = problemFromServer(j);
     await _db.saveProblem(problem.id, j);
     _serve(pack, problem);
@@ -116,17 +151,47 @@ class SessionRepository {
   }
 
   /// Smaller sums to practise after a side lesson (TUT-08), as
-  /// `(text, answer, level)`.
-  Future<List<({String text, int answer, String level})>> practiceSums(
+  /// `(text, answer, level)`, at arithmetic [level] (the server needs one).
+  Future<List<Sum>> practiceSums(String childId, {required String level}) =>
+      _sums(childId, 'side_lesson', level: level);
+
+  Future<List<Sum>> _sums(
     String childId,
-  ) async => [
-    for (final i in await _api.arithmetic(childId, purpose: 'side_lesson'))
+    String purpose, {
+    String? level,
+  }) async => [
+    for (final i in await _api.arithmetic(
+      childId,
+      purpose: purpose,
+      level: level,
+    ))
       (
         text: i['text']! as String,
         answer: i['answer']! as int,
         level: i['level']! as String,
       ),
   ];
+
+  /// True while [sessionId]'s starting check is still to do.
+  bool startingCheckDue(String sessionId) =>
+      _startingChecks.contains(sessionId);
+
+  /// The four starting sums for the child's age (SKL-07), as
+  /// `(text, answer, level)`.
+  Future<List<Sum>> startingSums(String childId) =>
+      _sums(childId, 'starting_check');
+
+  /// Sends how many starting sums were right; the level the server placed
+  /// the child at. The check is then done for [sessionId].
+  Future<String> sendStartingCheck(
+    String sessionId,
+    String childId, {
+    required int correct,
+  }) async {
+    final level = await _api.startingCheck(childId, correct: correct);
+    _startingChecks.remove(sessionId);
+    return level;
+  }
 
   /// The server's choice at a decision point (online only; never queued).
   Future<Map<String, Object?>> decide(
@@ -206,7 +271,8 @@ class SessionRepository {
   Future<void> forget() async {
     _retry?.cancel();
     _childRefs.clear();
-    _checkLevels.clear();
+    _checks.clear();
+    _startingChecks.clear();
     _left.clear();
     for (final (pack, id) in _served) {
       pack.problems.remove(id);

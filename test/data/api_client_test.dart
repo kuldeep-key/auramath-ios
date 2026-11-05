@@ -93,11 +93,74 @@ void main() {
           );
         }),
       );
-      final items = await api.arithmetic('c1', purpose: 'side_lesson');
-      expect(asked, '/api/children/c1/arithmetic {"purpose":"side_lesson"}');
+      final items = await api.arithmetic(
+        'c1',
+        purpose: 'side_lesson',
+        level: 'A6',
+      );
+      // the server refuses a side lesson's sums without a level (400)
+      expect(
+        asked,
+        '/api/children/c1/arithmetic {"purpose":"side_lesson","level":"A6"}',
+      );
       expect(items.single['answer'], 37);
     },
   );
+
+  test('a new session reads the starting check, a re-test and a spaced '
+      'check due', () async {
+    // POST /api/sessions as the backend answers it (sessions.py)
+    final api = HttpApi(
+      clientFor(
+        (_) async => http.Response(
+          '{"id":"s1","childRef":"ch_abc12345","level":"L4",'
+          '"levelSource":"age","startingCheckDue":true,'
+          '"retestDue":{"dueAt":1791000000000},'
+          '"spacedCheckDue":{"questionType":"cmp.comparison","level":"L3",'
+          '"intervalDays":7},"leftProblem":null}',
+          200,
+        ),
+      ),
+    );
+    final s = await api.startSession(childId: 'c1', isDemo: false);
+    expect(s.startingCheckDue, isTrue);
+    expect(s.retestDueAt, 1791000000000);
+    expect(s.checkLevel, 'L3');
+  });
+
+  test('none due: nulls and false', () async {
+    final api = HttpApi(
+      clientFor(
+        (_) async => http.Response(
+          '{"id":"s1","childRef":"ch_abc12345","startingCheckDue":false,'
+          '"retestDue":null,"spacedCheckDue":null,"leftProblem":null}',
+          200,
+        ),
+      ),
+    );
+    final s = await api.startSession(isDemo: false);
+    expect(
+      (s.startingCheckDue, s.retestDueAt, s.checkLevel),
+      (false, null, null),
+    );
+  });
+
+  test("the starting check's result is sent, and the server's level read "
+      'back', () async {
+    String? asked;
+    final api = HttpApi(
+      clientFor((r) async {
+        asked = '${r.url.path} ${r.body}';
+        return http.Response(
+          '{"childId":"c1","questionType":"cmp.comparison","level":"L3",'
+          '"levelSource":"starting_check","startingCheckDue":false}',
+          200,
+        );
+      }),
+    );
+    expect(await api.startingCheck('c1', correct: 2), 'L3');
+    expect(asked, '/api/children/c1/starting-check {"correct":2}');
+  });
 
   test("a full log (413) ends the session, it isn't an outage", () async {
     final api = HttpApi(

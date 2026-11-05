@@ -44,6 +44,14 @@ typedef StartedSession = ({
   /// A spaced check is due at this level.
   String? checkLevel,
 
+  /// A re-test of the skill is due (since this time, epoch ms): the first
+  /// problem is a check at the child's level (SKL-06, `retestDue`).
+  int? retestDueAt,
+
+  /// The child hasn't done the starting check yet (SKL-07): the four sums
+  /// come before the first case.
+  bool startingCheckDue,
+
   /// A problem the child left last time, to offer back: `{id, problemId,
   /// problem, stepId, leftAt, ...}`, `problem` as it was shown.
   Map<String, Object?>? leftProblem,
@@ -76,10 +84,18 @@ abstract interface class Api {
   );
 
   /// `POST /api/children/{id}/arithmetic`: sums for [purpose]
-  /// (`side_lesson`: smaller ones of the kind just practised), each
+  /// (`side_lesson`: smaller ones of the kind just practised;
+  /// `starting_check`: the four for the child's age), each
   /// `{level, skill, op, a, b, answer, text}`.
   Future<List<Map<String, Object?>>> arithmetic(
     String childId, {
     required String purpose,
+    String? level,
   });
+
+  /// `POST /api/children/{id}/starting-check {correct}`: how many of the
+  /// four starting sums were right. The server sets the child's level from
+  /// its placement table and returns it (once; a second result changes
+  /// nothing).
+  Future<String> startingCheck(String childId, {required int correct});
 }

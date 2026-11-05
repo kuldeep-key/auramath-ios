@@ -7,6 +7,10 @@ class FakeApi implements Api {
   /// How many calls fail before the next one succeeds.
   int failNext = 0;
 
+  /// The starting check's calls answer this server error instead (a 5xx or
+  /// 429: not offline).
+  ApiException? startingRefused;
+
   final List<LessonEvent> received = [];
   final List<(String, List<LessonEvent>)> batches = [];
   final Set<(String, int)> _seen = {};
@@ -29,6 +33,8 @@ class FakeApi implements Api {
       sessionId: id,
       childRef: childId == null ? childRef : childRefFor(childId),
       checkLevel: checkLevel,
+      retestDueAt: retestDueAt,
+      startingCheckDue: startingCheckDue,
       leftProblem: leftProblem,
     );
   }
@@ -37,6 +43,13 @@ class FakeApi implements Api {
 
   /// A spaced check due at this level, as the next session says.
   String? checkLevel;
+
+  /// A re-test due since this time, as the next session says.
+  int? retestDueAt;
+
+  /// The starting check is still to do, as every session says until its
+  /// result is in.
+  bool startingCheckDue = false;
 
   /// A problem the child left, as the next session offers it back.
   Map<String, Object?>? leftProblem;
@@ -77,16 +90,42 @@ class FakeApi implements Api {
     };
   }
 
-  /// What `/arithmetic` hands out; empty: the server can't (404).
+  /// What `/arithmetic` hands out (the starting check's own in
+  /// [startingSums]); empty: the server can't (404).
   final List<Map<String, Object?>> sums = [];
+  final List<Map<String, Object?>> startingSums = [];
+
+  /// The `level` each `/arithmetic` call asked for, in order.
+  final List<String?> sumLevels = [];
 
   @override
   Future<List<Map<String, Object?>>> arithmetic(
     String childId, {
     required String purpose,
+    String? level,
   }) async {
-    if (sums.isEmpty) throw const ApiException('no route', status: 404);
-    return sums;
+    sumLevels.add(level);
+    final out = purpose == 'starting_check' ? startingSums : sums;
+    if (out.isEmpty) throw const ApiException('no route', status: 404);
+    return out;
+  }
+
+  /// Each starting check result sent, as `(childId, correct)`.
+  final List<(String, int)> startingChecks = [];
+
+  /// The level the server places the child at after the starting check.
+  String placedAt = 'L3';
+
+  @override
+  Future<String> startingCheck(String childId, {required int correct}) async {
+    if (failNext > 0) {
+      failNext--;
+      throw const ApiException('offline');
+    }
+    if (startingRefused case final e?) throw e;
+    startingChecks.add((childId, correct));
+    startingCheckDue = false;
+    return placedAt;
   }
 
   /// What `resumable` answers; null = no unfinished case on the server.

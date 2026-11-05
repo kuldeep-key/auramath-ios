@@ -26,6 +26,17 @@ void main() {
     );
   }
 
+  test('practice sums are the kind of the child\'s own sum, within 100', () {
+    // 186 - 107: a borrow in the ones, as Julia's 56 - 19
+    expect(practiceLevel((left: 186, right: 107, subtract: true)), 'A6');
+    expect(practiceLevel((left: 79, right: 35, subtract: true)), 'A4');
+    expect(practiceLevel((left: 186, right: 79, subtract: false)), 'A5');
+    expect(practiceLevel((left: 58, right: 37, subtract: false)), 'A5');
+    expect(practiceLevel((left: 41, right: 23, subtract: false)), 'A3');
+    // a borrow in the tens only still counts
+    expect(practiceLevel((left: 315, right: 172, subtract: true)), 'A6');
+  });
+
   test('fillLine fills all slots', () {
     expect(
       fillLine('Is the {b} {d} {u} tall?', {
@@ -76,7 +87,7 @@ void main() {
     final vm = await makeVm();
     await vm.send(const Started());
     await vm.send(const NumberEntered(79)); // not valid while drawing
-    expect(vm.recorded, 1);
+    expect(vm.recorded, 2); // its event, and its line read aloud
     expect(vm.state.step, LessonStep.drawA);
     expect(vm.coachText, 'Drag a bar up here.');
     vm.dispose();
@@ -115,10 +126,10 @@ void main() {
     await vm.send(const Started());
     now = 5000;
     await vm.tick();
-    expect(vm.recorded, 1);
+    expect(vm.recorded, 2); // Started, and its line read aloud
     now = 16000;
     await vm.tick();
-    expect(vm.recorded, 2);
+    expect(vm.recorded, 3);
     expect(vm.helpAttention, Attention.pulse);
     vm.dispose();
   });
@@ -154,7 +165,13 @@ void main() {
     final seqs = [for (final e in await db.forSession('s1')) e.seq];
     expect(seqs, List.generate(seqs.length, (i) => i));
     expect(second.recorded, seqs.length);
-    expect((await db.forSession('s1')).last.name, 'session_resumed');
+    expect(
+      [for (final e in await db.forSession('s1')) e.name].reversed.take(2),
+      [
+        'read_aloud_played', // the welcome back line
+        'session_resumed',
+      ],
+    );
     // Figma M1-pause: the coach greets the child back to their drawing
     expect(second.coachText, 'Welcome back. Here is your drawing.');
     second.dispose();
@@ -184,10 +201,10 @@ void main() {
     expect(
       [for (final e in await db.forSession('s1')) e.seq],
       [
-        0, 1, 5, 6, 7, 8, 9, //
+        0, 1, 5, 6, 7, 8, 9, 10, 11, // 9 and 11: lines read aloud
       ],
     );
-    expect(vm.recorded, 10);
+    expect(vm.recorded, 12);
     vm.dispose();
   });
 

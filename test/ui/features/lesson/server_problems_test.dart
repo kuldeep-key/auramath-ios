@@ -4,39 +4,8 @@ import 'package:auramath/ui/features/lesson/view_models/sitting.dart';
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../data/helpers.dart' show expectContract;
 import 'fakes.dart';
-
-/// `problems/next` as the dev server answered it (integration guide, 4 Nov).
-Map<String, Object?> served({
-  String id = 'g_1',
-  String level = 'L4',
-  String relation = 'taller',
-  int a = 186,
-  int d = 107,
-}) => {
-  'problemId': id,
-  'templateId': 'cmp.comparison',
-  'templateVersion': '0.3.0',
-  'storyId': 'lemon-fig',
-  'relation': relation,
-  'level': level,
-  'variant': 'standard',
-  'numbers': {'A': a, 'D': d},
-  'story': {
-    'a': 'lemon tree',
-    'b': 'fig tree',
-    'kind': 'tree',
-    'plural': 'trees',
-    'unit': 'cm',
-    'quantity': 'height',
-  },
-  'questionText':
-      'The lemon tree is $a cm tall. It is $d cm $relation than the fig '
-      'tree. What is the total height of the two trees?',
-  'expected': {'B': relation == 'taller' ? a - d : a + d, 'total': 0},
-  'hints': <Object>[],
-  'source': 'code',
-};
 
 void main() {
   test("a served problem becomes the engine's, its fields kept", () {
@@ -153,6 +122,18 @@ void main() {
       'stepId': 'find_unknown',
     };
 
+    test(
+      'a left case taken again stays the case, even with a check due',
+      () async {
+        final (vm, asked) = await makeVm(left: left(), checkLevel: 'L2');
+        addTearDown(vm.dispose);
+        await vm.start();
+        await vm.takeLeft(again: true);
+        expect(vm.problem.id, 'g_left');
+        expect(asked, isEmpty);
+      },
+    );
+
     test('a case left on another phone is drawn from the template, offered '
         'back, and taken without asking for another (SES-06)', () async {
       final (vm, asked) = await makeVm(left: left());
@@ -184,7 +165,8 @@ void main() {
       expect(vm.problem.id, 'g_1');
     });
 
-    test('a spaced check due asks its level for the first problem', () async {
+    test('a spaced check due asks its level for the first problem, shown '
+        'as the check', () async {
       final (vm, asked) = await makeVm(
         checkLevel: 'L2',
         problems: [
@@ -194,7 +176,107 @@ void main() {
       );
       await vm.start();
       expect(asked.single.$2, 'L2');
+      expect(vm.problem.variant, 'check');
       vm.dispose();
+    });
+
+    test('a case fetched ahead last session gives way to the check due now; '
+        'the next fetch ahead is standard', () async {
+      final pack = samplePack();
+      final (sessions, _, api) = await memorySessions(withTemplate: true);
+      api.problems.addAll([
+        served(),
+        served(id: 'g_2'),
+        served(id: 'g_3'),
+        served(id: 'g_4'),
+      ]);
+      // session 1, no check: its case, then the next fetched ahead
+      final s1 = await sessions.open();
+      await sessions.nextProblem(pack, s1);
+      final ahead = await sessions.nextProblem(pack, s1);
+      // session 2 opens with a check due and the case fetched ahead
+      api.checkLevel = 'L2';
+      final vm = LessonViewModel(
+        pack: pack,
+        problemId: ahead.id,
+        sessions: sessions,
+        voice: FakeVoice(),
+        nowMs: () => 0,
+        openSession: sessions.open,
+        nextProblem: (s, {level}) =>
+            sessions.nextProblem(pack, s, level: level),
+        sitting: Sitting(capMs: 30 * 60 * 1000),
+        tickEvery: null,
+      );
+      addTearDown(vm.dispose);
+      await vm.start();
+      expect(vm.problem.variant, 'check');
+      expect(api.asked.last.$2, 'L2');
+      // the end-of-case fetch ahead in this session isn't a check
+      final next = await sessions.nextProblem(pack, vm.sessionId);
+      expect(next.variant, 'standard');
+    });
+
+    test(
+      'offline fetching the check: Try again still gets the check',
+      () async {
+        final pack = samplePack();
+        final (sessions, _, api) = await memorySessions(withTemplate: true);
+        api
+          ..checkLevel = 'L2'
+          ..problems.add(served());
+        final sessionId = await sessions.open();
+        api.failNext = 1; // the problem fetch, not the session
+        final vm = LessonViewModel(
+          pack: pack,
+          problemId: LessonViewModel.newProblem,
+          sessionId: sessionId,
+          sessions: sessions,
+          voice: FakeVoice(),
+          nowMs: () => 0,
+          openSession: sessions.open,
+          nextProblem: (s, {level}) =>
+              sessions.nextProblem(pack, s, level: level),
+          sitting: Sitting(capMs: 30 * 60 * 1000),
+          tickEvery: null,
+        );
+        addTearDown(vm.dispose);
+        await vm.start();
+        expect(vm.startError, isNotNull);
+        await vm.start();
+        expect(vm.problem.variant, 'check');
+        expect(api.asked.last.$2, 'L2');
+      },
+    );
+
+    test('a re-test due (retestDue) makes the first problem a check at the '
+        "child's level, logged as variant check; the next is standard "
+        '(SKL-06)', () async {
+      final pack = samplePack();
+      final (sessions, _, api) = await memorySessions(withTemplate: true);
+      api
+        ..retestDueAt = 1791000000000
+        ..problems.addAll([served(), served(id: 'g_2')]);
+      final vm = LessonViewModel(
+        pack: pack,
+        problemId: LessonViewModel.newProblem,
+        sessions: sessions,
+        voice: FakeVoice(),
+        nowMs: () => 0,
+        openSession: sessions.open,
+        nextProblem: (s, {level}) =>
+            sessions.nextProblem(pack, s, level: level),
+        sitting: Sitting(capMs: 30 * 60 * 1000),
+        tickEvery: null,
+      );
+      addTearDown(vm.dispose);
+      await vm.start();
+      expect(api.asked.single.$2, isNull); // the server's own level
+      final shown = api.received.where((e) => e.name == 'problem_shown');
+      expect(shown.single.payload['variant'], 'check');
+      expectContract(api.received);
+      final next = await sessions.nextProblem(pack, vm.sessionId);
+      expect(next.variant, 'standard');
     });
 
     test('something easier asks one level down, in a new session', () async {

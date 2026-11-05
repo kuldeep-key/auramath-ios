@@ -520,6 +520,24 @@ abstract class AppLocalizations {
   /// **'{sum} = {answer}. Now back to the case.'**
   String sideAnswerIs(String sum, int answer);
 
+  /// No description provided for @lessonWarmUpStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s warm up with a few sums. No rush!'**
+  String get lessonWarmUpStart;
+
+  /// No description provided for @lessonWarmUpNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Here\'s another sum.'**
+  String get lessonWarmUpNext;
+
+  /// Read aloud in place of the ? in a warm-up sum: '56 - 19 = what'
+  ///
+  /// In en, this message translates to:
+  /// **'what'**
+  String get lessonWarmUpBlank;
+
   /// No description provided for @lessonLostInternetBody.
   ///
   /// In en, this message translates to:
