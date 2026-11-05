@@ -114,6 +114,19 @@ class SessionRepository {
     return problem;
   }
 
+  /// Smaller sums to practise after a side lesson (TUT-08), as
+  /// `(text, answer, level)`.
+  Future<List<({String text, int answer, String level})>> practiceSums(
+    String childId,
+  ) async => [
+    for (final i in await _api.arithmetic(childId, purpose: 'side_lesson'))
+      (
+        text: i['text']! as String,
+        answer: i['answer']! as int,
+        level: i['level']! as String,
+      ),
+  ];
+
   /// The server's choice at a decision point (online only; never queued).
   Future<Map<String, Object?>> decide(
     String sessionId,

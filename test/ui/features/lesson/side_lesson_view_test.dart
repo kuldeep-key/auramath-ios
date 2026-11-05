@@ -1,5 +1,6 @@
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
 import 'package:auramath/ui/features/lesson/view_models/sitting.dart';
+import 'package:auramath/ui/core/parts/keypad.dart';
 import 'package:auramath/ui/features/lesson/views/side_lesson_view.dart';
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +60,27 @@ void main() {
     await tester.tap(find.text('Do it')); // take away 7 ones
     await tester.pump();
     await tester.tap(find.text('Do it')); // take away 1 hundred
+    await tester.pump();
+    // the child types the sum the blocks just worked
+    expect(find.text('So what is 186 − 107? Type it in.'), findsNWidgets(2));
+    expect(find.byType(Keypad), findsOneWidget);
+    // the keypad under the worked blocks fits a small phone
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    tester.view.reset();
+    await tester.pump();
+    await tester.runAsync(() async {
+      for (final d in ['7', '9']) {
+        await tester.tap(
+          find.descendant(of: find.byType(Keypad), matching: find.text(d)),
+        );
+      }
+      await tester.tap(find.byIcon(Icons.check_rounded));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    });
     await tester.pump();
     // in the coach's bubble and under the board, as Figma does
     expect(find.text('186 − 107 = 79. You did it!'), findsNWidgets(2));

@@ -13,6 +13,10 @@ import 'step_decision.dart';
 /// Which answer sheet is open during "I know it".
 enum KnowPrompt { answer, whatAsked, recheck, checkPart, checkTotal }
 
+/// Where a side lesson is once its blocks are worked: the child types the
+/// sum, practises a few if it was wrong, then goes back.
+enum SideStage { ownSum, practice, back }
+
 /// Replaces each `{key}` in a pack line with its slot value.
 String fillLine(String template, Map<String, String> slots) => template
     .replaceAllMapped(RegExp(r'\{(\w+)\}'), (m) => slots[m[1]] ?? m[0]!);
@@ -498,6 +502,64 @@ class LessonViewModel extends ChangeNotifier {
     return (left: p.aValue, right: p.diff, subtract: p.big == BigSide.a);
   }
 
+  /// The child, for the practice sums' `/arithmetic` (set by the route).
+  String? childId;
+
+  /// After the walk-through the child types its sum. Wrong: [practice]
+  /// smaller sums of the same kind (policy `practice_if_unsure`, TUT-08),
+  /// then back to the case.
+  SideStage sideStage = SideStage.ownSum;
+  bool ownSumRight = false;
+  List<({String text, int answer, String level})> practice = const [];
+  int practiceAt = 0;
+  int practiceRight = 0;
+  int _itemAt = 0;
+
+  /// Every practice sum was wrong: a kind ending, then back (TUT-18).
+  bool get practiceAllWrong => practice.isNotEmpty && practiceRight == 0;
+
+  Future<void> checkOwnSum(int value) async {
+    final s = sideSum;
+    ownSumRight = value == (s.subtract ? s.left - s.right : s.left + s.right);
+    final id = childId;
+    if (!ownSumRight && id != null) {
+      try {
+        practice = (await _sessions.practiceSums(
+          id,
+        )).take(_pack.practiceSums).toList();
+      } on ApiException catch (e) {
+        // no sums to practise: the answer, then back to the case
+        debugPrint('practice sums not fetched: $e');
+      }
+    }
+    sideStage = practice.isEmpty ? SideStage.back : SideStage.practice;
+    _itemAt = _now();
+    notifyListeners();
+  }
+
+  /// One practice sum typed: logged as `quick_sum_answered` (context
+  /// `side_lesson`).
+  Future<void> answerPractice(int value) async {
+    final item = practice[practiceAt];
+    final correct = value == item.answer;
+    if (correct) practiceRight++;
+    final now = _now();
+    final at = practiceAt++;
+    if (practiceAt == practice.length) sideStage = SideStage.back;
+    notifyListeners();
+    await _record([
+      SpecEvent('quick_sum_answered', {
+        'context': 'side_lesson',
+        'item_id': 'practice-${at + 1}',
+        'level': item.level,
+        'value': value,
+        'correct': correct,
+        'ms_from_item_start': now - _itemAt,
+      }),
+    ]);
+    _itemAt = now;
+  }
+
   void sayAgain() {
     _signals.readAloudUsed = true;
     _voice.say(coachText);
@@ -588,6 +650,10 @@ class LessonViewModel extends ChangeNotifier {
         case OpenSideLesson(:final kind):
           sideLesson = kind;
           knowPrompt = null;
+          sideStage = SideStage.ownSum;
+          ownSumRight = false;
+          practice = const [];
+          practiceAt = practiceRight = 0;
         case AskWhatQuestionAsks():
           knowPrompt = KnowPrompt.whatAsked;
         case OpenRecheck():

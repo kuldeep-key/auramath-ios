@@ -240,6 +240,7 @@ class Policy {
     required this.timers,
     required this.maxSideLessons,
     required this.noProgressMs,
+    required this.practiceSums,
   });
 
   factory Policy.fromYaml(String text) {
@@ -255,6 +256,8 @@ class Policy {
       ),
       maxSideLessons: (y['side_lessons'] as YamlMap)['max_per_session'] as int,
       noProgressMs: (y['no_progress_minutes'] as int) * 60 * 1000,
+      practiceSums:
+          (y['side_lessons'] as YamlMap)['practice_if_unsure'] as int? ?? 3,
     );
   }
 
@@ -263,6 +266,10 @@ class Policy {
 
   /// `no_progress_minutes`: this long on one step means too hard (TUT-10).
   final int noProgressMs;
+
+  /// `side_lessons.practice_if_unsure`: smaller sums after a side lesson
+  /// whose own sum the child got wrong.
+  final int practiceSums;
 }
 
 /// App settings that aren't teaching rules, from the spec pack's

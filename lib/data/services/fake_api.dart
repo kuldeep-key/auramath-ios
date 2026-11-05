@@ -77,6 +77,18 @@ class FakeApi implements Api {
     };
   }
 
+  /// What `/arithmetic` hands out; empty: the server can't (404).
+  final List<Map<String, Object?>> sums = [];
+
+  @override
+  Future<List<Map<String, Object?>>> arithmetic(
+    String childId, {
+    required String purpose,
+  }) async {
+    if (sums.isEmpty) throw const ApiException('no route', status: 404);
+    return sums;
+  }
+
   /// What `resumable` answers; null = no unfinished case on the server.
   OpenCase? openCase;
 

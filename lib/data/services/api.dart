@@ -74,4 +74,12 @@ abstract interface class Api {
     String sessionId,
     Map<String, Object?> body,
   );
+
+  /// `POST /api/children/{id}/arithmetic`: sums for [purpose]
+  /// (`side_lesson`: smaller ones of the kind just practised), each
+  /// `{level, skill, op, a, b, answer, text}`.
+  Future<List<Map<String, Object?>>> arithmetic(
+    String childId, {
+    required String purpose,
+  });
 }

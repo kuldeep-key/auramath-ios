@@ -162,6 +162,22 @@ class HttpApi implements Api {
           as Map<String, Object?>;
 
   @override
+  Future<List<Map<String, Object?>>> arithmetic(
+    String childId, {
+    required String purpose,
+  }) async {
+    final json = await _client.post('/api/children/$childId/arithmetic', {
+      'purpose': purpose,
+    });
+    // the guide names the items, not their wrapper: a list, or the reply's
+    // one list
+    final items = json is List
+        ? json
+        : (json as Map<String, Object?>).values.whereType<List>().first;
+    return [for (final i in items) (i as Map).cast<String, Object?>()];
+  }
+
+  @override
   Future<OpenCase?> resumable({String? childId}) async {
     final json =
         await _client.get(

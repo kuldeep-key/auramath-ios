@@ -490,6 +490,36 @@ abstract class AppLocalizations {
   /// **'{sum} = {answer}. You did it!'**
   String lessonSideDone(String sum, int answer);
 
+  /// No description provided for @sideTypeIt.
+  ///
+  /// In en, this message translates to:
+  /// **'So what is {sum}? Type it in.'**
+  String sideTypeIt(String sum);
+
+  /// No description provided for @sidePractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s try one like it: {sum}'**
+  String sidePractice(String sum);
+
+  /// No description provided for @sidePracticeDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nice practice! Now back to the case.'**
+  String get sidePracticeDone;
+
+  /// No description provided for @sideKindEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'These are tricky. We\'ll practise them again soon. Back to the case!'**
+  String get sideKindEnd;
+
+  /// No description provided for @sideAnswerIs.
+  ///
+  /// In en, this message translates to:
+  /// **'{sum} = {answer}. Now back to the case.'**
+  String sideAnswerIs(String sum, int answer);
+
   /// No description provided for @lessonLostInternetBody.
   ///
   /// In en, this message translates to:

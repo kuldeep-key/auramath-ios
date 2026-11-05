@@ -245,6 +245,28 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String sideTypeIt(String sum) {
+    return 'So what is $sum? Type it in.';
+  }
+
+  @override
+  String sidePractice(String sum) {
+    return 'Let\'s try one like it: $sum';
+  }
+
+  @override
+  String get sidePracticeDone => 'Nice practice! Now back to the case.';
+
+  @override
+  String get sideKindEnd =>
+      'These are tricky. We\'ll practise them again soon. Back to the case!';
+
+  @override
+  String sideAnswerIs(String sum, int answer) {
+    return '$sum = $answer. Now back to the case.';
+  }
+
+  @override
   String get lessonLostInternetBody =>
       'We\'ll carry on from here when it\'s back.';
 
