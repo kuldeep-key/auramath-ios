@@ -1,14 +1,19 @@
 import 'package:go_router/go_router.dart';
 
 import '../../../data/repositories/grown_up_repository.dart';
+import '../../../data/repositories/setup_repository.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
 import 'views/add_child_screen.dart';
 import 'views/book_screen.dart';
+import 'views/consent_screens.dart';
+import 'views/edit_child_screen.dart';
+import 'views/family_remove_screens.dart';
 import 'views/family_screen.dart';
 import 'views/forgot_passcode_screen.dart';
 import 'views/grown_up_home_screen.dart';
 import 'views/invite_screen.dart';
+import 'views/learning_screen.dart';
 import 'views/leave_screens.dart';
 import 'views/month_screen.dart';
 import 'views/new_code_screen.dart';
@@ -21,7 +26,9 @@ import 'views/rights_screen.dart';
 import 'views/settings_screen.dart';
 
 /// The grown-up area behind the passcode (Figma 7 and 8, PHome, Rights,
-/// AddChild, Notify, SignOut).
+/// AddChild, Notify, SignOut), and the screens with no Figma frame yet:
+/// consent, removing grown-ups, invites and browsers, the child's learning
+/// and their details.
 List<RouteBase> grownUpRoutes(Deps deps) {
   final repo = GrownUpRepository(deps.client, deps.store);
   final family = deps.family;
@@ -73,8 +80,19 @@ List<RouteBase> grownUpRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.rights,
-      builder: (_, _) =>
-          RightsScreen(repo: repo, deletePath: Paths.deleteAccount),
+      builder: (_, _) => RightsScreen(
+        repo: repo,
+        family: family,
+        deletePath: Paths.deleteAccount,
+      ),
+    ),
+    GoRoute(
+      path: Paths.withdrawConsent,
+      builder: (_, _) => WithdrawConsentScreen(family: family),
+    ),
+    GoRoute(
+      path: Paths.agreeAgain,
+      builder: (_, _) => AgreeAgainScreen(family: family),
     ),
     GoRoute(
       path: Paths.deleteAccount,
@@ -98,6 +116,40 @@ List<RouteBase> grownUpRoutes(Deps deps) {
       builder: (_, s) => RemovePhoneScreen(
         deviceId: s.pathParameters['deviceId']!,
         repo: repo,
+      ),
+    ),
+    GoRoute(
+      path: '/grown-ups/family/grown-ups/:memberId/remove',
+      builder: (_, s) => RemoveGrownUpScreen(
+        memberId: s.pathParameters['memberId']!,
+        repo: repo,
+      ),
+    ),
+    GoRoute(
+      path: '/grown-ups/family/invites/:inviteId/cancel',
+      builder: (_, s) => CancelInviteScreen(
+        inviteId: s.pathParameters['inviteId']!,
+        repo: repo,
+      ),
+    ),
+    GoRoute(
+      path: '/grown-ups/family/browsers/:browserId/remove',
+      builder: (_, s) => RemoveBrowserScreen(
+        browserId: s.pathParameters['browserId']!,
+        repo: repo,
+      ),
+    ),
+    GoRoute(
+      path: '/grown-ups/children/:childId/learning',
+      builder: (_, s) =>
+          LearningScreen(childId: child(s), family: family, repo: repo),
+    ),
+    GoRoute(
+      path: '/grown-ups/children/:childId/edit',
+      builder: (_, s) => EditChildScreen(
+        childId: child(s),
+        family: family,
+        setup: SetupRepository(deps.client),
       ),
     ),
     GoRoute(

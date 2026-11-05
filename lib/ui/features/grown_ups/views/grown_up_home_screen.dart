@@ -13,7 +13,8 @@ import 'parts.dart';
 
 /// PHome (658:84): the family's children, Family, and back to the child.
 /// Progress goes to the grown-up by email (D-39), so the book, month and
-/// plan screens aren't linked from here.
+/// plan screens aren't linked from here. Once consent is withdrawn, a card
+/// says lessons are paused and links to Rights (no Figma frame yet).
 class GrownUpHomeScreen extends StatelessWidget {
   const GrownUpHomeScreen({
     super.key,
@@ -38,9 +39,10 @@ class GrownUpHomeScreen extends StatelessWidget {
         onPressed: () => context.push(Paths.settings),
       ),
     );
-    return Loaded<List<Child>>(
-      load: family.children,
-      builder: (context, children, reload) {
+    return Loaded<({List<Child> children, bool consented})>(
+      load: family.family,
+      builder: (context, f, reload) {
+        final children = f.children;
         Future<void> push(String path) async {
           await context.push(path);
           reload();
@@ -61,6 +63,27 @@ class GrownUpHomeScreen extends StatelessWidget {
                 child: Text(l.guHomeHi, style: AuraText.heading),
               ),
               const SizedBox(height: 10),
+              if (!f.consented && children.isNotEmpty) ...[
+                GuCard(
+                  child: Semantics(
+                    liveRegion: true,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l.guHomePaused, style: AuraText.option),
+                        const SizedBox(height: 4),
+                        Text(l.guHomePausedBody, style: AuraText.cardLine),
+                        const SizedBox(height: 8),
+                        AuraLink(
+                          label: l.guHomePausedLink,
+                          onPressed: () => push(Paths.rights),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               if (children.isEmpty)
                 GuCard(
                   child: Column(

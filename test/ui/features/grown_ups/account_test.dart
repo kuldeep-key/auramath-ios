@@ -1,6 +1,7 @@
 import 'package:auramath/data/repositories/account_repository.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/grown_ups/views/add_child_screen.dart';
+import 'package:auramath/ui/features/grown_ups/views/consent_screens.dart';
 import 'package:auramath/ui/features/grown_ups/views/leave_screens.dart';
 import 'package:auramath/ui/features/grown_ups/views/notify_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/rights_screen.dart';
@@ -163,6 +164,7 @@ void main() {
   group('Rights', () {
     Widget screen(Gu g) => RightsScreen(
       repo: g.repo,
+      family: g.deps.family,
       deletePath: '${Paths.rights}/delete',
       poll: const Duration(milliseconds: 100),
     );
@@ -256,6 +258,104 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('down'), findsOneWidget);
       expect(g.deps.account.role, Role.parent);
+    });
+  });
+
+  group('Consent', () {
+    Widget rights(Gu g) => RightsScreen(
+      repo: g.repo,
+      family: g.deps.family,
+      deletePath: Paths.deleteAccount,
+    );
+
+    void withdrawn(Gu g) => g.server.on('GET /api/parent/consents', {
+      'consents': <Object>[],
+      'consentAt': 1,
+      'consentWithdrawnAt': 2,
+      'consented': false,
+      'problem': 'parental consent for this account has been withdrawn',
+    });
+
+    testWidgets('Rights offers Withdraw, behind its own confirmation', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(rights(g)));
+      await tester.pumpAndSettle();
+      expect(find.text('Agree again'), findsNothing);
+      await tester.tap(find.text('Withdraw your consent'));
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${Paths.withdrawConsent}'), findsOneWidget);
+      expect(g.calls, isNot(contains('POST /api/parent/consent/withdraw')));
+    });
+
+    testWidgets('withdrawn: Rights at every size says lessons are paused', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      withdrawn(g);
+      await shotAllSizes(tester, 'grown_ups_rights_withdrawn', rights(g));
+      expect(find.text("You've withdrawn your consent"), findsOneWidget);
+      expect(find.text('Withdraw your consent'), findsNothing);
+      await tester.tap(find.text('Agree again'));
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${Paths.agreeAgain}'), findsOneWidget);
+    });
+
+    testWidgets('confirming withdraws, then goes back to Rights', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('POST /api/parent/consent/withdraw', {
+        'consentAt': 1,
+        'consentWithdrawnAt': 2,
+        'consented': false,
+      });
+      await shotAllSizes(
+        tester,
+        'grown_ups_withdraw_consent',
+        WithdrawConsentScreen(family: g.deps.family),
+      );
+      expect(find.textContaining('Nothing is deleted'), findsOneWidget);
+      await tester.tap(find.text('Withdraw consent'));
+      await tester.pumpAndSettle();
+      expect(g.calls, contains('POST /api/parent/consent/withdraw'));
+      expect(find.text('went to ${Paths.rights}'), findsOneWidget);
+    });
+
+    testWidgets('a failed withdrawal stays and says why', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.on('POST /api/parent/consent/withdraw', {
+        'error': 'down',
+      }, status: 503);
+      await tester.pumpWidget(
+        shotApp(WithdrawConsentScreen(family: g.deps.family)),
+      );
+      await tester.tap(find.text('Withdraw consent'));
+      await tester.pumpAndSettle();
+      expect(find.text('down'), findsOneWidget);
+      expect(find.textContaining('went to'), findsNothing);
+    });
+
+    testWidgets('agreeing again records the current notice', (tester) async {
+      final g = await Gu.make(tester);
+      g.server
+        ..on('GET /api/parent/consent', {
+          'consentAt': 1,
+          'consentWithdrawnAt': 2,
+          'currentVersion': 'v3',
+          'stale': false,
+        })
+        ..on('POST /api/parent/consent', {'consented': true}, status: 201);
+      await shotAllSizes(
+        tester,
+        'grown_ups_agree_again',
+        AgreeAgainScreen(family: g.deps.family),
+      );
+      await tester.tap(find.text('I agree'));
+      await tester.pumpAndSettle();
+      expect(g.bodyOf('POST /api/parent/consent'), {'noticeVersion': 'v3'});
+      expect(find.text('went to ${Paths.rights}'), findsOneWidget);
     });
   });
 }

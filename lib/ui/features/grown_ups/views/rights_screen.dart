@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../data/repositories/family_repository.dart';
 import '../../../../data/repositories/grown_up_repository.dart';
 import '../../../../data/services/api.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -12,16 +13,20 @@ import '../../../core/theme/tokens.dart';
 import 'parts.dart';
 
 /// Rights (667:66): what is kept, the export (a job: start, poll, save),
-/// and deleting the account behind its own confirmation.
+/// withdrawing consent (or agreeing again once withdrawn), and deleting
+/// the account, each behind its own confirmation. The consent rows have
+/// no Figma frame yet.
 class RightsScreen extends StatefulWidget {
   const RightsScreen({
     super.key,
     required this.repo,
+    required this.family,
     required this.deletePath,
     this.poll = const Duration(seconds: 2),
   });
 
   final GrownUpRepository repo;
+  final FamilyRepository family;
 
   /// The delete confirmation's address.
   final String deletePath;
@@ -37,6 +42,13 @@ class _RightsScreenState extends State<RightsScreen> {
   Object? _error;
   bool _busy = false;
   Timer? _timer;
+  late Future<ConsentState> _consent = widget.family.consent();
+
+  /// Opens a consent confirmation, then reads the consent again.
+  Future<void> _consentStep(String path) async {
+    await context.push(path);
+    if (mounted) setState(() => _consent = widget.family.consent());
+  }
 
   @override
   void dispose() {
@@ -154,6 +166,61 @@ class _RightsScreenState extends State<RightsScreen> {
             const SizedBox(height: 8),
             ErrorNote(_error!),
           ],
+          const SizedBox(height: 12),
+          FutureBuilder<ConsentState>(
+            future: _consent,
+            builder: (context, snap) {
+              if (snap.hasError) {
+                return ErrorNote(
+                  ApiException(l.guConsentError),
+                  onRetry: () =>
+                      setState(() => _consent = widget.family.consent()),
+                );
+              }
+              final consent = snap.data;
+              if (consent == null) return const SizedBox.shrink();
+              if (consent.consented) {
+                return NavRow(
+                  icon: Icons.pause_circle_outline_rounded,
+                  label: l.guConsentLink,
+                  detail: l.guConsentLinkBody,
+                  chevron: false,
+                  onTap: () => _consentStep(Paths.withdrawConsent),
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (consent.withdrawn) ...[
+                    GuCard(
+                      child: Semantics(
+                        liveRegion: true,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l.guConsentWithdrawn, style: AuraText.option),
+                            const SizedBox(height: 6),
+                            Text(
+                              l.guConsentWithdrawnBody,
+                              style: AuraText.cardLine,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  NavRow(
+                    icon: Icons.play_circle_outline_rounded,
+                    label: l.guConsentAgainLink,
+                    detail: l.guConsentAgainLinkBody,
+                    chevron: false,
+                    onTap: () => _consentStep(Paths.agreeAgain),
+                  ),
+                ],
+              );
+            },
+          ),
           const SizedBox(height: 12),
           NavRow(
             icon: Icons.delete_outline_rounded,

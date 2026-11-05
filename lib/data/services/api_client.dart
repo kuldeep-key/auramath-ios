@@ -38,6 +38,10 @@ class ApiClient {
   Future<Object?> put(String path, [Object? body]) =>
       _send('PUT', path, body: body);
 
+  /// Changes only the fields in [body] (`PATCH /api/children/{id}`).
+  Future<Object?> patch(String path, Object? body) =>
+      _send('PATCH', path, body: body);
+
   Future<Object?> delete(String path) => _send('DELETE', path);
 
   /// A POST whose answer is bytes, not JSON (read-aloud audio). Failures are

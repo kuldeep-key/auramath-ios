@@ -48,6 +48,9 @@ class LessonFlow extends StatelessWidget {
             // a new session's 409: the family has no child yet
             : error.status == 409
             ? Scaffold(body: NoChildYetView(onOk: onHome))
+            // 403: consent was withdrawn, so lessons are paused
+            : error.status == 403
+            ? Scaffold(body: LessonsPausedView(onOk: onHome))
             : NeedInternetView(
                 // an answer from the server is its own message; no answer
                 // is the plain "check the Wi-Fi"

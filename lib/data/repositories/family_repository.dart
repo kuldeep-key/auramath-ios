@@ -8,6 +8,7 @@ class Child {
     required this.name,
     this.age,
     this.schoolYear,
+    this.avatar,
   });
 
   factory Child.fromJson(Map<String, Object?> j) => Child(
@@ -15,6 +16,7 @@ class Child {
     name: j['displayName']! as String,
     age: j['age'] as int?,
     schoolYear: j['schoolYear'] as String?,
+    avatar: j['avatar'] as String?,
   );
 
   final String id;
@@ -25,6 +27,30 @@ class Child {
 
   /// A `/api/setup/options` year id, e.g. `year_2`.
   final String? schoolYear;
+
+  /// The avatar id the child chose (ACC-12), if any.
+  final String? avatar;
+}
+
+/// Whether the family's consent holds now (`GET /api/parent/consents`).
+/// Withdrawn, lessons can't start and no child can be added until a
+/// grown-up agrees again (ACC-03); what is kept stays until it's deleted.
+class ConsentState {
+  const ConsentState({required this.consented, this.withdrawnAt});
+
+  factory ConsentState.fromJson(Map<String, Object?> j) => ConsentState(
+    consented: j['consented'] == true,
+    withdrawnAt: j['consentWithdrawnAt'] == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(j['consentWithdrawnAt']! as int),
+  );
+
+  final bool consented;
+
+  /// Set once a grown-up withdrew it, until they agree again.
+  final DateTime? withdrawnAt;
+
+  bool get withdrawn => withdrawnAt != null;
 }
 
 /// The family's children and consent: what setup and the child picker need.
@@ -35,13 +61,30 @@ class FamilyRepository {
   final ApiClient _client;
 
   /// Parent or child phone (`require_family`).
-  Future<List<Child>> children() async {
+  Future<List<Child>> children() async => (await family()).children;
+
+  /// The children, and whether the family's consent holds (false once it
+  /// is withdrawn: lessons are paused). An older server that doesn't say
+  /// counts as consented.
+  Future<({List<Child> children, bool consented})> family() async {
     final j = await _client.get('/api/children') as Map<String, Object?>;
-    return [
-      for (final c in j['children']! as List)
-        Child.fromJson(c as Map<String, Object?>),
-    ];
+    return (
+      children: [
+        for (final c in j['children']! as List)
+          Child.fromJson(c as Map<String, Object?>),
+      ],
+      consented: j['consented'] != false,
+    );
   }
+
+  /// Parent only (ACC-14): only the fields in [changes] change
+  /// (`displayName`, `age`, `schoolYear`). 400 for a name or answer the
+  /// server refuses, 409 when another child already has the name.
+  Future<Child> editChild(String id, Map<String, Object?> changes) async =>
+      Child.fromJson(
+        await _client.patch('/api/children/$id', changes)
+            as Map<String, Object?>,
+      );
 
   /// Parent only. Needs consent first (403 otherwise).
   Future<Child> addChild(Map<String, Object?> body) async => Child.fromJson(
@@ -61,6 +104,16 @@ class FamilyRepository {
       'noticeVersion': state['currentVersion'],
     });
   }
+
+  Future<ConsentState> consent() async => ConsentState.fromJson(
+    await _client.get('/api/parent/consents') as Map<String, Object?>,
+  );
+
+  /// Withdraws the family's consent (ACC-03): new lessons and new children
+  /// stop at once, on every phone. [giveConsent] lifts it.
+  Future<ConsentState> withdrawConsent() async => ConsentState.fromJson(
+    await _client.post('/api/parent/consent/withdraw') as Map<String, Object?>,
+  );
 
   /// The family's IANA time zone (`Australia/Sydney`): when the weekly note
   /// goes out.
