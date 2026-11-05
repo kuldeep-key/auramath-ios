@@ -335,9 +335,14 @@ class LessonViewModel extends ChangeNotifier {
   /// log): "we'll keep this for next time", and nothing more is recorded.
   bool endedByServer = false;
 
+  /// [endedByServer] because the family withdrew consent: lessons are
+  /// paused, nothing is kept for next time.
+  bool pausedByConsent = false;
+
   void _endedByServer() {
     if (_sessionId == null || _sessions.ended.value != _sessionId) return;
     endedByServer = true;
+    pausedByConsent = _sessions.endedWhy == 'consent';
     notifyListeners();
   }
 
