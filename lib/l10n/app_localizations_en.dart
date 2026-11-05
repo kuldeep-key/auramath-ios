@@ -255,6 +255,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lessonNeedInternetBody => 'Check the Wi-Fi, then try again.';
 
   @override
+  String get lessonNoChildTitle => 'Ask a grown-up';
+
+  @override
+  String get lessonNoChildBody =>
+      'A grown-up needs to add you before your first case.';
+
+  @override
   String get drawingSaved => 'Your drawing is saved.';
 
   @override

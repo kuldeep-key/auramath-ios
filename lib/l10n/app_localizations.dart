@@ -508,6 +508,18 @@ abstract class AppLocalizations {
   /// **'Check the Wi-Fi, then try again.'**
   String get lessonNeedInternetBody;
 
+  /// No description provided for @lessonNoChildTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a grown-up'**
+  String get lessonNoChildTitle;
+
+  /// No description provided for @lessonNoChildBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A grown-up needs to add you before your first case.'**
+  String get lessonNoChildBody;
+
   /// No description provided for @drawingSaved.
   ///
   /// In en, this message translates to:

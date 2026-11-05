@@ -88,6 +88,8 @@
   "lessonTryAgain": "Try again",
   "lessonNeedInternet": "We need the internet to start",
   "lessonNeedInternetBody": "Check the Wi-Fi, then try again.",
+  "lessonNoChildTitle": "Ask a grown-up",
+  "lessonNoChildBody": "A grown-up needs to add you before your first case.",
   "drawingSaved": "Your drawing is saved.",
   "goHome": "Go home",
   "timeUpTitle": "That's today's time!",

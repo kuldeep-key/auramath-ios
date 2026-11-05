@@ -36,6 +36,9 @@ class LessonFlow extends StatelessWidget {
         final error = vm.startError;
         return error == null
             ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+            // a new session's 409: the family has no child yet
+            : error.status == 409
+            ? Scaffold(body: NoChildYetView(onOk: onHome))
             : NeedInternetView(
                 // an answer from the server is its own message; no answer
                 // is the plain "check the Wi-Fi"

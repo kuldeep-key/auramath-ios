@@ -67,6 +67,50 @@ class KeptForNextTimeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    return _Moment(
+      emoji: '🗂️',
+      title: l.keptTitle,
+      body: l.keptBody,
+      onOk: onOk,
+    );
+  }
+}
+
+/// The server has no child to start a lesson for (409): a grown-up adds
+/// one first. Not designed in Figma.
+class NoChildYetView extends StatelessWidget {
+  const NoChildYetView({super.key, required this.onOk});
+
+  final VoidCallback onOk;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return _Moment(
+      emoji: '🧑‍🧒',
+      title: l.lessonNoChildTitle,
+      body: l.lessonNoChildBody,
+      onOk: onOk,
+    );
+  }
+}
+
+class _Moment extends StatelessWidget {
+  const _Moment({
+    required this.emoji,
+    required this.title,
+    required this.body,
+    required this.onOk,
+  });
+
+  final String emoji;
+  final String title;
+  final String body;
+  final VoidCallback onOk;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return PlayBackdrop(
       child: SafeArea(
         child: Padding(
@@ -74,15 +118,11 @@ class KeptForNextTimeView extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-              const Burst(child: Text('🗂️', style: TextStyle(fontSize: 96))),
+              Burst(child: Text(emoji, style: const TextStyle(fontSize: 96))),
               const SizedBox(height: 24),
-              Ribbon(text: l.keptTitle),
+              Ribbon(text: title),
               const SizedBox(height: 16),
-              Text(
-                l.keptBody,
-                style: AuraText.play,
-                textAlign: TextAlign.center,
-              ),
+              Text(body, style: AuraText.play, textAlign: TextAlign.center),
               const Spacer(),
               AuraButton(label: l.ok, onPressed: onOk),
             ],
