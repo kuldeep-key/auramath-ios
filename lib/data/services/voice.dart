@@ -191,8 +191,10 @@ class CloudVoice implements Voice {
 
   @override
   Future<void> say(String text) async {
-    await stop();
-    final turn = _turn;
+    // take the turn before any await: a stop tapped meanwhile wins
+    final turn = ++_turn;
+    await _hush();
+    if (turn != _turn) return;
     if (_off) return fallback.say(text);
 
     var clip = _clips['$voiceId|$text'];
@@ -245,6 +247,10 @@ class CloudVoice implements Voice {
   @override
   Future<void> stop() async {
     _turn++;
+    await _hush();
+  }
+
+  Future<void> _hush() async {
     speaking.value = false;
     await player.stop();
     await fallback.stop();

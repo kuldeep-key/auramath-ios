@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:auramath/data/services/api.dart';
 import 'package:auramath/data/services/voice.dart';
@@ -45,18 +44,18 @@ void main() {
     Future<Uint8List> Function(String text) answer, {
     Future<void> Function(List<String> lines)? warmer,
   }) => CloudVoice(
-        fetch: (text, _) {
-          asked.add(text);
-          return answer(text);
-        },
-        warmer: (lines, _) async {
-          warmed.add(lines);
-          await warmer?.call(lines);
-        },
-        player: clips,
-        fallback: phone,
-        wait: const Duration(milliseconds: 50),
-      );
+    fetch: (text, _) {
+      asked.add(text);
+      return answer(text);
+    },
+    warmer: (lines, _) async {
+      warmed.add(lines);
+      await warmer?.call(lines);
+    },
+    player: clips,
+    fallback: phone,
+    wait: const Duration(milliseconds: 50),
+  );
 
   setUp(() {
     phone = _Phone();
@@ -82,7 +81,7 @@ void main() {
 
   test('a line with the child name is read by the phone', () async {
     final v = voice(
-      (t) async => throw ApiException('names someone', status: 422),
+      (t) async => throw const ApiException('names someone', status: 422),
     );
     await v.say('Well spotted, Aarav!');
     expect(phone.said, ['Well spotted, Aarav!']);
@@ -104,7 +103,7 @@ void main() {
   });
 
   test('read-aloud off on the server: the phone reads from then on', () async {
-    final v = voice((t) async => throw ApiException('off', status: 404));
+    final v = voice((t) async => throw const ApiException('off', status: 404));
     await v.say('One');
     await v.say('Two');
     expect(asked, ['One']);
@@ -139,7 +138,7 @@ void main() {
   test('a failed warm is quiet; read-aloud off stops it for good', () async {
     final v = voice(
       (t) async => Uint8List.fromList([1]),
-      warmer: (lines) async => throw ApiException('off', status: 404),
+      warmer: (lines) async => throw const ApiException('off', status: 404),
     );
     await v.warm(['One']);
     await v.say('Two');

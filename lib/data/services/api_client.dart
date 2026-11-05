@@ -70,7 +70,9 @@ class ApiClient {
     String message = 'HTTP ${response.statusCode}';
     try {
       final json = jsonDecode(response.body);
-      if (json is Map && json['error'] is String) message = json['error'] as String;
+      if (json is Map && json['error'] is String) {
+        message = json['error'] as String;
+      }
     } on FormatException {
       // not JSON: keep the status line
     }
