@@ -14,6 +14,8 @@ ThemeData buildAuraTheme() => ThemeData(
     secondary: AuraColors.yellow,
     surface: AuraColors.white,
     onSurface: AuraColors.ink,
+    // never Material's red (NFR-03): a field to fix is coral
+    error: AuraColors.coral,
   ),
   textTheme: TextTheme(
     headlineMedium: AuraText.title,

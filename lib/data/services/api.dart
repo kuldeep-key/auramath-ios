@@ -36,13 +36,25 @@ typedef OpenCase = ({
   bool closed,
 });
 
+/// A session the server just opened.
+typedef StartedSession = ({
+  String sessionId,
+  String childRef,
+
+  /// A spaced check is due at this level.
+  String? checkLevel,
+
+  /// A problem the child left last time, to offer back: `{id, problemId,
+  /// problem, stepId, leftAt, ...}`, `problem` as it was shown.
+  Map<String, Object?>? leftProblem,
+});
+
 /// The lesson's calls to the backend. Throws [ApiException] on any failure.
 abstract interface class Api {
   /// `POST /api/sessions`: the server makes the session (online-first) and
   /// says which `child_ref` its events must carry, and the level of a
   /// spaced check that is due (its first problem is at that level).
-  Future<({String sessionId, String childRef, String? checkLevel})>
-  startSession({String? childId, required bool isDemo});
+  Future<StartedSession> startSession({String? childId, required bool isDemo});
 
   /// `POST /api/sessions/{id}/problems/next`: the next problem at the
   /// child's level (the server's memory), or at [level] ("something
@@ -55,4 +67,19 @@ abstract interface class Api {
 
   /// `POST /api/sessions/{sessionId}/events` with `{"events": [...]}`.
   Future<EventsReply> sendEvents(String sessionId, List<LessonEvent> events);
+
+  /// `POST /api/sessions/{id}/decisions`: the server's choice at a decision
+  /// point, always one of [body]'s `allowed`; `{action, source, ...}`.
+  Future<Map<String, Object?>> decide(
+    String sessionId,
+    Map<String, Object?> body,
+  );
+
+  /// `POST /api/children/{id}/arithmetic`: sums for [purpose]
+  /// (`side_lesson`: smaller ones of the kind just practised), each
+  /// `{level, skill, op, a, b, answer, text}`.
+  Future<List<Map<String, Object?>>> arithmetic(
+    String childId, {
+    required String purpose,
+  });
 }

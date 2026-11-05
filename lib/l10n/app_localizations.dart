@@ -268,6 +268,12 @@ abstract class AppLocalizations {
   /// **'Still there?'**
   String get stillThere;
 
+  /// No description provided for @tooHardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This one\'s tricky. Want a hand?'**
+  String get tooHardTitle;
+
   /// No description provided for @stillThinking.
   ///
   /// In en, this message translates to:
@@ -484,6 +490,36 @@ abstract class AppLocalizations {
   /// **'{sum} = {answer}. You did it!'**
   String lessonSideDone(String sum, int answer);
 
+  /// No description provided for @sideTypeIt.
+  ///
+  /// In en, this message translates to:
+  /// **'So what is {sum}? Type it in.'**
+  String sideTypeIt(String sum);
+
+  /// No description provided for @sidePractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s try one like it: {sum}'**
+  String sidePractice(String sum);
+
+  /// No description provided for @sidePracticeDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nice practice! Now back to the case.'**
+  String get sidePracticeDone;
+
+  /// No description provided for @sideKindEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'These are tricky. We\'ll practise them again soon. Back to the case!'**
+  String get sideKindEnd;
+
+  /// No description provided for @sideAnswerIs.
+  ///
+  /// In en, this message translates to:
+  /// **'{sum} = {answer}. Now back to the case.'**
+  String sideAnswerIs(String sum, int answer);
+
   /// No description provided for @lessonLostInternetBody.
   ///
   /// In en, this message translates to:
@@ -508,6 +544,18 @@ abstract class AppLocalizations {
   /// **'Check the Wi-Fi, then try again.'**
   String get lessonNeedInternetBody;
 
+  /// No description provided for @lessonNoChildTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a grown-up'**
+  String get lessonNoChildTitle;
+
+  /// No description provided for @lessonNoChildBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A grown-up needs to add you before your first case.'**
+  String get lessonNoChildBody;
+
   /// No description provided for @drawingSaved.
   ///
   /// In en, this message translates to:
@@ -519,6 +567,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Go home'**
   String get goHome;
+
+  /// No description provided for @leaveThisOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different case'**
+  String get leaveThisOne;
+
+  /// No description provided for @leftWaitingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A case is waiting'**
+  String get leftWaitingTitle;
+
+  /// No description provided for @leftWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time you left the {item} case. Want to try it again?'**
+  String leftWaitingBody(String item);
+
+  /// No description provided for @leftTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try it again'**
+  String get leftTryAgain;
+
+  /// No description provided for @leftSomethingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Something new'**
+  String get leftSomethingNew;
 
   /// No description provided for @timeUpTitle.
   ///
@@ -2445,6 +2523,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} starts with a short warm-up, then a story case.'**
   String setupReadyBody(String name);
+
+  /// No description provided for @setupReadyNoHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Please let {name} try on their own. Getting stuck is part of it, and the help is built in.'**
+  String setupReadyNoHelp(String name);
 
   /// No description provided for @setupHandOver.
   ///

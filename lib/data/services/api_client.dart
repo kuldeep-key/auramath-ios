@@ -121,8 +121,10 @@ class HttpApi implements Api {
   final ApiClient _client;
 
   @override
-  Future<({String sessionId, String childRef, String? checkLevel})>
-  startSession({String? childId, required bool isDemo}) async {
+  Future<StartedSession> startSession({
+    String? childId,
+    required bool isDemo,
+  }) async {
     final json =
         await _client.post('/api/sessions', {
               'childId': ?childId,
@@ -134,6 +136,7 @@ class HttpApi implements Api {
       sessionId: json['id']! as String,
       childRef: json['childRef']! as String,
       checkLevel: check?['level'] as String?,
+      leftProblem: json['leftProblem'] as Map<String, Object?>?,
     );
   }
 
@@ -148,6 +151,26 @@ class HttpApi implements Api {
             })
             as Map<String, Object?>;
     return json['problem']! as Map<String, Object?>;
+  }
+
+  @override
+  Future<Map<String, Object?>> decide(
+    String sessionId,
+    Map<String, Object?> body,
+  ) async =>
+      await _client.post('/api/sessions/$sessionId/decisions', body)
+          as Map<String, Object?>;
+
+  @override
+  Future<List<Map<String, Object?>>> arithmetic(
+    String childId, {
+    required String purpose,
+  }) async {
+    final json = await _client.post('/api/children/$childId/arithmetic', {
+      'purpose': purpose,
+    });
+    final items = (json as Map<String, Object?>)['items']! as List;
+    return [for (final i in items) (i as Map).cast<String, Object?>()];
   }
 
   @override

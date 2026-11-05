@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../data/repositories/account_repository.dart';
+import '../../../../data/repositories/setup_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
@@ -65,12 +66,22 @@ class _YearScreenState extends State<YearScreen> {
               l.setupYearTitle(childName(context, widget.draft.name)),
             ),
           ),
-          for (final y in setupYears) ...[
+          for (final (:id, :label) in inServerOrder(
+            [
+              for (final y in setupYears)
+                (id: yearValue(y), label: yearLabel(l, yearValue(y))),
+            ],
+            (o) => o.id,
+            widget.draft.options?.schoolYears,
+            (s) => s,
+          )) ...[
             ChoiceTile(
-              label: yearLabel(l, yearValue(y)),
-              flag: y == _usual ? l.setupYearUsual(widget.draft.age!) : null,
-              selected: _year == yearValue(y),
-              onTap: () => setState(() => _year = yearValue(y)),
+              label: label,
+              flag: _usual != null && id == yearValue(_usual)
+                  ? l.setupYearUsual(widget.draft.age!)
+                  : null,
+              selected: _year == id,
+              onTap: () => setState(() => _year = id),
             ),
             const SizedBox(height: 12),
           ],

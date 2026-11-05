@@ -43,6 +43,13 @@ class ReadyScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: AuraText.subtitle,
               ),
+              const SizedBox(height: 12),
+              // ACC-06; wording to agree with Julia (not in Figma)
+              Text(
+                l.setupReadyNoHelp(name),
+                textAlign: TextAlign.center,
+                style: AuraText.cardLine,
+              ),
               const SizedBox(height: 16),
             ],
           ),

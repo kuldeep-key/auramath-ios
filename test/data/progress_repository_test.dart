@@ -186,5 +186,9 @@ void main() {
     server.on('GET /api/children', {'error': 'down'}, status: 503);
     expect(await repo.childName(), 'Mira');
     expect(repo.cachedName, 'Mira');
+    // signed out: the name was another family's child, so none shows
+    await deps.account.chooseChild(null);
+    expect(repo.cachedName, isNull);
+    expect(await repo.childName(), isNull);
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
+import '../data/repositories/account_repository.dart';
 import '../data/repositories/grown_up_repository.dart';
 import '../data/services/api.dart';
 import '../config/env.dart';
@@ -123,6 +124,11 @@ class _LessonRouteState extends State<_LessonRoute> {
               (age == null || flags.readAloudAges.contains(age)))
       ..readQuestionAloud = flags.on('read_question_aloud')
       ..showBadges = flags.on('mastery_badges')
+      ..askDecisions = Env.serverProblems
+      ..childId = deps.account.childId
+      ..launchSource = deps.account.role == Role.parent
+          ? 'parent_handover'
+          : 'child_opened'
       ..biggerPad = prefs.biggerPad;
     widget.deps.sitting.useMinutes(prefs.minutes);
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());

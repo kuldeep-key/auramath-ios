@@ -32,10 +32,22 @@ class LessonFlow extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: vm,
     builder: (context, _) {
+      if (vm.offerLeft case final left?) {
+        return Scaffold(
+          body: OfferLeftView(
+            problem: left,
+            onAgain: () => vm.takeLeft(again: true),
+            onNew: () => vm.takeLeft(again: false),
+          ),
+        );
+      }
       if (!vm.ready) {
         final error = vm.startError;
         return error == null
             ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+            // a new session's 409: the family has no child yet
+            : error.status == 409
+            ? Scaffold(body: NoChildYetView(onOk: onHome))
             : NeedInternetView(
                 // an answer from the server is its own message; no answer
                 // is the plain "check the Wi-Fi"
@@ -62,7 +74,7 @@ class LessonFlow extends StatelessWidget {
               await vm.callItADay();
               onHome();
             },
-            onFinish: vm.finishThisOne,
+            onFinish: vm.canFinish ? vm.finishThisOne : null,
           ),
         );
       }
@@ -102,6 +114,10 @@ class LessonFlow extends StatelessWidget {
                       onGoHome: () async {
                         await vm.leave();
                         onHome();
+                      },
+                      onLeave: () async {
+                        await vm.leaveProblem();
+                        onFinished(LessonViewModel.newProblem);
                       },
                     ),
                 ],

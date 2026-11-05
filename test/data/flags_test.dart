@@ -47,4 +47,19 @@ void main() {
     await next.load();
     expect(next.on('trail'), isTrue);
   });
+
+  test("a dev build's FLAGS win over the server's either way", () {
+    expect(Flags.parseOverrides(' trail, -read_aloud ,'), {
+      'trail': true,
+      'read_aloud': false,
+    });
+    final flags = Flags(
+      clientFor((_) async => throw StateError('not asked')),
+      MemoryKeyStore(),
+      defaults: const {'read_aloud': true},
+      overrides: Flags.parseOverrides('trail,-read_aloud'),
+    );
+    expect(flags.on('trail'), isTrue);
+    expect(flags.on('read_aloud'), isFalse);
+  });
 }

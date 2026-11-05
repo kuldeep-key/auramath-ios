@@ -212,6 +212,19 @@
       },
       {
         "type": "coach",
+        "lineId": "cmp.sideBack",
+        "slots": {
+          "a": "lemon tree",
+          "b": "fig tree",
+          "B": "Fig tree",
+          "av": "186",
+          "d": "107",
+          "u": "cm",
+          "rel": "shorter"
+        }
+      },
+      {
+        "type": "coach",
         "lineId": "cmp.right",
         "slots": {
           "a": "lemon tree",

@@ -72,6 +72,18 @@ void main() {
     );
     expect(r.state.step, LessonStep.sideLesson);
     expect(r.state.knowFlow, KnowFlow.none);
+
+    // done: back to the same sheet, with the bridge line (TUT-18)
+    r = run(lemon, [
+      ...start,
+      const KnowIt(300),
+      const PartChecked(81),
+      const SideLessonDone(),
+    ]);
+    expect(r.state.step, LessonStep.drawA);
+    expect(r.state.knowFlow, KnowFlow.checkingPart);
+    expect(r.decisions.last, isA<Coach>());
+    expect((r.decisions.last as Coach).lineId, 'cmp.sideBack');
   });
 
   test('part 79 then total 265 solves', () {

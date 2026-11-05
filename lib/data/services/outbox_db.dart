@@ -133,6 +133,7 @@ class OutboxDb {
   Future<void> clear() async {
     await _db.delete('events');
     await _db.delete('ended');
+    await _db.delete('problems');
   }
 
   Future<void> close() => _db.close();

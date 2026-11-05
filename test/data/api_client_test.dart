@@ -78,6 +78,27 @@ void main() {
     expect(reply.ended, 'idle');
   });
 
+  test(
+    'arithmetic sums are read from items, as the server worked them',
+    () async {
+      String? asked;
+      final api = HttpApi(
+        clientFor((r) async {
+          asked = '${r.url.path} ${r.body}';
+          return http.Response(
+            '{"childId":"c1","purpose":"side_lesson","contentVersion":"0.4.1",'
+            '"items":[{"level":"A6","skill":"arith.sub-2d-regroup","op":"sub",'
+            '"a":56,"b":19,"answer":37,"text":"56 - 19 = ?"}]}',
+            200,
+          );
+        }),
+      );
+      final items = await api.arithmetic('c1', purpose: 'side_lesson');
+      expect(asked, '/api/children/c1/arithmetic {"purpose":"side_lesson"}');
+      expect(items.single['answer'], 37);
+    },
+  );
+
   test("a full log (413) ends the session, it isn't an outage", () async {
     final api = HttpApi(
       clientFor((_) async => http.Response('{"error":"log full"}', 413)),

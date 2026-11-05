@@ -52,14 +52,46 @@ const _units = {
   'g': 'grams',
 };
 
+/// A case left last time, from its `problem_shown` payload (ids and numbers
+/// only), drawn from [template] the way the first phone drew it. Null when
+/// this phone's template is another one or another version: then the case
+/// isn't offered back.
+ComparisonProblem? problemFromShown(
+  Map<String, Object?> shown,
+  ComparisonTemplate template,
+) {
+  if (shown['template_id'] != template.id ||
+      shown['template_version'] != template.version) {
+    return null;
+  }
+  final numbers = shown['numbers']! as Map<String, Object?>;
+  final storyId = shown['story_id']! as String;
+  final story = template.stories.where((s) => s.id == storyId).firstOrNull;
+  final level = shown['level'] as String?;
+  if (story == null || !template.levels.any((l) => l.id == level)) return null;
+  return template.problem(
+    level!,
+    storyId,
+    a: numbers['A']! as int,
+    d: numbers['D']! as int,
+    relation: shown['relation'] as String?,
+    pics: {story.a: itemPic(story.a), story.b: itemPic(story.b)},
+    next: const NextProblems(fast: '', helped: '', easier: ''),
+    id: shown['problem_id']! as String,
+    variant: shown['variant'] as String? ?? 'standard',
+  );
+}
+
+String _pic(Map<String, Object?> story, String side) =>
+    itemPic(story[side]! as String, kind: story['kind'] as String?);
+
 // ponytail: a picture by the item's name or kind until stories carry their
 // own; a story the list doesn't know shows the plain magnifier.
-String _pic(Map<String, Object?> story, String side) {
-  final name = story[side]! as String;
+String itemPic(String name, {String? kind}) {
   for (final MapEntry(:key, :value) in _pics.entries) {
     if (name.toLowerCase().contains(key)) return value;
   }
-  return _pics[story['kind']] ?? '🔍';
+  return _pics[kind] ?? '🔍';
 }
 
 const _pics = {

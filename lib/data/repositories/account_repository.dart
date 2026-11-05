@@ -5,6 +5,7 @@ import '../services/api.dart';
 import '../services/api_client.dart';
 import '../services/key_store.dart';
 import '../services/social_sign_in.dart';
+import 'setup_repository.dart';
 
 /// Who is using this phone. A grown-up's phone holds a parent token; a
 /// child's own phone holds a device token from pairing (DEV-02), which can
@@ -35,6 +36,10 @@ class SetupDraft {
 
   /// The grown-up tapped "I agree" on Data (ACC-03).
   bool agreed = false;
+
+  /// The server's setup lists, once fetched; until then the screens use
+  /// their own.
+  SetupOptions? options;
 
   Map<String, Object?> toChildJson() => {
     'displayName': name,

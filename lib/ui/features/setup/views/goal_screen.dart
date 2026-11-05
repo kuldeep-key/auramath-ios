@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../data/repositories/account_repository.dart';
+import '../../../../data/repositories/setup_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
@@ -36,7 +37,12 @@ class _GoalScreenState extends State<GoalScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final options = goalOptions(l);
+    final options = inServerOrder(
+      goalOptions(l),
+      (o) => o.$3,
+      widget.draft.options?.goals,
+      (s) => (s.label, null, s.id),
+    );
     return AuraPage(
       top: setupTopBar(SetupStep.goal),
       body: Column(

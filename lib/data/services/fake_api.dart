@@ -14,8 +14,10 @@ class FakeApi implements Api {
   final List<String> sessions = [];
 
   @override
-  Future<({String sessionId, String childRef, String? checkLevel})>
-  startSession({String? childId, required bool isDemo}) async {
+  Future<StartedSession> startSession({
+    String? childId,
+    required bool isDemo,
+  }) async {
     if (failNext > 0) {
       failNext--;
       throw const ApiException('offline');
@@ -27,6 +29,7 @@ class FakeApi implements Api {
       sessionId: id,
       childRef: childId == null ? childRef : childRefFor(childId),
       checkLevel: checkLevel,
+      leftProblem: leftProblem,
     );
   }
 
@@ -34,6 +37,9 @@ class FakeApi implements Api {
 
   /// A spaced check due at this level, as the next session says.
   String? checkLevel;
+
+  /// A problem the child left, as the next session offers it back.
+  Map<String, Object?>? leftProblem;
 
   /// What `problems/next` hands out, in turn; each ask is kept in [asked].
   final List<Map<String, Object?>> problems = [];
@@ -51,6 +57,36 @@ class FakeApi implements Api {
     asked.add((sessionId, level));
     if (problems.isEmpty) throw const ApiException('no problem', status: 409);
     return problems.removeAt(0);
+  }
+
+  /// Every decision asked for; the server's rules answer with the app's
+  /// own default, as dev does while the AI is off.
+  final List<(String, Map<String, Object?>)> decisions = [];
+
+  @override
+  Future<Map<String, Object?>> decide(
+    String sessionId,
+    Map<String, Object?> body,
+  ) async {
+    decisions.add((sessionId, body));
+    return {
+      'action': body['rulesDefault'],
+      'source': 'rules',
+      'cueAfterMs': 1000,
+      'fallbackAfterMs': 4000,
+    };
+  }
+
+  /// What `/arithmetic` hands out; empty: the server can't (404).
+  final List<Map<String, Object?>> sums = [];
+
+  @override
+  Future<List<Map<String, Object?>>> arithmetic(
+    String childId, {
+    required String purpose,
+  }) async {
+    if (sums.isEmpty) throw const ApiException('no route', status: 404);
+    return sums;
   }
 
   /// What `resumable` answers; null = no unfinished case on the server.

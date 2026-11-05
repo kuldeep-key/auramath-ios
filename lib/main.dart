@@ -101,9 +101,24 @@ Future<void> main() async {
           await rootBundle.loadString('assets/spec/app-config.yaml'),
     ),
   );
-  final flags = Flags(client, store, defaults: config.flags);
+  final flags = Flags(
+    client,
+    store,
+    defaults: config.flags,
+    overrides: Flags.parseOverrides(Env.flagOverrides),
+  );
   await flags.load();
   unawaited(flags.refresh());
+  // the version of each content file this launch teaches from, served or
+  // bundled (PLAT-04); the template's comes with each problem
+  final versions = <String, String>{};
+  for (final name in ['app-config', 'policy', 'skill-map']) {
+    final text =
+        bundle.yamlOf('$name.yaml') ??
+        await rootBundle.loadString('assets/spec/$name.yaml');
+    final v = RegExp(r'version"?\s*:\s*"?(\d+\.\d+\.\d+)').firstMatch(text);
+    if (v != null) versions[name] = v[1]!;
+  }
   final sessions = SessionRepository(
     db: db,
     api: HttpApi(client),
@@ -111,6 +126,7 @@ Future<void> main() async {
       deviceId: account.deviceRef,
       appVersion: Env.appVersion,
       isDemo: Env.isDemo,
+      contentVersions: versions,
     ),
     onRejected: (sessionId, rejected) => errors.report(
       'error',
@@ -118,9 +134,20 @@ Future<void> main() async {
       screen: 'lesson',
       sessionId: sessionId,
     ),
+    template: await served(
+      (b) async => ComparisonTemplate.fromYaml(
+        b?.yamlOf('comparison-two-step.yaml') ??
+            await rootBundle.loadString('assets/spec/comparison-two-step.yaml'),
+      ),
+    ),
   );
   // the server's problems this phone has shown, for a case left part way
   await sessions.loadProblems(pack);
+  final sitting = Sitting(
+    capMs: config.sessionCapMinutes * 60 * 1000,
+    store: store,
+  );
+  await sitting.load();
   runApp(
     AuraApp(
       deps: Deps(
@@ -130,7 +157,7 @@ Future<void> main() async {
         sessions: sessions,
         pack: pack,
         voice: DeviceVoice(),
-        sitting: Sitting(capMs: config.sessionCapMinutes * 60 * 1000),
+        sitting: sitting,
         deviceLock: LocalDeviceLock(),
         outbox: db,
         store: store,

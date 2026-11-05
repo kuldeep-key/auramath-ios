@@ -42,12 +42,10 @@ void main() {
   test("a served problem becomes the engine's, its fields kept", () {
     final p = problemFromServer(served());
     expect(p.id, 'g_1');
-    expect((p.a.name, p.a.pic, p.b.name, p.b.pic), (
-      'Lemon tree',
-      '🍋',
-      'Fig tree',
-      '🌳',
-    ));
+    expect(
+      (p.a.name, p.a.pic, p.b.name, p.b.pic),
+      ('Lemon tree', '🍋', 'Fig tree', '🌳'),
+    );
     expect((p.aValue, p.diff, p.big, p.bValue), (186, 107, BigSide.a, 79));
     expect(p.ask, Ask.total);
     expect(p.say, contains('186 centimetres tall'));
@@ -82,6 +80,17 @@ void main() {
     expect(restarted.problems['g_1']!.aValue, 186);
   });
 
+  test('signing out forgets the served problems too (DEV-06)', () async {
+    final (sessions, db, api) = await memorySessions();
+    api.problems.add(served());
+    final pack = samplePack();
+    await sessions.nextProblem(pack, 's1');
+    await sessions.forget();
+    expect(pack.problems['g_1'], isNull);
+    expect(pack.problems['lemon'], isNotNull); // the bundled ones stay
+    expect(await db.problems(), isEmpty);
+  });
+
   test('easierLevel goes one rung down, never below L1', () {
     expect(easierLevel('L4'), 'L3');
     expect(easierLevel('L1'), 'L1');
@@ -92,11 +101,13 @@ void main() {
     Future<(LessonViewModel, List<(String, String?)>)> makeVm({
       String? checkLevel,
       List<Map<String, Object?>>? problems,
+      Map<String, Object?>? left,
     }) async {
       final pack = samplePack();
-      final (sessions, _, api) = await memorySessions();
+      final (sessions, _, api) = await memorySessions(withTemplate: true);
       api
         ..checkLevel = checkLevel
+        ..leftProblem = left
         ..problems.addAll(problems ?? [served()]);
       final vm = LessonViewModel(
         pack: pack,
@@ -124,10 +135,62 @@ void main() {
       vm.dispose();
     });
 
+    /// `leftProblem` as the server sends it: `problem` is the case's
+    /// `problem_shown` payload, ids and numbers only (backend, 5 Nov).
+    Map<String, Object?> left({String version = '0.3.0'}) => {
+      'id': 'lp_1',
+      'problemId': 'g_left',
+      'problem': {
+        'problem_id': 'g_left',
+        'template_id': 'cmp.comparison',
+        'template_version': version,
+        'story_id': 'lemon-fig',
+        'relation': 'taller',
+        'level': 'L4',
+        'variant': 'standard',
+        'numbers': {'A': 150, 'D': 40},
+      },
+      'stepId': 'find_unknown',
+    };
+
+    test('a case left on another phone is drawn from the template, offered '
+        'back, and taken without asking for another (SES-06)', () async {
+      final (vm, asked) = await makeVm(left: left());
+      addTearDown(vm.dispose);
+      await vm.start();
+      expect(vm.ready, isFalse);
+      expect(vm.offerLeft?.id, 'g_left');
+      await vm.takeLeft(again: true);
+      expect(vm.ready, isTrue);
+      expect(vm.problem.aValue, 150);
+      expect(vm.problem.text, contains('The lemon tree is 150 cm tall'));
+      expect(asked, isEmpty);
+    });
+
+    test('"something new" instead asks the server', () async {
+      final (vm, asked) = await makeVm(left: left());
+      addTearDown(vm.dispose);
+      await vm.start();
+      await vm.takeLeft(again: false);
+      expect(vm.problem.id, 'g_1');
+      expect(asked, hasLength(1));
+    });
+
+    test('a left case from another template version is not offered', () async {
+      final (vm, _) = await makeVm(left: left(version: '0.4.1'));
+      addTearDown(vm.dispose);
+      await vm.start();
+      expect(vm.offerLeft, isNull);
+      expect(vm.problem.id, 'g_1');
+    });
+
     test('a spaced check due asks its level for the first problem', () async {
       final (vm, asked) = await makeVm(
         checkLevel: 'L2',
-        problems: [served(), served(id: 'g_2')],
+        problems: [
+          served(),
+          served(id: 'g_2'),
+        ],
       );
       await vm.start();
       expect(asked.single.$2, 'L2');
@@ -136,7 +199,10 @@ void main() {
 
     test('something easier asks one level down, in a new session', () async {
       final (vm, asked) = await makeVm(
-        problems: [served(), served(id: 'g_easy', level: 'L3')],
+        problems: [
+          served(),
+          served(id: 'g_easy', level: 'L3'),
+        ],
       );
       await vm.start();
       final first = vm.sessionId;
@@ -150,7 +216,10 @@ void main() {
 
     test('a solved case asks the server for the next one', () async {
       final (vm, asked) = await makeVm(
-        problems: [served(), served(id: 'g_next')],
+        problems: [
+          served(),
+          served(id: 'g_next'),
+        ],
       );
       await vm.start();
       for (final i in const <LessonInput>[

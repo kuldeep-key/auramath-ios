@@ -82,6 +82,21 @@ void main() {
       }
     });
 
+    test("handed over: opens on the child's Home, and the child picker "
+        'needs the passcode (PRV-06)', () {
+      expect(go('/', role: Role.parent, childId: 'c'), Paths.home);
+      expect(go(Paths.open, role: Role.parent, childId: 'c'), Paths.home);
+      final to = go(Paths.kids, role: Role.parent, childId: 'c');
+      expect(Uri.parse(to!).path, Paths.grownUpsPass);
+      expect(Uri.parse(to).queryParameters['to'], Paths.kids);
+      expect(
+        go(Paths.kids, role: Role.parent, childId: 'c', unlocked: true),
+        isNull,
+      );
+      // no child chosen yet: the picker is where a grown-up starts
+      expect(go(Paths.kids, role: Role.parent), isNull);
+    });
+
     test('the grown-up area asks for the passcode, then comes back', () {
       final to = go(Paths.settings, role: Role.parent);
       expect(Uri.parse(to!).path, Paths.grownUpsPass);

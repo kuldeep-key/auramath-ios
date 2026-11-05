@@ -1,3 +1,4 @@
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -9,16 +10,21 @@ import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'help_sheet.dart';
 
-/// "Take a break?" when Home is tapped mid-lesson. Figma M1-pause (666:70).
+/// "Take a break?" when Home is tapped mid-lesson. Figma M1-pause (666:70),
+/// plus "leave this one" (SES-06), which the design doesn't have yet.
 class BreakSheet extends StatelessWidget {
   const BreakSheet({
     super.key,
     required this.onKeepGoing,
     required this.onGoHome,
+    this.onLeave,
   });
 
   final VoidCallback onKeepGoing;
   final VoidCallback onGoHome;
+
+  /// A new case now; this one comes back another day.
+  final VoidCallback? onLeave;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +58,69 @@ class BreakSheet extends StatelessWidget {
           icon: Icons.home_outlined,
           onPressed: onGoHome,
         ),
+        if (onLeave case final onLeave?) ...[
+          const SizedBox(height: 10),
+          AuraButton(
+            label: l.leaveThisOne,
+            color: AuraButtonColor.white,
+            onPressed: onLeave,
+          ),
+        ],
       ],
+    );
+  }
+}
+
+/// "Try it again?" for the case the child left last time (SES-06). Not in
+/// Figma yet.
+class OfferLeftView extends StatelessWidget {
+  const OfferLeftView({
+    super.key,
+    required this.problem,
+    required this.onAgain,
+    required this.onNew,
+  });
+
+  final ComparisonProblem problem;
+  final VoidCallback onAgain;
+  final VoidCallback onNew;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return PlayBackdrop(
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Spacer(),
+              Burst(
+                child: Text(
+                  problem.a.pic,
+                  style: const TextStyle(fontSize: 96),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Ribbon(text: l.leftWaitingTitle),
+              const SizedBox(height: 16),
+              Text(
+                l.leftWaitingBody(problem.a.name.toLowerCase()),
+                style: AuraText.play,
+                textAlign: TextAlign.center,
+              ),
+              const Spacer(),
+              AuraButton(label: l.leftTryAgain, onPressed: onAgain),
+              const SizedBox(height: 10),
+              AuraButton(
+                label: l.leftSomethingNew,
+                color: AuraButtonColor.white,
+                onPressed: onNew,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -67,6 +135,50 @@ class KeptForNextTimeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    return _Moment(
+      emoji: '🗂️',
+      title: l.keptTitle,
+      body: l.keptBody,
+      onOk: onOk,
+    );
+  }
+}
+
+/// The server has no child to start a lesson for (409): a grown-up adds
+/// one first. Not designed in Figma.
+class NoChildYetView extends StatelessWidget {
+  const NoChildYetView({super.key, required this.onOk});
+
+  final VoidCallback onOk;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return _Moment(
+      emoji: '🧑‍🧒',
+      title: l.lessonNoChildTitle,
+      body: l.lessonNoChildBody,
+      onOk: onOk,
+    );
+  }
+}
+
+class _Moment extends StatelessWidget {
+  const _Moment({
+    required this.emoji,
+    required this.title,
+    required this.body,
+    required this.onOk,
+  });
+
+  final String emoji;
+  final String title;
+  final String body;
+  final VoidCallback onOk;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return PlayBackdrop(
       child: SafeArea(
         child: Padding(
@@ -74,15 +186,11 @@ class KeptForNextTimeView extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-              const Burst(child: Text('🗂️', style: TextStyle(fontSize: 96))),
+              Burst(child: Text(emoji, style: const TextStyle(fontSize: 96))),
               const SizedBox(height: 24),
-              Ribbon(text: l.keptTitle),
+              Ribbon(text: title),
               const SizedBox(height: 16),
-              Text(
-                l.keptBody,
-                style: AuraText.play,
-                textAlign: TextAlign.center,
-              ),
+              Text(body, style: AuraText.play, textAlign: TextAlign.center),
               const Spacer(),
               AuraButton(label: l.ok, onPressed: onOk),
             ],
@@ -97,10 +205,12 @@ class KeptForNextTimeView extends StatelessWidget {
 /// "finish this one" choice SES-01 asks for, which the design doesn't have
 /// yet. No clock or countdown anywhere (SES-02).
 class TimeUpView extends StatelessWidget {
-  const TimeUpView({super.key, required this.onStop, required this.onFinish});
+  const TimeUpView({super.key, required this.onStop, this.onFinish});
 
   final VoidCallback onStop;
-  final VoidCallback onFinish;
+
+  /// Null when the problem hadn't begun: nothing to finish.
+  final VoidCallback? onFinish;
 
   @override
   Widget build(BuildContext context) {
@@ -123,12 +233,14 @@ class TimeUpView extends StatelessWidget {
               ),
               const Spacer(),
               AuraButton(label: l.ok, onPressed: onStop),
-              const SizedBox(height: 10),
-              AuraButton(
-                label: l.finishThisOne,
-                color: AuraButtonColor.white,
-                onPressed: onFinish,
-              ),
+              if (onFinish case final onFinish?) ...[
+                const SizedBox(height: 10),
+                AuraButton(
+                  label: l.finishThisOne,
+                  color: AuraButtonColor.white,
+                  onPressed: onFinish,
+                ),
+              ],
             ],
           ),
         ),

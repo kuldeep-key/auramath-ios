@@ -50,9 +50,12 @@ String? redirectFor({
           loc == Paths.signInCheckEmail ||
           loc == Paths.verify ||
           loc.startsWith(Paths.pair)) {
-        return Paths.kids;
+        return _start(role, childId);
       }
-      if (Paths.isGrownUp(loc) && !grownUpsUnlocked) {
+      // handed over: switching child is the grown-up's, behind the
+      // passcode like the rest (PRV-06)
+      if ((Paths.isGrownUp(loc) || loc == Paths.kids && childId != null) &&
+          !grownUpsUnlocked) {
         return Uri(
           path: Paths.grownUpsPass,
           queryParameters: {'to': uri.toString()},
@@ -66,7 +69,8 @@ String? redirectFor({
 String _start(Role role, String? childId) => switch (role) {
   Role.none => Paths.open,
   Role.device => childId == null ? Paths.pairWhichChild : Paths.home,
-  Role.parent => Paths.kids,
+  // a child chosen: the phone was handed over, so the child's Home
+  Role.parent => childId == null ? Paths.kids : Paths.home,
 };
 
 /// The child's screens: they need to know which child is learning.

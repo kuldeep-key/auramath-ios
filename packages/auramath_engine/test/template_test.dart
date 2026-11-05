@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:test/test.dart';
 
+import 'fixtures.dart';
+
 /// Julia's files, as the app bundles them (copied from spec pack v0.3.0).
 final template = ComparisonTemplate.fromYaml(
   File('../../assets/spec/comparison-two-step.yaml').readAsStringSync(),
@@ -147,7 +149,23 @@ void main() {
     expect(policy.maxSideLessons, 2);
   });
 
-  test("the engine's side-lesson limit matches Julia's policy", () {
-    expect(maxSideLessons, policy.maxSideLessons);
+  test("the side-lesson limit is the policy's: past it, the step's usual "
+      'help instead', () {
+    const toFindB = <LessonInput>[
+      Started(),
+      BarADrawn(),
+      BarBPlaced(),
+      BarBSized(Relation.shorter),
+      PieceDropped(Piece.gap, Target.gapSlot),
+      PieceDropped(Piece.total, Target.totalSlot),
+      OpChosen(Op.subtract),
+      NumberEntered(81), // a regrouping slip
+    ];
+    LessonStep after(Pack p) => replay(p, lemon, toFindB).step;
+    expect(
+      after(pack.copyWith(maxSideLessons: policy.maxSideLessons)),
+      LessonStep.sideLesson,
+    );
+    expect(after(pack.copyWith(maxSideLessons: 0)), LessonStep.findB);
   });
 }
