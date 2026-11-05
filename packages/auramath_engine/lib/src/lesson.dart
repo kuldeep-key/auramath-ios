@@ -226,6 +226,7 @@ class LessonState {
     this.returnStep,
     this.sideLesson,
     this.knowFlow = KnowFlow.none,
+    this.returnFlow = KnowFlow.none,
     this.quietLevel = 0,
   });
 
@@ -249,6 +250,10 @@ class LessonState {
   final SideLesson? sideLesson;
   final KnowFlow knowFlow;
 
+  /// The answer sheet a side lesson was opened from, reopened after it
+  /// (policy `side_lessons.return_to: same_step`).
+  final KnowFlow returnFlow;
+
   /// How many quiet-child thresholds have fired since the last move (0–4).
   final int quietLevel;
 
@@ -267,6 +272,7 @@ class LessonState {
     LessonStep? returnStep,
     SideLesson? sideLesson,
     KnowFlow? knowFlow,
+    KnowFlow? returnFlow,
     int? quietLevel,
   }) => LessonState(
     step: step ?? this.step,
@@ -283,6 +289,7 @@ class LessonState {
     returnStep: returnStep ?? this.returnStep,
     sideLesson: sideLesson ?? this.sideLesson,
     knowFlow: knowFlow ?? this.knowFlow,
+    returnFlow: returnFlow ?? this.returnFlow,
     quietLevel: quietLevel ?? this.quietLevel,
   );
 
@@ -301,6 +308,7 @@ class LessonState {
     returnStep,
     sideLesson,
     knowFlow,
+    returnFlow,
     quietLevel,
   ];
 
@@ -486,7 +494,15 @@ StepResult _move(
       return wrongMove('cmp.addBoth');
 
     case (LessonStep.sideLesson, SideLessonDone()):
-      return to(s.copyWith(step: s.returnStep));
+      // back to the step, or the answer sheet, it was opened from (TUT-18)
+      return to(
+        s.copyWith(
+          step: s.returnStep,
+          knowFlow: s.returnFlow,
+          returnFlow: KnowFlow.none,
+        ),
+        [Coach('cmp.sideBack', slots)],
+      );
 
     case (_, KnowIt(:final value))
         when _boardSteps.contains(s.step) &&
@@ -644,6 +660,7 @@ LessonState _sideLesson(LessonState s, LessonStep back, SideLesson kind) =>
       sideLesson: kind,
       sideLessons: s.sideLessons + 1,
       knowFlow: KnowFlow.none,
+      returnFlow: s.knowFlow,
     );
 
 /// Back to an empty board to draw it out.

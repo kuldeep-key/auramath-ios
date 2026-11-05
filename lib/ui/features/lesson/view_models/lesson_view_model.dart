@@ -339,6 +339,10 @@ class LessonViewModel extends ChangeNotifier {
     _state = r.state;
     _seq += events.length;
     _apply(r.decisions);
+    // back from a side lesson opened on "check one part": that sheet again
+    if (input is SideLessonDone && _state.knowFlow == KnowFlow.checkingPart) {
+      knowPrompt = KnowPrompt.checkPart;
+    }
     final stepLine = _stepLines[entering];
     if (stepLine != null && !r.decisions.any((d) => d is Coach)) {
       _coach(stepLine, const {});

@@ -37,6 +37,22 @@ void main() {
     );
   });
 
+  test('a side lesson from "check one part" returns to that sheet, with '
+      'the bridge line (TUT-18)', () async {
+    final vm = await makeVm();
+    addTearDown(vm.dispose);
+    for (final i in const <LessonInput>[
+      Started(),
+      KnowIt(300),
+      PartChecked(81),
+      SideLessonDone(),
+    ]) {
+      await vm.send(i);
+    }
+    expect(vm.knowPrompt, KnowPrompt.checkPart);
+    expect(vm.coachText, pack.lines['cmp.sideBack']);
+  });
+
   test('accepted input is recorded, ignored input is not', () async {
     final vm = await makeVm();
     await vm.send(const Started());
