@@ -2458,6 +2458,12 @@ abstract class AppLocalizations {
   /// **'{name} starts with a short warm-up, then a story case.'**
   String setupReadyBody(String name);
 
+  /// No description provided for @setupReadyNoHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Please let {name} try on their own. Getting stuck is part of it, and the help is built in.'**
+  String setupReadyNoHelp(String name);
+
   /// No description provided for @setupHandOver.
   ///
   /// In en, this message translates to:

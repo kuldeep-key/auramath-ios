@@ -475,6 +475,8 @@
   "setupReadyTitle": "All set!",
   "setupReadyBody": "{name} starts with a short warm-up, then a story case.",
   "@setupReadyBody": {"placeholders": {"name": {"type": "String"}}},
+  "setupReadyNoHelp": "Please let {name} try on their own. Getting stuck is part of it, and the help is built in.",
+  "@setupReadyNoHelp": {"placeholders": {"name": {"type": "String"}}},
   "setupHandOver": "Hand over to {name}",
   "@setupHandOver": {"placeholders": {"name": {"type": "String"}}},
   "setupOwnPhone": "{name} has their own phone",

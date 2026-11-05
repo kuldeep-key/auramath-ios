@@ -1366,6 +1366,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String setupReadyNoHelp(String name) {
+    return 'Please let $name try on their own. Getting stuck is part of it, and the help is built in.';
+  }
+
+  @override
   String setupHandOver(String name) {
     return 'Hand over to $name';
   }
