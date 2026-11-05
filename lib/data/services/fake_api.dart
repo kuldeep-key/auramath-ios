@@ -91,11 +91,16 @@ class FakeApi implements Api {
   final List<Map<String, Object?>> sums = [];
   final List<Map<String, Object?>> startingSums = [];
 
+  /// The `level` each `/arithmetic` call asked for, in order.
+  final List<String?> sumLevels = [];
+
   @override
   Future<List<Map<String, Object?>>> arithmetic(
     String childId, {
     required String purpose,
+    String? level,
   }) async {
+    sumLevels.add(level);
     final out = purpose == 'starting_check' ? startingSums : sums;
     if (out.isEmpty) throw const ApiException('no route', status: 404);
     return out;

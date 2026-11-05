@@ -26,6 +26,17 @@ void main() {
     );
   }
 
+  test('practice sums are the kind of the child\'s own sum, within 100', () {
+    // 186 - 107: a borrow in the ones, as Julia's 56 - 19
+    expect(practiceLevel((left: 186, right: 107, subtract: true)), 'A6');
+    expect(practiceLevel((left: 79, right: 35, subtract: true)), 'A4');
+    expect(practiceLevel((left: 186, right: 79, subtract: false)), 'A5');
+    expect(practiceLevel((left: 58, right: 37, subtract: false)), 'A5');
+    expect(practiceLevel((left: 41, right: 23, subtract: false)), 'A3');
+    // a borrow in the tens only still counts
+    expect(practiceLevel((left: 315, right: 172, subtract: true)), 'A6');
+  });
+
   test('fillLine fills all slots', () {
     expect(
       fillLine('Is the {b} {d} {u} tall?', {

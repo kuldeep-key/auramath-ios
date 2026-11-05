@@ -168,9 +168,11 @@ class HttpApi implements Api {
   Future<List<Map<String, Object?>>> arithmetic(
     String childId, {
     required String purpose,
+    String? level,
   }) async {
     final json = await _client.post('/api/children/$childId/arithmetic', {
       'purpose': purpose,
+      'level': ?level,
     });
     final items = (json as Map<String, Object?>)['items']! as List;
     return [for (final i in items) (i as Map).cast<String, Object?>()];

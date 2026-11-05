@@ -132,12 +132,20 @@ class SessionRepository {
   }
 
   /// Smaller sums to practise after a side lesson (TUT-08), as
-  /// `(text, answer, level)`.
-  Future<List<Sum>> practiceSums(String childId) =>
-      _sums(childId, 'side_lesson');
+  /// `(text, answer, level)`, at arithmetic [level] (the server needs one).
+  Future<List<Sum>> practiceSums(String childId, {required String level}) =>
+      _sums(childId, 'side_lesson', level: level);
 
-  Future<List<Sum>> _sums(String childId, String purpose) async => [
-    for (final i in await _api.arithmetic(childId, purpose: purpose))
+  Future<List<Sum>> _sums(
+    String childId,
+    String purpose, {
+    String? level,
+  }) async => [
+    for (final i in await _api.arithmetic(
+      childId,
+      purpose: purpose,
+      level: level,
+    ))
       (
         text: i['text']! as String,
         answer: i['answer']! as int,

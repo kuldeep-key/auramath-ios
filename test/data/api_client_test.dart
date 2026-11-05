@@ -93,8 +93,16 @@ void main() {
           );
         }),
       );
-      final items = await api.arithmetic('c1', purpose: 'side_lesson');
-      expect(asked, '/api/children/c1/arithmetic {"purpose":"side_lesson"}');
+      final items = await api.arithmetic(
+        'c1',
+        purpose: 'side_lesson',
+        level: 'A6',
+      );
+      // the server refuses a side lesson's sums without a level (400)
+      expect(
+        asked,
+        '/api/children/c1/arithmetic {"purpose":"side_lesson","level":"A6"}',
+      );
       expect(items.single['answer'], 37);
     },
   );

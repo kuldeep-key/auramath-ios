@@ -90,6 +90,7 @@ abstract interface class Api {
   Future<List<Map<String, Object?>>> arithmetic(
     String childId, {
     required String purpose,
+    String? level,
   });
 
   /// `POST /api/children/{id}/starting-check {correct}`: how many of the

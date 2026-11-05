@@ -18,6 +18,22 @@ enum KnowPrompt { answer, whatAsked, recheck, checkPart, checkTotal }
 enum SideStage { ownSum, practice, back }
 
 /// Replaces each `{key}` in a pack line with its slot value.
+/// The arithmetic level of a side lesson's practice sums: the kind of the
+/// child's own sum, within 100 (policy `practice_if_unsure`: "smaller
+/// numbers ... of the same type"). A carry or a borrow in any column, as
+/// the server counts them, makes it a regrouping level.
+String practiceLevel(({int left, int right, bool subtract}) sum) {
+  var (a, b) = (sum.left, sum.right);
+  var regroups = false;
+  while ((a > 0 || b > 0) && !regroups) {
+    regroups = sum.subtract ? a % 10 < b % 10 : a % 10 + b % 10 >= 10;
+    a ~/= 10;
+    b ~/= 10;
+  }
+  if (sum.subtract) return regroups ? 'A6' : 'A4';
+  return regroups ? 'A5' : 'A3';
+}
+
 String fillLine(String template, Map<String, String> slots) => template
     .replaceAllMapped(RegExp(r'\{(\w+)\}'), (m) => slots[m[1]] ?? m[0]!);
 
@@ -626,6 +642,7 @@ class LessonViewModel extends ChangeNotifier {
       try {
         practice = (await _sessions.practiceSums(
           id,
+          level: practiceLevel(s),
         )).take(_pack.practiceSums).toList();
       } on ApiException catch (e) {
         // no sums to practise: the answer, then back to the case
