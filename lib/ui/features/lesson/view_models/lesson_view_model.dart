@@ -159,6 +159,7 @@ class LessonViewModel extends ChangeNotifier {
       return;
     }
     notifyListeners();
+    _warmVoice(); // the problem is known now, from the pack or the server
     final events = [
       SpecEvent('session_started', {
         'launch_source': launchSource,
@@ -218,6 +219,7 @@ class LessonViewModel extends ChangeNotifier {
   /// Rebuilds the lesson from its saved events: replayed through the engine,
   /// never from a snapshot.
   Future<void> restore() async {
+    _warmVoice();
     final sessionId = _sessionId!;
     final (:events, :lastSeq) = await _sessions.resume(sessionId);
     _state = replay(_pack, _problem, inputsFrom(_pack, _problem, events));
@@ -699,6 +701,21 @@ class LessonViewModel extends ChangeNotifier {
     if (_state.knowFlow == KnowFlow.checkingTotal) {
       knowPrompt = KnowPrompt.checkTotal;
     }
+  }
+
+  /// The lines this problem may read, made ahead in the case partner's
+  /// voice so they play at once. A line still missing a slot is skipped.
+  void _warmVoice() {
+    final slots = lineSlots(_problem);
+    unawaited(
+      _voice.warm([
+        _problem.say,
+        if (readAloud)
+          for (final line in _pack.lines.values)
+            if (fillLine(line, slots) case final text when !text.contains('{'))
+              text,
+      ]),
+    );
   }
 
   void _coach(String lineId, Map<String, String> slots) {
