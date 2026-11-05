@@ -40,4 +40,43 @@ void main() {
       expect(call.$2['noticeVersion'], 'v2');
     }
   });
+
+  test('withdrawing posts once and reads the state back', () async {
+    final (deps, server) = await testDeps(stored: parentPhone);
+    server.on('POST /api/parent/consent/withdraw', {
+      'consentAt': 1,
+      'consentWithdrawnAt': 1791400000000,
+      'consented': false,
+    });
+    final state = await deps.family.withdrawConsent();
+    expect(state.consented, isFalse);
+    expect(state.withdrawn, isTrue);
+    expect(server.calls.single.$1, 'POST /api/parent/consent/withdraw');
+  });
+
+  test('the children carry whether consent holds; unsaid is yes', () async {
+    final (deps, server) = await testDeps(stored: parentPhone);
+    server.on('GET /api/children', {
+      'children': <Object>[],
+      'consented': false,
+    });
+    expect((await deps.family.family()).consented, isFalse);
+    server.on('GET /api/children', {'children': <Object>[]});
+    expect((await deps.family.family()).consented, isTrue);
+  });
+
+  test('editing a child patches only the fields given', () async {
+    final (deps, server) = await testDeps(stored: parentPhone);
+    server.on('PATCH /api/children/c1', {
+      'id': 'c1',
+      'displayName': 'Maya',
+      'age': 8,
+      'avatar': 'fox',
+    });
+    final child = await deps.family.editChild('c1', {'age': 8});
+    expect(server.calls.single.$1, 'PATCH /api/children/c1');
+    expect(server.calls.single.$2, {'age': 8});
+    expect(child.age, 8);
+    expect(child.avatar, 'fox');
+  });
 }
