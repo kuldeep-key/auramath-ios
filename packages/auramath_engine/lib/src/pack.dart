@@ -41,6 +41,7 @@ class Pack {
     required this.badges,
     required this.lines,
     required this.problems,
+    this.maxSideLessons = 2,
   });
 
   factory Pack.fromJson(Map<String, Object?> j) => Pack(
@@ -60,17 +61,22 @@ class Pack {
     },
   );
 
-  Pack copyWith({Timers? timers}) => Pack(
+  Pack copyWith({Timers? timers, int? maxSideLessons}) => Pack(
     version: version,
     timers: timers ?? this.timers,
     hintLineIds: hintLineIds,
     badges: badges,
     lines: lines,
     problems: problems,
+    maxSideLessons: maxSideLessons ?? this.maxSideLessons,
   );
 
   final String version;
   final Timers timers;
+
+  /// Tutor policy `side_lessons.max_per_session`; past it the child gets
+  /// the step's usual help instead.
+  final int maxSideLessons;
   final List<String> hintLineIds;
   final Map<String, BadgeInfo> badges;
   final Map<String, String> lines;

@@ -332,7 +332,7 @@ class LessonViewModel extends ChangeNotifier {
               committed: e,
               seq: first + i,
               signals: _signals,
-              maxSideLessons: maxSideLessons,
+              maxSideLessons: _pack.maxSideLessons,
             ),
     ];
     if (entering != null) _signals.reset();

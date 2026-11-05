@@ -16,6 +16,9 @@ class PackRepository {
       jsonDecode(await _source.read()) as Map<String, Object?>,
     );
     final policy = Policy.fromYaml(await _source.readPolicy());
-    return pack.copyWith(timers: policy.timers);
+    return pack.copyWith(
+      timers: policy.timers,
+      maxSideLessons: policy.maxSideLessons,
+    );
   }
 }
