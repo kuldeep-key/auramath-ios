@@ -107,6 +107,55 @@ class Gu {
         'check': null,
         'away': null,
       })
+      ..on('GET /api/parent/browsers', {
+        'browsers': [
+          {
+            'id': 'cred-1',
+            'label': 'iPhone',
+            'memberId': null,
+            'createdAt': now,
+            'lastSeenAt': now,
+            'you': true,
+          },
+          {
+            'id': 'cred-2',
+            'label': 'Chrome on Mac',
+            'memberId': null,
+            'createdAt': now,
+            'lastSeenAt': now,
+            'you': false,
+          },
+        ],
+      })
+      ..on('GET /api/parent/consents', {
+        'consents': <Object>[],
+        'consentAt': now,
+        'consentWithdrawnAt': null,
+        'consented': true,
+        'problem': null,
+      })
+      ..on('GET /api/children/child-1/learning', {
+        'childId': 'child-1',
+        'questionTypes': {
+          'cmp.comparison': {
+            'level': 'L4',
+            'cleanSolvesAtLevel': 1,
+            'levelChanges': [
+              {'from': 'L3', 'to': 'L4', 'reason': 'move_up'},
+              {'from': 'L4', 'to': 'L3', 'reason': 'down_now'},
+              {'from': 'L3', 'to': 'L4', 'reason': 'move_up'},
+            ],
+          },
+        },
+        'problems': 9,
+        'mistakesSeen': {'E3': 2},
+      })
+      ..on('GET /api/children/child-2/learning', {
+        'childId': 'child-2',
+        'questionTypes': <String, Object>{},
+        'problems': 0,
+        'mistakesSeen': <String, Object>{},
+      })
       ..on('GET /api/family/passcode', {
         'set': true,
         'length': 4,

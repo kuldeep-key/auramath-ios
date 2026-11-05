@@ -16,10 +16,14 @@ typedef _Family = ({
   List<Invite> invites,
   List<Child> children,
   List<Device> devices,
+  List<Browser> browsers,
 });
 
 /// Family (652:213): the grown-ups and invitations, the children, and the
 /// joined phones, each removable. Invite a grown-up, add a child's phone.
+/// A child opens where they are. Removing a grown-up, cancelling an
+/// invite and the signed-in list follow the server's rules (FamilyRules)
+/// and have no Figma frame yet.
 class FamilyScreen extends StatelessWidget {
   const FamilyScreen({super.key, required this.family, required this.repo});
 
@@ -33,12 +37,14 @@ class FamilyScreen extends StatelessWidget {
       repo.invites(),
       family.children(),
       repo.devices(),
+      repo.browsers(),
     ]);
     return (
       members: r[0] as List<Member>,
       invites: r[1] as List<Invite>,
       children: r[2] as List<Child>,
       devices: r[3] as List<Device>,
+      browsers: r[4] as List<Browser>,
     );
   }
 
@@ -54,13 +60,39 @@ class FamilyScreen extends StatelessWidget {
           reload();
         }
 
+        final rules = FamilyRules(f.members);
+        Widget link(String label, String semantics, String path) => Semantics(
+          label: semantics,
+          button: true,
+          excludeSemantics: true,
+          onTap: () => push(path),
+          child: AuraLink(label: label, onPressed: () => push(path)),
+        );
         final grownUps = [
           for (final m in f.members)
             (
               m.you ? l.guYou(m.email) : m.email,
               m.owner ? l.guOwner : l.guGrownUp,
+              rules.canRemove(m)
+                  ? link(
+                      l.guRemove,
+                      l.guRemoveGrownUpLabel(m.email),
+                      Paths.removeGrownUp(m.id!),
+                    )
+                  : null,
             ),
-          for (final i in f.invites) (i.email, l.guInvited),
+          for (final i in f.invites)
+            rules.canCancel(i)
+                ? (
+                    l.guInvitedEmail(i.email),
+                    null,
+                    link(
+                      l.guCancelInviteLink,
+                      l.guCancelInviteLabel(i.email),
+                      Paths.cancelInvite(i.id),
+                    ),
+                  )
+                : (i.email, l.guInvited, null),
         ];
         return AuraPage(
           top: const AuraTopBar(fallback: Paths.grownUps),
@@ -77,10 +109,11 @@ class FamilyScreen extends StatelessWidget {
               GuCard(
                 child: Column(
                   children: [
-                    for (final (i, (who, role)) in grownUps.indexed)
+                    for (final (i, (who, role, action)) in grownUps.indexed)
                       KvRow(
                         label: who,
                         value: role,
+                        trailing: action,
                         divider: i < grownUps.length - 1,
                       ),
                   ],
@@ -99,6 +132,8 @@ class FamilyScreen extends StatelessWidget {
                             ? null
                             : yearLabel(l, c.schoolYear!),
                         divider: i < f.children.length - 1,
+                        hint: l.guOpenChildHint,
+                        onTap: () => push(Paths.learning(c.id)),
                       ),
                   ],
                 ),
@@ -113,16 +148,39 @@ class FamilyScreen extends StatelessWidget {
                       KvRow(
                         label: d.label,
                         divider: i < f.devices.length - 1,
-                        trailing: Semantics(
-                          label: l.guRemovePhoneLabel(d.label),
-                          button: true,
-                          excludeSemantics: true,
-                          onTap: () => push(Paths.removePhone(d.id)),
-                          child: AuraLink(
-                            label: l.guRemove,
-                            onPressed: () => push(Paths.removePhone(d.id)),
-                          ),
+                        trailing: link(
+                          l.guRemove,
+                          l.guRemovePhoneLabel(d.label),
+                          Paths.removePhone(d.id),
                         ),
+                      ),
+                  ],
+                ),
+              ),
+              SectionLabel(l.guSignedIn),
+              GuCard(
+                child: Column(
+                  children: [
+                    if (f.browsers.isEmpty)
+                      KvRow(label: l.guNoBrowsers, divider: false),
+                    for (final (i, b) in f.browsers.indexed)
+                      KvRow(
+                        label: b.label.isEmpty ? l.guBrowserUnnamed : b.label,
+                        value: b.you ? l.guThisPhone : null,
+                        divider: i < f.browsers.length - 1,
+                        // this phone signs out from Settings, with its
+                        // unsent lessons sent first
+                        trailing: b.you
+                            ? null
+                            : link(
+                                l.guSignOutBrowserLink,
+                                l.guSignOutBrowserLabel(
+                                  b.label.isEmpty
+                                      ? l.guBrowserUnnamed
+                                      : b.label,
+                                ),
+                                Paths.removeBrowser(b.id),
+                              ),
                       ),
                   ],
                 ),

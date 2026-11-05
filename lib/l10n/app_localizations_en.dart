@@ -287,6 +287,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A grown-up needs to add you before your first case.';
 
   @override
+  String get lessonPausedTitle => 'Ask a grown-up';
+
+  @override
+  String get lessonPausedBody =>
+      'Lessons are paused for now. A grown-up can turn them back on.';
+
+  @override
   String get drawingSaved => 'Your drawing is saved.';
 
   @override
@@ -588,6 +595,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guHomeNoChildrenBody => 'Add a child to start their first lesson.';
 
   @override
+  String get guHomePaused => 'Lessons are paused';
+
+  @override
+  String get guHomePausedBody =>
+      'Lessons can\'t start until a grown-up agrees again to how we keep their learning. You can do that in Your data and rights.';
+
+  @override
+  String get guHomePausedLink => 'Your data and rights';
+
+  @override
   String get guAddChild => 'Add a child';
 
   @override
@@ -668,6 +685,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guNoChildrenRow => 'No children yet';
 
   @override
+  String guInvitedEmail(String email) {
+    return '$email (invited)';
+  }
+
+  @override
+  String get guCancelInviteLink => 'Cancel';
+
+  @override
+  String guCancelInviteLabel(String email) {
+    return 'Cancel the invite to $email';
+  }
+
+  @override
+  String guRemoveGrownUpLabel(String email) {
+    return 'Remove $email';
+  }
+
+  @override
+  String get guSignedIn => 'Signed in';
+
+  @override
+  String get guNoBrowsers => 'Not signed in anywhere else';
+
+  @override
+  String get guThisPhone => 'This phone';
+
+  @override
+  String get guBrowserUnnamed => 'A browser';
+
+  @override
+  String get guSignOutBrowserLink => 'Sign out';
+
+  @override
+  String guSignOutBrowserLabel(String label) {
+    return 'Sign out $label';
+  }
+
+  @override
+  String get guOpenChildHint => 'Shows where they are';
+
+  @override
   String get guInviteGrownUp => 'Invite a grown-up';
 
   @override
@@ -745,6 +803,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get guRemovedBody =>
       'That phone is signed out. Join a new phone with a code any time.';
+
+  @override
+  String guRemoveGrownUpTitle(String email) {
+    return 'Remove $email?';
+  }
+
+  @override
+  String get guRemoveGrownUpBody =>
+      'They\'re signed out straight away and can\'t open the family account any more. You can invite them again later.';
+
+  @override
+  String get guRemoveGrownUpButton => 'Remove them';
+
+  @override
+  String get guRemoveGrownUpGone =>
+      'That grown-up isn\'t in your family any more.';
+
+  @override
+  String guCancelInviteTitle(String email) {
+    return 'Cancel the invite to $email?';
+  }
+
+  @override
+  String get guCancelInviteBody =>
+      'The link we emailed them stops working. You can send a new invite any time.';
+
+  @override
+  String get guCancelInviteButton => 'Cancel the invite';
+
+  @override
+  String get guKeepInvite => 'Keep it';
+
+  @override
+  String get guCancelInviteGone => 'That invite isn\'t waiting any more.';
+
+  @override
+  String guSignOutBrowserTitle(String label) {
+    return 'Sign out $label?';
+  }
+
+  @override
+  String get guSignOutBrowserBody =>
+      'It\'s signed out straight away. Anyone using it would need to sign in again.';
+
+  @override
+  String get guSignOutBrowserButton => 'Sign it out';
+
+  @override
+  String get guBrowserGone => 'That browser is already signed out.';
 
   @override
   String get guAddChildTitle => 'Add a child';
@@ -831,6 +938,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guDeleteButton => 'Delete everything';
+
+  @override
+  String get guConsentLink => 'Withdraw your consent';
+
+  @override
+  String get guConsentLinkBody => 'Lessons stop until you agree again';
+
+  @override
+  String get guConsentWithdrawn => 'You\'ve withdrawn your consent';
+
+  @override
+  String get guConsentWithdrawnBody =>
+      'Lessons are paused and no child can be added. What we keep stays until you delete it.';
+
+  @override
+  String get guConsentAgainLink => 'Agree again';
+
+  @override
+  String get guConsentAgainLinkBody => 'Lessons can start again straight away';
+
+  @override
+  String get guConsentError => 'Couldn\'t check your consent';
+
+  @override
+  String get guWithdrawTitle => 'Withdraw your consent?';
+
+  @override
+  String get guWithdrawBody =>
+      'Lessons stop straight away on every phone, and no child can be added. Nothing is deleted: what we keep stays until you delete it here. You can agree again any time.';
+
+  @override
+  String get guWithdrawButton => 'Withdraw consent';
+
+  @override
+  String get guAgainTitle => 'Agree again?';
+
+  @override
+  String get guAgainBody =>
+      'You agree, as their grown-up, that we keep each child\'s first name and every step of their lessons, so lessons can carry on. You can withdraw again or delete everything any time.';
+
+  @override
+  String get guAgainButton => 'I agree';
 
   @override
   String get guNotifyTitle => 'A note after each session?';
@@ -954,6 +1103,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String guPlanEmptyBody(String name) {
     return 'The plan fills in after $name\'s first lesson.';
   }
+
+  @override
+  String guLearningTitle(String name) {
+    return 'Where $name is';
+  }
+
+  @override
+  String guLearningBody(String name) {
+    return 'What $name is working on, and how their level has changed.';
+  }
+
+  @override
+  String get guLearningEmpty => 'Nothing yet';
+
+  @override
+  String guLearningEmptyBody(String name) {
+    return 'This fills in after $name\'s first lesson.';
+  }
+
+  @override
+  String get guLearningComparison => 'Comparing amounts';
+
+  @override
+  String get guLearningOther => 'Their lessons';
+
+  @override
+  String guLearningLevel(String level) {
+    return 'Level $level';
+  }
+
+  @override
+  String get guLearningNow => 'Working at this level now';
+
+  @override
+  String get guLearningHistory => 'How it changed';
+
+  @override
+  String get guLearningNoChanges => 'Still at the level they started on.';
+
+  @override
+  String guLearningMovedUp(String level) {
+    return 'Moved up to level $level';
+  }
+
+  @override
+  String get guLearningWentBack => 'Went back a level to build confidence';
+
+  @override
+  String guLearningChanged(String level) {
+    return 'Changed to level $level';
+  }
+
+  @override
+  String guLearningEdit(String name) {
+    return 'Change $name\'s details';
+  }
+
+  @override
+  String get guLearningEditBody => 'Name, age and school year';
+
+  @override
+  String guEditTitle(String name) {
+    return '$name\'s details';
+  }
+
+  @override
+  String get guEditBody =>
+      'Change what you told us. Lessons follow from the next one.';
+
+  @override
+  String get guEditName => 'First name';
+
+  @override
+  String get guEditNameNeeded => 'Type a first name.';
+
+  @override
+  String get guEditNameLong => 'Keep it to 40 letters or fewer.';
+
+  @override
+  String get guEditAge => 'Age';
+
+  @override
+  String get guEditYear => 'School year';
+
+  @override
+  String get guEditSave => 'Save';
 
   @override
   String get guReportTitle => 'Simple report';

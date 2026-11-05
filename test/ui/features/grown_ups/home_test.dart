@@ -115,6 +115,31 @@ void main() {
       expect(find.text('went to ${Paths.addChild}'), findsOneWidget);
     });
 
+    testWidgets('consent withdrawn: lessons are paused, with the way back', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('GET /api/children', {
+        'children': [
+          {'id': 'child-1', 'displayName': 'Aarav'},
+        ],
+        'consented': false,
+      });
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.text('Lessons are paused'), findsOneWidget);
+      await tester.tap(find.text('Your data and rights'));
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${Paths.rights}'), findsOneWidget);
+    });
+
+    testWidgets('consent holds: no paused card', (tester) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.text('Lessons are paused'), findsNothing);
+    });
+
     testWidgets('offline: says so with Try again', (tester) async {
       final g = await Gu.make(tester);
       g.server.on('GET /api/children', {'error': 'down'}, status: 503);
