@@ -132,10 +132,13 @@ class HttpApi implements Api {
             })
             as Map<String, Object?>;
     final check = json['spacedCheckDue'] as Map<String, Object?>?;
+    final retest = json['retestDue'] as Map<String, Object?>?;
     return (
       sessionId: json['id']! as String,
       childRef: json['childRef']! as String,
       checkLevel: check?['level'] as String?,
+      retestDueAt: retest?['dueAt'] as int?,
+      startingCheckDue: json['startingCheckDue'] == true,
       leftProblem: json['leftProblem'] as Map<String, Object?>?,
     );
   }
@@ -171,6 +174,16 @@ class HttpApi implements Api {
     });
     final items = (json as Map<String, Object?>)['items']! as List;
     return [for (final i in items) (i as Map).cast<String, Object?>()];
+  }
+
+  @override
+  Future<String> startingCheck(String childId, {required int correct}) async {
+    final json =
+        await _client.post('/api/children/$childId/starting-check', {
+              'correct': correct,
+            })
+            as Map<String, Object?>;
+    return json['level']! as String;
   }
 
   @override

@@ -10,10 +10,12 @@ import 'break_views.dart';
 import 'question_view.dart';
 import 'side_lesson_view.dart';
 import 'solved_view.dart';
+import 'starting_check_view.dart';
 import 'worked_example_view.dart';
 
 /// One lesson, start to finish: picks the screen for the engine's step.
-/// Figma: M0, M1, D1–D6, H0, T1, S1/S2, J17, Y2, Y3, M1-pause, TU.
+/// Figma: M0, M1, D1–D6, H0, T1, S1/S2, J17, Y2, Y3, M1-pause, TU; the
+/// starting check has no frame yet.
 class LessonFlow extends StatelessWidget {
   const LessonFlow({
     super.key,
@@ -38,6 +40,19 @@ class LessonFlow extends StatelessWidget {
             problem: left,
             onAgain: () => vm.takeLeft(again: true),
             onNew: () => vm.takeLeft(again: false),
+          ),
+        );
+      }
+      if (vm.inStartingCheck) {
+        return Scaffold(
+          body: SafeArea(
+            child: StartingCheckView(
+              vm: vm,
+              onHome: () async {
+                await vm.leave();
+                onHome();
+              },
+            ),
           ),
         );
       }

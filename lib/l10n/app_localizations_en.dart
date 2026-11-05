@@ -267,6 +267,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get lessonWarmUpStart => 'Let\'s warm up with a few sums. No rush!';
+
+  @override
+  String get lessonWarmUpNext => 'Here\'s another sum.';
+
+  @override
+  String get lessonWarmUpBlank => 'what';
+
+  @override
   String get lessonLostInternetBody =>
       'We\'ll carry on from here when it\'s back.';
 
