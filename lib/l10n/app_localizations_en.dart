@@ -96,6 +96,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stillThere => 'Still there?';
 
   @override
+  String get tooHardTitle => 'This one\'s tricky. Want a hand?';
+
+  @override
   String get stillThinking => 'I\'m still thinking';
 
   @override
@@ -242,6 +245,28 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String sideTypeIt(String sum) {
+    return 'So what is $sum? Type it in.';
+  }
+
+  @override
+  String sidePractice(String sum) {
+    return 'Let\'s try one like it: $sum';
+  }
+
+  @override
+  String get sidePracticeDone => 'Nice practice! Now back to the case.';
+
+  @override
+  String get sideKindEnd =>
+      'These are tricky. We\'ll practise them again soon. Back to the case!';
+
+  @override
+  String sideAnswerIs(String sum, int answer) {
+    return '$sum = $answer. Now back to the case.';
+  }
+
+  @override
   String get lessonLostInternetBody =>
       'We\'ll carry on from here when it\'s back.';
 
@@ -255,10 +280,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lessonNeedInternetBody => 'Check the Wi-Fi, then try again.';
 
   @override
+  String get lessonNoChildTitle => 'Ask a grown-up';
+
+  @override
+  String get lessonNoChildBody =>
+      'A grown-up needs to add you before your first case.';
+
+  @override
   String get drawingSaved => 'Your drawing is saved.';
 
   @override
   String get goHome => 'Go home';
+
+  @override
+  String get leaveThisOne => 'Try a different case';
+
+  @override
+  String get leftWaitingTitle => 'A case is waiting';
+
+  @override
+  String leftWaitingBody(String item) {
+    return 'Last time you left the $item case. Want to try it again?';
+  }
+
+  @override
+  String get leftTryAgain => 'Try it again';
+
+  @override
+  String get leftSomethingNew => 'Something new';
 
   @override
   String get timeUpTitle => 'That\'s today\'s time!';
@@ -266,6 +315,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get timeUpBody =>
       'Great detective work. Your case is saved for next time.';
+
+  @override
+  String get keptTitle => 'Saved for next time';
+
+  @override
+  String get keptBody =>
+      'We were away a while, so this case is kept for next time.';
 
   @override
   String get ok => 'OK';
@@ -465,7 +521,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guPassResetBlocked =>
-      'The server still asks for the old passcode before it sets a new one, so this can\'t finish yet.';
+      'It has been more than 10 minutes since you signed in. Sign in again, then choose a new passcode.';
 
   @override
   String get guFaceIdReason => 'Open the grown-up area';
@@ -708,6 +764,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guAddChildYearHint => 'For example, Year 2';
+
+  @override
+  String get guAddChildYearUnknown =>
+      'Type Kindergarten or a year from 1 to 5.';
 
   @override
   String get guAddChildAgree => 'I agree, continue';
@@ -1321,6 +1381,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupDevLink => 'Open the link (dev only)';
 
   @override
+  String get setupCodeLabel => 'Or type the 6-digit code from the email';
+
+  @override
+  String get setupCodeUse => 'Sign in with the code';
+
+  @override
+  String get setupCodeSix => 'The code is 6 numbers.';
+
+  @override
   String get setupVerifying => 'Signing you in…';
 
   @override
@@ -1336,6 +1405,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String setupReadyBody(String name) {
     return '$name starts with a short warm-up, then a story case.';
+  }
+
+  @override
+  String setupReadyNoHelp(String name) {
+    return 'Please let $name try on their own. Getting stuck is part of it, and the help is built in.';
   }
 
   @override

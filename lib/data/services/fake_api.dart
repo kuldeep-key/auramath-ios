@@ -14,7 +14,7 @@ class FakeApi implements Api {
   final List<String> sessions = [];
 
   @override
-  Future<({String sessionId, String childRef})> startSession({
+  Future<StartedSession> startSession({
     String? childId,
     required bool isDemo,
   }) async {
@@ -28,17 +28,72 @@ class FakeApi implements Api {
     return (
       sessionId: id,
       childRef: childId == null ? childRef : childRefFor(childId),
+      checkLevel: checkLevel,
+      leftProblem: leftProblem,
     );
   }
 
   String childRef = 'ch_test1234';
 
-  /// What `resumable` answers; null = no unfinished case on the server.
-  ({List<LessonEvent> events, bool sameDevice, String? startedOn})? openCase;
+  /// A spaced check due at this level, as the next session says.
+  String? checkLevel;
+
+  /// A problem the child left, as the next session offers it back.
+  Map<String, Object?>? leftProblem;
+
+  /// What `problems/next` hands out, in turn; each ask is kept in [asked].
+  final List<Map<String, Object?>> problems = [];
+  final List<(String, String?)> asked = [];
 
   @override
-  Future<({List<LessonEvent> events, bool sameDevice, String? startedOn})?>
-  resumable({String? childId}) async {
+  Future<Map<String, Object?>> nextProblem(
+    String sessionId, {
+    String? level,
+  }) async {
+    if (failNext > 0) {
+      failNext--;
+      throw const ApiException('offline');
+    }
+    asked.add((sessionId, level));
+    if (problems.isEmpty) throw const ApiException('no problem', status: 409);
+    return problems.removeAt(0);
+  }
+
+  /// Every decision asked for; the server's rules answer with the app's
+  /// own default, as dev does while the AI is off.
+  final List<(String, Map<String, Object?>)> decisions = [];
+
+  @override
+  Future<Map<String, Object?>> decide(
+    String sessionId,
+    Map<String, Object?> body,
+  ) async {
+    decisions.add((sessionId, body));
+    return {
+      'action': body['rulesDefault'],
+      'source': 'rules',
+      'cueAfterMs': 1000,
+      'fallbackAfterMs': 4000,
+    };
+  }
+
+  /// What `/arithmetic` hands out; empty: the server can't (404).
+  final List<Map<String, Object?>> sums = [];
+
+  @override
+  Future<List<Map<String, Object?>>> arithmetic(
+    String childId, {
+    required String purpose,
+  }) async {
+    if (sums.isEmpty) throw const ApiException('no route', status: 404);
+    return sums;
+  }
+
+  /// What `resumable` answers; null = no unfinished case on the server.
+  OpenCase? openCase;
+
+  @override
+  Future<OpenCase?> resumable({String? childId}) async {
     if (failNext > 0) {
       failNext--;
       throw const ApiException('offline');
@@ -46,15 +101,33 @@ class FakeApi implements Api {
     return openCase;
   }
 
+  /// Event names the server refuses (the rest of a batch is stored).
+  final Set<String> refuse = {};
+
+  /// Sessions the server has ended, and why.
+  final Map<String, String> ended = {};
+
   @override
-  Future<void> sendEvents(String sessionId, List<LessonEvent> events) async {
+  Future<EventsReply> sendEvents(
+    String sessionId,
+    List<LessonEvent> events,
+  ) async {
     if (failNext > 0) {
       failNext--;
       throw const ApiException('offline');
     }
     batches.add((sessionId, events));
     for (final e in events) {
-      if (_seen.add((sessionId, e.seq))) received.add(e);
+      if (!refuse.contains(e.name) && _seen.add((sessionId, e.seq))) {
+        received.add(e);
+      }
     }
+    return (
+      rejected: [
+        for (final e in events)
+          if (refuse.contains(e.name)) '${e.name}: refused',
+      ],
+      ended: ended[sessionId],
+    );
   }
 }

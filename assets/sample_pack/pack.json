@@ -25,6 +25,7 @@
     "cmp.opposite": "Look at your bars. Is the {b} longer or shorter?",
     "cmp.tryAgain": "Not yet. Try that sum again.",
     "cmp.carry": "Check the ones. Let us see.",
+    "cmp.sideBack": "Now you know that trick. Back to the case!",
     "cmp.recheck": "Check your sum again.",
     "cmp.addBoth": "Not yet. Add both bars.",
     "cmp.partRight": "{B} is right! Now check your adding.",

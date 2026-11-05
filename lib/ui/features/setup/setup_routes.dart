@@ -1,6 +1,11 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../data/repositories/account_repository.dart';
 import '../../../data/repositories/setup_repository.dart';
+import '../../../data/services/api.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
 import 'setup_paths.dart';
@@ -21,6 +26,14 @@ import 'views/verify_screen.dart';
 import 'views/welcome_screen.dart';
 import 'views/year_screen.dart';
 
+Future<void> _readOptions(Deps deps, SetupDraft draft) async {
+  try {
+    draft.options = await SetupRepository(deps.client).options();
+  } on ApiException catch (e) {
+    debugPrint('setup options not read: $e');
+  }
+}
+
 /// Parent setup and sign-in (Figma 1 · Getting started, SignIn, CheckEmail).
 List<RouteBase> setupRoutes(Deps deps) {
   final draft = deps.account.draft;
@@ -31,6 +44,7 @@ List<RouteBase> setupRoutes(Deps deps) {
     builder: (_, s) => CheckEmailScreen(
       deps: deps,
       fromSetup: fromSetup,
+      email: s.uri.queryParameters['email'],
       devToken: s.uri.queryParameters['dev'],
       token: s.uri.queryParameters['m'],
     ),
@@ -40,7 +54,12 @@ List<RouteBase> setupRoutes(Deps deps) {
     GoRoute(path: Paths.welcome, builder: (_, _) => const WelcomeScreen()),
     GoRoute(
       path: Paths.setupName,
-      builder: (_, _) => NameScreen(draft: draft),
+      builder: (_, _) {
+        // the server's lists, for the screens after this one; unreachable,
+        // the screens' own (the same ids today)
+        if (draft.options == null) unawaited(_readOptions(deps, draft));
+        return NameScreen(draft: draft);
+      },
     ),
     GoRoute(
       path: Paths.setupAge,

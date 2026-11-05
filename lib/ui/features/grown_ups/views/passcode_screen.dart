@@ -152,7 +152,11 @@ class _PasscodeScreenState extends State<PasscodeScreen>
           return;
         }
         await _guard(() async {
-          await widget.family.setPasscode(code);
+          // a forgotten one is replaced by the server's reset, which needs
+          // the fresh sign-in instead of the old passcode
+          await (_reset
+              ? widget.family.resetPasscode(code)
+              : widget.family.setPasscode(code));
           await widget.repo.endPasscodeReset();
           _open();
         }, onFail: () => _mode = _Mode.choose);

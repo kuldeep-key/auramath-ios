@@ -12,13 +12,19 @@ class OutboxDb {
   static Future<OutboxDb> open(String path) async {
     final db = await openDatabase(
       path,
-      version: 2,
-      onCreate: (db, _) => _create(db),
-      // v1 held the pre-contract event shape; no real family has used the
-      // app, so it is dropped rather than migrated.
-      onUpgrade: (db, _, _) async {
-        await db.execute('DROP TABLE IF EXISTS events');
+      version: 3,
+      onCreate: (db, _) async {
         await _create(db);
+        await _createV3(db);
+      },
+      onUpgrade: (db, from, _) async {
+        // v1 held the pre-contract event shape; no real family has used the
+        // app, so it is dropped rather than migrated.
+        if (from < 2) {
+          await db.execute('DROP TABLE IF EXISTS events');
+          await _create(db);
+        }
+        if (from < 3) await _createV3(db);
       },
     );
     return OutboxDb._(db);
@@ -34,6 +40,38 @@ class OutboxDb {
       sent INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY(session_id, seq)
     )''');
+
+  /// `ended`: sessions the server ended (offline too long, idle, a full
+  /// log); none is resumed, its case starts again in a new session.
+  /// `problems`: the server's problems as it sent them, so a case left
+  /// part way can be rebuilt after the app restarts.
+  static Future<void> _createV3(Database db) async {
+    await db.execute('CREATE TABLE ended(session_id TEXT PRIMARY KEY)');
+    await db.execute(
+      'CREATE TABLE problems(id TEXT PRIMARY KEY, body TEXT NOT NULL)',
+    );
+  }
+
+  Future<void> saveProblem(String id, Map<String, Object?> body) => _db.insert(
+    'problems',
+    {'id': id, 'body': jsonEncode(body)},
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
+
+  Future<List<Map<String, Object?>>> problems() async => [
+    for (final r in await _db.query('problems'))
+      (jsonDecode(r['body']! as String) as Map).cast<String, Object?>(),
+  ];
+
+  Future<void> markEnded(String sessionId) => _db.insert('ended', {
+    'session_id': sessionId,
+  }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+  Future<bool> isEnded(String sessionId) async => (await _db.query(
+    'ended',
+    where: 'session_id = ?',
+    whereArgs: [sessionId],
+  )).isNotEmpty;
 
   Future<void> insert(LessonEvent e) => _db.insert('events', {
     'session_id': e.sessionId,
@@ -92,7 +130,11 @@ class OutboxDb {
   }
 
   /// Forgets every lesson on this phone (DEV-06).
-  Future<void> clear() => _db.delete('events');
+  Future<void> clear() async {
+    await _db.delete('events');
+    await _db.delete('ended');
+    await _db.delete('problems');
+  }
 
   Future<void> close() => _db.close();
 

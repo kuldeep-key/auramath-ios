@@ -52,7 +52,7 @@ void main() {
       expect(g.bodyOf('POST /api/parent/consent'), {'noticeVersion': 'v1'});
       expect(g.bodyOf('POST /api/children'), {
         'displayName': 'Zoe',
-        'schoolYear': 'Year 3',
+        'schoolYear': 'year_3',
       });
       expect(find.text('went to ${Paths.grownUps}'), findsOneWidget);
     });

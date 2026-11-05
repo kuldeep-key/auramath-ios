@@ -3,17 +3,27 @@ import '../services/api_client.dart';
 
 /// A child in the family, as `/api/children` lists them. Never a gender.
 class Child {
-  const Child({required this.id, required this.name, this.schoolYear});
+  const Child({
+    required this.id,
+    required this.name,
+    this.age,
+    this.schoolYear,
+  });
 
   factory Child.fromJson(Map<String, Object?> j) => Child(
     id: j['id']! as String,
     name: j['displayName']! as String,
-    schoolYear:
-        (j['profile'] as Map<String, Object?>?)?['schoolYear'] as String?,
+    age: j['age'] as int?,
+    schoolYear: j['schoolYear'] as String?,
   );
 
   final String id;
   final String name;
+
+  /// Sets read-aloud's default (flag `read_aloud_default_on_ages`).
+  final int? age;
+
+  /// A `/api/setup/options` year id, e.g. `year_2`.
   final String? schoolYear;
 }
 
@@ -52,6 +62,11 @@ class FamilyRepository {
     });
   }
 
+  /// The family's IANA time zone (`Australia/Sydney`): when the weekly note
+  /// goes out.
+  Future<void> setTimeZone(String zone) =>
+      _client.put('/api/family/settings/time-zone', {'timeZone': zone});
+
   // ------------------------------------------- the grown-up passcode
 
   /// `{set, length, lockedUntil}`: whether one is set, how many digits.
@@ -69,6 +84,11 @@ class FamilyRepository {
     '/api/family/passcode',
     {'passcode': passcode, 'current': ?current},
   );
+
+  /// A forgotten passcode replaced without the old one: allowed within 10
+  /// min of a fresh sign-in, else 403 (sign in again).
+  Future<void> resetPasscode(String passcode) =>
+      _client.post('/api/family/passcode/reset', {'passcode': passcode});
 
   /// True if right, false if wrong (the server's 403). Throws 429 while
   /// locked after too many tries, 404 when none is set.

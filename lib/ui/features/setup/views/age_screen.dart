@@ -43,7 +43,7 @@ class _AgeScreenState extends State<AgeScreen> {
             spacing: 10,
             runSpacing: 10,
             children: [
-              for (final age in setupAges)
+              for (final age in widget.draft.options?.ages ?? setupAges)
                 _AgeChip(
                   age: age,
                   selected: age == _age,

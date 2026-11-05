@@ -136,4 +136,20 @@ void main() {
     expect(find.textContaining('Lost the internet'), findsNothing);
     vm.dispose();
   });
+
+  testWidgets('a lesson the server ended is kept for next time', (
+    tester,
+  ) async {
+    await pumpLesson(tester);
+    await tester.runAsync(() async {
+      api.ended['s1'] = 'paused';
+      await vm.send(const BarADrawn());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    });
+    await tester.pumpAndSettle();
+    expect(find.text('Saved for next time'), findsOneWidget);
+    await tap(tester, find.text('OK'));
+    expect(wentHome, 1);
+    vm.dispose();
+  });
 }

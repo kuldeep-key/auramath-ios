@@ -18,7 +18,7 @@ Future<(Deps, FakeServer)> ready(WidgetTester tester) async {
   deps.account.draft
     ..name = 'Aarav'
     ..age = 7
-    ..schoolYear = 'Year 2'
+    ..schoolYear = 'year_2'
     ..startingPoint = 'not_sure'
     ..agreed = true;
   server
@@ -35,7 +35,10 @@ Future<(Deps, FakeServer)> ready(WidgetTester tester) async {
     ..on('POST /api/auth/email-link/verify', {'token': 'parent-token'})
     ..on('GET /api/parent/consent', {'currentVersion': 'v3'})
     ..on('POST /api/parent/consent', {}, status: 201)
-    ..on('POST /api/children', {'id': 'child-9', 'displayName': 'Aarav'});
+    ..on('POST /api/children', {'id': 'child-9', 'displayName': 'Aarav'})
+    ..on('PUT /api/family/settings/time-zone', {
+      'timeZone': 'Australia/Sydney',
+    });
   return (deps, server);
 }
 
@@ -68,12 +71,14 @@ void main() {
         'GET /api/parent/consent',
         'POST /api/parent/consent',
         'POST /api/children',
+        'PUT /api/family/settings/time-zone',
       ]);
+      expect(server.calls[5].$2, {'timeZone': 'Australia/Sydney'});
       expect(server.calls[3].$2, {'noticeVersion': 'v3'});
       expect(server.calls[4].$2, {
         'displayName': 'Aarav',
         'age': 7,
-        'schoolYear': 'Year 2',
+        'schoolYear': 'year_2',
         'startingPoint': 'not_sure',
       });
       expect(deps.account.role, Role.parent);
@@ -190,6 +195,36 @@ void main() {
     testWidgets('fits every size', (tester) async {
       final (deps, _) = await ready(tester);
       await shotAllSizes(tester, 'setup_check_email', screen(deps));
+    });
+
+    testWidgets('the emailed code signs in where the server sends one', (
+      tester,
+    ) async {
+      final (deps, server) = await ready(tester);
+      await show(
+        tester,
+        CheckEmailScreen(deps: deps, fromSetup: false, email: 'a@key.ai'),
+      );
+      expect(find.text('Sign in with the code'), findsNothing);
+
+      server
+        ..on('GET /api/auth/config', {'emailLink': true, 'emailCode': true})
+        ..on('POST /api/auth/email-link/verify-code', {
+          'token': 'parent-token',
+        });
+      await show(
+        tester,
+        CheckEmailScreen(deps: deps, fromSetup: false, email: 'a@key.ai'),
+      );
+      await tester.enterText(find.byType(TextField), '12 34');
+      await tapAndWait(tester, find.text('Sign in with the code'));
+      expect(find.text('The code is 6 numbers.'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), '123 456');
+      await tapAndWait(tester, find.text('Sign in with the code'));
+      expect(server.calls.last.$2, {'email': 'a@key.ai', 'code': '123456'});
+      expect(deps.account.role, Role.parent);
+      expect(find.text('went to /kids'), findsOneWidget);
     });
 
     testWidgets('the dev link signs in and finishes setup', (tester) async {
