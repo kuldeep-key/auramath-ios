@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../data/repositories/account_repository.dart';
+import '../../../../data/repositories/setup_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
@@ -47,7 +48,12 @@ class _StartScreenState extends State<StartScreen> {
             title: sentence(l.setupStartTitle(childName(context, draft.name))),
             subtitle: l.setupStartSubtitle,
           ),
-          for (final (label, id) in canDoOptions(l)) ...[
+          for (final (label, id) in inServerOrder(
+            canDoOptions(l),
+            (o) => o.$2,
+            draft.options?.canDo,
+            (s) => (s.label, s.id),
+          )) ...[
             ChoiceTile(
               label: label,
               selected: _picked.contains(id),
