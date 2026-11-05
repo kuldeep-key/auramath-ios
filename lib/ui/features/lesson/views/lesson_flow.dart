@@ -62,7 +62,7 @@ class LessonFlow extends StatelessWidget {
               await vm.callItADay();
               onHome();
             },
-            onFinish: vm.finishThisOne,
+            onFinish: vm.canFinish ? vm.finishThisOne : null,
           ),
         );
       }

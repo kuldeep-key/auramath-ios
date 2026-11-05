@@ -121,6 +121,11 @@ Future<void> main() async {
   );
   // the server's problems this phone has shown, for a case left part way
   await sessions.loadProblems(pack);
+  final sitting = Sitting(
+    capMs: config.sessionCapMinutes * 60 * 1000,
+    store: store,
+  );
+  await sitting.load();
   runApp(
     AuraApp(
       deps: Deps(
@@ -130,7 +135,7 @@ Future<void> main() async {
         sessions: sessions,
         pack: pack,
         voice: DeviceVoice(),
-        sitting: Sitting(capMs: config.sessionCapMinutes * 60 * 1000),
+        sitting: sitting,
         deviceLock: LocalDeviceLock(),
         outbox: db,
         store: store,

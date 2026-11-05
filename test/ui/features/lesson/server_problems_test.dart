@@ -42,12 +42,10 @@ void main() {
   test("a served problem becomes the engine's, its fields kept", () {
     final p = problemFromServer(served());
     expect(p.id, 'g_1');
-    expect((p.a.name, p.a.pic, p.b.name, p.b.pic), (
-      'Lemon tree',
-      '🍋',
-      'Fig tree',
-      '🌳',
-    ));
+    expect(
+      (p.a.name, p.a.pic, p.b.name, p.b.pic),
+      ('Lemon tree', '🍋', 'Fig tree', '🌳'),
+    );
     expect((p.aValue, p.diff, p.big, p.bValue), (186, 107, BigSide.a, 79));
     expect(p.ask, Ask.total);
     expect(p.say, contains('186 centimetres tall'));
@@ -127,7 +125,10 @@ void main() {
     test('a spaced check due asks its level for the first problem', () async {
       final (vm, asked) = await makeVm(
         checkLevel: 'L2',
-        problems: [served(), served(id: 'g_2')],
+        problems: [
+          served(),
+          served(id: 'g_2'),
+        ],
       );
       await vm.start();
       expect(asked.single.$2, 'L2');
@@ -136,7 +137,10 @@ void main() {
 
     test('something easier asks one level down, in a new session', () async {
       final (vm, asked) = await makeVm(
-        problems: [served(), served(id: 'g_easy', level: 'L3')],
+        problems: [
+          served(),
+          served(id: 'g_easy', level: 'L3'),
+        ],
       );
       await vm.start();
       final first = vm.sessionId;
@@ -150,7 +154,10 @@ void main() {
 
     test('a solved case asks the server for the next one', () async {
       final (vm, asked) = await makeVm(
-        problems: [served(), served(id: 'g_next')],
+        problems: [
+          served(),
+          served(id: 'g_next'),
+        ],
       );
       await vm.start();
       for (final i in const <LessonInput>[

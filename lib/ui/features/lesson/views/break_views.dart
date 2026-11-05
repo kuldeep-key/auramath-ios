@@ -97,10 +97,12 @@ class KeptForNextTimeView extends StatelessWidget {
 /// "finish this one" choice SES-01 asks for, which the design doesn't have
 /// yet. No clock or countdown anywhere (SES-02).
 class TimeUpView extends StatelessWidget {
-  const TimeUpView({super.key, required this.onStop, required this.onFinish});
+  const TimeUpView({super.key, required this.onStop, this.onFinish});
 
   final VoidCallback onStop;
-  final VoidCallback onFinish;
+
+  /// Null when the problem hadn't begun: nothing to finish.
+  final VoidCallback? onFinish;
 
   @override
   Widget build(BuildContext context) {
@@ -123,12 +125,14 @@ class TimeUpView extends StatelessWidget {
               ),
               const Spacer(),
               AuraButton(label: l.ok, onPressed: onStop),
-              const SizedBox(height: 10),
-              AuraButton(
-                label: l.finishThisOne,
-                color: AuraButtonColor.white,
-                onPressed: onFinish,
-              ),
+              if (onFinish case final onFinish?) ...[
+                const SizedBox(height: 10),
+                AuraButton(
+                  label: l.finishThisOne,
+                  color: AuraButtonColor.white,
+                  onPressed: onFinish,
+                ),
+              ],
             ],
           ),
         ),

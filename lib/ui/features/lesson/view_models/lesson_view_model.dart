@@ -41,6 +41,7 @@ class LessonViewModel extends ChangeNotifier {
        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch) {
     assert(_p != null || _nextProblem != null, 'no problem $problemId');
     _lastMoveMs = _shownAt = _stepAt = _lastTickMs = _now();
+    _sitting.newLesson();
     if (tickEvery != null) _ticker = Timer.periodic(tickEvery, (_) => tick());
     _sessions.online.addListener(_onlineChanged);
     _sessions.ended.addListener(_endedByServer);
@@ -195,6 +196,10 @@ class LessonViewModel extends ChangeNotifier {
     await send(QuietFor(now - _lastMoveMs));
   }
 
+  /// Time's up mid-problem: the child may finish it. A problem not begun
+  /// yet waits for tomorrow.
+  bool get canFinish => _state.step != LessonStep.question;
+
   /// Time's up, and the child keeps going until this problem is done.
   void finishThisOne() {
     timeUp = false;
@@ -206,6 +211,7 @@ class LessonViewModel extends ChangeNotifier {
   Future<void> callItADay() async {
     timeUp = false;
     notifyListeners();
+    await _sitting.save();
     await _record([
       SpecEvent('session_ended', {
         'reason': 'time_up',
@@ -218,6 +224,7 @@ class LessonViewModel extends ChangeNotifier {
   Future<void> paused() async {
     if (_pausedAt != null) return;
     _pausedAt = _now();
+    await _sitting.save();
     await _record(const [
       SpecEvent('session_paused', {'reason': 'lock'}),
     ]);
@@ -512,6 +519,7 @@ class LessonViewModel extends ChangeNotifier {
     _sessions.ended.removeListener(_endedByServer);
     _voice.resting.removeListener(_voiceResting);
     _ticker?.cancel();
+    unawaited(_sitting.save());
     _voice.stop();
     super.dispose();
   }
