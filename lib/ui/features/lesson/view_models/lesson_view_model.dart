@@ -395,6 +395,9 @@ class LessonViewModel extends ChangeNotifier {
     }
     _state = r.state;
     _seq += events.length;
+    // solved: the session ends as finished (SES-01), its seq taken now so
+    // a tick meanwhile can't take it
+    final endAt = r.decisions.any((d) => d is Solved) ? _seq++ : null;
     _apply(r.decisions);
     // back from a side lesson opened on "check one part": that sheet again
     if (input is SideLessonDone && _state.knowFlow == KnowFlow.checkingPart) {
@@ -409,6 +412,7 @@ class LessonViewModel extends ChangeNotifier {
     for (final ask in asks) {
       unawaited(_askServer(sessionId, ask));
     }
+    if (endAt != null) await _endFinished(sessionId, endAt);
     // something easier: the easier problem gets its own session
     if (_sessionId == null) await start();
   }
@@ -615,6 +619,22 @@ class LessonViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Solved: `session_ended {finished}`, so the server writes the note and
+  /// moves the level now rather than at the idle sweep. After the next case
+  /// is fetched: problems/next refuses an ended session (409).
+  Future<void> _endFinished(String sessionId, int seq) async {
+    await _fetching;
+    if (endedByServer) return;
+    await _sessions.record(sessionId, seq, [
+      SpecEvent('session_ended', {
+        'reason': 'finished',
+        'active_ms': _sitting.activeMs,
+      }),
+    ]);
+  }
+
+  Future<void>? _fetching;
+
   /// Solved, with the server's problems: the next case is asked for now,
   /// in this session, while "case cracked" shows. Unreachable, it is
   /// [newProblem]: the next lesson asks again.
@@ -672,7 +692,7 @@ class LessonViewModel extends ChangeNotifier {
           if (_nextProblem == null) {
             nextProblemId = next;
           } else {
-            _fetchNext();
+            _fetching = _fetchNext();
           }
       }
     }

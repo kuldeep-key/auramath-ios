@@ -100,9 +100,11 @@ void main() {
     expectContract(api.received);
     final names = api.received.map((e) => e.name).toList();
     expect(names.take(2), ['session_started', 'problem_shown']);
-    expect(names.skip(names.length - 2), [
+    // solved: the session ends as finished, last (SES-01)
+    expect(names.skip(names.length - 3), [
       'problem_completed',
       'badge_awarded',
+      'session_ended',
     ]);
 
     vm.dispose();
