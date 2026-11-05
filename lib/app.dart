@@ -35,10 +35,13 @@ class _AuraAppState extends State<AuraApp> {
     _router.routerDelegate.addListener(_lockOnLeave);
   }
 
-  /// Leaving the grown-up area locks it again (ACC-07).
+  /// Leaving the grown-up area locks it again (ACC-07). The child picker
+  /// is the grown-up's too, once a child is chosen.
   void _lockOnLeave() {
     final loc = _router.routerDelegate.currentConfiguration.uri.path;
-    if (!Paths.isGrownUp(loc)) widget.deps.account.lockGrownUps();
+    if (!Paths.isGrownUp(loc) && loc != Paths.kids) {
+      widget.deps.account.lockGrownUps();
+    }
   }
 
   @override
