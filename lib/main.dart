@@ -64,7 +64,16 @@ Future<void> main() async {
           ),
         ),
         pack: pack,
-        voice: DeviceVoice(),
+        // the case partner's voice from the server; the phone's own voice
+        // whenever the server reads nothing aloud or a line can't go out
+        voice: CloudVoice(
+          fetch: (text, voiceId) => client.postBytes('/api/voice/speak', {
+            'text': text,
+            'voice': ?voiceId,
+          }),
+          player: FileClipPlayer(),
+          fallback: DeviceVoice(),
+        ),
         sitting: Sitting(capMs: config.sessionCapMinutes * 60 * 1000),
         deviceLock: LocalDeviceLock(),
         outbox: db,
