@@ -122,6 +122,18 @@ void main() {
       'stepId': 'find_unknown',
     };
 
+    test(
+      'a left case taken again stays the case, even with a check due',
+      () async {
+        final (vm, asked) = await makeVm(left: left(), checkLevel: 'L2');
+        addTearDown(vm.dispose);
+        await vm.start();
+        await vm.takeLeft(again: true);
+        expect(vm.problem.id, 'g_left');
+        expect(asked, isEmpty);
+      },
+    );
+
     test('a case left on another phone is drawn from the template, offered '
         'back, and taken without asking for another (SES-06)', () async {
       final (vm, asked) = await makeVm(left: left());

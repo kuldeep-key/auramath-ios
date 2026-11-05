@@ -133,7 +133,11 @@ class LessonViewModel extends ChangeNotifier {
   /// The child's answer to [offerLeft]: that case, shown as it was, or
   /// the server's next one.
   Future<void> takeLeft({required bool again}) {
-    if (again) _p = offerLeft;
+    if (again) {
+      _p = offerLeft;
+      // the child chose this case: a check due waits for the next session
+      _sessions.checkShown(_sessionId!);
+    }
     offerLeft = null;
     return start();
   }
