@@ -263,6 +263,32 @@ void main() {
     vm.dispose();
   });
 
+  test('a solved case ends its session as finished, last', () async {
+    final (sessions, db, _) = await memorySessions();
+    final vm = LessonViewModel(
+      pack: pack,
+      problemId: 'lemon',
+      sessionId: 's1',
+      sessions: sessions,
+      voice: FakeVoice(),
+      nowMs: () => now,
+      openSession: sessions.open,
+      sitting: Sitting(capMs: 30 * 60 * 1000),
+      tickEvery: null,
+    );
+    await vm.send(const Started());
+    await vm.send(const KnowIt(265));
+    final log = await db.forSession('s1');
+    expect(log.last.name, 'session_ended');
+    expect(log.last.payload['reason'], 'finished');
+    expect(log.where((e) => e.name == 'session_ended'), hasLength(1));
+    expect(
+      [for (final e in log) e.seq],
+      [for (var i = 0; i < log.length; i++) i],
+    );
+    vm.dispose();
+  });
+
   test(
     'I know it opens the answer prompt, a near miss asks to recheck',
     () async {
