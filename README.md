@@ -49,6 +49,8 @@ The flows to try by hand, step by step, are in [`docs/testing-guide.md`](docs/te
 
 `env/dev-cloud.json` is the deployed dev backend: any `@key.ai` Google account signs in there. It sends no email yet (the link and the 6-digit code go to the API's Cloud Logging), so use Google sign-in day to day. Builds shared with testers use this file.
 
+To try a screen whose flag is off on the server (the trail, badges, three in a row), add `--dart-define=FLAGS=trail,mastery_badges,three_in_a_row` to the run; `-name` switches one off. Never in a prod build.
+
 Apple and Google sign-in stay switched off until their client ids and the Apple developer account exist. Email-link sign-in works now.
 
 ## Test

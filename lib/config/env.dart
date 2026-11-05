@@ -19,5 +19,10 @@ abstract final class Env {
   static const serverProblems =
       String.fromEnvironment('PROBLEMS', defaultValue: 'bundled') == 'server';
 
+  /// Flags this build switches on (or off with `-`) over the server's, to
+  /// try screens behind flags that are off: `trail,mastery_badges`. Never
+  /// set in `env/prod.json`.
+  static const flagOverrides = String.fromEnvironment('FLAGS');
+
   static bool get isDev => name == 'dev';
 }

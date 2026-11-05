@@ -15,6 +15,7 @@ class Flags extends ChangeNotifier {
     this._client,
     this._store, {
     required Map<String, Object?> defaults,
+    this.overrides = const {},
     DateTime Function()? now,
   }) : _values = defaults,
        _now = now ?? DateTime.now;
@@ -25,9 +26,20 @@ class Flags extends ChangeNotifier {
   Map<String, Object?> _values;
   DateTime? _fetched;
 
+  /// A dev build's own switches (`FLAGS` in env), over whatever the server
+  /// says: screens behind flags that are off on dev can still be tried.
+  final Map<String, bool> overrides;
+
   static const maxAge = Duration(seconds: 60);
 
-  bool on(String name) => _values[name] == true;
+  bool on(String name) => overrides[name] ?? _values[name] == true;
+
+  /// `FLAGS=trail,mastery_badges,-read_aloud`: names to switch on, and
+  /// with a `-` off.
+  static Map<String, bool> parseOverrides(String s) => {
+    for (final n in s.split(',').map((n) => n.trim()).where((n) => n != ''))
+      n.startsWith('-') ? n.substring(1) : n: !n.startsWith('-'),
+  };
 
   /// The ages read-aloud starts on for (the grown-up can change it).
   List<int> get readAloudAges => [

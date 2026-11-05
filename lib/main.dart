@@ -101,7 +101,12 @@ Future<void> main() async {
           await rootBundle.loadString('assets/spec/app-config.yaml'),
     ),
   );
-  final flags = Flags(client, store, defaults: config.flags);
+  final flags = Flags(
+    client,
+    store,
+    defaults: config.flags,
+    overrides: Flags.parseOverrides(Env.flagOverrides),
+  );
   await flags.load();
   unawaited(flags.refresh());
   final sessions = SessionRepository(
