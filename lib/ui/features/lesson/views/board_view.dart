@@ -279,7 +279,7 @@ class _BoardViewState extends State<BoardView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                l.stillThere,
+                vm.tooHard ? l.tooHardTitle : l.stillThere,
                 style: AuraText.title,
                 textAlign: TextAlign.center,
               ),
@@ -296,7 +296,7 @@ class _BoardViewState extends State<BoardView> {
               AuraButton(
                 label: l.anEasierOne,
                 color: AuraButtonColor.white,
-                onPressed: () => vm.send(const EasierTaken()),
+                onPressed: () => vm.send(EasierTaken(noProgress: vm.tooHard)),
               ),
               const SizedBox(height: 8),
               AuraButton(

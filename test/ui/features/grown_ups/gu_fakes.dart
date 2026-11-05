@@ -34,18 +34,11 @@ class Gu {
     final now = DateTime.now().millisecondsSinceEpoch;
     final started = now - 13 * 60000;
     server
+      ..on('POST /api/auth/logout', null, status: 204)
       ..on('GET /api/children', {
         'children': [
-          {
-            'id': 'child-1',
-            'displayName': 'Aarav',
-            'profile': {'schoolYear': 'Year 2'},
-          },
-          {
-            'id': 'child-2',
-            'displayName': 'Maya',
-            'profile': {'schoolYear': 'Year 1'},
-          },
+          {'id': 'child-1', 'displayName': 'Aarav', 'schoolYear': 'year_2'},
+          {'id': 'child-2', 'displayName': 'Maya', 'schoolYear': 'year_1'},
         ],
       })
       ..on('GET /api/parent/members', {
@@ -96,7 +89,11 @@ class Gu {
       })
       ..on('GET /api/children/child-2/progress', {'sessions': <Object>[]})
       ..on('GET /api/sessions/s1/summary', {
-        'lines': ['Practised comparing two bars.', 'Did the second one alone.'],
+        'sentences': [
+          {'part': 'practised', 'text': 'Practised comparing two bars.'},
+          {'part': 'did_alone', 'text': 'Did the second one alone.'},
+        ],
+        'source': 'template',
       })
       ..on('GET /api/children/child-1/plan', {
         'childId': 'child-1',

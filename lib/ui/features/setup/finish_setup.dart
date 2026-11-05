@@ -22,6 +22,13 @@ Future<void> finishSetup(BuildContext context, Deps deps) async {
     ..canDo = []
     ..goal = null
     ..agreed = false;
+  // The weekly note goes out in the family's own evening. The child is
+  // saved, so a refusal here is logged, not a failed setup.
+  try {
+    await deps.family.setTimeZone(await deps.timeZone());
+  } on Exception catch (e) {
+    debugPrint('time zone not saved: $e');
+  }
   if (context.mounted) {
     context.go(
       SetupPaths.withChild(Paths.setupReady, id: child.id, name: child.name),

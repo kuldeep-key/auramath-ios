@@ -3,6 +3,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'data/repositories/account_repository.dart';
 import 'data/repositories/family_repository.dart';
 import 'data/repositories/session_repository.dart';
+import 'data/services/flags.dart';
 import 'data/services/api_client.dart';
 import 'data/services/device_lock.dart';
 import 'data/services/key_store.dart';
@@ -24,6 +25,8 @@ class Deps {
     required this.deviceLock,
     required this.outbox,
     required this.store,
+    required this.flags,
+    required this.timeZone,
   });
 
   final AccountRepository account;
@@ -44,4 +47,10 @@ class Deps {
   /// This phone's small saved settings (the grown-up's lesson settings,
   /// the forgot-passcode marker). Tokens stay inside the account.
   final KeyStore store;
+
+  /// The server's feature flags: every provisional screen asks them.
+  final Flags flags;
+
+  /// The phone's IANA time zone, e.g. `Australia/Sydney`.
+  final Future<String> Function() timeZone;
 }

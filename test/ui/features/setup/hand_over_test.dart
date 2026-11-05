@@ -19,6 +19,8 @@ void main() {
     testWidgets('fits every size', (tester) async {
       await precacheAssets(tester, [kidBoy]);
       await shotAllSizes(tester, 'setup_ready', screen);
+      // ACC-06: the grown-up is asked not to help
+      expect(find.textContaining('try on their own'), findsOneWidget);
     });
 
     testWidgets('Hand over opens Lock with the child', (tester) async {

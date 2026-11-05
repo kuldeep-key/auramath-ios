@@ -62,19 +62,50 @@ void main() {
     expect(told, isTrue);
   });
 
-  test('events the server refuses are an error, not dropped', () async {
+  test('refused events and a server-ended session are read back', () async {
     final api = HttpApi(
       clientFor(
         (_) async => http.Response(
-          '{"added":0,"total":0,"rejected":[{"name":"x","reasons":["bad"]}]}',
+          '{"added":2,"total":2,"rejected":[{"index":0,"seq":3,'
+          '"eventId":"e","name":"x","reasons":["bad"]}],'
+          '"sessionEnded":{"at":1,"reason":"idle"}}',
           200,
         ),
       ),
     );
-    await expectLater(
-      api.sendEvents('s', const []),
-      throwsA(isA<ApiException>().having((e) => e.status, 'status', 422)),
+    final reply = await api.sendEvents('s', const []);
+    expect(reply.rejected, ['x: [bad]']);
+    expect(reply.ended, 'idle');
+  });
+
+  test(
+    'arithmetic sums are read from items, as the server worked them',
+    () async {
+      String? asked;
+      final api = HttpApi(
+        clientFor((r) async {
+          asked = '${r.url.path} ${r.body}';
+          return http.Response(
+            '{"childId":"c1","purpose":"side_lesson","contentVersion":"0.4.1",'
+            '"items":[{"level":"A6","skill":"arith.sub-2d-regroup","op":"sub",'
+            '"a":56,"b":19,"answer":37,"text":"56 - 19 = ?"}]}',
+            200,
+          );
+        }),
+      );
+      final items = await api.arithmetic('c1', purpose: 'side_lesson');
+      expect(asked, '/api/children/c1/arithmetic {"purpose":"side_lesson"}');
+      expect(items.single['answer'], 37);
+    },
+  );
+
+  test("a full log (413) ends the session, it isn't an outage", () async {
+    final api = HttpApi(
+      clientFor((_) async => http.Response('{"error":"log full"}', 413)),
     );
+    final reply = await api.sendEvents('s', const []);
+    expect(reply.rejected, isEmpty);
+    expect(reply.ended, 'full');
   });
 
   test("resume reads the record's own event shape", () async {

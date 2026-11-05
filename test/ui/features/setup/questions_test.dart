@@ -59,7 +59,10 @@ void main() {
       for (final age in ['6', '7', '8', '9', '10']) {
         expect(find.text(age), findsOneWidget);
       }
-      expect(find.text('Auramath is for ages 6 to 10 for now.'), findsOneWidget);
+      expect(
+        find.text('Auramath is for ages 6 to 10 for now.'),
+        findsOneWidget,
+      );
     });
   });
 
@@ -76,7 +79,7 @@ void main() {
       expect(find.text('Usual for age 7'), findsOneWidget);
       expect(find.text('Year 5'), findsOneWidget);
       await tapAndWait(tester, find.text('Continue'));
-      expect(draft.schoolYear, 'Year 2');
+      expect(draft.schoolYear, 'year_2');
       expect(find.text('went to /setup/start'), findsOneWidget);
     });
 
@@ -85,7 +88,16 @@ void main() {
       await show(tester, YearScreen(draft: draft));
       await tapAndWait(tester, find.text('Kindergarten'));
       await tapAndWait(tester, find.text('Continue'));
-      expect(draft.schoolYear, 'Kindergarten');
+      expect(draft.schoolYear, 'kindergarten');
+    });
+
+    test('a typed year becomes its id', () {
+      expect(yearIdFrom('Year 2'), 'year_2');
+      expect(yearIdFrom(' 5 '), 'year_5');
+      expect(yearIdFrom('Kindy'), 'kindergarten');
+      expect(yearIdFrom('Year 0'), isNull);
+      expect(yearIdFrom('Year 6'), isNull);
+      expect(yearIdFrom('second'), isNull);
     });
   });
 
@@ -94,25 +106,25 @@ void main() {
       await shotAllSizes(tester, 'setup_start', StartScreen(draft: aarav()));
     });
 
-    testWidgets('sends the skill ids picked, then Goal', (tester) async {
+    testWidgets('sends the ids picked, then Goal', (tester) async {
       final draft = aarav();
       await show(tester, StartScreen(draft: draft));
       await tapAndWait(tester, find.text('Adding to 1000'));
       await tapAndWait(tester, find.text('Counting to 100'));
       await tapAndWait(tester, find.text('Continue'));
       expect(draft.startingPoint, 'chosen');
-      expect(draft.canDo, {'arith.add-3d-regroup', 'ns.count-fwd-30'});
+      expect(draft.canDo, {'adding_to_1000', 'counting_to_100'});
       expect(find.text('went to /setup/goal'), findsOneWidget);
     });
 
-    testWidgets("I'm not sure opens StartNotSure and clears the areas", (
+    testWidgets("I'm not sure opens StartNotSure and sends only not_sure", (
       tester,
     ) async {
-      final draft = aarav()..canDo = ['cmp.compare-bars'];
+      final draft = aarav()..canDo = ['word_problems_with_bars'];
       await show(tester, StartScreen(draft: draft));
       await tapAndWait(tester, find.text("I'm not sure"));
       expect(draft.startingPoint, 'not_sure');
-      expect(draft.canDo, isEmpty);
+      expect(draft.canDo, ['not_sure']);
       expect(find.text('went to /setup/not-sure'), findsOneWidget);
     });
   });
@@ -122,14 +134,14 @@ void main() {
       await shotAllSizes(
         tester,
         'setup_not_sure',
-        NotSureScreen(draft: aarav()..schoolYear = 'Year 2'),
+        NotSureScreen(draft: aarav()..schoolYear = 'year_2'),
       );
     });
 
     testWidgets('names the child and year; Continue opens Goal', (
       tester,
     ) async {
-      await show(tester, NotSureScreen(draft: aarav()..schoolYear = 'Year 2'));
+      await show(tester, NotSureScreen(draft: aarav()..schoolYear = 'year_2'));
       expect(
         find.textContaining('Aarav starts at a typical Year 2 level'),
         findsOneWidget,
@@ -175,12 +187,12 @@ void main() {
       expect(draft.goal, 'not_sure');
     });
 
-    testWidgets('a goal the server lacks is not sent', (tester) async {
+    testWidgets('every goal sends its id', (tester) async {
       final draft = aarav()..goal = 'school_curriculum';
       await show(tester, GoalScreen(draft: draft));
       await tapAndWait(tester, find.text('Build confidence'));
       await tapAndWait(tester, find.text('Continue'));
-      expect(draft.goal, isNull);
+      expect(draft.goal, 'build_confidence');
     });
   });
 

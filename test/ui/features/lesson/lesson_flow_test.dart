@@ -1,3 +1,4 @@
+import 'package:auramath/data/services/api.dart';
 import 'package:auramath/ui/features/lesson/views/solved_view.dart';
 import 'package:auramath/l10n/app_localizations.dart';
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
@@ -105,5 +106,39 @@ void main() {
     ]);
 
     vm.dispose();
+  });
+
+  testWidgets('no child on the server (409): ask a grown-up, not the Wi-Fi', (
+    tester,
+  ) async {
+    final (sessions, _, _) =
+        await tester.runAsync(memorySessions) ?? (throw StateError('no db'));
+    final vm = LessonViewModel(
+      pack: samplePack(),
+      problemId: 'lemon',
+      sessions: sessions,
+      voice: FakeVoice(),
+      openSession: () async => throw const ApiException(
+        'add a child before starting a lesson',
+        status: 409,
+      ),
+      sitting: Sitting(capMs: 30 * 60 * 1000),
+      tickEvery: null,
+    );
+    addTearDown(vm.dispose);
+    await tester.runAsync(vm.start);
+    var home = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: LessonFlow(vm: vm, onHome: () => home++, onFinished: (_) {}),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Ask a grown-up'), findsOneWidget);
+    expect(find.text('We need the internet to start'), findsNothing);
+    await tester.tap(find.text('OK'));
+    expect(home, 1);
   });
 }

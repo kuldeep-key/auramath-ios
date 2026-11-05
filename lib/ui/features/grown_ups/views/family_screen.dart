@@ -8,6 +8,7 @@ import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
+import '../../setup/views/year_screen.dart' show yearLabel;
 import 'parts.dart';
 
 typedef _Family = ({
@@ -94,7 +95,9 @@ class FamilyScreen extends StatelessWidget {
                     for (final (i, c) in f.children.indexed)
                       KvRow(
                         label: c.name,
-                        value: c.schoolYear,
+                        value: c.schoolYear == null
+                            ? null
+                            : yearLabel(l, c.schoolYear!),
                         divider: i < f.children.length - 1,
                       ),
                   ],

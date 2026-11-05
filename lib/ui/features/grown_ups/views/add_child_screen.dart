@@ -7,10 +7,11 @@ import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/aura_text_field.dart';
+import '../../setup/views/year_screen.dart' show yearIdFrom;
 import 'parts.dart';
 
 /// AddChild (667:87): a first name, and the school year if the grown-up
-/// wants (the backend takes any non-blank text). "I agree" records the
+/// wants (typed, sent as its id). "I agree" records the
 /// grown-up's consent first if this account has none yet.
 class AddChildScreen extends StatefulWidget {
   const AddChildScreen({super.key, required this.family});
@@ -26,6 +27,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
   final _year = TextEditingController();
   bool _busy = false;
   String? _nameError;
+  String? _yearError;
   Object? _error;
 
   @override
@@ -37,24 +39,25 @@ class _AddChildScreenState extends State<AddChildScreen> {
 
   Future<void> _add() async {
     final name = _name.text.trim();
-    final year = _year.text.trim();
-    if (name.isEmpty) {
-      setState(
-        () => _nameError = AppLocalizations.of(context)!.guAddChildNameNeeded,
-      );
+    final typed = _year.text.trim();
+    final year = typed.isEmpty ? null : yearIdFrom(typed);
+    final l = AppLocalizations.of(context)!;
+    final badYear = typed.isNotEmpty && year == null;
+    if (name.isEmpty || badYear) {
+      setState(() {
+        _nameError = name.isEmpty ? l.guAddChildNameNeeded : null;
+        _yearError = badYear ? l.guAddChildYearUnknown : null;
+      });
       return;
     }
     setState(() {
       _busy = true;
-      _nameError = null;
+      _nameError = _yearError = null;
       _error = null;
     });
     try {
       await widget.family.giveConsent();
-      await widget.family.addChild({
-        'displayName': name,
-        if (year.isNotEmpty) 'schoolYear': year,
-      });
+      await widget.family.addChild({'displayName': name, 'schoolYear': ?year});
       if (mounted) popOr(context, Paths.grownUps);
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e);
@@ -85,6 +88,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
             label: l.guAddChildYear,
             hint: l.guAddChildYearHint,
             controller: _year,
+            error: _yearError,
             capitalization: TextCapitalization.sentences,
             onSubmitted: (_) => _add(),
           ),

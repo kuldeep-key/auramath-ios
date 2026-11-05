@@ -270,12 +270,12 @@ List<SpecEvent> eventsFor(
           'example_story_id': 'building-a-b',
         }),
       );
-    case EasierTaken():
+    case EasierTaken(:final noProgress):
       helpOpened();
       out.add(
         SpecEvent('easier_chosen', {
           'from_problem_id': p.id,
-          'trigger': 'child',
+          'trigger': noProgress ? 'no_progress' : 'child',
         }),
       );
     case QuietFor(:final ms):
@@ -388,7 +388,7 @@ List<LessonInput> inputsFrom(
       'undo_used' => const Undo(),
       'hint_shown' => const HintTaken(),
       'worked_example_shown' => const ShowMeHowTaken(),
-      'easier_chosen' => const EasierTaken(),
+      'easier_chosen' => EasierTaken(noProgress: j['trigger'] == 'no_progress'),
       'idle_prompt_shown' => QuietFor(j['after_ms']! as int),
       _ => null,
     };

@@ -45,8 +45,11 @@ The flows to try by hand, step by step, are in [`docs/testing-guide.md`](docs/te
 | `API_BASE` | `http://localhost:8080` | `https://api-dev.auramath.net` | `https://api.auramath.net` |
 | `DEMO` | `true` | `true` | `false` |
 | `GOOGLE_IOS_CLIENT_ID` | set | set | empty |
+| `PROBLEMS` | `bundled` (the sample pack; a local backend older than spec v0.4.1 has no `problems/next`) | `server` | `server` |
 
-`env/dev-cloud.json` is the deployed dev backend. It runs in production mode, so it never returns the email link to the app, and it has no email provider yet, so email-link sign-in is off there.
+`env/dev-cloud.json` is the deployed dev backend: any `@key.ai` Google account signs in there. It sends no email yet (the link and the 6-digit code go to the API's Cloud Logging), so use Google sign-in day to day. Builds shared with testers use this file.
+
+To try a screen whose flag is off on the server (the trail, badges, three in a row), add `--dart-define=FLAGS=trail,mastery_badges,three_in_a_row` to the run; `-name` switches one off. Never in a prod build.
 
 Apple and Google sign-in stay switched off until their client ids and the Apple developer account exist. Email-link sign-in works now.
 

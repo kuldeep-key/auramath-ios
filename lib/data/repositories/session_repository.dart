@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/lesson_event.dart';
+import '../models/server_problem.dart';
 import '../services/api.dart';
 import '../services/outbox_db.dart';
 
@@ -17,6 +18,8 @@ class SessionRepository {
     required this._db,
     required this._api,
     required this.identity,
+    this.onRejected,
+    this.template,
     String Function()? newId,
     int Function()? nowMs,
   }) : _newId = newId ?? const Uuid().v4,
@@ -27,6 +30,19 @@ class SessionRepository {
   final Identity identity;
   final String Function() _newId;
   final int Function() _now;
+
+  /// Events the server refused ("name: reasons"): a bug in the app or a
+  /// contract change. Resending can't fix them, so they're reported, and
+  /// the outbox moves on (the rest of their batch was stored).
+  final void Function(String sessionId, List<String> rejected)? onRejected;
+
+  /// Julia's comparison template (served, else bundled): draws a left case
+  /// from its ids and numbers, as the first phone did.
+  final ComparisonTemplate? template;
+
+  /// The last session the server ended (offline too long, idle, a full
+  /// log). The lesson on it shows "we'll keep this for next time".
+  final ended = ValueNotifier<String?>(null);
 
   /// The `child_ref` each open session's events carry, from the server.
   final Map<String, String> _childRefs = {};
@@ -55,7 +71,83 @@ class SessionRepository {
       isDemo: identity.isDemo,
     );
     _childRefs[s.sessionId] = s.childRef;
+    if (s.checkLevel != null) _checkLevels[s.sessionId] = s.checkLevel!;
+    if (s.leftProblem != null) _left[s.sessionId] = s.leftProblem!;
     return s.sessionId;
+  }
+
+  /// A spaced check due when the session opened: its first problem only.
+  final Map<String, String> _checkLevels = {};
+  final Map<String, Map<String, Object?>> _left = {};
+
+  /// The problem the child left last time, which [sessionId] offers back
+  /// (once): as this phone drew it, else rebuilt from its `problem_shown`
+  /// (ids and numbers) and [template]. Null when there's none, or this
+  /// phone's template is another version: then it isn't offered.
+  ComparisonProblem? leftProblem(Pack pack, String sessionId) {
+    final left = _left.remove(sessionId);
+    if (left == null) return null;
+    final seen = pack.problems[left['problemId']];
+    if (seen != null) return seen;
+    final shown = left['problem'] as Map<String, Object?>?;
+    final t = template;
+    final p = shown == null || t == null ? null : problemFromShown(shown, t);
+    if (p != null) _serve(pack, p);
+    return p;
+  }
+
+  /// The server's next problem for [sessionId], saved on the phone (a
+  /// resume rebuilds it) and added to [pack] for the lesson's screens.
+  /// [level] asks one at that level ("something easier"); else the first
+  /// problem of a session with a spaced check due is at the check's level.
+  Future<ComparisonProblem> nextProblem(
+    Pack pack,
+    String sessionId, {
+    String? level,
+  }) async {
+    final j = await _api.nextProblem(
+      sessionId,
+      level: level ?? _checkLevels.remove(sessionId),
+    );
+    final problem = problemFromServer(j);
+    await _db.saveProblem(problem.id, j);
+    _serve(pack, problem);
+    return problem;
+  }
+
+  /// Smaller sums to practise after a side lesson (TUT-08), as
+  /// `(text, answer, level)`.
+  Future<List<({String text, int answer, String level})>> practiceSums(
+    String childId,
+  ) async => [
+    for (final i in await _api.arithmetic(childId, purpose: 'side_lesson'))
+      (
+        text: i['text']! as String,
+        answer: i['answer']! as int,
+        level: i['level']! as String,
+      ),
+  ];
+
+  /// The server's choice at a decision point (online only; never queued).
+  Future<Map<String, Object?>> decide(
+    String sessionId,
+    Map<String, Object?> body,
+  ) => _api.decide(sessionId, body);
+
+  /// Adds the server's problems saved on this phone to [pack], so a case
+  /// left part way resumes after the app restarts.
+  Future<void> loadProblems(Pack pack) async {
+    for (final j in await _db.problems()) {
+      _serve(pack, problemFromServer(j));
+    }
+  }
+
+  // ponytail: the pack's map doubles as the problem store; give problems
+  // their own store if the pack ever becomes read-only
+  final List<(Pack, String)> _served = [];
+  void _serve(Pack pack, ComparisonProblem p) {
+    pack.problems[p.id] = p;
+    _served.add((pack, p.id));
   }
 
   /// Saves [events] as seq [firstSeq] onwards, then tries to send them.
@@ -114,6 +206,12 @@ class SessionRepository {
   Future<void> forget() async {
     _retry?.cancel();
     _childRefs.clear();
+    _checkLevels.clear();
+    _left.clear();
+    for (final (pack, id) in _served) {
+      pack.problems.remove(id);
+    }
+    _served.clear();
     await _db.clear();
   }
 
@@ -128,8 +226,16 @@ class SessionRepository {
           batch = await _db.unsent()
         ) {
           for (final (sessionId, events) in _bySession(batch)) {
-            await _api.sendEvents(sessionId, events);
+            final reply = await _api.sendEvents(sessionId, events);
             await _db.markSent(events);
+            if (reply.rejected.isNotEmpty) {
+              debugPrint('events refused in $sessionId: ${reply.rejected}');
+              onRejected?.call(sessionId, reply.rejected);
+            }
+            if (reply.ended != null) {
+              await _db.markEnded(sessionId);
+              ended.value = sessionId;
+            }
           }
         }
       } while (_again);
@@ -171,6 +277,7 @@ class SessionRepository {
           await _db.insert(e);
         }
         await _db.markSent(open.events);
+        if (open.closed) await _db.markEnded(open.events.first.sessionId);
         if (!open.sameDevice) {
           elsewhere = (
             sessionId: open.events.first.sessionId,
@@ -189,6 +296,14 @@ class SessionRepository {
         ? pack.problems[shown!.payload['problem_id']]
         : null;
     if (problem == null) return null;
+    // left for another day (SES-06): a new case now; the server offers the
+    // left one back later
+    if (events.any((e) => e.name == 'problem_left')) {
+      final next = problem.next.fast;
+      return pack.problems.containsKey(next)
+          ? (problemId: next, resumeSessionId: null, startedOn: null)
+          : null;
+    }
     var state = initialState();
     for (final input in inputsFrom(pack, problem, events)) {
       final r = step(pack, problem, state, input);
@@ -206,6 +321,11 @@ class SessionRepository {
         }
       }
     }
+    // ponytail: a case the server ended starts again from its question in a
+    // new session; rebuild its board from the events if children mind.
+    if (await _db.isEnded(sessionId)) {
+      return (problemId: problem.id, resumeSessionId: null, startedOn: null);
+    }
     return (
       problemId: problem.id,
       resumeSessionId: sessionId,
@@ -216,6 +336,7 @@ class SessionRepository {
   void dispose() {
     _retry?.cancel();
     online.dispose();
+    ended.dispose();
   }
 
   static List<(String, List<LessonEvent>)> _bySession(List<LessonEvent> batch) {
