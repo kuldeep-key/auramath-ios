@@ -17,6 +17,10 @@ abstract interface class Voice {
   Future<void> say(String text);
   Future<void> stop();
 
+  /// Lines the child is about to hear: a voice that takes time to make a
+  /// line starts them now. Never throws.
+  Future<void> warm(List<String> lines);
+
   /// True once the phone's voice failed to speak: the lesson says so
   /// (NoVoice 659:39) and shows its words big instead.
   ValueListenable<bool> get resting;
@@ -102,6 +106,10 @@ class DeviceVoice implements Voice {
 
   @override
   Future<void> stop() => _tts.stop();
+
+  /// The phone's voice needs nothing made ahead.
+  @override
+  Future<void> warm(List<String> lines) async {}
 }
 
 /// Plays a clip's MP3 bytes; completes when it ends or is stopped.
@@ -129,7 +137,12 @@ class FileClipPlayer implements ClipPlayer {
 }
 
 /// The case partner's voice (NFR-06, NFR-08): the server reads the line
-/// with a text-to-speech voice made for children and sends MP3.
+/// in Zephyr's detective-sidekick voice and sends MP3.
+///
+/// A new line takes the server a few seconds, so [warm] asks for the
+/// problem's lines when it opens (POST /api/voice/warm); by the time one is
+/// said it is usually ready. One that is not (a 503) is read by the phone
+/// this time and is ready the next.
 ///
 /// Any refusal falls back to [fallback] for that line, so a lesson never
 /// waits on it: no answer within [wait], an error, or a 422 because the line
@@ -138,6 +151,7 @@ class FileClipPlayer implements ClipPlayer {
 class CloudVoice implements Voice {
   CloudVoice({
     required this.fetch,
+    required this.warmer,
     required this.player,
     required this.fallback,
     this.voiceId,
@@ -148,6 +162,10 @@ class CloudVoice implements Voice {
 
   /// POST /api/voice/speak: the MP3 for a line in a voice (null: default).
   final Future<Uint8List> Function(String text, String? voiceId) fetch;
+
+  /// POST /api/voice/warm: start these lines (at most [warmBatch] a call).
+  final Future<void> Function(List<String> lines, String? voiceId) warmer;
+  static const warmBatch = 12;
   final ClipPlayer player;
   final Voice fallback;
 
@@ -202,6 +220,25 @@ class CloudVoice implements Voice {
       }
     } finally {
       if (turn == _turn) speaking.value = false;
+    }
+  }
+
+  @override
+  Future<void> warm(List<String> lines) async {
+    final todo = [
+      for (final l in {...lines})
+        if (l.trim().isNotEmpty && !_clips.containsKey('$voiceId|$l')) l,
+    ];
+    for (var i = 0; i < todo.length && !_off; i += warmBatch) {
+      final batch = todo.sublist(i, (i + warmBatch).clamp(0, todo.length));
+      try {
+        await warmer(batch, voiceId);
+      } on ApiException catch (e) {
+        if (e.status == 404) _off = true;
+        return; // throttled or offline: the lines are made when said
+      } on Exception {
+        return;
+      }
     }
   }
 

@@ -71,6 +71,10 @@ Future<void> main() async {
             'text': text,
             'voice': ?voiceId,
           }),
+          warmer: (lines, voiceId) => client.post('/api/voice/warm', {
+            'lines': lines,
+            'voice': ?voiceId,
+          }),
           player: FileClipPlayer(),
           fallback: DeviceVoice(),
         ),
