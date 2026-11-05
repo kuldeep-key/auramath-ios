@@ -53,6 +53,24 @@ class FakeApi implements Api {
     return problems.removeAt(0);
   }
 
+  /// Every decision asked for; the server's rules answer with the app's
+  /// own default, as dev does while the AI is off.
+  final List<(String, Map<String, Object?>)> decisions = [];
+
+  @override
+  Future<Map<String, Object?>> decide(
+    String sessionId,
+    Map<String, Object?> body,
+  ) async {
+    decisions.add((sessionId, body));
+    return {
+      'action': body['rulesDefault'],
+      'source': 'rules',
+      'cueAfterMs': 1000,
+      'fallbackAfterMs': 4000,
+    };
+  }
+
   /// What `resumable` answers; null = no unfinished case on the server.
   OpenCase? openCase;
 

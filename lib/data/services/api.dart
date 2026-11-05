@@ -55,4 +55,11 @@ abstract interface class Api {
 
   /// `POST /api/sessions/{sessionId}/events` with `{"events": [...]}`.
   Future<EventsReply> sendEvents(String sessionId, List<LessonEvent> events);
+
+  /// `POST /api/sessions/{id}/decisions`: the server's choice at a decision
+  /// point, always one of [body]'s `allowed`; `{action, source, ...}`.
+  Future<Map<String, Object?>> decide(
+    String sessionId,
+    Map<String, Object?> body,
+  );
 }

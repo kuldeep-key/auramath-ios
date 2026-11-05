@@ -8,6 +8,7 @@ import '../../../../data/services/api.dart';
 import '../../../../data/services/voice.dart';
 import '../../../core/parts/standing_button.dart';
 import 'sitting.dart';
+import 'step_decision.dart';
 
 /// Which answer sheet is open during "I know it".
 enum KnowPrompt { answer, whatAsked, recheck, checkPart, checkTotal }
@@ -59,6 +60,12 @@ class LessonViewModel extends ChangeNotifier {
   _nextProblem;
   final int Function() _now;
   Timer? _ticker;
+
+  /// Each committed step goes to the server's `decisions` (TUT-01, AI-04),
+  /// so its evaluator can judge steps once it's on. Off for a server older
+  /// than spec v0.4.1 (no such route).
+  bool askDecisions = false;
+  final _signals = StepSignals();
 
   /// The problem id that means "the server's next one".
   static const newProblem = 'new';
@@ -225,6 +232,7 @@ class LessonViewModel extends ChangeNotifier {
   Future<void> paused() async {
     if (_pausedAt != null) return;
     _pausedAt = _now();
+    _signals.backgrounded = true;
     await _sitting.save();
     await _record(const [
       SpecEvent('session_paused', {'reason': 'lock'}),
@@ -300,6 +308,10 @@ class LessonViewModel extends ChangeNotifier {
     ));
     if (input is Started) _startedAt = now;
     if (input is ShowMeHowTaken) showingExample = true;
+    if (input is Undo) _signals.undos++;
+    if (input is HintTaken || input is ShowMeHowTaken || input is EasierTaken) {
+      _signals.helpOpened = true;
+    }
     if (input is! QuietFor) {
       _lastMoveMs = now;
       glowPiece = showHand = stillThere = false;
@@ -307,8 +319,24 @@ class LessonViewModel extends ChangeNotifier {
     }
     final entering = r.state.step != _state.step ? r.state.step : null;
     if (entering != null) _stepAt = now;
-    _state = r.state;
     final first = _seq;
+    final asks = [
+      if (askDecisions)
+        for (final (i, e) in events.indexed)
+          if (e.name == 'step_committed')
+            afterStepDecision(
+              problem: _problem,
+              after: r.state,
+              input: input,
+              decisions: r.decisions,
+              committed: e,
+              seq: first + i,
+              signals: _signals,
+              maxSideLessons: maxSideLessons,
+            ),
+    ];
+    if (entering != null) _signals.reset();
+    _state = r.state;
     _seq += events.length;
     _apply(r.decisions);
     final stepLine = _stepLines[entering];
@@ -317,8 +345,31 @@ class LessonViewModel extends ChangeNotifier {
     }
     notifyListeners();
     await _sessions.record(sessionId, first, events);
+    for (final ask in asks) {
+      unawaited(_askServer(sessionId, ask));
+    }
     // something easier: the easier problem gets its own session
     if (_sessionId == null) await start();
+  }
+
+  /// Sends one decision. The rules' choice already happened on the phone.
+  // ponytail: the server's answer isn't acted on: with the AI off (dev,
+  // R1) it is our own default anyway, and nothing waits for it, so there's
+  // no thinking cue yet. Acting on a different answer needs an event that
+  // a resume can replay; add it, the 1 s cue and the 4 s fallback when the
+  // evaluator is switched on (M3).
+  Future<void> _askServer(String sessionId, Map<String, Object?> ask) async {
+    try {
+      final reply = await _sessions.decide(sessionId, ask);
+      if (reply['action'] != ask['rulesDefault']) {
+        debugPrint(
+          'decision: the server chose ${reply['action']}, '
+          'the rules ${ask['rulesDefault']} (kept)',
+        );
+      }
+    } on ApiException catch (e) {
+      debugPrint('decision not asked: $e');
+    }
   }
 
   Voice get voice => _voice;
@@ -347,7 +398,10 @@ class LessonViewModel extends ChangeNotifier {
   bool biggerPad = false;
 
   /// Tapped "Hear it again": always spoken.
-  void readQuestion() => _voice.say(_problem.say);
+  void readQuestion() {
+    _signals.readAloudUsed = true;
+    _voice.say(_problem.say);
+  }
 
   /// The flag `read_question_aloud`: the question speaks itself as it shows.
   bool readQuestionAloud = true;
@@ -365,7 +419,10 @@ class LessonViewModel extends ChangeNotifier {
   }
 
   /// A line the child asked to hear (a speak button).
-  void say(String text) => _voice.say(text);
+  void say(String text) {
+    _signals.readAloudUsed = true;
+    _voice.say(text);
+  }
 
   /// A line a screen shows on its own (the board's steps, the example):
   /// spoken if read-aloud is on.
@@ -384,7 +441,10 @@ class LessonViewModel extends ChangeNotifier {
     return (left: p.aValue, right: p.diff, subtract: p.big == BigSide.a);
   }
 
-  void sayAgain() => _voice.say(coachText);
+  void sayAgain() {
+    _signals.readAloudUsed = true;
+    _voice.say(coachText);
+  }
 
   void dismissStillThere() {
     stillThere = false;

@@ -92,6 +92,12 @@ class SessionRepository {
     return problem;
   }
 
+  /// The server's choice at a decision point (online only; never queued).
+  Future<Map<String, Object?>> decide(
+    String sessionId,
+    Map<String, Object?> body,
+  ) => _api.decide(sessionId, body);
+
   /// Adds the server's problems saved on this phone to [pack], so a case
   /// left part way resumes after the app restarts.
   Future<void> loadProblems(Pack pack) async {

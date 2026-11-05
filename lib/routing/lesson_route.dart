@@ -124,6 +124,7 @@ class _LessonRouteState extends State<_LessonRoute> {
               (age == null || flags.readAloudAges.contains(age)))
       ..readQuestionAloud = flags.on('read_question_aloud')
       ..showBadges = flags.on('mastery_badges')
+      ..askDecisions = Env.serverProblems
       ..launchSource = deps.account.role == Role.parent
           ? 'parent_handover'
           : 'child_opened'

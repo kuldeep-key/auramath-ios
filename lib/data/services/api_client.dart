@@ -151,6 +151,14 @@ class HttpApi implements Api {
   }
 
   @override
+  Future<Map<String, Object?>> decide(
+    String sessionId,
+    Map<String, Object?> body,
+  ) async =>
+      await _client.post('/api/sessions/$sessionId/decisions', body)
+          as Map<String, Object?>;
+
+  @override
   Future<OpenCase?> resumable({String? childId}) async {
     final json =
         await _client.get(
