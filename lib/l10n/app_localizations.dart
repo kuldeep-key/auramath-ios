@@ -574,6 +574,18 @@ abstract class AppLocalizations {
   /// **'A grown-up needs to add you before your first case.'**
   String get lessonNoChildBody;
 
+  /// No description provided for @lessonPausedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a grown-up'**
+  String get lessonPausedTitle;
+
+  /// No description provided for @lessonPausedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons are paused for now. A grown-up can turn them back on.'**
+  String get lessonPausedBody;
+
   /// No description provided for @drawingSaved.
   ///
   /// In en, this message translates to:
@@ -1096,6 +1108,24 @@ abstract class AppLocalizations {
   /// **'Add a child to start their first lesson.'**
   String get guHomeNoChildrenBody;
 
+  /// No description provided for @guHomePaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons are paused'**
+  String get guHomePaused;
+
+  /// No description provided for @guHomePausedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons can\'t start until a grown-up agrees again to how we keep their learning. You can do that in Your data and rights.'**
+  String get guHomePausedBody;
+
+  /// No description provided for @guHomePausedLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data and rights'**
+  String get guHomePausedLink;
+
   /// No description provided for @guAddChild.
   ///
   /// In en, this message translates to:
@@ -1240,6 +1270,72 @@ abstract class AppLocalizations {
   /// **'No children yet'**
   String get guNoChildrenRow;
 
+  /// No description provided for @guInvitedEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'{email} (invited)'**
+  String guInvitedEmail(String email);
+
+  /// No description provided for @guCancelInviteLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get guCancelInviteLink;
+
+  /// No description provided for @guCancelInviteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the invite to {email}'**
+  String guCancelInviteLabel(String email);
+
+  /// No description provided for @guRemoveGrownUpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {email}'**
+  String guRemoveGrownUpLabel(String email);
+
+  /// No description provided for @guSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in'**
+  String get guSignedIn;
+
+  /// No description provided for @guNoBrowsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Not signed in anywhere else'**
+  String get guNoBrowsers;
+
+  /// No description provided for @guThisPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone'**
+  String get guThisPhone;
+
+  /// No description provided for @guBrowserUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'A browser'**
+  String get guBrowserUnnamed;
+
+  /// No description provided for @guSignOutBrowserLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get guSignOutBrowserLink;
+
+  /// No description provided for @guSignOutBrowserLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out {label}'**
+  String guSignOutBrowserLabel(String label);
+
+  /// No description provided for @guOpenChildHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows where they are'**
+  String get guOpenChildHint;
+
   /// No description provided for @guInviteGrownUp.
   ///
   /// In en, this message translates to:
@@ -1377,6 +1473,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That phone is signed out. Join a new phone with a code any time.'**
   String get guRemovedBody;
+
+  /// No description provided for @guRemoveGrownUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {email}?'**
+  String guRemoveGrownUpTitle(String email);
+
+  /// No description provided for @guRemoveGrownUpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They\'re signed out straight away and can\'t open the family account any more. You can invite them again later.'**
+  String get guRemoveGrownUpBody;
+
+  /// No description provided for @guRemoveGrownUpButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove them'**
+  String get guRemoveGrownUpButton;
+
+  /// No description provided for @guRemoveGrownUpGone.
+  ///
+  /// In en, this message translates to:
+  /// **'That grown-up isn\'t in your family any more.'**
+  String get guRemoveGrownUpGone;
+
+  /// No description provided for @guCancelInviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the invite to {email}?'**
+  String guCancelInviteTitle(String email);
+
+  /// No description provided for @guCancelInviteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The link we emailed them stops working. You can send a new invite any time.'**
+  String get guCancelInviteBody;
+
+  /// No description provided for @guCancelInviteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the invite'**
+  String get guCancelInviteButton;
+
+  /// No description provided for @guKeepInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it'**
+  String get guKeepInvite;
+
+  /// No description provided for @guCancelInviteGone.
+  ///
+  /// In en, this message translates to:
+  /// **'That invite isn\'t waiting any more.'**
+  String get guCancelInviteGone;
+
+  /// No description provided for @guSignOutBrowserTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out {label}?'**
+  String guSignOutBrowserTitle(String label);
+
+  /// No description provided for @guSignOutBrowserBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s signed out straight away. Anyone using it would need to sign in again.'**
+  String get guSignOutBrowserBody;
+
+  /// No description provided for @guSignOutBrowserButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign it out'**
+  String get guSignOutBrowserButton;
+
+  /// No description provided for @guBrowserGone.
+  ///
+  /// In en, this message translates to:
+  /// **'That browser is already signed out.'**
+  String get guBrowserGone;
 
   /// No description provided for @guAddChildTitle.
   ///
@@ -1533,6 +1707,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete everything'**
   String get guDeleteButton;
+
+  /// No description provided for @guConsentLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw your consent'**
+  String get guConsentLink;
+
+  /// No description provided for @guConsentLinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons stop until you agree again'**
+  String get guConsentLinkBody;
+
+  /// No description provided for @guConsentWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve withdrawn your consent'**
+  String get guConsentWithdrawn;
+
+  /// No description provided for @guConsentWithdrawnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons are paused and no child can be added. What we keep stays until you delete it.'**
+  String get guConsentWithdrawnBody;
+
+  /// No description provided for @guConsentAgainLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Agree again'**
+  String get guConsentAgainLink;
+
+  /// No description provided for @guConsentAgainLinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons can start again straight away'**
+  String get guConsentAgainLinkBody;
+
+  /// No description provided for @guConsentError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check your consent'**
+  String get guConsentError;
+
+  /// No description provided for @guWithdrawTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw your consent?'**
+  String get guWithdrawTitle;
+
+  /// No description provided for @guWithdrawBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons stop straight away on every phone, and no child can be added. Nothing is deleted: what we keep stays until you delete it here. You can agree again any time.'**
+  String get guWithdrawBody;
+
+  /// No description provided for @guWithdrawButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw consent'**
+  String get guWithdrawButton;
+
+  /// No description provided for @guAgainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Agree again?'**
+  String get guAgainTitle;
+
+  /// No description provided for @guAgainBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You agree, as their grown-up, that we keep each child\'s first name and every step of their lessons, so lessons can carry on. You can withdraw again or delete everything any time.'**
+  String get guAgainBody;
+
+  /// No description provided for @guAgainButton.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree'**
+  String get guAgainButton;
 
   /// No description provided for @guNotifyTitle.
   ///
@@ -1725,6 +1977,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The plan fills in after {name}\'s first lesson.'**
   String guPlanEmptyBody(String name);
+
+  /// No description provided for @guLearningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where {name} is'**
+  String guLearningTitle(String name);
+
+  /// No description provided for @guLearningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What {name} is working on, and how their level has changed.'**
+  String guLearningBody(String name);
+
+  /// No description provided for @guLearningEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet'**
+  String get guLearningEmpty;
+
+  /// No description provided for @guLearningEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This fills in after {name}\'s first lesson.'**
+  String guLearningEmptyBody(String name);
+
+  /// No description provided for @guLearningComparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparing amounts'**
+  String get guLearningComparison;
+
+  /// No description provided for @guLearningOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Their lessons'**
+  String get guLearningOther;
+
+  /// No description provided for @guLearningLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level}'**
+  String guLearningLevel(String level);
+
+  /// No description provided for @guLearningNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Working at this level now'**
+  String get guLearningNow;
+
+  /// No description provided for @guLearningHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'How it changed'**
+  String get guLearningHistory;
+
+  /// No description provided for @guLearningNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Still at the level they started on.'**
+  String get guLearningNoChanges;
+
+  /// No description provided for @guLearningMovedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved up to level {level}'**
+  String guLearningMovedUp(String level);
+
+  /// No description provided for @guLearningWentBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Went back a level to build confidence'**
+  String get guLearningWentBack;
+
+  /// No description provided for @guLearningChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed to level {level}'**
+  String guLearningChanged(String level);
+
+  /// No description provided for @guLearningEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Change {name}\'s details'**
+  String guLearningEdit(String name);
+
+  /// No description provided for @guLearningEditBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, age and school year'**
+  String get guLearningEditBody;
+
+  /// No description provided for @guEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s details'**
+  String guEditTitle(String name);
+
+  /// No description provided for @guEditBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Change what you told us. Lessons follow from the next one.'**
+  String get guEditBody;
+
+  /// No description provided for @guEditName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get guEditName;
+
+  /// No description provided for @guEditNameNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a first name.'**
+  String get guEditNameNeeded;
+
+  /// No description provided for @guEditNameLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it to 40 letters or fewer.'**
+  String get guEditNameLong;
+
+  /// No description provided for @guEditAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get guEditAge;
+
+  /// No description provided for @guEditYear.
+  ///
+  /// In en, this message translates to:
+  /// **'School year'**
+  String get guEditYear;
+
+  /// No description provided for @guEditSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get guEditSave;
 
   /// No description provided for @guReportTitle.
   ///

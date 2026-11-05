@@ -143,4 +143,43 @@ void main() {
     await tester.tap(find.text('OK'));
     expect(home, 1);
   });
+
+  testWidgets('consent withdrawn (403): lessons are paused, no server words', (
+    tester,
+  ) async {
+    final (sessions, _, _) =
+        await tester.runAsync(memorySessions) ?? (throw StateError('no db'));
+    final vm = LessonViewModel(
+      pack: samplePack(),
+      problemId: 'lemon',
+      sessions: sessions,
+      voice: FakeVoice(),
+      openSession: () async => throw const ApiException(
+        'no recorded parental consent for this account',
+        status: 403,
+      ),
+      sitting: Sitting(capMs: 30 * 60 * 1000),
+      tickEvery: null,
+    );
+    addTearDown(vm.dispose);
+    await tester.runAsync(vm.start);
+    var home = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: LessonFlow(vm: vm, onHome: () => home++, onFinished: (_) {}),
+      ),
+    );
+    await tester.pump();
+    expect(
+      find.text(
+        'Lessons are paused for now. A grown-up can turn them back on.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('consent'), findsNothing);
+    await tester.tap(find.text('OK'));
+    expect(home, 1);
+  });
 }

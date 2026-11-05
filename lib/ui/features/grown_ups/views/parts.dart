@@ -415,11 +415,15 @@ class ConfirmScreen extends StatefulWidget {
     required this.action,
     required this.onConfirm,
     required this.fallback,
+    this.cancel,
   });
 
   final String title;
   final String body;
   final String action;
+
+  /// The way out without acting; "Cancel" unless given.
+  final String? cancel;
   final Future<void> Function() onConfirm;
 
   /// Where back and Cancel go when nothing is underneath.
@@ -469,7 +473,7 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
           ),
           const SizedBox(height: 12),
           AuraLink(
-            label: l.guCancel,
+            label: widget.cancel ?? l.guCancel,
             onPressed: _busy ? null : () => popOr(context, widget.fallback),
           ),
         ],

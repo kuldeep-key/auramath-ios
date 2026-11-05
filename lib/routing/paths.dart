@@ -86,6 +86,11 @@ abstract final class Paths {
 
   /// Delete the family account: its own confirmation (not in Figma).
   static const deleteAccount = '/grown-ups/rights/delete';
+
+  /// Withdraw consent, and agree again: their own confirmations (no Figma
+  /// frame yet).
+  static const withdrawConsent = '/grown-ups/rights/withdraw';
+  static const agreeAgain = '/grown-ups/rights/agree';
   static const notify = '/grown-ups/notify'; // 659:52
   static const signOut = '/grown-ups/sign-out'; // 659:105
 
@@ -93,6 +98,21 @@ abstract final class Paths {
   static const phoneRemoved = '/grown-ups/family/phone-removed';
   static String removePhone(String deviceId) =>
       '/grown-ups/family/phones/$deviceId/remove'; // 653:159
+
+  /// Removing a grown-up, cancelling an invite, signing a browser out:
+  /// confirmations built as RemovePhone (no Figma frame yet).
+  static String removeGrownUp(String memberId) =>
+      '/grown-ups/family/grown-ups/$memberId/remove';
+  static String cancelInvite(String inviteId) =>
+      '/grown-ups/family/invites/$inviteId/cancel';
+  static String removeBrowser(String browserId) =>
+      '/grown-ups/family/browsers/$browserId/remove';
+
+  /// Where the child is, and changing their details (no Figma frame yet).
+  static String learning(String childId) =>
+      '/grown-ups/children/$childId/learning';
+  static String editChild(String childId) =>
+      '/grown-ups/children/$childId/edit';
   static String book(String childId) => '/grown-ups/children/$childId/book';
   static String plan(String childId) => '/grown-ups/children/$childId/plan';
   static String report(String childId) =>

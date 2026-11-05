@@ -44,7 +44,7 @@ class _AgeScreenState extends State<AgeScreen> {
             runSpacing: 10,
             children: [
               for (final age in widget.draft.options?.ages ?? setupAges)
-                _AgeChip(
+                AgeChip(
                   age: age,
                   selected: age == _age,
                   onTap: () => setState(() => _age = age),
@@ -71,8 +71,10 @@ class _AgeScreenState extends State<AgeScreen> {
 }
 
 /// A number to pick (Figma "Button · 7"): blue with a navy lip when chosen.
-class _AgeChip extends StatelessWidget {
-  const _AgeChip({
+/// Also on the grown-ups' edit child screen.
+class AgeChip extends StatelessWidget {
+  const AgeChip({
+    super.key,
     required this.age,
     required this.selected,
     required this.onTap,

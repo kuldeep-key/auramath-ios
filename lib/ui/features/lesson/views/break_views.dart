@@ -163,6 +163,26 @@ class NoChildYetView extends StatelessWidget {
   }
 }
 
+/// A new session's 403: a grown-up withdrew consent (ACC-03), so lessons
+/// are paused. The child is told kindly to ask; the reason is for the
+/// grown-up area (no Figma frame yet).
+class LessonsPausedView extends StatelessWidget {
+  const LessonsPausedView({super.key, required this.onOk});
+
+  final VoidCallback onOk;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return _Moment(
+      emoji: '🧑‍🧒',
+      title: l.lessonPausedTitle,
+      body: l.lessonPausedBody,
+      onOk: onOk,
+    );
+  }
+}
+
 class _Moment extends StatelessWidget {
   const _Moment({
     required this.emoji,

@@ -43,11 +43,11 @@ The flows to try by hand, step by step, are in [`docs/testing-guide.md`](docs/te
 | Key | `env/dev.json` | `env/dev-cloud.json` | `env/prod.json` |
 | --- | --- | --- | --- |
 | `API_BASE` | `http://localhost:8080` | `https://api-dev.auramath.net` | `https://api.auramath.net` |
-| `DEMO` | `true` | `true` | `false` |
+| `DEMO` | `true` | `false` | `false` |
 | `GOOGLE_IOS_CLIENT_ID` | set | set | empty |
 | `PROBLEMS` | `bundled` (the sample pack; a local backend older than spec v0.4.1 has no `problems/next`) | `server` | `server` |
 
-`env/dev-cloud.json` is the deployed dev backend: any `@key.ai` Google account signs in there. It sends no email yet (the link and the 6-digit code go to the API's Cloud Logging), so use Google sign-in day to day. Builds shared with testers use this file.
+`env/dev-cloud.json` is the deployed dev backend: any `@key.ai` Google account signs in there. It sends no email yet (the link and the 6-digit code go to the API's Cloud Logging), so use Google sign-in day to day. Builds shared with testers use this file. Its lessons are not marked demo, so testers see their own summaries, plan, progress and resume (the server hides demo sessions from all four).
 
 To try a screen whose flag is off on the server (the trail, badges, three in a row), add `--dart-define=FLAGS=trail,mastery_badges,three_in_a_row` to the run; `-name` switches one off. Never in a prod build.
 

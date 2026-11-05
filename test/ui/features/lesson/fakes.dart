@@ -24,6 +24,9 @@ class FakeVoice implements Voice {
 
   @override
   Future<void> stop() async {}
+
+  @override
+  Future<void> warm(List<String> lines) async {}
 }
 
 Pack samplePack() => Pack.fromJson(

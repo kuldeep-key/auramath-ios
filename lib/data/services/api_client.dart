@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -37,7 +38,50 @@ class ApiClient {
   Future<Object?> put(String path, [Object? body]) =>
       _send('PUT', path, body: body);
 
+  /// Changes only the fields in [body] (`PATCH /api/children/{id}`).
+  Future<Object?> patch(String path, Object? body) =>
+      _send('PATCH', path, body: body);
+
   Future<Object?> delete(String path) => _send('DELETE', path);
+
+  /// A POST whose answer is bytes, not JSON (read-aloud audio). Failures are
+  /// [ApiException]s as for JSON calls.
+  Future<Uint8List> postBytes(
+    String path,
+    Object body, {
+    Duration? timeout,
+  }) async {
+    final request = http.Request('POST', Uri.parse('$baseUrl$path'));
+    final token = bearer();
+    request.headers.addAll({
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    });
+    request.body = jsonEncode(body);
+
+    final http.Response response;
+    try {
+      response = await http.Response.fromStream(
+        await _http.send(request).timeout(timeout ?? this.timeout),
+      );
+    } on Exception catch (e) {
+      throw ApiException("Can't reach the server ($e)");
+    }
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.bodyBytes;
+    }
+    if (response.statusCode == 401) onUnauthorized?.call();
+    String message = 'HTTP ${response.statusCode}';
+    try {
+      final json = jsonDecode(response.body);
+      if (json is Map && json['error'] is String) {
+        message = json['error'] as String;
+      }
+    } on FormatException {
+      // not JSON: keep the status line
+    }
+    throw ApiException(message, status: response.statusCode);
+  }
 
   /// A GET that sends the [etag] held: null when the server says it is
   /// unchanged (304), else the new JSON and its ETag.

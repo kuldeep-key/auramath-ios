@@ -8,26 +8,43 @@ import '../services/api.dart';
 import '../services/api_client.dart';
 import '../services/key_store.dart';
 
-/// A grown-up in the family (`GET /api/parent/members`).
+/// A grown-up in the family (`GET /api/parent/members`). The first
+/// parent (the owner) has no member [id].
 class Member {
-  const Member({required this.email, required this.owner, required this.you});
+  const Member({
+    required this.email,
+    required this.owner,
+    required this.you,
+    this.id,
+    this.invitedBy,
+  });
 
   factory Member.fromJson(Map<String, Object?> j) => Member(
+    id: j['id'] as String?,
     email: j['email'] as String? ?? '',
     owner: j['role'] == 'owner',
     you: j['you'] == true,
+    invitedBy: j['invitedBy'] as String?,
   );
 
+  final String? id;
   final String email;
   final bool owner;
   final bool you;
+
+  /// The member id of whoever invited them; null when the owner did.
+  final String? invitedBy;
 }
 
 /// An invitation not yet accepted (`GET /api/parent/invites`).
 class Invite {
-  const Invite({required this.email});
+  const Invite({required this.email, this.id = '', this.invitedBy});
 
+  final String id;
   final String email;
+
+  /// The member id of whoever sent it; null when the owner did.
+  final String? invitedBy;
 
   /// Only the ones still waiting: not accepted, cancelled or expired.
   static List<Invite> open(List<Object?> rows, int nowMs) => [
@@ -35,7 +52,90 @@ class Invite {
       if (r['acceptedAt'] == null &&
           r['revokedAt'] == null &&
           (r['expiresAt'] as int? ?? 0) > nowMs)
-        Invite(email: r['email'] as String? ?? ''),
+        Invite(
+          id: r['id'] as String? ?? '',
+          email: r['email'] as String? ?? '',
+          invitedBy: r['invitedBy'] as String?,
+        ),
+  ];
+}
+
+/// Who may remove whom, as the server allows it (family.py, L9): the
+/// owner may remove any invited grown-up and cancel any invitation; an
+/// invited grown-up only the ones they invited themselves. Nobody removes
+/// the owner or themselves here.
+class FamilyRules {
+  FamilyRules(List<Member> members)
+    : _me = members.where((m) => m.you).firstOrNull;
+
+  final Member? _me;
+
+  /// The owner, or a grown-up the server gave no `you` (an older server).
+  bool get _owner => _me == null || _me.owner;
+
+  bool canRemove(Member m) =>
+      !m.owner && !m.you && m.id != null && (_owner || m.invitedBy == _me!.id);
+
+  bool canCancel(Invite i) => _owner || i.invitedBy == _me!.id;
+}
+
+/// A signed-in browser or phone on the grown-up's credential
+/// (`GET /api/parent/browsers`). [you] is this phone.
+class Browser {
+  const Browser({
+    required this.id,
+    required this.label,
+    required this.you,
+    this.lastSeenAt,
+  });
+
+  factory Browser.fromJson(Map<String, Object?> j) => Browser(
+    id: j['id']! as String,
+    label: j['label'] as String? ?? '',
+    you: j['you'] == true,
+    lastSeenAt: j['lastSeenAt'] == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(j['lastSeenAt']! as int),
+  );
+
+  final String id;
+  final String label;
+  final bool you;
+  final DateTime? lastSeenAt;
+}
+
+/// One level change in the child's learning memory, oldest first.
+typedef LevelChange = ({String from, String to, String reason});
+
+/// Where a child is in one question type (`GET /api/children/{id}/learning`):
+/// the level and how it got there. The server never sends a score, and
+/// the grown-up area shows no number that judges the child.
+class LearningType {
+  const LearningType({
+    required this.id,
+    required this.level,
+    required this.changes,
+  });
+
+  final String id;
+  final String? level;
+  final List<LevelChange> changes;
+
+  static List<LearningType> fromJson(Map<String, Object?> j) => [
+    for (final MapEntry(:key, :value)
+        in (j['questionTypes'] as Map? ?? {}).cast<String, Map>().entries)
+      LearningType(
+        id: key,
+        level: value['level'] as String?,
+        changes: [
+          for (final c in (value['levelChanges'] as List? ?? []).cast<Map>())
+            (
+              from: c['from'] as String? ?? '',
+              to: c['to'] as String? ?? '',
+              reason: c['reason'] as String? ?? '',
+            ),
+        ],
+      ),
   ];
 }
 
@@ -186,6 +286,25 @@ class GrownUpRepository {
   Future<void> invite(String email) =>
       _client.post('/api/parent/invites', {'email': email});
 
+  /// Cancels an invitation not yet accepted: its link stops working.
+  Future<void> cancelInvite(String id) =>
+      _client.delete('/api/parent/invites/$id');
+
+  /// Removes an invited grown-up: their browsers sign out at once.
+  Future<void> removeMember(String id) =>
+      _client.delete('/api/parent/members/$id');
+
+  /// Where the grown-ups are signed in. The owner sees every grown-up's;
+  /// an invited grown-up sees their own.
+  Future<List<Browser>> browsers() async => [
+    for (final b in (await _get('/api/parent/browsers'))['browsers']! as List)
+      Browser.fromJson(b as Map<String, Object?>),
+  ];
+
+  /// Signs one browser out (204).
+  Future<void> removeBrowser(String id) =>
+      _client.delete('/api/parent/browsers/$id');
+
   Future<List<Device>> devices() async => [
     for (final d in (await _get('/api/devices'))['devices']! as List)
       Device.fromJson(d as Map<String, Object?>),
@@ -207,6 +326,10 @@ class GrownUpRepository {
 
   Future<List<Lesson>> lessons(String childId) async =>
       Lesson.fromProgress(await _get('/api/children/$childId/progress'));
+
+  /// Where the child is, per question type, and their level changes.
+  Future<List<LearningType>> learning(String childId) async =>
+      LearningType.fromJson(await _get('/api/children/$childId/learning'));
 
   Future<ChildPlan> plan(String childId) async =>
       ChildPlan.fromJson(await _get('/api/children/$childId/plan'));
