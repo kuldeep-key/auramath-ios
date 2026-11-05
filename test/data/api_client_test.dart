@@ -108,6 +108,18 @@ void main() {
     expect(reply.ended, 'full');
   });
 
+  test('consent withdrawn (403 on events) ends the session as consent, '
+      "it isn't an outage", () async {
+    final api = HttpApi(
+      clientFor(
+        (_) async => http.Response('{"error":"consent withdrawn"}', 403),
+      ),
+    );
+    final reply = await api.sendEvents('s', const []);
+    expect(reply.rejected, isEmpty);
+    expect(reply.ended, 'consent');
+  });
+
   test("resume reads the record's own event shape", () async {
     // as /api/sessions/resumable answered on the dev backend, 29 Oct
     final api = HttpApi(

@@ -152,4 +152,21 @@ void main() {
     expect(wentHome, 1);
     vm.dispose();
   });
+
+  testWidgets('consent withdrawn mid-lesson pauses lessons, not "offline"', (
+    tester,
+  ) async {
+    await pumpLesson(tester);
+    await tester.runAsync(() async {
+      // what HttpApi makes of the events route's 403
+      api.ended['s1'] = 'consent';
+      await vm.send(const BarADrawn());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    });
+    await tester.pumpAndSettle();
+    expect(find.text('Ask a grown-up'), findsOneWidget);
+    expect(find.text('Saved for next time'), findsNothing);
+    expect(find.textContaining('Lost the internet'), findsNothing);
+    vm.dispose();
+  });
 }
