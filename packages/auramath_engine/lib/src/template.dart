@@ -141,7 +141,9 @@ class ComparisonTemplate {
     throw StateError('$levelId: no numbers pass ${l.constraints}');
   }
 
-  /// The problem for exact numbers, rendered from the story's frame.
+  /// The problem for exact numbers, rendered from the story's frame. [id]
+  /// and [variant] keep a served problem's own (a case rebuilt from its
+  /// `problem_shown`).
   ComparisonProblem problem(
     String levelId,
     String storyId, {
@@ -150,6 +152,8 @@ class ComparisonTemplate {
     String? relation,
     required Map<String, String> pics,
     required NextProblems next,
+    String? id,
+    String variant = 'standard',
   }) {
     final l = level(levelId);
     final s = story(storyId);
@@ -167,7 +171,7 @@ class ComparisonTemplate {
       pic: pics[name] ?? (throw ArgumentError('no picture for "$name"')),
     );
     return ComparisonProblem(
-      id: '$storyId-$levelId-$a-$d'.toLowerCase(),
+      id: id ?? '$storyId-$levelId-$a-$d'.toLowerCase(),
       a: item(s.a),
       b: item(s.b),
       aValue: a,
@@ -178,10 +182,10 @@ class ComparisonTemplate {
       text: render(s.unit),
       say: render(_spoken[s.unit] ?? s.unit),
       next: next,
-      templateId: id,
+      templateId: this.id,
       templateVersion: version,
       storyId: storyId,
-      variant: 'standard',
+      variant: variant,
       level: levelId,
     );
   }

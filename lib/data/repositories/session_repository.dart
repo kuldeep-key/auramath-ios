@@ -19,6 +19,7 @@ class SessionRepository {
     required this._api,
     required this.identity,
     this.onRejected,
+    this.template,
     String Function()? newId,
     int Function()? nowMs,
   }) : _newId = newId ?? const Uuid().v4,
@@ -34,6 +35,10 @@ class SessionRepository {
   /// contract change. Resending can't fix them, so they're reported, and
   /// the outbox moves on (the rest of their batch was stored).
   final void Function(String sessionId, List<String> rejected)? onRejected;
+
+  /// Julia's comparison template (served, else bundled): draws a left case
+  /// from its ids and numbers, as the first phone did.
+  final ComparisonTemplate? template;
 
   /// The last session the server ended (offline too long, idle, a full
   /// log). The lesson on it shows "we'll keep this for next time".
@@ -76,23 +81,19 @@ class SessionRepository {
   final Map<String, Map<String, Object?>> _left = {};
 
   /// The problem the child left last time, which [sessionId] offers back
-  /// (once): as the server sent it, else as this phone saved it. Null when
-  /// there's none, or it can't be drawn here (left on another phone with
-  /// only its numbers).
+  /// (once): as this phone drew it, else rebuilt from its `problem_shown`
+  /// (ids and numbers) and [template]. Null when there's none, or this
+  /// phone's template is another version: then it isn't offered.
   ComparisonProblem? leftProblem(Pack pack, String sessionId) {
     final left = _left.remove(sessionId);
     if (left == null) return null;
+    final seen = pack.problems[left['problemId']];
+    if (seen != null) return seen;
     final shown = left['problem'] as Map<String, Object?>?;
-    if (shown != null && shown.containsKey('questionText')) {
-      try {
-        final p = problemFromServer(shown);
-        _serve(pack, p);
-        return p;
-      } on ApiException catch (e) {
-        debugPrint('left problem not drawable: $e');
-      }
-    }
-    return pack.problems[left['problemId']];
+    final t = template;
+    final p = shown == null || t == null ? null : problemFromShown(shown, t);
+    if (p != null) _serve(pack, p);
+    return p;
   }
 
   /// The server's next problem for [sessionId], saved on the phone (a

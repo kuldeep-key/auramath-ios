@@ -169,11 +169,7 @@ class HttpApi implements Api {
     final json = await _client.post('/api/children/$childId/arithmetic', {
       'purpose': purpose,
     });
-    // the guide names the items, not their wrapper: a list, or the reply's
-    // one list
-    final items = json is List
-        ? json
-        : (json as Map<String, Object?>).values.whereType<List>().first;
+    final items = (json as Map<String, Object?>)['items']! as List;
     return [for (final i in items) (i as Map).cast<String, Object?>()];
   }
 

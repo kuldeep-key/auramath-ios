@@ -134,6 +134,12 @@ Future<void> main() async {
       screen: 'lesson',
       sessionId: sessionId,
     ),
+    template: await served(
+      (b) async => ComparisonTemplate.fromYaml(
+        b?.yamlOf('comparison-two-step.yaml') ??
+            await rootBundle.loadString('assets/spec/comparison-two-step.yaml'),
+      ),
+    ),
   );
   // the server's problems this phone has shown, for a case left part way
   await sessions.loadProblems(pack);

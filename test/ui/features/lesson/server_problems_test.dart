@@ -104,7 +104,7 @@ void main() {
       Map<String, Object?>? left,
     }) async {
       final pack = samplePack();
-      final (sessions, _, api) = await memorySessions();
+      final (sessions, _, api) = await memorySessions(withTemplate: true);
       api
         ..checkLevel = checkLevel
         ..leftProblem = left
@@ -135,16 +135,27 @@ void main() {
       vm.dispose();
     });
 
-    test('a case left last time is offered back as it was shown, and taken '
-        'without asking for another (SES-06)', () async {
-      final (vm, asked) = await makeVm(
-        left: {
-          'id': 'lp_1',
-          'problemId': 'g_left',
-          'problem': served(id: 'g_left', a: 150, d: 40),
-          'stepId': 'find_unknown',
-        },
-      );
+    /// `leftProblem` as the server sends it: `problem` is the case's
+    /// `problem_shown` payload, ids and numbers only (backend, 5 Nov).
+    Map<String, Object?> left({String version = '0.3.0'}) => {
+      'id': 'lp_1',
+      'problemId': 'g_left',
+      'problem': {
+        'problem_id': 'g_left',
+        'template_id': 'cmp.comparison',
+        'template_version': version,
+        'story_id': 'lemon-fig',
+        'relation': 'taller',
+        'level': 'L4',
+        'variant': 'standard',
+        'numbers': {'A': 150, 'D': 40},
+      },
+      'stepId': 'find_unknown',
+    };
+
+    test('a case left on another phone is drawn from the template, offered '
+        'back, and taken without asking for another (SES-06)', () async {
+      final (vm, asked) = await makeVm(left: left());
       addTearDown(vm.dispose);
       await vm.start();
       expect(vm.ready, isFalse);
@@ -152,16 +163,12 @@ void main() {
       await vm.takeLeft(again: true);
       expect(vm.ready, isTrue);
       expect(vm.problem.aValue, 150);
+      expect(vm.problem.text, contains('The lemon tree is 150 cm tall'));
       expect(asked, isEmpty);
     });
 
     test('"something new" instead asks the server', () async {
-      final (vm, asked) = await makeVm(
-        left: {
-          'problemId': 'g_left',
-          'problem': served(id: 'g_left'),
-        },
-      );
+      final (vm, asked) = await makeVm(left: left());
       addTearDown(vm.dispose);
       await vm.start();
       await vm.takeLeft(again: false);
@@ -169,17 +176,8 @@ void main() {
       expect(asked, hasLength(1));
     });
 
-    test('a left case only its numbers name, never seen here, is not '
-        'offered', () async {
-      final (vm, _) = await makeVm(
-        left: {
-          'problemId': 'g_elsewhere',
-          'problem': {
-            'problem_id': 'g_elsewhere',
-            'numbers': {'A': 1},
-          },
-        },
-      );
+    test('a left case from another template version is not offered', () async {
+      final (vm, _) = await makeVm(left: left(version: '0.4.1'));
       addTearDown(vm.dispose);
       await vm.start();
       expect(vm.offerLeft, isNull);
