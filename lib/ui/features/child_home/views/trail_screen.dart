@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../data/repositories/progress_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
+import '../../../core/motion/play_backdrop.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
@@ -29,8 +31,7 @@ class TrailScreen extends StatelessWidget {
     final i = here.index;
     return Scaffold(
       backgroundColor: AuraColors.blueLip,
-      body: DecoratedBox(
-        decoration: auraPlayBackground,
+      body: PlayBackdrop(
         child: SafeArea(
           child: Column(
             children: [
@@ -107,15 +108,28 @@ class TrailScreen extends StatelessWidget {
       Positioned(
         left: x,
         top: y,
-        child: kind == _Kind.here
-            ? const Portrait(size: 60)
-            : _Stop(art: stop.art, done: kind == _Kind.done),
+        child: Pop(
+          duration: const Duration(milliseconds: 500),
+          delay: Duration(milliseconds: slot * 120),
+          child: kind == _Kind.here
+              ? const _HereRing(
+                  child: Float(
+                    delay: Duration(milliseconds: 2400),
+                    child: Portrait(size: 60),
+                  ),
+                )
+              : _Stop(art: stop.art, done: kind == _Kind.done),
+        ),
       ),
       Positioned(
         top: y + 8,
         left: right ? x + 68 : null,
         right: right ? null : 337 - x + 8,
-        child: label,
+        child: Pop(
+          duration: const Duration(milliseconds: 500),
+          delay: Duration(milliseconds: slot * 120 + 100),
+          child: label,
+        ),
       ),
     ];
   }
@@ -180,6 +194,39 @@ class _Column extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: SizedBox(width: double.infinity, child: child),
       ),
+    ),
+  );
+}
+
+/// The prototype's `hereRing`: a yellow ring spreads 18 px from the child's
+/// stop while it fades, every 1.6 s, starting after 1 s.
+// ponytail: the child's avatar stays on its stop; the prototype walks it
+// there along the path, which this screen doesn't draw.
+class _HereRing extends StatelessWidget {
+  const _HereRing({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Loop(
+    period: const Duration(milliseconds: 1600),
+    delay: const Duration(seconds: 1),
+    child: child,
+    builder: (context, t, child) => Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: t == 0
+            ? null
+            : [
+                BoxShadow(
+                  color: AuraColors.yellow.withValues(alpha: 0.7 * (1 - t)),
+                  spreadRadius: 18 * t,
+                ),
+              ],
+      ),
+      child: child,
     ),
   );
 }

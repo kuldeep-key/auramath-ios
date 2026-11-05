@@ -52,6 +52,15 @@ void main() {
       expect(draft.age, 8);
       expect(find.text('went to /setup/year'), findsOneWidget);
     });
+
+    testWidgets('offers 6 to 10 and says so (D-36, E25)', (tester) async {
+      await show(tester, AgeScreen(draft: aarav()));
+      expect(find.text('5'), findsNothing);
+      for (final age in ['6', '7', '8', '9', '10']) {
+        expect(find.text(age), findsOneWidget);
+      }
+      expect(find.text('Auramath is for ages 6 to 10 for now.'), findsOneWidget);
+    });
   });
 
   group('Year (643:66)', () {
@@ -135,13 +144,35 @@ void main() {
       await shotAllSizes(tester, 'setup_goal', GoalScreen(draft: aarav()));
     });
 
-    testWidgets('sends only a goal the server knows', (tester) async {
+    testWidgets('offers the six PRD goals; sends the ones the server knows', (
+      tester,
+    ) async {
       final draft = aarav();
       await show(tester, GoalScreen(draft: draft));
-      await tapAndWait(tester, find.text('Catch up'));
+      for (final goal in [
+        'Build confidence',
+        'Catch up',
+        'Get ahead',
+        'Word problems',
+        'Do well in the school curriculum',
+        "I'm not sure",
+      ]) {
+        expect(find.text(goal), findsOneWidget);
+      }
+      await tester.ensureVisible(find.text('Do well in the school curriculum'));
+      await tapAndWait(tester, find.text('Do well in the school curriculum'));
       await tapAndWait(tester, find.text('Continue'));
       expect(draft.goal, 'school_curriculum');
       expect(find.text('went to /setup/data'), findsOneWidget);
+    });
+
+    testWidgets("I'm not sure sends not_sure", (tester) async {
+      final draft = aarav();
+      await show(tester, GoalScreen(draft: draft));
+      await tester.ensureVisible(find.text("I'm not sure"));
+      await tapAndWait(tester, find.text("I'm not sure"));
+      await tapAndWait(tester, find.text('Continue'));
+      expect(draft.goal, 'not_sure');
     });
 
     testWidgets('a goal the server lacks is not sent', (tester) async {

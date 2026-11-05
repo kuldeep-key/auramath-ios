@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
@@ -26,9 +27,15 @@ class OpenScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Portrait(size: 120),
+                Float(child: Portrait(size: 120)),
                 SizedBox(width: 6),
-                Portrait(size: 96, image: 'assets/images/detective_girl.jpg'),
+                Float(
+                  delay: Duration(milliseconds: 500),
+                  child: Portrait(
+                    size: 96,
+                    image: 'assets/images/detective_girl.jpg',
+                  ),
+                ),
               ],
             ),
           ),

@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../data/repositories/progress_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/ribbon.dart';
@@ -211,6 +212,10 @@ class _Sash extends StatelessWidget {
         colors: [AuraColors.sashLight, AuraColors.yellow],
       ),
     ),
-    child: BadgeDisc(art: badgeArt(badgeId), size: 86),
+    // the newest badge bursts onto the sash
+    child: Burst(
+      delay: const Duration(milliseconds: 300),
+      child: BadgeDisc(art: badgeArt(badgeId), size: 86),
+    ),
   );
 }

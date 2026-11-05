@@ -2,6 +2,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
@@ -53,6 +54,8 @@ class HelpSheet extends StatelessWidget {
 }
 
 /// A bottom sheet drawn over a dimmed screen, inside the lesson's own stack.
+/// It slides up (420 ms) as the dimming fades in (250 ms), as the
+/// prototype's sheets.
 class AuraSheet extends StatelessWidget {
   const AuraSheet({super.key, required this.onClose, required this.children});
 
@@ -67,13 +70,24 @@ class AuraSheet extends StatelessWidget {
           label: MaterialLocalizations.of(context).modalBarrierDismissLabel,
           child: GestureDetector(
             onTap: onClose,
-            child: const ColoredBox(color: AuraColors.scrim),
+            child: Entrance(
+              duration: const Duration(milliseconds: 250),
+              builder: (context, t, child) => Opacity(opacity: t, child: child),
+              child: const ColoredBox(color: AuraColors.scrim),
+            ),
           ),
         ),
       ),
       Align(
         alignment: Alignment.bottomCenter,
-        child: AuraSheetBody(children: children),
+        child: Entrance(
+          duration: const Duration(milliseconds: 420),
+          builder: (context, t, child) => FractionalTranslation(
+            translation: Offset(0, 1.1 * (1 - AuraCurves.sheet.transform(t))),
+            child: child,
+          ),
+          child: AuraSheetBody(children: children),
+        ),
       ),
     ],
   );

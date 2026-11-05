@@ -518,20 +518,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guProgressError => 'Couldn\'t load progress';
 
   @override
-  String guHomeProgressTitle(String month) {
-    return '$month progress';
-  }
-
-  @override
-  String guHomeProgressBody(String name) {
-    return '$name this month';
-  }
-
-  @override
   String get guHomeFamily => 'Family';
-
-  @override
-  String get guHomePlan => 'Plan';
 
   @override
   String guHomeBackTo(String name) {
@@ -560,15 +547,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guSetReadAloud => 'Read aloud';
-
-  @override
-  String get guSetPad => 'Number pad';
-
-  @override
-  String get guSetPadPhone => 'Phone\'s own';
-
-  @override
-  String get guSetPadApp => 'The app\'s own';
 
   @override
   String get guSetBigPad => 'Bigger number pad (accessibility)';
@@ -1114,7 +1092,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupWelcomeBody =>
-      'Bar-model word problems for ages 5 to 10, read aloud and drawn by your child.';
+      'Bar-model word problems for ages 6 to 10, read aloud and drawn by your child.';
 
   @override
   String get setupGetStarted => 'Get started';
@@ -1130,6 +1108,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupNameLabel => 'First name';
+
+  @override
+  String get setupAgeRange => 'Auramath is for ages 6 to 10 for now.';
 
   @override
   String setupAgeTitle(String name) {
@@ -1240,6 +1221,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupGoalWordProblemsDetail => 'Reading and drawing them';
+
+  @override
+  String get setupGoalSchool => 'Do well in the school curriculum';
 
   @override
   String setupDataTitle(String name) {

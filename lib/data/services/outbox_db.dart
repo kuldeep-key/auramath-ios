@@ -91,6 +91,9 @@ class OutboxDb {
     return rows.isEmpty ? null : rows.single['session_id']! as String;
   }
 
+  /// Forgets every lesson on this phone (DEV-06).
+  Future<void> clear() => _db.delete('events');
+
   Future<void> close() => _db.close();
 
   LessonEvent _row(Map<String, Object?> r) => LessonEvent.fromJson(

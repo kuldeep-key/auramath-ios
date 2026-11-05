@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
 /// The number pad, drawn like the phone's own so it looks the same on iOS and
@@ -11,7 +12,7 @@ class Keypad extends StatefulWidget {
     required this.onChanged,
     required this.onCheck,
     this.maxDigits = 4,
-    this.keyHeight = 48,
+    this.keyHeight = 56,
   });
 
   final ValueChanged<String> onChanged;
@@ -21,8 +22,8 @@ class Keypad extends StatefulWidget {
   final ValueChanged<String> onCheck;
   final int maxDigits;
 
-  /// 48 is the phone's own look; the grown-up's "Bigger number pad"
-  /// setting and child screens use more.
+  /// 56 pt, the minimum for a child (LES-11); the grown-up's "Bigger number pad"
+  /// setting makes the lesson's keys 64.
   final double keyHeight;
 
   @override
@@ -68,17 +69,23 @@ class _KeypadState extends State<Keypad> {
           label: label,
           child: GestureDetector(
             onTap: onTap,
-            child: Container(
-              height: widget.keyHeight,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: blue ? AuraColors.blue : AuraColors.white,
-                borderRadius: BorderRadius.circular(AuraRadii.key),
-                boxShadow: const [
-                  BoxShadow(color: AuraColors.keyShadow, offset: Offset(0, 1)),
-                ],
+            child: PressScale(
+              scale: 0.94,
+              child: Container(
+                height: widget.keyHeight,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: blue ? AuraColors.blue : AuraColors.white,
+                  borderRadius: BorderRadius.circular(AuraRadii.key),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AuraColors.keyShadow,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: child,
               ),
-              child: child,
             ),
           ),
         ),

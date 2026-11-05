@@ -1,4 +1,5 @@
 import 'package:auramath/data/repositories/session_repository.dart';
+import 'package:auramath/data/services/api.dart';
 import 'package:auramath/data/services/fake_api.dart';
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:fake_async/fake_async.dart';
@@ -37,6 +38,64 @@ void main() {
     expect(await db.unsent(), isEmpty);
     repo.dispose();
     await db.close();
+  });
+
+  group('signing out (DEV-06)', () {
+    test('sends what is unsent, then keeps no lesson on the phone', () async {
+      final db = await memoryOutbox();
+      final api = FakeApi();
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      await repo.open();
+      api.failNext = 1;
+      await repo.record('s1', 1, const [step]);
+      expect(await db.unsent(), hasLength(1));
+      await repo.sendAllThenForget();
+      expect(api.received.map((e) => e.seq), [1]);
+      expect(await db.all(), isEmpty);
+      repo.dispose();
+      await db.close();
+    });
+
+    test('offline: throws and keeps the unsent work', () async {
+      final db = await memoryOutbox();
+      final api = FakeApi();
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      await repo.open();
+      api.failNext = 99;
+      await repo.record('s1', 1, const [step]);
+      await expectLater(repo.sendAllThenForget(), throwsA(isA<ApiException>()));
+      expect(await db.unsent(), hasLength(1));
+      repo.dispose();
+      await db.close();
+    });
+
+    test('forget clears everything without sending', () async {
+      final db = await memoryOutbox();
+      final api = FakeApi();
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      await repo.open();
+      api.failNext = 99;
+      await repo.record('s1', 1, const [step]);
+      await repo.forget();
+      expect(await db.all(), isEmpty);
+      repo.dispose();
+      await db.close();
+    });
   });
 
   test('failed sync retries and then marks sent', () async {

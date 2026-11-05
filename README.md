@@ -40,11 +40,13 @@ The flows to try by hand, step by step, are in [`docs/testing-guide.md`](docs/te
 
 `--dart-define-from-file` picks the environment:
 
-| Key | `env/dev.json` | `env/prod.json` |
-| --- | --- | --- |
-| `API_BASE` | `http://localhost:8080` | `https://api.auramath.net` |
-| `DEMO` | `true` | `false` |
-| `GOOGLE_IOS_CLIENT_ID` | empty | empty |
+| Key | `env/dev.json` | `env/dev-cloud.json` | `env/prod.json` |
+| --- | --- | --- | --- |
+| `API_BASE` | `http://localhost:8080` | `https://api-dev.auramath.net` | `https://api.auramath.net` |
+| `DEMO` | `true` | `true` | `false` |
+| `GOOGLE_IOS_CLIENT_ID` | set | set | empty |
+
+`env/dev-cloud.json` is the deployed dev backend. It runs in production mode, so it never returns the email link to the app, and it has no email provider yet, so email-link sign-in is off there.
 
 Apple and Google sign-in stay switched off until their client ids and the Apple developer account exist. Email-link sign-in works now.
 

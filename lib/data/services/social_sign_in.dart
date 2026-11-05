@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
@@ -26,14 +27,16 @@ class PlatformSocialSignIn implements SocialSignIn {
 
   @override
   Future<String?> google({required String serverClientId}) async {
-    if (Env.googleIosClientId.isEmpty) {
+    // Android finds its OAuth client by package name and signing key, so
+    // only iOS needs a client id in the build.
+    if (Platform.isIOS && Env.googleIosClientId.isEmpty) {
       throw const ApiException(
         "Google sign-in isn't set up in this build yet (no client id)",
       );
     }
     if (!_googleReady) {
       await GoogleSignIn.instance.initialize(
-        clientId: Env.googleIosClientId,
+        clientId: Platform.isIOS ? Env.googleIosClientId : null,
         serverClientId: serverClientId,
       );
       _googleReady = true;

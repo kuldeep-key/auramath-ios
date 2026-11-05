@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../data/repositories/account_repository.dart';
 import '../../../../data/repositories/family_repository.dart';
@@ -12,8 +11,9 @@ import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
 import 'parts.dart';
 
-/// PHome (658:84): the family's children, each opening their book; the
-/// month's progress, Family, Plan, and back to the child.
+/// PHome (658:84): the family's children, Family, and back to the child.
+/// Progress goes to the grown-up by email (D-39), so the book, month and
+/// plan screens aren't linked from here.
 class GrownUpHomeScreen extends StatelessWidget {
   const GrownUpHomeScreen({
     super.key,
@@ -46,14 +46,10 @@ class GrownUpHomeScreen extends StatelessWidget {
           reload();
         }
 
-        final first = children.isEmpty ? null : children.first;
         final back = children
             .where((c) => c.id == account.childId)
             .followedBy(children)
             .firstOrNull;
-        final month = DateFormat.MMMM(
-          Localizations.localeOf(context).toString(),
-        ).format(DateTime.now());
         return AuraPage(
           top: top,
           body: Column(
@@ -82,68 +78,15 @@ class GrownUpHomeScreen extends StatelessWidget {
                   ),
                 ),
               for (final c in children) ...[
-                _ChildCard(
-                  child: c,
-                  lessons: () => repo.lessons(c.id),
-                  onTap: () => push(Paths.book(c.id)),
-                ),
+                _ChildCard(child: c, lessons: () => repo.lessons(c.id)),
                 const SizedBox(height: 12),
               ],
-              if (first != null) ...[
-                GuCard(
-                  tint: true,
-                  label:
-                      '${l.guHomeProgressTitle(month)}. '
-                      '${l.guHomeProgressBody(first.name)}',
-                  onTap: () => push(Paths.month(first.id)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.show_chart_rounded,
-                            color: AuraColors.blue,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            l.guHomeProgressTitle(month),
-                            style: AuraText.option,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        l.guHomeProgressBody(first.name),
-                        style: AuraText.cardLine,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-              Row(
-                children: [
-                  Expanded(
-                    child: AuraButton(
-                      label: l.guHomeFamily,
-                      icon: Icons.group_outlined,
-                      color: AuraButtonColor.white,
-                      onPressed: () => push(Paths.family),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: AuraButton(
-                      label: l.guHomePlan,
-                      icon: Icons.map_outlined,
-                      color: AuraButtonColor.white,
-                      onPressed: first == null
-                          ? null
-                          : () => push(Paths.plan(first.id)),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 4),
+              AuraButton(
+                label: l.guHomeFamily,
+                icon: Icons.group_outlined,
+                color: AuraButtonColor.white,
+                onPressed: () => push(Paths.family),
               ),
             ],
           ),
@@ -164,17 +107,12 @@ class GrownUpHomeScreen extends StatelessWidget {
   }
 }
 
-/// A child: avatar, name, this week's sessions; opens their book.
+/// A child: avatar, name, this week's sessions.
 class _ChildCard extends StatefulWidget {
-  const _ChildCard({
-    required this.child,
-    required this.lessons,
-    required this.onTap,
-  });
+  const _ChildCard({required this.child, required this.lessons});
 
   final Child child;
   final Future<List<Lesson>> Function() lessons;
-  final VoidCallback onTap;
 
   @override
   State<_ChildCard> createState() => _ChildCardState();
@@ -188,7 +126,6 @@ class _ChildCardState extends State<_ChildCard> {
     final l = AppLocalizations.of(context)!;
     final child = widget.child;
     return GuCard(
-      onTap: widget.onTap,
       child: Row(
         children: [
           ChildAvatar(name: child.name),
@@ -215,7 +152,6 @@ class _ChildCardState extends State<_ChildCard> {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded),
         ],
       ),
     );

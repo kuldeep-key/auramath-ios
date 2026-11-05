@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../motion/screen_motion.dart';
 import 'tokens.dart';
 
 ThemeData buildAuraTheme() => ThemeData(
   useMaterial3: true,
   fontFamily: 'Nunito',
+  pageTransitionsTheme: auraPageTransitions,
   scaffoldBackgroundColor: AuraColors.white,
   colorScheme: ColorScheme.fromSeed(
     seedColor: AuraColors.blue,

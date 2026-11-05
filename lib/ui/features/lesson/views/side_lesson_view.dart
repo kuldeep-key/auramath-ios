@@ -2,6 +2,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/lesson_header.dart';
 import '../../../core/theme/tokens.dart';
@@ -88,6 +89,7 @@ class _SideLessonViewState extends State<SideLessonView> {
             big: widget.vm.voice.resting.value,
             line: lines.last,
             onSpeak: () => widget.vm.say(lines.join(' ')),
+            speaking: widget.vm.voice.speaking,
             onHome: widget.onHome,
           ),
           const SizedBox(height: 12),
@@ -136,6 +138,7 @@ class _SideLessonViewState extends State<SideLessonView> {
                             label: l.lessonTens,
                             count: _sum.tens,
                             block: _Block.ten,
+                            pulse: tap == PlaceStep.breakTen,
                             onTap:
                                 tap == PlaceStep.breakTen ||
                                     tap == PlaceStep.makeHundred
@@ -207,12 +210,16 @@ class _Column extends StatelessWidget {
     required this.count,
     required this.block,
     required this.onTap,
+    this.pulse = false,
   });
 
   final String label;
   final int count;
   final _Block block;
   final VoidCallback? onTap;
+
+  /// The blocks breathe, to show which ones to tap (the prototype's tenpulse).
+  final bool pulse;
 
   @override
   Widget build(BuildContext context) {
@@ -244,13 +251,37 @@ class _Column extends StatelessWidget {
                     color: AuraColors.mute,
                   ),
                 ),
-                Text('$count', style: AuraText.title.copyWith(fontSize: 34)),
+                // each digit pops when it changes, as the prototype's written sum
+                Pop(
+                  key: ValueKey(count),
+                  duration: const Duration(milliseconds: 350),
+                  child: Text(
+                    '$count',
+                    style: AuraText.title.copyWith(fontSize: 34),
+                  ),
+                ),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: block == _Block.one ? 5 : 4,
                   runSpacing: 4,
                   alignment: WrapAlignment.center,
-                  children: [for (var i = 0; i < count; i++) _piece(block)],
+                  // blocks that are new (a ten broken into ones) pop in
+                  children: [
+                    for (var i = 0; i < count; i++)
+                      Pop(
+                        key: ValueKey(i),
+                        child: pulse
+                            ? Loop(
+                                period: const Duration(seconds: 1),
+                                child: _piece(block),
+                                builder: (context, t, child) => Transform.scale(
+                                  scale: 1 + 0.08 * halfway(t),
+                                  child: child,
+                                ),
+                              )
+                            : _piece(block),
+                      ),
+                  ],
                 ),
               ],
             ),

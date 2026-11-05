@@ -11,6 +11,9 @@ abstract interface class Voice {
   /// True once the phone's voice failed to speak: the lesson says so
   /// (NoVoice 659:39) and shows its words big instead.
   ValueListenable<bool> get resting;
+
+  /// True while a line is being read: the speak button glows.
+  ValueListenable<bool> get speaking;
 }
 
 /// The device's built-in voice: on the phone, no network, no child data out.
@@ -18,13 +21,23 @@ class DeviceVoice implements Voice {
   DeviceVoice() {
     _tts.setLanguage('en-AU');
     _tts.setSpeechRate(0.45);
-    _tts.setErrorHandler((_) => resting.value = true);
+    _tts
+      ..setErrorHandler((_) {
+        speaking.value = false;
+        resting.value = true;
+      })
+      ..setStartHandler(() => speaking.value = true)
+      ..setCompletionHandler(() => speaking.value = false)
+      ..setCancelHandler(() => speaking.value = false);
   }
 
   final _tts = FlutterTts();
 
   @override
   final ValueNotifier<bool> resting = ValueNotifier(false);
+
+  @override
+  final ValueNotifier<bool> speaking = ValueNotifier(false);
 
   @override
   Future<void> say(String text) async {

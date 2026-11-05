@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/theme/tokens.dart';
 import 'badge_disc.dart';
@@ -20,7 +21,9 @@ class BadgeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PlayMoment(
     content: [
-      BadgeDisc(art: badgeArt(id), size: 220, look: BadgeLook.blue),
+      Float(
+        child: BadgeDisc(art: badgeArt(id), size: 220, look: BadgeLook.blue),
+      ),
       const SizedBox(height: 8),
       Semantics(
         header: true,

@@ -964,29 +964,11 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load progress'**
   String get guProgressError;
 
-  /// No description provided for @guHomeProgressTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'{month} progress'**
-  String guHomeProgressTitle(String month);
-
-  /// No description provided for @guHomeProgressBody.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} this month'**
-  String guHomeProgressBody(String name);
-
   /// No description provided for @guHomeFamily.
   ///
   /// In en, this message translates to:
   /// **'Family'**
   String get guHomeFamily;
-
-  /// No description provided for @guHomePlan.
-  ///
-  /// In en, this message translates to:
-  /// **'Plan'**
-  String get guHomePlan;
 
   /// No description provided for @guHomeBackTo.
   ///
@@ -1035,24 +1017,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read aloud'**
   String get guSetReadAloud;
-
-  /// No description provided for @guSetPad.
-  ///
-  /// In en, this message translates to:
-  /// **'Number pad'**
-  String get guSetPad;
-
-  /// No description provided for @guSetPadPhone.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone\'s own'**
-  String get guSetPadPhone;
-
-  /// No description provided for @guSetPadApp.
-  ///
-  /// In en, this message translates to:
-  /// **'The app\'s own'**
-  String get guSetPadApp;
 
   /// No description provided for @guSetBigPad.
   ///
@@ -2017,7 +1981,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupWelcomeBody.
   ///
   /// In en, this message translates to:
-  /// **'Bar-model word problems for ages 5 to 10, read aloud and drawn by your child.'**
+  /// **'Bar-model word problems for ages 6 to 10, read aloud and drawn by your child.'**
   String get setupWelcomeBody;
 
   /// No description provided for @setupGetStarted.
@@ -2049,6 +2013,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'First name'**
   String get setupNameLabel;
+
+  /// No description provided for @setupAgeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Auramath is for ages 6 to 10 for now.'**
+  String get setupAgeRange;
 
   /// No description provided for @setupAgeTitle.
   ///
@@ -2235,6 +2205,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reading and drawing them'**
   String get setupGoalWordProblemsDetail;
+
+  /// No description provided for @setupGoalSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'Do well in the school curriculum'**
+  String get setupGoalSchool;
 
   /// No description provided for @setupDataTitle.
   ///

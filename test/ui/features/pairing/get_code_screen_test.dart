@@ -97,6 +97,12 @@ void main() {
   testWidgets('offline shows a message and tries the same code again', (
     tester,
   ) async {
+    // the smallest phone (iPhone SE): the message and Try again fit above
+    // the 56 pt keys, which the default 800×600 test window doesn't allow
+    tester.view
+      ..physicalSize = const Size(750, 1334)
+      ..devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
     final s = await screen(tester);
     server.routes[_redeem] = (_) => throw const SocketException('down');
     await tester.pumpWidget(shotApp(s));

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/board/bar_board.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/keypad.dart';
 import '../../../core/parts/lesson_header.dart';
@@ -30,7 +31,26 @@ class _BoardViewState extends State<BoardView> {
   bool _helpOpen = false;
   String _typed = '';
 
+  /// A fresh board straight from the question: the strip flies down into
+  /// place and the board fades in (the prototype's M0 → M1).
+  late final bool _fromQuestion =
+      vm.state.step == LessonStep.drawA && !vm.state.barA;
+
+  late int _wobbles = vm.wobbles;
+
+  /// The sum button tapped last, which wobbles if it was the wrong one,
+  /// and the wrong moves before that tap.
+  Op? _lastOp;
+  int _wobblesAtTap = 0;
+
   LessonViewModel get vm => widget.vm;
+
+  @override
+  void didUpdateWidget(BoardView old) {
+    super.didUpdateWidget(old);
+    if (vm.wobbles > _wobbles) AuraHaptics.wrong();
+    _wobbles = vm.wobbles;
+  }
 
   void _help() => setState(() => _helpOpen = true);
 
@@ -52,27 +72,50 @@ class _BoardViewState extends State<BoardView> {
                 big: vm.voice.resting.value,
                 line: vm.coachText,
                 onSpeak: vm.sayAgain,
+                speaking: vm.voice.speaking,
                 onHome: widget.onHome,
               ),
               const SizedBox(height: 12),
-              QuestionStrip(
-                chips: [
-                  StripChip(label: '${p.a.pic} ${p.aValue}', lit: true),
-                  StripChip(
-                    label: '${p.diff} ${rel.toLowerCase()}',
-                    lit: s.gapPlaced,
+              _arrive(
+                duration: 650,
+                builder: (t, child) => Opacity(
+                  opacity: 0.3 + 0.7 * t.clamp(0.0, 1.0),
+                  child: Transform.translate(
+                    offset: Offset(
+                      0,
+                      220 * (1 - AuraCurves.sheet.transform(t)),
+                    ),
+                    child: Transform.scale(
+                      scale: 1.18 - 0.18 * AuraCurves.sheet.transform(t),
+                      child: child,
+                    ),
                   ),
-                ],
-                onSeeQuestion: vm.readQuestion,
+                ),
+                child: QuestionStrip(
+                  chips: [
+                    StripChip(label: '${p.a.pic} ${p.aValue}', lit: true),
+                    StripChip(
+                      label: '${p.diff} ${rel.toLowerCase()}',
+                      lit: s.gapPlaced,
+                    ),
+                  ],
+                  onSeeQuestion: vm.readQuestion,
+                ),
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: BarBoard(
-                  problem: p,
-                  state: s,
-                  onInput: vm.send,
-                  glowPiece: vm.glowPiece,
-                  showHand: vm.showHand,
+                child: _arrive(
+                  duration: 500,
+                  delay: 300,
+                  builder: (t, child) => Opacity(opacity: t, child: child),
+                  child: BarBoard(
+                    problem: p,
+                    state: s,
+                    onInput: vm.send,
+                    glowPiece: vm.glowPiece,
+                    showHand: vm.showHand,
+                    wobbles: vm.wobbles,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -94,6 +137,21 @@ class _BoardViewState extends State<BoardView> {
     );
   }
 
+  /// Plays [builder]'s entrance only on a board fresh from the question.
+  Widget _arrive({
+    required int duration,
+    int delay = 0,
+    required Widget Function(double t, Widget child) builder,
+    required Widget child,
+  }) => !_fromQuestion
+      ? child
+      : Entrance(
+          duration: Duration(milliseconds: duration),
+          delay: Duration(milliseconds: delay),
+          builder: (context, t, child) => builder(t, child!),
+          child: child,
+        );
+
   Widget _bottom(AppLocalizations l, ComparisonProblem p, LessonState s) {
     switch (s.step) {
       case LessonStep.chooseOp:
@@ -105,10 +163,19 @@ class _BoardViewState extends State<BoardView> {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: AuraButton(
-                        label: '${p.aValue} $sign ${p.diff}',
-                        color: AuraButtonColor.white,
-                        onPressed: () => vm.send(OpChosen(op)),
+                      child: Wobbly(
+                        count: _lastOp == op ? vm.wobbles - _wobblesAtTap : 0,
+                        child: AuraButton(
+                          label: '${p.aValue} $sign ${p.diff}',
+                          color: AuraButtonColor.white,
+                          onPressed: () {
+                            setState(() {
+                              _lastOp = op;
+                              _wobblesAtTap = vm.wobbles;
+                            });
+                            vm.send(OpChosen(op));
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -151,7 +218,7 @@ class _BoardViewState extends State<BoardView> {
             ),
             const SizedBox(height: 8),
             Keypad(
-              keyHeight: vm.biggerPad ? 64 : 48,
+              keyHeight: vm.biggerPad ? 64 : 56,
               key: ValueKey(s.step),
               onChanged: (v) => setState(() => _typed = v),
               onCheck: (v) => vm.send(NumberEntered(int.parse(v))),
@@ -191,43 +258,54 @@ class _BoardViewState extends State<BoardView> {
     left: 16,
     right: 16,
     bottom: 110,
-    child: Material(
-      color: AuraColors.white,
-      elevation: 6,
-      borderRadius: BorderRadius.circular(AuraRadii.card),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              l.stillThere,
-              style: AuraText.title,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            AuraButton(
-              label: l.helpMe,
-              color: AuraButtonColor.white,
-              onPressed: () {
-                vm.dismissStillThere();
-                _help();
-              },
-            ),
-            const SizedBox(height: 8),
-            AuraButton(
-              label: l.anEasierOne,
-              color: AuraButtonColor.white,
-              onPressed: () => vm.send(const EasierTaken()),
-            ),
-            const SizedBox(height: 8),
-            AuraButton(
-              label: l.stillThinking,
-              color: AuraButtonColor.blue,
-              onPressed: vm.dismissStillThere,
-            ),
-          ],
+    // arrives like the prototype's sheets
+    child: Entrance(
+      duration: const Duration(milliseconds: 420),
+      builder: (context, t, child) => Opacity(
+        opacity: t.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, 60 * (1 - AuraCurves.sheet.transform(t))),
+          child: child,
+        ),
+      ),
+      child: Material(
+        color: AuraColors.white,
+        elevation: 6,
+        borderRadius: BorderRadius.circular(AuraRadii.card),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l.stillThere,
+                style: AuraText.title,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              AuraButton(
+                label: l.helpMe,
+                color: AuraButtonColor.white,
+                onPressed: () {
+                  vm.dismissStillThere();
+                  _help();
+                },
+              ),
+              const SizedBox(height: 8),
+              AuraButton(
+                label: l.anEasierOne,
+                color: AuraButtonColor.white,
+                onPressed: () => vm.send(const EasierTaken()),
+              ),
+              const SizedBox(height: 8),
+              AuraButton(
+                label: l.stillThinking,
+                color: AuraButtonColor.blue,
+                onPressed: vm.dismissStillThere,
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -259,7 +337,9 @@ class _AnswerBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(AuraRadii.small),
         border: Border.all(color: AuraColors.blue, width: 3),
       ),
-      child: Text(text, style: AuraText.title.copyWith(fontSize: 30)),
+      child: text.isEmpty
+          ? const BlinkCaret()
+          : Text(text, style: AuraText.title.copyWith(fontSize: 30)),
     ),
   );
 }

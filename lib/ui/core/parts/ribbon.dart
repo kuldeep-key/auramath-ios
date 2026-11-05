@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
 /// The yellow label ribbon ("Case cracked!", "Ready for a new case?").
@@ -10,25 +11,29 @@ class Ribbon extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-    decoration: BoxDecoration(
-      // Figma: a gloss from light yellow, radius 12
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Color.lerp(AuraColors.yellow, AuraColors.white, 0.3)!,
-          AuraColors.yellow,
+  // pops in each time it appears (the prototype's `.ribbon` animation)
+  Widget build(BuildContext context) => Pop(
+    duration: const Duration(milliseconds: 500),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+      decoration: BoxDecoration(
+        // Figma: a gloss from light yellow, radius 12
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.lerp(AuraColors.yellow, AuraColors.white, 0.3)!,
+            AuraColors.yellow,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AuraColors.navy, width: 3),
+        boxShadow: const [
+          BoxShadow(color: AuraColors.navy, offset: Offset(0, 5)),
         ],
       ),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: AuraColors.navy, width: 3),
-      boxShadow: const [
-        BoxShadow(color: AuraColors.navy, offset: Offset(0, 5)),
-      ],
+      child: Text(text, textAlign: TextAlign.center, style: AuraText.ribbon),
     ),
-    child: Text(text, textAlign: TextAlign.center, style: AuraText.ribbon),
   );
 }
 

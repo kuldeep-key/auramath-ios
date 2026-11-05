@@ -16,6 +16,7 @@ import 'views/trail_screen.dart';
 import 'views/trail_top_screen.dart';
 import 'views/voice_screens.dart';
 import 'views/welcome_back_screen.dart';
+import '../../core/motion/screen_motion.dart';
 
 /// The child's screens around the lesson (Home, Welcome back, badges, trail, after a case, sound and voice).
 List<RouteBase> childRoutes(Deps deps) {
@@ -46,21 +47,43 @@ List<RouteBase> childRoutes(Deps deps) {
       path: Paths.home,
       redirect: (_, _) async =>
           await progress.welcomeBackDue() ? Paths.welcomeBack : null,
-      builder: (_, _) => named(
-        (name) => HomeScreen(
-          name: name,
-          grownUps: deps.account.role == Role.device
-              ? Paths.signIn
-              : Paths.kids,
+      pageBuilder: (_, s) => MotionPage(
+        key: s.pageKey,
+        arrive: Arrive.fade,
+        child: named(
+          (name) => HomeScreen(
+            name: name,
+            grownUps: deps.account.role == Role.device
+                ? Paths.signIn
+                : Paths.kids,
+          ),
         ),
       ),
     ),
     GoRoute(
       path: Paths.welcomeBack,
-      builder: (_, _) => named((name) => WelcomeBackScreen(name: name)),
+      pageBuilder: (_, s) => MotionPage(
+        key: s.pageKey,
+        arrive: Arrive.fade,
+        child: named((name) => WelcomeBackScreen(name: name)),
+      ),
     ),
-    GoRoute(path: Paths.sound, builder: (_, _) => const SoundScreen()),
-    GoRoute(path: Paths.noVoice, builder: (_, _) => const NoVoiceScreen()),
+    GoRoute(
+      path: Paths.sound,
+      pageBuilder: (_, s) => MotionPage(
+        key: s.pageKey,
+        arrive: Arrive.rise,
+        child: const SoundScreen(),
+      ),
+    ),
+    GoRoute(
+      path: Paths.noVoice,
+      pageBuilder: (_, s) => MotionPage(
+        key: s.pageKey,
+        arrive: Arrive.rise,
+        child: const NoVoiceScreen(),
+      ),
+    ),
     GoRoute(
       path: Paths.badges,
       builder: (_, _) => Loaded(
@@ -75,9 +98,13 @@ List<RouteBase> childRoutes(Deps deps) {
           deps.pack.badges.containsKey(state.pathParameters['badgeId'])
           ? null
           : Paths.badges,
-      builder: (_, state) {
+      pageBuilder: (_, state) {
         final id = state.pathParameters['badgeId']!;
-        return BadgeScreen(id: id, badge: deps.pack.badges[id]!);
+        return MotionPage(
+          key: state.pageKey,
+          arrive: Arrive.zoom,
+          child: BadgeScreen(id: id, badge: deps.pack.badges[id]!),
+        );
       },
     ),
     GoRoute(
@@ -96,15 +123,19 @@ List<RouteBase> childRoutes(Deps deps) {
           deps.pack.problems.containsKey(state.uri.queryParameters['next'])
           ? null
           : Paths.home,
-      builder: (_, state) => Loaded(
-        key: ValueKey(state.uri.toString()),
-        load: () => progress.afterCase(
-          state.uri.queryParameters['next']!,
-          // a signed-in family whose last send reached the server
-          familyHears:
-              deps.account.role != Role.none && deps.sessions.online.value,
+      pageBuilder: (_, state) => MotionPage(
+        key: state.pageKey,
+        arrive: Arrive.zoom,
+        child: Loaded(
+          key: ValueKey(state.uri.toString()),
+          load: () => progress.afterCase(
+            state.uri.queryParameters['next']!,
+            // a signed-in family whose last send reached the server
+            familyHears:
+                deps.account.role != Role.none && deps.sessions.online.value,
+          ),
+          builder: (after) => AfterCaseScreen(after: after),
         ),
-        builder: (after) => AfterCaseScreen(after: after),
       ),
     ),
   ];

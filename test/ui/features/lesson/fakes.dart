@@ -17,6 +17,9 @@ class FakeVoice implements Voice {
   final ValueNotifier<bool> resting = ValueNotifier(false);
 
   @override
+  final ValueNotifier<bool> speaking = ValueNotifier(false);
+
+  @override
   Future<void> say(String text) async => said.add(text);
 
   @override

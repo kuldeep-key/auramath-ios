@@ -134,6 +134,7 @@ class _SignInMethodsState extends State<SignInMethods> {
           Padding(
             padding: const EdgeInsets.only(top: 16),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox.square(
                   dimension: 20,
@@ -141,7 +142,7 @@ class _SignInMethodsState extends State<SignInMethods> {
                 ),
                 if (widget.busyLabel != null) ...[
                   const SizedBox(width: 12),
-                  Expanded(
+                  Flexible(
                     child: Text(widget.busyLabel!, style: AuraText.body),
                   ),
                 ],

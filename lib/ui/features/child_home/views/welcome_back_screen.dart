@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/ribbon.dart';
 import 'play_moment.dart';
@@ -18,7 +19,7 @@ class WelcomeBackScreen extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     return PlayMoment(
       content: [
-        const Portrait(size: 180),
+        const Burst(child: Portrait(size: 180)),
         const SizedBox(height: 10),
         Ribbon(
           text: name == null ? l.kidWelcomeBackNoName : l.kidWelcomeBack(name!),

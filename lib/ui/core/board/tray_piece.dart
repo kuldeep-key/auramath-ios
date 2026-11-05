@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
 /// What the child can place next.
@@ -53,32 +54,48 @@ class TrayPiece extends StatelessWidget {
         ),
       ),
     };
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      transform: Matrix4.translationValues(0, armed ? -6 : 0, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: AuraColors.white,
-        borderRadius: BorderRadius.circular(AuraRadii.panel),
-        border: Border.all(color: AuraColors.blue, width: 3),
-        boxShadow: [
-          const BoxShadow(color: AuraColors.blueLip, offset: Offset(0, 5)),
-          if (glow || armed)
-            const BoxShadow(
-              color: AuraColors.yellow,
-              blurRadius: 18,
-              spreadRadius: 4,
-            ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          mini,
-          const SizedBox(width: 10),
-          Text(label, style: AuraText.standing),
-        ],
-      ),
+    final body = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        mini,
+        const SizedBox(width: 10),
+        Text(label, style: AuraText.standing),
+      ],
+    );
+    // the quiet child's glow: a yellow halo swelling and fading, 1.2 s
+    return Loop(
+      key: ValueKey(glow),
+      period: const Duration(milliseconds: 1200),
+      times: glow ? null : 0,
+      child: body,
+      builder: (context, t, child) {
+        final k = glow ? (calmMotion(context) ? 1.0 : halfway(t)) : 0.0;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          transform: Matrix4.translationValues(0, armed ? -6 : 0, 0),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: AuraColors.white,
+            borderRadius: BorderRadius.circular(AuraRadii.panel),
+            border: Border.all(color: AuraColors.blue, width: 3),
+            boxShadow: [
+              const BoxShadow(color: AuraColors.blueLip, offset: Offset(0, 5)),
+              if (armed)
+                const BoxShadow(
+                  color: AuraColors.yellow,
+                  blurRadius: 18,
+                  spreadRadius: 4,
+                ),
+              if (k > 0)
+                BoxShadow(
+                  color: AuraColors.yellow.withValues(alpha: 0.55 * k),
+                  spreadRadius: 10 * k,
+                ),
+            ],
+          ),
+          child: child,
+        );
+      },
     );
   }
 }

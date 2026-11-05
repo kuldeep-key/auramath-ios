@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
 enum AuraButtonColor { yellow, blue, white }
@@ -99,88 +100,100 @@ class _AuraButtonState extends State<AuraButton> {
         onTapUp: enabled
             ? (_) {
                 setState(() => _down = false);
+                AuraHaptics.tap();
                 widget.onPressed!();
               }
             : null,
         child: Opacity(
           opacity: enabled ? 1 : 0.55,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 90),
-            margin: EdgeInsets.only(top: 6 - lip),
-            constraints: const BoxConstraints(minHeight: 64, minWidth: 140),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AuraRadii.button),
-              border: Border.all(color: look.edge, width: 3),
-              boxShadow: [BoxShadow(color: look.edge, offset: Offset(0, lip))],
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [look.top, look.bottom],
+          // pressed: sinks onto its lip and shrinks a little, then springs
+          // back (the prototype's .btn:active)
+          child: AnimatedScale(
+            scale: _down && !calmMotion(context) ? 0.97 : 1,
+            duration: const Duration(milliseconds: 220),
+            curve: AuraCurves.spring,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              margin: EdgeInsets.only(top: 6 - lip),
+              constraints: const BoxConstraints(minHeight: 64, minWidth: 140),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AuraRadii.button),
+                border: Border.all(color: look.edge, width: 3),
+                boxShadow: [
+                  BoxShadow(color: look.edge, offset: Offset(0, lip)),
+                ],
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [look.top, look.bottom],
+                ),
               ),
-            ),
-            child: ClipRRect(
-              borderRadius: inner,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // the glare across the top
-                  if (look.glare > 0)
-                    Positioned(
-                      top: 2,
-                      left: 5,
-                      right: 5,
-                      height: 22,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: AuraColors.white.withValues(alpha: look.glare),
-                          borderRadius: BorderRadius.circular(12),
+              child: ClipRRect(
+                borderRadius: inner,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // the glare across the top
+                    if (look.glare > 0)
+                      Positioned(
+                        top: 2,
+                        left: 5,
+                        right: 5,
+                        height: 22,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: AuraColors.white.withValues(
+                              alpha: look.glare,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
+                    // the dark band inside the bottom edge
+                    const Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: 5,
+                      child: ColoredBox(color: AuraColors.buttonInnerShade),
                     ),
-                  // the dark band inside the bottom edge
-                  const Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: 5,
-                    child: ColoredBox(color: AuraColors.buttonInnerShade),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 25,
-                      vertical: 10,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (widget.leading != null) ...[
-                          widget.leading!,
-                          const SizedBox(width: 12),
-                        ],
-                        Flexible(
-                          child: Text(
-                            widget.label,
-                            textAlign: TextAlign.center,
-                            style: AuraText.button.copyWith(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 25,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (widget.leading != null) ...[
+                            widget.leading!,
+                            const SizedBox(width: 12),
+                          ],
+                          Flexible(
+                            child: Text(
+                              widget.label,
+                              textAlign: TextAlign.center,
+                              style: AuraText.button.copyWith(
+                                color: look.fg,
+                                shadows: shadow,
+                              ),
+                            ),
+                          ),
+                          if (widget.icon != null) ...[
+                            const SizedBox(width: 12),
+                            Icon(
+                              widget.icon,
+                              size: 25.6,
                               color: look.fg,
                               shadows: shadow,
                             ),
-                          ),
-                        ),
-                        if (widget.icon != null) ...[
-                          const SizedBox(width: 12),
-                          Icon(
-                            widget.icon,
-                            size: 25.6,
-                            color: look.fg,
-                            shadows: shadow,
-                          ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

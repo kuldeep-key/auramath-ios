@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
 /// How a standing button asks to be noticed. Never a popup.
@@ -36,12 +37,16 @@ class StandingButton extends StatefulWidget {
 
 class _StandingButtonState extends State<StandingButton>
     with SingleTickerProviderStateMixin {
+  // the prototype's shake: 0.6 s, twice
   late final _anim = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 600),
+    duration: const Duration(milliseconds: 1200),
   );
   Timer? _nudgeTimer;
   bool _showNudge = false;
+
+  /// Each pulse plays the halo three times (1.2 s each).
+  int _pulses = 0;
 
   @override
   void initState() {
@@ -57,6 +62,10 @@ class _StandingButtonState extends State<StandingButton>
 
   void _react() {
     if (widget.attention == Attention.none) return;
+    if (widget.attention == Attention.pulse) {
+      _pulses++;
+      return;
+    }
     _anim.forward(from: 0);
     if (widget.attention == Attention.shake && widget.nudge != null) {
       _showNudge = true;
@@ -81,23 +90,49 @@ class _StandingButtonState extends State<StandingButton>
       label: widget.label,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: widget.onPressed,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 72),
-          decoration: BoxDecoration(
-            color: AuraColors.white,
-            borderRadius: BorderRadius.circular(AuraRadii.panel),
-            border: Border.all(color: AuraColors.line, width: 2),
-            boxShadow: const [
-              BoxShadow(color: AuraColors.line, offset: Offset(0, 4)),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(widget.icon, color: widget.iconColor, size: 24),
-              Text(widget.label, style: AuraText.standing),
-            ],
+        onTap: () {
+          AuraHaptics.tap();
+          widget.onPressed();
+        },
+        child: PressScale(
+          child: Loop(
+            key: ValueKey(_pulses),
+            period: const Duration(milliseconds: 1200),
+            times: _pulses == 0 ? 0 : 3,
+            builder: (context, t, child) {
+              // the prototype's helpPulse: a blue halo and edge at halfway
+              final k = _pulses == 0 ? 0.0 : halfway(t);
+              return Container(
+                constraints: const BoxConstraints(minHeight: 72),
+                decoration: BoxDecoration(
+                  color: AuraColors.white,
+                  borderRadius: BorderRadius.circular(AuraRadii.panel),
+                  border: Border.all(
+                    color: Color.lerp(AuraColors.line, AuraColors.blue, k)!,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    const BoxShadow(
+                      color: AuraColors.line,
+                      offset: Offset(0, 4),
+                    ),
+                    if (k > 0)
+                      BoxShadow(
+                        color: AuraColors.blue.withValues(alpha: 0.25 * k),
+                        spreadRadius: 8 * k,
+                      ),
+                  ],
+                ),
+                child: child,
+              );
+            },
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(widget.icon, color: widget.iconColor, size: 24),
+                Text(widget.label, style: AuraText.standing),
+              ],
+            ),
           ),
         ),
       ),
@@ -109,18 +144,18 @@ class _StandingButtonState extends State<StandingButton>
         AnimatedBuilder(
           animation: _anim,
           builder: (context, child) {
-            final t = _anim.value;
-            return switch (widget.attention) {
-              Attention.shake => Transform.translate(
-                offset: Offset(math.sin(t * math.pi * 6) * 8 * (1 - t), 0),
+            if (!_anim.isAnimating || calmMotion(context)) return child!;
+            // the prototype's shake keyframes, twice
+            final t = Curves.easeInOut.transform((_anim.value * 2) % 1);
+            const x = [(0.0, 0.0), (0.2, -8.0), (0.4, 8.0), (0.6, -5.0)];
+            const turn = [(0.0, 0.0), (0.2, -2.0), (0.4, 2.0), (0.6, 0.0)];
+            return Transform.translate(
+              offset: Offset(keyframes(t, [...x, (0.8, 5.0), (1.0, 0.0)]), 0),
+              child: Transform.rotate(
+                angle: keyframes(t, [...turn, (1.0, 0.0)]) * math.pi / 180,
                 child: child,
               ),
-              Attention.pulse => Transform.scale(
-                scale: 1 + math.sin(t * math.pi) * 0.06,
-                child: child,
-              ),
-              Attention.none => child!,
-            };
+            );
           },
           child: button,
         ),
@@ -130,18 +165,32 @@ class _StandingButtonState extends State<StandingButton>
             right: 0,
             top: -44,
             child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+              // the prototype's tipIn: up from 6 px below, from 0.96
+              child: Entrance(
+                duration: const Duration(milliseconds: 300),
+                builder: (context, t, child) => Opacity(
+                  opacity: t,
+                  child: Transform.translate(
+                    offset: Offset(0, -6 * (1 - t)),
+                    child: Transform.scale(
+                      scale: 0.96 + 0.04 * t,
+                      child: child,
+                    ),
+                  ),
                 ),
-                decoration: BoxDecoration(
-                  color: AuraColors.navy,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  widget.nudge!,
-                  style: AuraText.body.copyWith(color: AuraColors.white),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AuraColors.navy,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    widget.nudge!,
+                    style: AuraText.body.copyWith(color: AuraColors.white),
+                  ),
                 ),
               ),
             ),

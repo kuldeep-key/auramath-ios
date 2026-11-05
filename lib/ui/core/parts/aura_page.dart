@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../motion/play_backdrop.dart';
 import '../theme/tokens.dart';
-import 'ribbon.dart' show auraPlayBackground;
 
 /// The frame every screen outside the lesson board sits in.
 ///
@@ -38,31 +38,30 @@ class AuraPage extends StatelessWidget {
 
   Widget _scaffold() => Scaffold(
     backgroundColor: play ? AuraColors.blueLip : AuraColors.white,
-    body: DecoratedBox(
-      decoration: play
-          ? auraPlayBackground
-          : const BoxDecoration(color: AuraColors.white),
-      child: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxWidth),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 22),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ?top,
-                  Expanded(
-                    child: CustomScrollView(
-                      slivers: [
-                        SliverFillRemaining(hasScrollBody: false, child: body),
-                      ],
-                    ),
-                  ),
-                  if (bottom != null) ...[const SizedBox(height: 12), bottom!],
-                ],
+    body: play
+        ? PlayBackdrop(child: _frame())
+        : ColoredBox(color: AuraColors.white, child: _frame()),
+  );
+
+  Widget _frame() => SafeArea(
+    child: Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ?top,
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    SliverFillRemaining(hasScrollBody: false, child: body),
+                  ],
+                ),
               ),
-            ),
+              if (bottom != null) ...[const SizedBox(height: 12), bottom!],
+            ],
           ),
         ),
       ),

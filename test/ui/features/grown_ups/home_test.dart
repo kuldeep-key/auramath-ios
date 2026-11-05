@@ -72,13 +72,17 @@ void main() {
       expect(find.text('Back to Aarav'), findsOneWidget);
     });
 
-    testWidgets('a child opens their book', (tester) async {
+    testWidgets('progress is by email: no book, month or plan (D-39)', (
+      tester,
+    ) async {
       final g = await Gu.make(tester);
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Maya'));
       await tester.pumpAndSettle();
-      expect(find.text('went to ${Paths.book('child-2')}'), findsOneWidget);
+      expect(find.textContaining('went to'), findsNothing);
+      expect(find.textContaining('progress'), findsNothing);
+      expect(find.text('Plan'), findsNothing);
     });
 
     testWidgets('Back to the child chooses them and goes home', (tester) async {
@@ -127,11 +131,15 @@ void main() {
   group('Settings', () {
     Widget screen(Gu g) => SettingsScreen(family: g.deps.family, repo: g.repo);
 
-    testWidgets('at every size, without Membership', (tester) async {
+    testWidgets('at every size, without Membership, plan or pad choice', (
+      tester,
+    ) async {
       final g = await Gu.make(tester);
       await shotAllSizes(tester, 'grown_ups_settings', screen(g));
-      expect(find.text("Aarav's plan"), findsOneWidget);
       expect(find.text('Membership'), findsNothing);
+      expect(find.text("Aarav's plan"), findsNothing);
+      expect(find.text('Number pad'), findsNothing); // ours only (D-41)
+      expect(find.text('Bigger number pad (accessibility)'), findsOneWidget);
     });
 
     testWidgets('a lesson setting changes on tap and is kept on this phone', (

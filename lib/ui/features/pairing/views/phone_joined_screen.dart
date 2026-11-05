@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/confetti.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import 'play_message.dart';
 
@@ -15,15 +17,20 @@ class PhoneJoinedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return PlayMessage(
-      art: const EmojiArt('🎉', size: 100),
-      title: l.pairYoureIn(name),
-      line: l.pairPhoneYours,
-      buttons: [
-        AuraButton(
-          label: l.pairLetsGo,
-          onPressed: () => context.go(Paths.home),
+    return Stack(
+      children: [
+        PlayMessage(
+          art: const Burst(child: EmojiArt('🎉', size: 100)),
+          title: l.pairYoureIn(name),
+          line: l.pairPhoneYours,
+          buttons: [
+            AuraButton(
+              label: l.pairLetsGo,
+              onPressed: () => context.go(Paths.home),
+            ),
+          ],
         ),
+        const Positioned.fill(child: Confetti(count: 80)),
       ],
     );
   }
