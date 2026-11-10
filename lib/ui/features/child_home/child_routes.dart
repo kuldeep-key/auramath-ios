@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/repositories/account_repository.dart';
+import '../../../data/repositories/partner_intro_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
 import '../../../data/models/lesson_event.dart';
 import '../../../deps.dart';
@@ -11,6 +12,7 @@ import 'views/badge_screen.dart';
 import 'views/badges_screen.dart';
 import 'views/check_screen.dart';
 import 'views/home_screen.dart';
+import 'views/meet_partner_screen.dart';
 import 'views/loaded.dart';
 import 'views/trail_screen.dart';
 import 'views/trail_top_screen.dart';
@@ -122,6 +124,20 @@ List<RouteBase> childRoutes(Deps deps) {
     ),
     GoRoute(path: Paths.trailTop, builder: (_, _) => const TrailTopScreen()),
     GoRoute(path: Paths.check, builder: (_, _) => const CheckScreen()),
+    GoRoute(
+      path: Paths.meetPartner,
+      builder: (context, _) => MeetPartnerScreen(
+        served: PartnerIntroRepository.lines(deps.pack.policyLines, const []),
+        readAloud: deps.flags.on('read_aloud'),
+        onSay: deps.voice.say,
+        onStart: () async {
+          await PartnerIntroRepository(
+            deps.store,
+          ).markMet(deps.account.childId);
+          if (context.mounted) context.go(Paths.lessonNext);
+        },
+      ),
+    ),
     GoRoute(
       path: Paths.afterCase,
       redirect: (_, state) =>

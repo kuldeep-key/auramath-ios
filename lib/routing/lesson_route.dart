@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../data/repositories/account_repository.dart';
 import '../data/repositories/grown_up_repository.dart';
+import '../data/repositories/partner_intro_repository.dart';
 import '../data/services/api.dart';
 import '../config/env.dart';
 import '../deps.dart';
@@ -16,6 +17,11 @@ List<RouteBase> lessonRoutes(Deps deps) => [
   GoRoute(
     path: Paths.lessonNext,
     redirect: (context, state) async {
+      // the case partner says what it is first, once per child (AI-07)
+      if (deps.flags.on('case_partner_intro') &&
+          !await PartnerIntroRepository(deps.store).met(deps.account.childId)) {
+        return Paths.meetPartner;
+      }
       final next = await deps.sessions.whereNext(
         deps.pack,
         childId: deps.account.childId,

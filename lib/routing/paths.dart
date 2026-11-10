@@ -57,6 +57,10 @@ abstract final class Paths {
   static const trailTop = '/trail/top'; // TrailTop 659:2
   static const check = '/check'; // A quick check 651:165
 
+  /// The case partner's first meeting (AI-07), before a child's first
+  /// lesson. Not in Figma.
+  static const meetPartner = '/meet';
+
   /// After a solved case: X1 (650:166), Streak (650:202), Up (651:35),
   /// Y4 (648:83). `?next=<problemId>` is the case the engine chose.
   static const afterCase = '/after-case';

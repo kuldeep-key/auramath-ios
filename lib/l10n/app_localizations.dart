@@ -3159,6 +3159,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tricky cases take care. Checking each bar helped you crack it.'**
   String get lessonRateSaidTricky;
+
+  /// DRAFT, for Julia and design (no Figma frame), AI-07: the first-meeting scene, once per child before their first lesson, with the grown-up there.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet your case partner'**
+  String get kidMeetTitle;
+
+  /// DRAFT, for Julia (AI-07): a note for the grown-up at the top of the first-meeting scene.
+  ///
+  /// In en, this message translates to:
+  /// **'Grown-up: please stay for this part.'**
+  String get kidMeetGrownUp;
+
+  /// DRAFT, for Julia (AI-07): line 1 of the case partner's disclosure. A line the content bundle serves (policy line.intro.*) replaces these.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! I\'m your case partner. I help you crack maths cases.'**
+  String get kidMeetLine1;
+
+  /// DRAFT, for Julia (AI-07): line 2, the disclosure itself.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m a computer helper, an AI. I\'m not a person.'**
+  String get kidMeetLine2;
+
+  /// DRAFT, for Julia (AI-07): line 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Julia\'s team wrote my rules. I can make mistakes, so if something looks odd, tell your grown-up.'**
+  String get kidMeetLine3;
+
+  /// DRAFT, for Julia (AI-07): line 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Your grown-up can see your work.'**
+  String get kidMeetLine4;
+
+  /// DRAFT (AI-07): ends the first-meeting scene and opens the first lesson.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s start'**
+  String get kidMeetStart;
 }
 
 class _AppLocalizationsDelegate

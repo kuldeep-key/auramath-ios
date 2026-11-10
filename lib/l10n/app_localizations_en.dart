@@ -1795,4 +1795,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lessonRateSaidTricky =>
       'Tricky cases take care. Checking each bar helped you crack it.';
+
+  @override
+  String get kidMeetTitle => 'Meet your case partner';
+
+  @override
+  String get kidMeetGrownUp => 'Grown-up: please stay for this part.';
+
+  @override
+  String get kidMeetLine1 =>
+      'Hi! I\'m your case partner. I help you crack maths cases.';
+
+  @override
+  String get kidMeetLine2 =>
+      'I\'m a computer helper, an AI. I\'m not a person.';
+
+  @override
+  String get kidMeetLine3 =>
+      'Julia\'s team wrote my rules. I can make mistakes, so if something looks odd, tell your grown-up.';
+
+  @override
+  String get kidMeetLine4 => 'Your grown-up can see your work.';
+
+  @override
+  String get kidMeetStart => 'Let\'s start';
 }

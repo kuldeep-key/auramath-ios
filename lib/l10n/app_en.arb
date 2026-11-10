@@ -638,5 +638,19 @@
   "lessonRateSaidOk": "Thanks for telling me. Checking each step helps every time.",
   "@lessonRateSaidOk": {"description": "DRAFT, for Julia (AI-08): after 'OK'."},
   "lessonRateSaidTricky": "Tricky cases take care. Checking each bar helped you crack it.",
-  "@lessonRateSaidTricky": {"description": "DRAFT, for Julia (AI-08): after 'Tricky'."}
+  "@lessonRateSaidTricky": {"description": "DRAFT, for Julia (AI-08): after 'Tricky'."},
+  "kidMeetTitle": "Meet your case partner",
+  "@kidMeetTitle": {"description": "DRAFT, for Julia and design (no Figma frame), AI-07: the first-meeting scene, once per child before their first lesson, with the grown-up there."},
+  "kidMeetGrownUp": "Grown-up: please stay for this part.",
+  "@kidMeetGrownUp": {"description": "DRAFT, for Julia (AI-07): a note for the grown-up at the top of the first-meeting scene."},
+  "kidMeetLine1": "Hi! I'm your case partner. I help you crack maths cases.",
+  "@kidMeetLine1": {"description": "DRAFT, for Julia (AI-07): line 1 of the case partner's disclosure. A line the content bundle serves (policy line.intro.*) replaces these."},
+  "kidMeetLine2": "I'm a computer helper, an AI. I'm not a person.",
+  "@kidMeetLine2": {"description": "DRAFT, for Julia (AI-07): line 2, the disclosure itself."},
+  "kidMeetLine3": "Julia's team wrote my rules. I can make mistakes, so if something looks odd, tell your grown-up.",
+  "@kidMeetLine3": {"description": "DRAFT, for Julia (AI-07): line 3."},
+  "kidMeetLine4": "Your grown-up can see your work.",
+  "@kidMeetLine4": {"description": "DRAFT, for Julia (AI-07): line 4."},
+  "kidMeetStart": "Let's start",
+  "@kidMeetStart": {"description": "DRAFT (AI-07): ends the first-meeting scene and opens the first lesson."}
 }

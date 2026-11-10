@@ -82,4 +82,5 @@ bool _needsChild(String loc) =>
     loc.startsWith(Paths.badges) ||
     loc.startsWith(Paths.trail) ||
     loc == Paths.check ||
+    loc == Paths.meetPartner ||
     loc == Paths.afterCase;

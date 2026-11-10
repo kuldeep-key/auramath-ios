@@ -83,4 +83,33 @@ void main() {
         if (score.hasMatch(value.replaceAll('No score.', ''))) key: value,
     }, isEmpty);
   });
+
+  test('draft child copy avoids policy forbidden_phrases, and AI-07\'s: '
+      'no friend, no feelings, no guilt', () {
+    final policy = File('assets/spec/policy.yaml').readAsStringSync();
+    final list = RegExp(
+      r'forbidden_phrases:[^\n]*\n((?:\s+- "[^"]+"\n)+)',
+    ).firstMatch(policy)![1]!;
+    final forbidden = [
+      for (final m in RegExp(r'"([^"]+)"').allMatches(list)) m[1]!,
+      // AI-07 (spec ai_and_online.feature @AI-07)
+      'friend', 'i missed you', 'i love', 'miss you', 'sad without',
+    ];
+    expect(forbidden, containsAll(['great job', 'try again', 'wrong']));
+    final arb =
+        jsonDecode(File('lib/l10n/app_en.arb').readAsStringSync())
+            as Map<String, Object?>;
+    final drafts = {
+      for (final MapEntry(:key, :value) in arb.entries)
+        if (!key.startsWith('@') &&
+            '${(arb['@$key'] as Map?)?['description']}'.startsWith('DRAFT'))
+          key: '$value'.toLowerCase(),
+    };
+    expect(drafts, isNotEmpty);
+    expect({
+      for (final MapEntry(:key, :value) in drafts.entries)
+        for (final f in forbidden)
+          if (value.contains(f)) key: f,
+    }, isEmpty);
+  });
 }

@@ -71,6 +71,7 @@ class FakeDeviceLock implements DeviceLock {
 /// `tester.runAsync` (the outbox is SQLite in memory).
 Future<(Deps, FakeServer)> testDeps({
   Map<String, String> stored = const {},
+  Map<String, Object?> flags = allScreensOn,
 }) async {
   final server = FakeServer();
   final store = MemoryKeyStore()..values.addAll(stored);
@@ -100,7 +101,7 @@ Future<(Deps, FakeServer)> testDeps({
       deviceLock: FakeDeviceLock(),
       outbox: outbox,
       store: store,
-      flags: Flags(client, store, defaults: allScreensOn),
+      flags: Flags(client, store, defaults: flags),
       timeZone: () async => 'Australia/Sydney',
     ),
     server,
