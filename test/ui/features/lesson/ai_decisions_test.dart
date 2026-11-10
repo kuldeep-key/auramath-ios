@@ -252,6 +252,61 @@ void main() {
     });
   });
 
+  test('read_again (AI-09, flag on): the question lit up and read aloud, '
+      'before any other help', () {
+    api.decideWith = (_) async => evaluator('read_again');
+    lesson((vm, time) {
+      vm.readAgainPrompt = true;
+      final voice = vm.voice as FakeVoice;
+      vm.send(const NumberEntered(300));
+      time.flushMicrotasks();
+      expect(vm.prompt, TutorPrompt.readAgain);
+      expect(voice.said.last, vm.problem.say);
+      expect(vm.state.hintsUsed, 0);
+      expect(
+        api.received.lastWhere((e) => e.name == 'prompt_offered').payload,
+        {'kind': 'read_again'},
+      );
+      expect(
+        api.received.lastWhere((e) => e.name == 'read_aloud_played').payload,
+        {'target': 'question'},
+      );
+      vm.closePrompt();
+      expect(vm.prompt, isNull);
+    });
+    expectContract(api.received);
+  });
+
+  for (final (id, peek) in [
+    ('mango', 'mango'),
+    ('not-on-this-phone', null),
+    (null, null),
+  ]) {
+    test('seen_before (AI-10, flag on) linking $id: '
+        '${peek == null ? 'the prompt alone' : 'a peek at that case'}', () {
+      final r = evaluator('seen_before');
+      api.decideWith = (_) async => {
+        ...r,
+        'decision': {
+          ...r['decision']! as Map<String, Object?>,
+          if (id != null) 'seenBefore': {'problemId': id, 'solvedAt': 1},
+        },
+      };
+      lesson((vm, time) {
+        vm.seenBeforeBridge = true;
+        vm.send(const NumberEntered(300));
+        time.flushMicrotasks();
+        expect(vm.prompt, TutorPrompt.seenBefore);
+        expect(vm.seenCase?.id, peek);
+        expect(
+          api.received.lastWhere((e) => e.name == 'prompt_offered').payload,
+          {'kind': 'seen_before', 'linked_problem_id': ?peek},
+        );
+      });
+      expectContract(api.received);
+    });
+  }
+
   test('aiChoice reads the record; a missing or fallen-back one is the '
       'rules\'', () {
     expect(aiChoice(evaluator('read_again'))?.help, 'read_again');

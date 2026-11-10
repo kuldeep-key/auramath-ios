@@ -16,6 +16,7 @@ import '../view_models/lesson_view_model.dart';
 import 'answer_sheet.dart';
 import 'help_sheet.dart';
 import 'thinking_cue.dart';
+import 'tutor_prompts.dart';
 
 /// Drawing it out, choosing the sum, and working it out. Figma: M1, D1–D6.
 class BoardView extends StatefulWidget {
@@ -141,6 +142,7 @@ class _BoardViewState extends State<BoardView> {
             },
           ),
         if (vm.knowPrompt != null) AnswerSheet(vm: vm),
+        if (vm.prompt != null) TutorPromptSheet(vm: vm),
       ],
     );
   }

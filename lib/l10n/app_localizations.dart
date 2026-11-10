@@ -3081,6 +3081,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hmm, let me think.'**
   String get lessonThinking;
+
+  /// DRAFT, for Julia and design (no Figma frame), AI-09: the tutor offers to read the question again after quick wrong answers. The question is read aloud as it opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s read it again'**
+  String get lessonReadAgainTitle;
+
+  /// DRAFT, for Julia (AI-09): closes the read-again prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my drawing'**
+  String get lessonReadAgainBack;
+
+  /// DRAFT, for Julia and design (no Figma frame), AI-10: the first help on a case that looks new links to one the child solved.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve solved one like this'**
+  String get lessonSeenBeforeTitle;
+
+  /// DRAFT, for Julia (AI-10): above a peek at the earlier case.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember this case? You cracked it. This one works the same way.'**
+  String get lessonSeenBeforeLinked;
+
+  /// DRAFT, for Julia (AI-10): when the decision names no earlier case, or this phone doesn't have it.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve cracked a case like this before. How did you draw it?'**
+  String get lessonSeenBeforeNoCase;
+
+  /// DRAFT, for Julia (AI-10): closes the seen-before prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my case'**
+  String get lessonSeenBeforeBack;
 }
 
 class _AppLocalizationsDelegate

@@ -1751,4 +1751,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonThinking => 'Hmm, let me think.';
+
+  @override
+  String get lessonReadAgainTitle => 'Let\'s read it again';
+
+  @override
+  String get lessonReadAgainBack => 'Back to my drawing';
+
+  @override
+  String get lessonSeenBeforeTitle => 'You\'ve solved one like this';
+
+  @override
+  String get lessonSeenBeforeLinked =>
+      'Remember this case? You cracked it. This one works the same way.';
+
+  @override
+  String get lessonSeenBeforeNoCase =>
+      'You\'ve cracked a case like this before. How did you draw it?';
+
+  @override
+  String get lessonSeenBeforeBack => 'Back to my case';
 }

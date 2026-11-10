@@ -13,6 +13,10 @@ import 'step_decision.dart';
 /// Which answer sheet is open during "I know it".
 enum KnowPrompt { answer, whatAsked, recheck, checkPart, checkTotal }
 
+/// A prompt the tutor's decision opens over the board: read the question
+/// again (AI-09), or a case like this one solved before (AI-10).
+enum TutorPrompt { readAgain, seenBefore }
+
 /// Where a side lesson is once its blocks are worked: the child types the
 /// sum, practises a few if it was wrong, then goes back.
 enum SideStage { ownSum, practice, back }
@@ -101,6 +105,23 @@ class LessonViewModel extends ChangeNotifier {
   /// The case partner's small thinking cue while a decision is late.
   /// Never a blocking spinner: the child can carry on meanwhile.
   bool thinking = false;
+
+  /// Flags `read_again_prompt` (AI-09) and `seen_before_bridge` (AI-10):
+  /// off, a decision for either shows the rules' help.
+  bool readAgainPrompt = false;
+  bool seenBeforeBridge = false;
+
+  /// The tutor's prompt open now, if any.
+  TutorPrompt? prompt;
+
+  /// The solved case the seen-before prompt shows a peek of; null when the
+  /// decision named none, or this phone doesn't have it.
+  ComparisonProblem? seenCase;
+
+  void closePrompt() {
+    prompt = null;
+    notifyListeners();
+  }
 
   /// A wrong step whose help waits for the server's decision.
   _Held? _held;
@@ -657,6 +678,23 @@ class LessonViewModel extends ChangeNotifier {
         await send(SideLessonChosen(_sideFor(ai!.sideSkill)));
       case 'check_again':
         _coach('cmp.recheck', const {});
+      case 'read_again':
+        // the question again, aloud, before any other help (AI-09)
+        prompt = TutorPrompt.readAgain;
+        _speak(_problem.say, 'question');
+        await _record(const [
+          SpecEvent('prompt_offered', {'kind': 'read_again'}),
+        ]);
+      case 'seen_before':
+        final id = ai!.seenBefore?.problemId;
+        seenCase = id == null || id == _problem.id ? null : _pack.problems[id];
+        prompt = TutorPrompt.seenBefore;
+        await _record([
+          SpecEvent('prompt_offered', {
+            'kind': 'seen_before',
+            'linked_problem_id': ?seenCase?.id,
+          }),
+        ]);
       default: // none: only the step's own line
         _coach('cmp.tryAgain', const {});
     }
@@ -673,7 +711,8 @@ class LessonViewModel extends ChangeNotifier {
             LessonStep.findB,
             LessonStep.findTotal,
           }.contains(held.r.state.step),
-    'read_again' || 'seen_before' => false,
+    'read_again' => readAgainPrompt,
+    'seen_before' => seenBeforeBridge,
     _ => helpActions.contains(help),
   };
 
@@ -920,6 +959,8 @@ class LessonViewModel extends ChangeNotifier {
     helpAttention = Attention.none;
     glowPiece = showHand = stillThere = false;
     knowPrompt = sideLesson = badgeId = nextProblemId = null;
+    prompt = null;
+    seenCase = null;
     notifyListeners();
   }
 

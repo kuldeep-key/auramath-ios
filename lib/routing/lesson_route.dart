@@ -126,6 +126,8 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..showBadges = flags.on('mastery_badges')
       ..askDecisions = Env.serverProblems
       ..actOnDecisions = flags.on('ai_decisions')
+      ..readAgainPrompt = flags.on('read_again_prompt')
+      ..seenBeforeBridge = flags.on('seen_before_bridge')
       ..cueAfterMs = deps.config.cueAfterMs
       ..fallbackAfterMs = deps.config.fallbackAfterMs
       ..childId = deps.account.childId
