@@ -382,7 +382,10 @@ class LessonViewModel extends ChangeNotifier {
   /// decides whether that matters.
   Future<void> tick() async {
     final now = _now();
-    if (_pausedAt == null) _sitting.activeMs += now - _lastTickMs;
+    // locked, or waiting for the internet (SES-04): the cap doesn't run
+    if (_pausedAt == null && (online || !clockPausesOffline)) {
+      _sitting.activeMs += now - _lastTickMs;
+    }
     _lastTickMs = now;
     if (_sitting.over &&
         !_sitting.finishing &&
@@ -463,6 +466,9 @@ class LessonViewModel extends ChangeNotifier {
     askingBreak = false;
     notifyListeners();
   }
+
+  /// App-config `session.clock_pauses_while_offline` (SES-04).
+  bool clockPausesOffline = true;
 
   /// The server can't be reached (or can again). Online-first: the lesson
   /// pauses until it can; every tap so far is held and resent (SES-04).

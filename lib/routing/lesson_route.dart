@@ -142,6 +142,7 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..seenBeforeBridge = flags.on('seen_before_bridge')
       ..cueAfterMs = deps.config.cueAfterMs
       ..fallbackAfterMs = deps.config.fallbackAfterMs
+      ..clockPausesOffline = deps.config.clockPausesWhileOffline
       ..childId = deps.account.childId
       ..launchSource = deps.account.role == Role.parent
           ? 'parent_handover'

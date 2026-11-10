@@ -1,3 +1,4 @@
+import 'package:auramath/data/services/fake_api.dart';
 import 'package:auramath/data/services/key_store.dart';
 import 'package:auramath/data/services/outbox_db.dart';
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
@@ -15,11 +16,13 @@ void main() {
   late OutboxDb db;
   late LessonViewModel vm;
   late Sitting sitting;
+  late FakeApi api;
 
   setUp(() async {
     now = 0;
-    final (sessions, outbox, _) = await memorySessions();
+    final (sessions, outbox, fake) = await memorySessions();
     db = outbox;
+    api = fake;
     sitting = Sitting(capMs: 30 * minute);
     vm = LessonViewModel(
       pack: pack,
@@ -129,6 +132,28 @@ void main() {
     expect(await lastEvent(), 'session_resumed');
     await spend(minute);
     expect(vm.timeUp, isFalse);
+  });
+
+  test('time waiting for the internet does not count (SES-04)', () async {
+    api.failNext = 1000; // every send fails: the lesson stays paused
+    vm.sessions.online.value = false;
+    await spend(40 * minute);
+    expect(vm.online, isFalse);
+    expect(vm.timeUp, isFalse);
+    api.failNext = 0;
+    vm.sessions.online.value = true;
+    await spend(29 * minute);
+    expect(vm.timeUp, isFalse);
+    await spend(minute);
+    expect(vm.timeUp, isTrue);
+  });
+
+  test('with app-config clock_pauses_while_offline false, it does', () async {
+    vm.clockPausesOffline = false;
+    api.failNext = 1000;
+    vm.sessions.online.value = false;
+    await spend(30 * minute);
+    expect(vm.timeUp, isTrue);
   });
 
   test('home asks to take a break; going home saves the pause', () async {
