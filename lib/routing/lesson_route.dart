@@ -114,9 +114,11 @@ class _LessonRouteState extends State<_LessonRoute> {
     final deps = widget.deps;
     await deps.flags.refresh();
     final prefs = await GrownUpRepository(deps.client, deps.store).loadPrefs();
-    final age = prefs.readAloud == null ? await _childAge() : null;
-    if (!mounted) return;
     final flags = deps.flags;
+    final age = prefs.readAloud == null || flags.on('self_rating')
+        ? await _childAge()
+        : null;
+    if (!mounted) return;
     _vm
       ..readAloud =
           flags.on('read_aloud') &&
@@ -124,6 +126,9 @@ class _LessonRouteState extends State<_LessonRoute> {
               (age == null || flags.readAloudAges.contains(age)))
       ..readQuestionAloud = flags.on('read_question_aloud')
       ..showBadges = flags.on('mastery_badges')
+      ..selfRating = flags.on('self_rating')
+      ..selfRatingMinAge = flags.selfRatingMinAge
+      ..childAge = age
       ..askDecisions = Env.serverProblems
       ..actOnDecisions = flags.on('ai_decisions')
       ..readAgainPrompt = flags.on('read_again_prompt')

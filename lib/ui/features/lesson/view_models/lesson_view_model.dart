@@ -567,8 +567,11 @@ class LessonViewModel extends ChangeNotifier {
     _heldReads = null;
     if (_sessionId == sessionId) _seq += reads.length;
     // solved: the session ends as finished (SES-01), after this step's
-    // events and reads; its seq taken now so a tick meanwhile can't take it
-    final endAt = solved && _sessionId == sessionId ? _seq++ : null;
+    // events and reads; its seq taken now so a tick meanwhile can't take it.
+    // With faces to rate, after the rating instead (AI-08).
+    final ending = solved && _sessionId == sessionId;
+    if (ending && offerRating) _rated = Completer();
+    final endAt = ending && _rated == null ? _seq++ : null;
     notifyListeners();
     await _sessions.record(sessionId, first, [...events, ...reads]);
     for (final ask in asks) {
@@ -578,7 +581,11 @@ class LessonViewModel extends ChangeNotifier {
             : _askServer(sessionId, ask),
       );
     }
-    if (endAt != null) await _endFinished(sessionId, endAt);
+    if (ending && _rated != null) {
+      unawaited(_endFinished(sessionId, null));
+    } else if (endAt != null) {
+      await _endFinished(sessionId, endAt);
+    }
     // something easier: the easier problem gets its own session
     if (_sessionId == null) await start();
   }
@@ -796,6 +803,43 @@ class LessonViewModel extends ChangeNotifier {
   /// The flag `mastery_badges`: the badge after "case cracked".
   bool showBadges = true;
 
+  /// The flag `self_rating` and the child's age (AI-08): three faces after
+  /// a solved case from `self_rating_min_age` (7) up, never younger. The
+  /// rating is only logged: it changes no level, score or next case.
+  bool selfRating = false;
+  int selfRatingMinAge = 7;
+  int? childAge;
+  bool get offerRating =>
+      selfRating && childAge != null && childAge! >= selfRatingMinAge;
+
+  /// The face the child tapped for this case: `easy`, `ok` or `tricky`.
+  String? rating;
+
+  /// Set while the faces wait: the session ends once they're answered.
+  Completer<void>? _rated;
+
+  /// A face tapped: `self_rating_given`, then the session can end.
+  Future<void> rate(String face) async {
+    if (rating != null) return;
+    rating = face;
+    notifyListeners();
+    await _record([
+      SpecEvent('self_rating_given', {
+        'problem_id': _problem.id,
+        'rating': face,
+      }),
+    ]);
+    _doneRating();
+  }
+
+  /// Next without a face: no rating, and the session ends.
+  void _doneRating() {
+    final rated = _rated;
+    if (rated != null && !rated.isCompleted) rated.complete();
+  }
+
+  void skipRating() => _doneRating();
+
   /// Why the lesson opened (`session_started`, DAT-05): the child on their
   /// own phone, or a grown-up's phone handed over.
   String launchSource = 'child_opened';
@@ -961,16 +1005,18 @@ class LessonViewModel extends ChangeNotifier {
     knowPrompt = sideLesson = badgeId = nextProblemId = null;
     prompt = null;
     seenCase = null;
+    rating = null;
     notifyListeners();
   }
 
   /// Solved: `session_ended {finished}`, so the server writes the note and
   /// moves the level now rather than at the idle sweep. After the next case
   /// is fetched: problems/next refuses an ended session (409).
-  Future<void> _endFinished(String sessionId, int seq) async {
+  Future<void> _endFinished(String sessionId, int? seq) async {
     await _fetching;
+    await _rated?.future;
     if (endedByServer) return;
-    await _sessions.record(sessionId, seq, [
+    await _sessions.record(sessionId, seq ?? _seq++, [
       SpecEvent('session_ended', {
         'reason': 'finished',
         'active_ms': _sitting.activeMs,
@@ -1085,6 +1131,7 @@ class LessonViewModel extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _held?.cue?.cancel();
+    _doneRating();
     _sessions.online.removeListener(_onlineChanged);
     _sessions.ended.removeListener(_endedByServer);
     _voice.resting.removeListener(_voiceResting);

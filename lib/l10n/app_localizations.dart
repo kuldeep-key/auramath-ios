@@ -3117,6 +3117,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to my case'**
   String get lessonSeenBeforeBack;
+
+  /// DRAFT, for Julia and design (no Figma frame), AI-08: above three faces after a solved case, ages 7 and up. Optional; Next works without a face.
+  ///
+  /// In en, this message translates to:
+  /// **'How was this case?'**
+  String get lessonRateAsk;
+
+  /// DRAFT (AI-08): the happy face.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get lessonRateEasy;
+
+  /// DRAFT (AI-08): the middle face.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get lessonRateOk;
+
+  /// DRAFT (AI-08): the thinking face.
+  ///
+  /// In en, this message translates to:
+  /// **'Tricky'**
+  String get lessonRateTricky;
+
+  /// DRAFT, for Julia (AI-08): the kind line about checking work after 'Easy'. Shown back only as a teaching moment.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy ones are worth a check too. A quick look at your sum keeps them easy.'**
+  String get lessonRateSaidEasy;
+
+  /// DRAFT, for Julia (AI-08): after 'OK'.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for telling me. Checking each step helps every time.'**
+  String get lessonRateSaidOk;
+
+  /// DRAFT, for Julia (AI-08): after 'Tricky'.
+  ///
+  /// In en, this message translates to:
+  /// **'Tricky cases take care. Checking each bar helped you crack it.'**
+  String get lessonRateSaidTricky;
 }
 
 class _AppLocalizationsDelegate

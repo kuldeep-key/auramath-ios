@@ -624,5 +624,19 @@
   "lessonSeenBeforeNoCase": "You've cracked a case like this before. How did you draw it?",
   "@lessonSeenBeforeNoCase": {"description": "DRAFT, for Julia (AI-10): when the decision names no earlier case, or this phone doesn't have it."},
   "lessonSeenBeforeBack": "Back to my case",
-  "@lessonSeenBeforeBack": {"description": "DRAFT, for Julia (AI-10): closes the seen-before prompt."}
+  "@lessonSeenBeforeBack": {"description": "DRAFT, for Julia (AI-10): closes the seen-before prompt."},
+  "lessonRateAsk": "How was this case?",
+  "@lessonRateAsk": {"description": "DRAFT, for Julia and design (no Figma frame), AI-08: above three faces after a solved case, ages 7 and up. Optional; Next works without a face."},
+  "lessonRateEasy": "Easy",
+  "@lessonRateEasy": {"description": "DRAFT (AI-08): the happy face."},
+  "lessonRateOk": "OK",
+  "@lessonRateOk": {"description": "DRAFT (AI-08): the middle face."},
+  "lessonRateTricky": "Tricky",
+  "@lessonRateTricky": {"description": "DRAFT (AI-08): the thinking face."},
+  "lessonRateSaidEasy": "Easy ones are worth a check too. A quick look at your sum keeps them easy.",
+  "@lessonRateSaidEasy": {"description": "DRAFT, for Julia (AI-08): the kind line about checking work after 'Easy'. Shown back only as a teaching moment."},
+  "lessonRateSaidOk": "Thanks for telling me. Checking each step helps every time.",
+  "@lessonRateSaidOk": {"description": "DRAFT, for Julia (AI-08): after 'OK'."},
+  "lessonRateSaidTricky": "Tricky cases take care. Checking each bar helped you crack it.",
+  "@lessonRateSaidTricky": {"description": "DRAFT, for Julia (AI-08): after 'Tricky'."}
 }

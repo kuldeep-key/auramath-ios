@@ -1771,4 +1771,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonSeenBeforeBack => 'Back to my case';
+
+  @override
+  String get lessonRateAsk => 'How was this case?';
+
+  @override
+  String get lessonRateEasy => 'Easy';
+
+  @override
+  String get lessonRateOk => 'OK';
+
+  @override
+  String get lessonRateTricky => 'Tricky';
+
+  @override
+  String get lessonRateSaidEasy =>
+      'Easy ones are worth a check too. A quick look at your sum keeps them easy.';
+
+  @override
+  String get lessonRateSaidOk =>
+      'Thanks for telling me. Checking each step helps every time.';
+
+  @override
+  String get lessonRateSaidTricky =>
+      'Tricky cases take care. Checking each bar helped you crack it.';
 }

@@ -9,6 +9,7 @@ import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import '../../child_home/views/badge_disc.dart' show badgeArt;
 import '../view_models/lesson_view_model.dart';
+import 'self_rating.dart';
 
 /// Case cracked, then the one badge that says what the child did.
 /// Figma: Y2, Y3.
@@ -54,6 +55,13 @@ class _SolvedViewState extends State<SolvedView> {
                       style: AuraText.cheer,
                       textAlign: TextAlign.center,
                     ),
+                    if (widget.vm.offerRating) ...[
+                      const SizedBox(height: 20),
+                      ListenableBuilder(
+                        listenable: widget.vm,
+                        builder: (_, _) => SelfRating(vm: widget.vm),
+                      ),
+                    ],
                   ] else ...[
                     Ribbon(text: l.newBadge),
                     const SizedBox(height: 24),
@@ -105,7 +113,11 @@ class _SolvedViewState extends State<SolvedView> {
                             ? _reveal
                             : next == null
                             ? null
-                            : () => widget.onFinished(next),
+                            : () {
+                                // no face tapped: the session ends unrated
+                                widget.vm.skipRating();
+                                widget.onFinished(next);
+                              },
                       );
                     },
                   ),
