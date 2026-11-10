@@ -3,6 +3,11 @@ version: 0.3.0
 updated: 2026-10-09
 session:
   cap_minutes: 30               # SES-01, D-07. Julia: "no more than half an hour"
+  clock_pauses_while_offline: true      # SES-04 (v4): the 30-minute cap does not run while the lesson is paused for connection
+ai:                             # D-34 (v4). Provisional values; Vishal confirms (D-50)
+  decision_target_ms: 2000      # NFR-05: 90% of evaluator decisions within this
+  fallback_after_ms: 4000       # NFR-05, AI-04: the rules' default applies at this point
+  waiting_cue_after_ms: 1000    # the case partner shows a small thinking cue; never a blocking spinner
 devices:
   join_code_ttl_minutes: 10     # DEV-02, legacy PAC-06
   join_code_charset: digits      # Figma journey 3: "Six digits"
@@ -27,3 +32,11 @@ flags:                          # PLAT-06. Remote flags; defaults shown
   trail: false                  # REW-04
   mastery_badges: false         # REW-06
   read_question_aloud: false    # NFR-08
+  case_partner_intro: true      # AI-07 (v4)
+  self_rating: false            # AI-08, D-47 (v4); never offered at age 6
+  self_rating_min_age: 7
+  read_again_prompt: false      # AI-09 (v4)
+  seen_before_bridge: false     # AI-10 (v4)
+  # app-only: the lesson acts on the server's decision (AI-04, NFR-05);
+  # off, the rules' choice always shows and the decision is only logged
+  ai_decisions: false

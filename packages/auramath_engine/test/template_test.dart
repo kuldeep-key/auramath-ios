@@ -41,6 +41,28 @@ bool regroupsAdd(int x, int y) {
 }
 
 void main() {
+  test("policy question_buttons and Julia's line library (TUT-13)", () {
+    expect(policy.questionButtons['*'], ['line.q.what-now']);
+    expect(policy.questionButtons['size_second_bar'], ['line.q.taller-means']);
+    expect(policy.lines['line.check.again'], 'Check your sum again.');
+    expect(policy.lines['line.q.what-now'], startsWith('What do I do now? | '));
+  });
+
+  test('app-config: the AI timings and the offline clock (NFR-05, SES-04)', () {
+    final c = AppConfig.fromYaml(
+      File('../../assets/spec/app-config.yaml').readAsStringSync(),
+    );
+    expect(c.cueAfterMs, 1000);
+    expect(c.fallbackAfterMs, 4000);
+    expect(c.clockPausesWhileOffline, isTrue);
+    // acted on only when switched on
+    expect(c.flags['ai_decisions'], isFalse);
+    expect(c.flags['self_rating_min_age'], 7);
+    // a pack without the v4 keys keeps the spec's numbers
+    final old = AppConfig.fromYaml('session: {cap_minutes: 30}');
+    expect((old.cueAfterMs, old.fallbackAfterMs), (1000, 4000));
+  });
+
   test('the template reads its five levels and its stories', () {
     expect(template.id, 'cmp.comparison');
     expect(template.version, '0.3.0');

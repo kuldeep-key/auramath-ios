@@ -245,13 +245,29 @@ class Policy {
     required this.maxSideLessons,
     required this.noProgressMs,
     required this.practiceSums,
+    this.questionButtons = const {},
+    this.lines = const {},
   });
 
   factory Policy.fromYaml(String text) {
     final y = loadYaml(text) as YamlMap;
     final q = y['quiet'] as YamlMap;
     int ms(String key) => (q[key] as int) * 1000;
+    final buttons = y['question_buttons'] as YamlMap?;
+    final every = [for (final b in buttons?['every_step'] as List? ?? []) '$b'];
+    final byStep = buttons?['by_step'] as YamlMap? ?? YamlMap();
+    final pack = (y['lines'] as YamlMap?)?['pack'] as List? ?? const [];
     return Policy(
+      questionButtons: {
+        '*': every,
+        for (final MapEntry(:key, :value) in byStep.entries)
+          '$key': [for (final b in value as List) '$b'],
+      },
+      lines: {
+        for (final l in pack.cast<YamlMap>())
+          if (l['id'] is String && l['text'] is String)
+            l['id'] as String: l['text'] as String,
+      },
       timers: Timers(
         pulseMs: ms('help_pulse_after_s'),
         glowMs: ms('glow_after_s'),
@@ -274,17 +290,36 @@ class Policy {
   /// `side_lessons.practice_if_unsure`: smaller sums after a side lesson
   /// whose own sum the child got wrong.
   final int practiceSums;
+
+  /// `question_buttons` (TUT-13): line ids by spec step id; `*` holds the
+  /// ones every step shows.
+  final Map<String, List<String>> questionButtons;
+
+  /// `lines.pack`: Julia's line library, text by line id.
+  final Map<String, String> lines;
 }
 
 /// App settings that aren't teaching rules, from the spec pack's
 /// `content/app-config.yaml`.
 class AppConfig {
-  const AppConfig({required this.sessionCapMinutes, this.flags = const {}});
+  const AppConfig({
+    required this.sessionCapMinutes,
+    this.flags = const {},
+    this.cueAfterMs = 1000,
+    this.fallbackAfterMs = 4000,
+    this.clockPausesWhileOffline = true,
+  });
 
   factory AppConfig.fromYaml(String text) {
     final y = loadYaml(text) as YamlMap;
+    final session = y['session'] as YamlMap;
+    final ai = y['ai'] as YamlMap? ?? YamlMap();
     return AppConfig(
-      sessionCapMinutes: (y['session'] as YamlMap)['cap_minutes'] as int,
+      sessionCapMinutes: session['cap_minutes'] as int,
+      cueAfterMs: ai['waiting_cue_after_ms'] as int? ?? 1000,
+      fallbackAfterMs: ai['fallback_after_ms'] as int? ?? 4000,
+      clockPausesWhileOffline:
+          session['clock_pauses_while_offline'] as bool? ?? true,
       flags: {
         for (final MapEntry(:key, :value)
             in (y['flags'] as YamlMap? ?? YamlMap()).entries)
@@ -298,4 +333,16 @@ class AppConfig {
 
   /// PLAT-06: the remote flags' defaults, used until the server answers.
   final Map<String, Object?> flags;
+
+  /// `ai.waiting_cue_after_ms` (NFR-05): no decision by then, the case
+  /// partner shows a small thinking cue.
+  final int cueAfterMs;
+
+  /// `ai.fallback_after_ms` (NFR-05, AI-04): no decision by then, the
+  /// rules' choice shows and the lesson carries on.
+  final int fallbackAfterMs;
+
+  /// `session.clock_pauses_while_offline` (SES-04): the cap doesn't run
+  /// while the lesson waits for the internet.
+  final bool clockPausesWhileOffline;
 }

@@ -21,6 +21,8 @@ class PackRepository {
       maxSideLessons: policy.maxSideLessons,
       noProgressMs: policy.noProgressMs,
       practiceSums: policy.practiceSums,
+      questionButtons: policy.questionButtons,
+      policyLines: policy.lines,
     );
   }
 }

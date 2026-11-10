@@ -44,6 +44,8 @@ class Pack {
     this.maxSideLessons = 2,
     this.noProgressMs = 5 * 60 * 1000,
     this.practiceSums = 3,
+    this.questionButtons = const {},
+    this.policyLines = const {},
   });
 
   factory Pack.fromJson(Map<String, Object?> j) => Pack(
@@ -68,6 +70,8 @@ class Pack {
     int? maxSideLessons,
     int? noProgressMs,
     int? practiceSums,
+    Map<String, List<String>>? questionButtons,
+    Map<String, String>? policyLines,
   }) => Pack(
     version: version,
     timers: timers ?? this.timers,
@@ -78,6 +82,8 @@ class Pack {
     maxSideLessons: maxSideLessons ?? this.maxSideLessons,
     noProgressMs: noProgressMs ?? this.noProgressMs,
     practiceSums: practiceSums ?? this.practiceSums,
+    questionButtons: questionButtons ?? this.questionButtons,
+    policyLines: policyLines ?? this.policyLines,
   );
 
   final String version;
@@ -94,6 +100,14 @@ class Pack {
   /// Policy `side_lessons.practice_if_unsure`: how many smaller sums follow
   /// a side lesson whose own sum the child got wrong (TUT-08).
   final int practiceSums;
+
+  /// Policy `question_buttons` (TUT-13): line ids by spec step id, `*` for
+  /// every step.
+  final Map<String, List<String>> questionButtons;
+
+  /// Policy `lines.pack`, by line id (`line.q.what-now`). Kept apart from
+  /// [lines], so the voice isn't warmed with all of them.
+  final Map<String, String> policyLines;
   final List<String> hintLineIds;
   final Map<String, BadgeInfo> badges;
   final Map<String, String> lines;
