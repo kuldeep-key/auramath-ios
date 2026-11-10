@@ -10,10 +10,19 @@ import '../../../core/theme/tokens.dart';
 /// "How can I help?": a hint, show me how, or something easier. Figma: H0
 /// (M1-help).
 class HelpSheet extends StatelessWidget {
-  const HelpSheet({super.key, required this.onClose, required this.onChoose});
+  const HelpSheet({
+    super.key,
+    required this.onClose,
+    required this.onChoose,
+    this.onEasierSentence,
+  });
 
   final VoidCallback onClose;
   final ValueChanged<LessonInput> onChoose;
+
+  /// "Show the sum in words" (TUT-09, policy help_menu also_offers); null
+  /// hides it (not a sum step).
+  final VoidCallback? onEasierSentence;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +54,15 @@ class HelpSheet extends StatelessWidget {
             icon: icon,
             color: AuraButtonColor.white,
             onPressed: () => onChoose(input),
+          ),
+          const SizedBox(height: 10),
+        ],
+        if (onEasierSentence case final ease?) ...[
+          AuraButton(
+            label: l.lessonEasierSum,
+            icon: Icons.short_text_rounded,
+            color: AuraButtonColor.white,
+            onPressed: ease,
           ),
           const SizedBox(height: 10),
         ],

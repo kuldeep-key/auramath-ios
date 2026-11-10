@@ -3201,6 +3201,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Let\'s start'**
   String get kidMeetStart;
+
+  /// DRAFT, for Julia and design (Figma 37.2 not built yet), TUT-09: a Help me choice on the sum steps; the number sentence shows each number's name under it, beside the bars.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the sum in words'**
+  String get lessonEasierSum;
+
+  /// DRAFT (TUT-09): the word under the difference in the easier number sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'gap'**
+  String get lessonSentenceGap;
+
+  /// DRAFT (TUT-09): the word under the ? in the easier sentence for the total.
+  ///
+  /// In en, this message translates to:
+  /// **'both'**
+  String get lessonSentenceBoth;
 }
 
 class _AppLocalizationsDelegate

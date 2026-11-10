@@ -145,6 +145,12 @@ class _BoardViewState extends State<BoardView> {
               setState(() => _helpOpen = false);
               vm.send(input);
             },
+            onEasierSentence: vm.canEaseSentence
+                ? () {
+                    setState(() => _helpOpen = false);
+                    vm.showEasierSentence();
+                  }
+                : null,
           ),
         if (vm.knowPrompt != null) AnswerSheet(vm: vm),
         if (vm.prompt != null) TutorPromptSheet(vm: vm),
@@ -215,10 +221,12 @@ class _BoardViewState extends State<BoardView> {
                 Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(
-                      sentence,
-                      style: AuraText.title.copyWith(fontSize: 32),
-                    ),
+                    child: vm.easierSentence
+                        ? _wordsUnder(l, p, s)
+                        : Text(
+                            sentence,
+                            style: AuraText.title.copyWith(fontSize: 32),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -267,6 +275,52 @@ class _BoardViewState extends State<BoardView> {
           ),
         );
     }
+  }
+
+  /// The sum with each number's name under it (TUT-09), so the sentence
+  /// reads off the bars above it.
+  // Draft: Figma 37.2 shows a different layout; this reuses the sum row.
+  Widget _wordsUnder(AppLocalizations l, ComparisonProblem p, LessonState s) {
+    final findB = s.step == LessonStep.findB;
+    final parts = findB
+        ? [
+            ('${p.aValue}', '${p.a.pic} ${p.a.name.toLowerCase()}'),
+            (s.op == Op.add ? '+' : '−', ''),
+            ('${p.diff}', l.lessonSentenceGap),
+            ('=', ''),
+          ]
+        : [
+            ('${p.aValue}', '${p.a.pic} ${p.a.name.toLowerCase()}'),
+            ('+', ''),
+            ('${p.bValue}', '${p.b.pic} ${p.b.name.toLowerCase()}'),
+            ('=', ''),
+          ];
+    return Row(
+      key: const Key('easierSentence'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final (n, word) in parts)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(
+              children: [
+                Text(n, style: AuraText.title.copyWith(fontSize: 32)),
+                Text(word, style: AuraText.small),
+              ],
+            ),
+          ),
+        // the answer box says what the ? is
+        Padding(
+          padding: const EdgeInsets.only(top: 40),
+          child: Text(
+            findB
+                ? '${p.b.pic} ${p.b.name.toLowerCase()}'
+                : l.lessonSentenceBoth,
+            style: AuraText.small,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _stillThere(AppLocalizations l) => Positioned(

@@ -652,5 +652,11 @@
   "kidMeetLine4": "Your grown-up can see your work.",
   "@kidMeetLine4": {"description": "DRAFT, for Julia (AI-07): line 4."},
   "kidMeetStart": "Let's start",
-  "@kidMeetStart": {"description": "DRAFT (AI-07): ends the first-meeting scene and opens the first lesson."}
+  "@kidMeetStart": {"description": "DRAFT (AI-07): ends the first-meeting scene and opens the first lesson."},
+  "lessonEasierSum": "Show the sum in words",
+  "@lessonEasierSum": {"description": "DRAFT, for Julia and design (Figma 37.2 not built yet), TUT-09: a Help me choice on the sum steps; the number sentence shows each number's name under it, beside the bars."},
+  "lessonSentenceGap": "gap",
+  "@lessonSentenceGap": {"description": "DRAFT (TUT-09): the word under the difference in the easier number sentence."},
+  "lessonSentenceBoth": "both",
+  "@lessonSentenceBoth": {"description": "DRAFT (TUT-09): the word under the ? in the easier sentence for the total."}
 }

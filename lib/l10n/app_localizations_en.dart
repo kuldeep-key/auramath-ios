@@ -1819,4 +1819,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidMeetStart => 'Let\'s start';
+
+  @override
+  String get lessonEasierSum => 'Show the sum in words';
+
+  @override
+  String get lessonSentenceGap => 'gap';
+
+  @override
+  String get lessonSentenceBoth => 'both';
 }

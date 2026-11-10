@@ -552,6 +552,7 @@ class LessonViewModel extends ChangeNotifier {
     if (entering != null) {
       _signals.reset();
       _wayOutOffered = false;
+      easierSentence = false;
     }
     // a wrong step the server may help with differently: its help waits
     final wait = actOnDecisions ? asks.where(_judged).lastOrNull : null;
@@ -898,6 +899,28 @@ class LessonViewModel extends ChangeNotifier {
     return (left: p.aValue, right: p.diff, subtract: p.big == BigSide.a);
   }
 
+  /// The sum step's number sentence shows each number's name under it,
+  /// beside the bars (TUT-09). Until the step changes.
+  bool easierSentence = false;
+
+  /// Help me's "Show the sum in words": on the sum steps only.
+  bool get canEaseSentence =>
+      _p != null &&
+      const {LessonStep.findB, LessonStep.findTotal}.contains(_state.step);
+
+  void showEasierSentence() {
+    if (easierSentence || !canEaseSentence) return;
+    easierSentence = true;
+    notifyListeners();
+    unawaited(
+      _record([
+        SpecEvent('easier_number_sentence_shown', {
+          'step_id': specStepId(_state.step),
+        }),
+      ]),
+    );
+  }
+
   /// The flag `child_questions` (TUT-13): tap-to-ask buttons on the board.
   bool childQuestions = false;
 
@@ -1053,6 +1076,7 @@ class LessonViewModel extends ChangeNotifier {
     knowPrompt = sideLesson = badgeId = nextProblemId = null;
     prompt = null;
     seenCase = null;
+    easierSentence = false;
     rating = null;
     notifyListeners();
   }
