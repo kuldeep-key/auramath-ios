@@ -103,8 +103,11 @@ List<SpecEvent> eventsFor(
     }),
   );
 
-  void helpOpened() => out.add(
-    SpecEvent('help_opened', {'step_id': stepId, 'trigger': 'child'}),
+  void helpOpened({bool afterWrong = false}) => out.add(
+    SpecEvent('help_opened', {
+      'step_id': stepId,
+      'trigger': afterWrong ? 'after_wrong' : 'child',
+    }),
   );
 
   void answered(
@@ -232,13 +235,15 @@ List<SpecEvent> eventsFor(
         right,
         right ? null : _totalError(p, value),
       );
-    case SideLessonDone():
+    case SideLessonDone(:final completed):
       out.add(
         SpecEvent('side_lesson_ended', {
           'skill_id': _sideSkill[before.sideLesson],
-          'completed': true,
+          'completed': completed,
         }),
       );
+    case SideLessonChosen():
+      break; // side_lesson_started, below
     case Undo():
       out.add(
         SpecEvent('undo_used', {
@@ -250,8 +255,8 @@ List<SpecEvent> eventsFor(
           },
         }),
       );
-    case HintTaken():
-      helpOpened();
+    case HintTaken(:final afterWrong):
+      helpOpened(afterWrong: afterWrong);
       out.add(
         SpecEvent('hint_shown', {
           'step_id': stepId,
@@ -263,15 +268,15 @@ List<SpecEvent> eventsFor(
           'model_used': false,
         }),
       );
-    case ShowMeHowTaken():
-      helpOpened();
+    case ShowMeHowTaken(:final afterWrong):
+      helpOpened(afterWrong: afterWrong);
       out.add(
         const SpecEvent('worked_example_shown', {
           'example_story_id': 'building-a-b',
         }),
       );
-    case EasierTaken(:final noProgress):
-      helpOpened();
+    case EasierTaken(:final noProgress, :final afterWrong):
+      helpOpened(afterWrong: afterWrong);
       out.add(
         SpecEvent('easier_chosen', {
           'from_problem_id': p.id,
@@ -384,7 +389,15 @@ List<LessonInput> inputsFrom(
         ),
         _ => KnowIt(j['value']! as int),
       },
-      'side_lesson_ended' => const SideLessonDone(),
+      'side_lesson_ended' => SideLessonDone(completed: j['completed'] != false),
+      // opened by the server's choice; one the rules opened is already open
+      'side_lesson_started' when s.step != LessonStep.sideLesson =>
+        switch (j['skill_id']) {
+          'arith.add-3d-regroup' => const SideLessonChosen(
+            SideLesson.addWithCarry,
+          ),
+          _ => const SideLessonChosen(SideLesson.takeAcrossTen),
+        },
       'undo_used' => const Undo(),
       'hint_shown' => const HintTaken(),
       'worked_example_shown' => const ShowMeHowTaken(),

@@ -29,11 +29,13 @@ Map<String, Object?> afterStepDecision({
 }) {
   final c = committed.payload;
   final correct = c['correct'] == true;
+  // swapped digits are only a recheck: nothing else is allowed (LES-09)
+  final carryOn = correct || c['error_type'] == 'transposition';
   final shown = problemShown(problem).payload;
   final numbers = shown['numbers']! as Map<String, Object?>;
   return {
     'point': 'after_step',
-    'allowed': correct
+    'allowed': carryOn
         ? ['continue']
         : [
             if (after.sideLessons < maxSideLessons) 'side_lesson',
@@ -72,4 +74,74 @@ Map<String, Object?> afterStepDecision({
       'readAloudUsed': signals.readAloudUsed,
     },
   };
+}
+
+/// Every `help.action` and `next.action` of a decision record
+/// (`contracts/decision.schema.json`).
+const helpActions = {
+  'none',
+  'hint',
+  'show_me_how',
+  'easier',
+  'side_lesson',
+  'check_again',
+  'read_again',
+  'seen_before',
+};
+const nextActions = {
+  'continue',
+  'same_level_new_numbers',
+  'one_easier_then_back',
+  'next_level',
+  'end_case',
+  'end_session',
+};
+
+/// The earlier case a `seen_before` decision links to (AI-10). The
+/// backend is adding it to the decision; it may be missing.
+typedef SeenBefore = ({String problemId, int? solvedAt});
+
+/// What the lesson acts on from a decision: its help and next action, the
+/// side lesson's skill, and the case it links to.
+typedef AiChoice = ({
+  String help,
+  String next,
+  String? sideSkill,
+  SeenBefore? seenBefore,
+});
+
+/// The server's choice in [reply] (`POST .../decisions`), or null when
+/// the rules made it there too (the evaluator off, a fallback, a reply
+/// this app can't read): then the phone's own choice stands. Pure.
+AiChoice? aiChoice(Map<String, Object?> reply) {
+  if (reply['source'] != 'evaluator' || reply['fallbackUsed'] == true) {
+    return null;
+  }
+  final d = reply['decision'];
+  if (d is! Map) {
+    // no record: the action itself, one of after_step's allowed
+    final help = switch (reply['action']) {
+      'side_lesson' => 'side_lesson',
+      'hint' => 'hint',
+      'continue' => 'none',
+      _ => null,
+    };
+    return help == null
+        ? null
+        : (help: help, next: 'continue', sideSkill: null, seenBefore: null);
+  }
+  if (d['fallback_used'] == true) return null;
+  final help = (d['help'] as Map?)?['action'];
+  if (!helpActions.contains(help)) return null;
+  final next = (d['next'] as Map?)?['action'];
+  final seen = d['seenBefore'] ?? reply['seenBefore'];
+  final seenId = seen is Map ? seen['problemId'] : null;
+  return (
+    help: help as String,
+    next: nextActions.contains(next) ? next as String : 'continue',
+    sideSkill: (d['help'] as Map)['side_lesson_skill'] as String?,
+    seenBefore: seenId is String
+        ? (problemId: seenId, solvedAt: (seen as Map)['solvedAt'] as int?)
+        : null,
+  );
 }

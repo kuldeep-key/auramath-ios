@@ -173,6 +173,7 @@ Future<void> main() async {
           fallback: DeviceVoice(),
         ),
         sitting: sitting,
+        config: config,
         deviceLock: LocalDeviceLock(),
         outbox: db,
         store: store,

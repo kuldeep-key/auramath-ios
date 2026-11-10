@@ -15,6 +15,7 @@ import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
 import 'answer_sheet.dart';
 import 'help_sheet.dart';
+import 'thinking_cue.dart';
 
 /// Drawing it out, choosing the sum, and working it out. Figma: M1, D1–D6.
 class BoardView extends StatefulWidget {
@@ -123,6 +124,13 @@ class _BoardViewState extends State<BoardView> {
             ],
           ),
         ),
+        if (vm.thinking)
+          Positioned(
+            top: 84,
+            left: 16,
+            right: 16,
+            child: ThinkingCue(text: l.lessonThinking),
+          ),
         if (vm.stillThere) _stillThere(l),
         if (_helpOpen)
           HelpSheet(

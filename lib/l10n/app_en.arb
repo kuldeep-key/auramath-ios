@@ -610,5 +610,7 @@
   "setupProgressFollows": "Progress follows {name}",
   "@setupProgressFollows": {"placeholders": {"name": {"type": "String"}}},
   "setupProgressFollowsDetail": "Lessons carry on from any phone in the family.",
-  "setupNewCode": "Show a new code"
+  "setupNewCode": "Show a new code",
+  "lessonThinking": "Hmm, let me think.",
+  "@lessonThinking": {"description": "DRAFT, for Julia and design (no Figma frame): the case partner's small thinking cue when the tutor's decision takes over a second (NFR-05). Never a spinner; the child can carry on."}
 }

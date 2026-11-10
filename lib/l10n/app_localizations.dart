@@ -3075,6 +3075,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show a new code'**
   String get setupNewCode;
+
+  /// DRAFT, for Julia and design (no Figma frame): the case partner's small thinking cue when the tutor's decision takes over a second (NFR-05). Never a spinner; the child can carry on.
+  ///
+  /// In en, this message translates to:
+  /// **'Hmm, let me think.'**
+  String get lessonThinking;
 }
 
 class _AppLocalizationsDelegate

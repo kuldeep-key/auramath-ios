@@ -73,8 +73,10 @@ class FakeApi implements Api {
   }
 
   /// Every decision asked for; the server's rules answer with the app's
-  /// own default, as dev does while the AI is off.
+  /// own default, as dev does while the AI is off, unless [decideWith]
+  /// answers instead (late, failing, or the evaluator's own choice).
   final List<(String, Map<String, Object?>)> decisions = [];
+  Future<Map<String, Object?>> Function(Map<String, Object?> body)? decideWith;
 
   @override
   Future<Map<String, Object?>> decide(
@@ -82,6 +84,7 @@ class FakeApi implements Api {
     Map<String, Object?> body,
   ) async {
     decisions.add((sessionId, body));
+    if (decideWith case final answer?) return answer(body);
     return {
       'action': body['rulesDefault'],
       'source': 'rules',

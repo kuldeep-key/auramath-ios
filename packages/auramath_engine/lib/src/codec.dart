@@ -14,7 +14,14 @@ Map<String, Object?> inputToJson(LessonInput i) => switch (i) {
   },
   OpChosen(:final op) => {'type': 'opChosen', 'op': op.name},
   NumberEntered(:final value) => {'type': 'numberEntered', 'value': value},
-  SideLessonDone() => {'type': 'sideLessonDone'},
+  SideLessonDone(:final completed) => {
+    'type': 'sideLessonDone',
+    if (!completed) 'completed': false,
+  },
+  SideLessonChosen(:final kind) => {
+    'type': 'sideLessonChosen',
+    'kind': kind.name,
+  },
   Undo() => {'type': 'undo'},
   KnowIt(:final value) => {'type': 'knowIt', 'value': value},
   PartChecked(:final value) => {'type': 'partChecked', 'value': value},
@@ -22,11 +29,18 @@ Map<String, Object?> inputToJson(LessonInput i) => switch (i) {
     'type': 'knowTotalChecked',
     'value': value,
   },
-  HintTaken() => {'type': 'hintTaken'},
-  ShowMeHowTaken() => {'type': 'showMeHowTaken'},
-  EasierTaken(:final noProgress) => {
+  HintTaken(:final afterWrong) => {
+    'type': 'hintTaken',
+    if (afterWrong) 'afterWrong': true,
+  },
+  ShowMeHowTaken(:final afterWrong) => {
+    'type': 'showMeHowTaken',
+    if (afterWrong) 'afterWrong': true,
+  },
+  EasierTaken(:final noProgress, :final afterWrong) => {
     'type': 'easierTaken',
     if (noProgress) 'noProgress': true,
+    if (afterWrong) 'afterWrong': true,
   },
   QuietFor(:final ms) => {'type': 'quietFor', 'ms': ms},
 };
@@ -44,14 +58,20 @@ LessonInput inputFromJson(Map<String, Object?> j) {
     ),
     'opChosen' => OpChosen(Op.values.byName(j['op'] as String)),
     'numberEntered' => NumberEntered(n('value')),
-    'sideLessonDone' => const SideLessonDone(),
+    'sideLessonDone' => SideLessonDone(completed: j['completed'] != false),
+    'sideLessonChosen' => SideLessonChosen(
+      SideLesson.values.byName(j['kind'] as String),
+    ),
     'undo' => const Undo(),
     'knowIt' => KnowIt(n('value')),
     'partChecked' => PartChecked(n('value')),
     'knowTotalChecked' => KnowTotalChecked(n('value')),
-    'hintTaken' => const HintTaken(),
-    'showMeHowTaken' => const ShowMeHowTaken(),
-    'easierTaken' => EasierTaken(noProgress: j['noProgress'] == true),
+    'hintTaken' => HintTaken(afterWrong: j['afterWrong'] == true),
+    'showMeHowTaken' => ShowMeHowTaken(afterWrong: j['afterWrong'] == true),
+    'easierTaken' => EasierTaken(
+      noProgress: j['noProgress'] == true,
+      afterWrong: j['afterWrong'] == true,
+    ),
     'quietFor' => QuietFor(n('ms')),
     final t => throw FormatException('unknown input type: $t'),
   };

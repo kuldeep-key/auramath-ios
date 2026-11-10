@@ -125,6 +125,9 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..readQuestionAloud = flags.on('read_question_aloud')
       ..showBadges = flags.on('mastery_badges')
       ..askDecisions = Env.serverProblems
+      ..actOnDecisions = flags.on('ai_decisions')
+      ..cueAfterMs = deps.config.cueAfterMs
+      ..fallbackAfterMs = deps.config.fallbackAfterMs
       ..childId = deps.account.childId
       ..launchSource = deps.account.role == Role.parent
           ? 'parent_handover'

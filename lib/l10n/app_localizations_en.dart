@@ -1748,4 +1748,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupNewCode => 'Show a new code';
+
+  @override
+  String get lessonThinking => 'Hmm, let me think.';
 }

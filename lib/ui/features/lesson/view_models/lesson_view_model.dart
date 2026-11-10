@@ -87,6 +87,25 @@ class LessonViewModel extends ChangeNotifier {
   bool askDecisions = false;
   final _signals = StepSignals();
 
+  /// The flag `ai_decisions`: after a wrong step its help waits for the
+  /// server's decision and shows that instead of the rules' (AI-04). Off:
+  /// the rules' choice shows at once and the decision is only logged.
+  bool actOnDecisions = false;
+
+  /// App-config `ai` (NFR-05): no decision after [cueAfterMs], a thinking
+  /// cue; none after [fallbackAfterMs], the rules' choice. Each reply's
+  /// own values are used from the next step on.
+  int cueAfterMs = 1000;
+  int fallbackAfterMs = 4000;
+
+  /// The case partner's small thinking cue while a decision is late.
+  /// Never a blocking spinner: the child can carry on meanwhile.
+  bool thinking = false;
+
+  /// A wrong step whose help waits for the server's decision.
+  _Held? _held;
+  bool _disposed = false;
+
   /// The problem id that means "the server's next one".
   static const newProblem = 'new';
 
@@ -461,6 +480,11 @@ class LessonViewModel extends ChangeNotifier {
     // no session yet, no case yet (the starting sums, a left case on
     // offer), paused for the connection, or over: the board isn't live
     if (sessionId == null || _p == null || !online || endedByServer) return;
+    if (_held != null) {
+      // the child moved on before the decision: the rules' help shows
+      if (input is QuietFor) return;
+      unawaited(_settle(null)); // shown at once: nothing awaited
+    }
     final r = step(_pack, _problem, _state, input);
     if (identical(r.state, _state) && r.decisions.isEmpty) return;
     final now = _now();
@@ -502,18 +526,21 @@ class LessonViewModel extends ChangeNotifier {
       _signals.reset();
       _wayOutOffered = false;
     }
-    _state = r.state;
+    // a wrong step the server may help with differently: its help waits
+    final wait = actOnDecisions ? asks.where(_judged).lastOrNull : null;
     _seq += events.length;
     final solved = r.decisions.any((d) => d is Solved);
     final reads = _heldReads = [];
-    _apply(r.decisions);
-    // back from a side lesson opened on "check one part": that sheet again
-    if (input is SideLessonDone && _state.knowFlow == KnowFlow.checkingPart) {
-      knowPrompt = KnowPrompt.checkPart;
-    }
-    final stepLine = _stepLines[entering];
-    if (stepLine != null && !r.decisions.any((d) => d is Coach)) {
-      _coach(stepLine, const {});
+    final held = _Held(r, input, entering);
+    if (wait != null) {
+      // the phone's check shows now: the wobble, Help me shaking
+      _apply([
+        for (final d in r.decisions)
+          if (d is Wobble || d is ShakeHelp) d,
+      ]);
+      _held = held..fedBack = true;
+    } else {
+      _present(held);
     }
     // lines read aloud on this step follow its events, in this session
     _heldReads = null;
@@ -524,19 +551,161 @@ class LessonViewModel extends ChangeNotifier {
     notifyListeners();
     await _sessions.record(sessionId, first, [...events, ...reads]);
     for (final ask in asks) {
-      unawaited(_askServer(sessionId, ask));
+      unawaited(
+        identical(ask, wait)
+            ? _decideThenShow(sessionId, ask, held)
+            : _askServer(sessionId, ask),
+      );
     }
     if (endAt != null) await _endFinished(sessionId, endAt);
     // something easier: the easier problem gets its own session
     if (_sessionId == null) await start();
   }
 
-  /// Sends one decision. The rules' choice already happened on the phone.
-  // ponytail: the server's answer isn't acted on: with the AI off (dev,
-  // R1) it is our own default anyway, and nothing waits for it, so there's
-  // no thinking cue yet. Acting on a different answer needs an event that
-  // a resume can replay; add it, the 1 s cue and the 4 s fallback when the
-  // evaluator is switched on (M3).
+  /// The engine's result for one input, shown: its state, its decisions,
+  /// and the line for a step just entered.
+  void _present(_Held h, {bool help = true}) {
+    _state = h.r.state;
+    _apply([
+      for (final d in h.r.decisions)
+        if ((help || d is! Coach && d is! OpenSideLesson) &&
+            (!h.fedBack || d is! Wobble && d is! ShakeHelp))
+          d,
+    ]);
+    // back from a side lesson opened on "check one part": that sheet again
+    if (h.input is SideLessonDone && _state.knowFlow == KnowFlow.checkingPart) {
+      knowPrompt = KnowPrompt.checkPart;
+    }
+    final stepLine = _stepLines[h.entering];
+    if (stepLine != null && !h.r.decisions.any((d) => d is Coach)) {
+      _coach(stepLine, const {});
+    }
+  }
+
+  /// A wrong step the server judges, with more than carrying on allowed.
+  static bool _judged(Map<String, Object?> ask) =>
+      (ask['step'] as Map?)?['phoneVerdict'] == 'incorrect' &&
+      (ask['allowed']! as List).length > 1;
+
+  /// Asks the server about a held wrong step and shows its help: the
+  /// thinking cue after [cueAfterMs]; the rules' help after
+  /// [fallbackAfterMs], on an error, or when the rules decided there too.
+  Future<void> _decideThenShow(
+    String sessionId,
+    Map<String, Object?> ask,
+    _Held held,
+  ) async {
+    held.cue = Timer(Duration(milliseconds: cueAfterMs), () {
+      if (!identical(_held, held) || _disposed) return;
+      thinking = true;
+      notifyListeners();
+    });
+    Map<String, Object?>? reply;
+    try {
+      reply = await _sessions
+          .decide(sessionId, ask)
+          .timeout(Duration(milliseconds: fallbackAfterMs));
+      cueAfterMs = reply['cueAfterMs'] as int? ?? cueAfterMs;
+      fallbackAfterMs = reply['fallbackAfterMs'] as int? ?? fallbackAfterMs;
+    } on TimeoutException {
+      debugPrint('decision: none in $fallbackAfterMs ms; the rules\' help');
+    } on ApiException catch (e) {
+      debugPrint('decision not asked: $e');
+    }
+    // the child moved on meanwhile: the rules' help already showed
+    if (!identical(_held, held) || _disposed) return;
+    await _settle(reply == null ? null : aiChoice(reply));
+  }
+
+  /// Shows the held step's help: the server's [ai] choice where it differs
+  /// from the rules' and this app can show it, else the rules' own.
+  Future<void> _settle(AiChoice? ai) async {
+    final held = _held!;
+    _held = null;
+    held.cue?.cancel();
+    thinking = false;
+    final rules = held.r.decisions.any((d) => d is OpenSideLesson)
+        ? 'side_lesson'
+        : 'none';
+    final help = ai?.help;
+    // paused for the connection or ended: the engine takes no input now
+    if (help == null ||
+        help == rules ||
+        !_canShow(help, held) ||
+        !online ||
+        endedByServer) {
+      _present(held);
+      notifyListeners();
+      if (ai != null) _nextAction(ai.next);
+      return;
+    }
+    // the server's help, not the rules': a side lesson the rules opened
+    // closes unrun, and the rules' line isn't said
+    _present(held, help: false);
+    if (_state.step == LessonStep.sideLesson) {
+      await send(const SideLessonDone(completed: false));
+    }
+    switch (help) {
+      case 'hint':
+        await send(const HintTaken(afterWrong: true));
+      case 'show_me_how':
+        await send(const ShowMeHowTaken(afterWrong: true));
+      case 'easier':
+        await send(const EasierTaken(afterWrong: true));
+        return; // a new problem: nothing next on this one
+      case 'side_lesson':
+        await send(SideLessonChosen(_sideFor(ai!.sideSkill)));
+      case 'check_again':
+        _coach('cmp.recheck', const {});
+      default: // none: only the step's own line
+        _coach('cmp.tryAgain', const {});
+    }
+    notifyListeners();
+    _nextAction(ai!.next);
+  }
+
+  /// Whether this app can show [help] for the held step.
+  bool _canShow(String help, _Held held) => switch (help) {
+    'side_lesson' =>
+      held.r.state.step != LessonStep.sideLesson &&
+          held.r.state.sideLessons < _pack.maxSideLessons &&
+          const {
+            LessonStep.findB,
+            LessonStep.findTotal,
+          }.contains(held.r.state.step),
+    'read_again' || 'seen_before' => false,
+    _ => helpActions.contains(help),
+  };
+
+  /// The side lesson for the server's skill; with none named, the one the
+  /// step's sum needs.
+  SideLesson _sideFor(String? skill) => switch (skill) {
+    'arith.add-3d-regroup' => SideLesson.addWithCarry,
+    'arith.sub-3d-regroup' => SideLesson.takeAcrossTen,
+    _ =>
+      _state.step == LessonStep.findB && _problem.big == BigSide.a
+          ? SideLesson.takeAcrossTen
+          : SideLesson.addWithCarry,
+  };
+
+  /// A decision's `next.action`, shown with what the lesson already has.
+  /// The child chooses: nothing switches the case on its own.
+  void _nextAction(String next) {
+    if (!_onBoard) return;
+    switch (next) {
+      case 'same_level_new_numbers' || 'one_easier_then_back':
+        // the way-out offer: Help me, something easier, still thinking
+        tooHard = stillThere = _wayOutOffered = true;
+      case 'end_case' || 'end_session':
+        askingBreak = true;
+      default: // continue; next_level moves at the end of the case (SKL-04)
+        return;
+    }
+    notifyListeners();
+  }
+
+  /// Sends one decision and only logs the answer: the rules' choice
+  /// already showed (a correct step, or `ai_decisions` off).
   Future<void> _askServer(String sessionId, Map<String, Object?> ask) async {
     try {
       final reply = await _sessions.decide(sessionId, ask);
@@ -873,6 +1042,8 @@ class LessonViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    _held?.cue?.cancel();
     _sessions.online.removeListener(_onlineChanged);
     _sessions.ended.removeListener(_endedByServer);
     _voice.resting.removeListener(_voiceResting);
@@ -888,4 +1059,17 @@ class LessonViewModel extends ChangeNotifier {
 String? easierLevel(String? level) {
   final n = int.tryParse(level?.substring(1) ?? '');
   return n == null ? null : 'L${n > 1 ? n - 1 : 1}';
+}
+
+/// One input's engine result whose help waits for the server's decision.
+class _Held {
+  _Held(this.r, this.input, this.entering);
+
+  final StepResult r;
+  final LessonInput input;
+  final LessonStep? entering;
+  Timer? cue;
+
+  /// The wobble and Help me's shake already showed, while it waited.
+  bool fedBack = false;
 }

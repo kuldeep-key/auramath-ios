@@ -71,7 +71,18 @@ final class NumberEntered extends LessonInput {
 }
 
 final class SideLessonDone extends LessonInput {
-  const SideLessonDone();
+  const SideLessonDone({this.completed = true});
+
+  /// False: closed before it ran, because the server chose other help
+  /// (AI-04). It doesn't count toward the session's side lessons.
+  final bool completed;
+}
+
+/// The server chose a side lesson the rules didn't open (AI-04): it opens
+/// on the step the child is on.
+final class SideLessonChosen extends LessonInput {
+  const SideLessonChosen(this.kind);
+  final SideLesson kind;
 }
 
 final class Undo extends LessonInput {
@@ -97,15 +108,21 @@ final class KnowTotalChecked extends LessonInput {
 }
 
 final class HintTaken extends LessonInput {
-  const HintTaken();
+  const HintTaken({this.afterWrong = false});
+
+  /// Given by the tutor after a wrong step (the server's decision), not
+  /// asked for from Help me.
+  final bool afterWrong;
 }
 
 final class ShowMeHowTaken extends LessonInput {
-  const ShowMeHowTaken();
+  const ShowMeHowTaken({this.afterWrong = false});
+  final bool afterWrong;
 }
 
 final class EasierTaken extends LessonInput {
-  const EasierTaken({this.noProgress = false});
+  const EasierTaken({this.noProgress = false, this.afterWrong = false});
+  final bool afterWrong;
 
   /// Offered because the child made no progress for a while (TUT-10),
   /// not chosen from Help me.
@@ -501,6 +518,21 @@ StepResult _move(
       }
       if ((value - p.total).abs() <= 10) return wrongMove('cmp.recheck');
       return wrongMove('cmp.addBoth');
+
+    case (LessonStep.sideLesson, SideLessonDone(completed: false)):
+      // closed unrun: back where it opened, and it doesn't count
+      return to(
+        s.copyWith(
+          step: s.returnStep,
+          knowFlow: s.returnFlow,
+          returnFlow: KnowFlow.none,
+          sideLessons: s.sideLessons - 1,
+        ),
+      );
+
+    case (_, SideLessonChosen(:final kind))
+        when _boardSteps.contains(s.step) && _canSide(s, maxSide):
+      return to(_sideLesson(s, s.step, kind), [OpenSideLesson(kind)]);
 
     case (LessonStep.sideLesson, SideLessonDone()):
       // back to the step, or the answer sheet, it was opened from (TUT-18)
