@@ -494,6 +494,11 @@ StepResult _move(
           ],
         );
       }
+      // swapped digits: check the sum again, with no penalty (LES-09)
+      if (value != dropCarry(p.aValue, p.bValue) &&
+          isDigitPermutation(value, p.total)) {
+        return to(s, [Coach('cmp.recheck', slots)]);
+      }
       if ((value - p.total).abs() <= 10) return wrongMove('cmp.recheck');
       return wrongMove('cmp.addBoth');
 
@@ -570,6 +575,12 @@ StepResult _findB(
       : SideLesson.addWithCarry;
 
   final route = findBRoutes(p)[value];
+  // swapped digits: check the sum again; not a wrong move, no side lesson,
+  // and the next problem doesn't change (LES-09)
+  if (route == Mistake.swappedDigits ||
+      route == null && isDigitPermutation(value, p.bValue)) {
+    return (state: s, decisions: [Coach('cmp.recheck', slots)]);
+  }
   switch (_canSide(s, maxSide) || route == Mistake.oppositeOp ? route : null) {
     case Mistake.regrouping:
       return (
@@ -684,6 +695,12 @@ StepResult _knowIt(ComparisonProblem p, LessonState s, int value, int maxSide) {
         decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
       );
     }
+    if (isDigitPermutation(value, p.bValue)) {
+      return (
+        state: s.copyWith(knowFlow: KnowFlow.none),
+        decisions: const [OpenRecheck()],
+      );
+    }
     return (state: _drawIt(s), decisions: const [DrawIt()]);
   }
   if (value == p.total) {
@@ -698,7 +715,9 @@ StepResult _knowIt(ComparisonProblem p, LessonState s, int value, int maxSide) {
       decisions: const [AskWhatQuestionAsks()],
     );
   }
-  if ((value - p.total).abs() <= 10 && value != dropCarry(p.aValue, p.bValue)) {
+  final nearMiss =
+      (value - p.total).abs() <= 10 && value != dropCarry(p.aValue, p.bValue);
+  if (nearMiss || isDigitPermutation(value, p.total)) {
     return (
       state: s.copyWith(knowFlow: KnowFlow.none),
       decisions: const [OpenRecheck()],
@@ -743,8 +762,8 @@ StepResult _partChecked(
       decisions: [Coach('cmp.twoBars', slots), const DrawIt()],
     );
   }
-  if (value == reverseDigits(p.bValue)) {
-    return (state: counted, decisions: const [OpenRecheck()]);
+  if (isDigitPermutation(value, p.bValue)) {
+    return (state: s, decisions: const [OpenRecheck()]);
   }
   return (state: _drawIt(s), decisions: const [DrawIt()]);
 }

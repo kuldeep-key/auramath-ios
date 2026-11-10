@@ -209,7 +209,7 @@ List<SpecEvent> eventsFor(
             : total
             ? (value == p.bValue
                   ? 'answered_wrong_question'
-                  : value == reverseDigits(p.total)
+                  : isDigitPermutation(value, p.total)
                   ? 'transposition'
                   : null)
             : _unknownError(p, value, answerSheet: true),
@@ -413,14 +413,14 @@ String? _unknownError(ComparisonProblem p, int v, {required bool answerSheet}) {
     if (v == a - d) return 'keyword_strategy';
     if (v == dropCarry(a, d)) return 'carry_dropped';
   }
-  if (v == reverseDigits(p.bValue)) return 'transposition';
+  if (isDigitPermutation(v, p.bValue)) return 'transposition';
   return null;
 }
 
 String? _totalError(ComparisonProblem p, int v) {
   if (v == p.bValue) return 'answered_wrong_question';
   if (v == dropCarry(p.aValue, p.bValue)) return 'carry_dropped';
-  if (v == reverseDigits(p.total)) return 'transposition';
+  if (isDigitPermutation(v, p.total)) return 'transposition';
   return null;
 }
 

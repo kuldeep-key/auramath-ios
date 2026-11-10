@@ -21,6 +21,15 @@ int? dropCarry(int x, int y) => (x % 10) + (y % 10) >= 10 ? x + y - 10 : null;
 
 int reverseDigits(int n) => int.parse(n.toString().split('').reversed.join());
 
+/// True when [v] has [n]'s digits in another order (79 and 97, 265 and
+/// 256): the template's `digit_permutation` detector, a transposition.
+bool isDigitPermutation(int v, int n) {
+  if (v == n || v < 0 || n < 0) return false;
+  final a = v.toString().split('')..sort();
+  final b = n.toString().split('')..sort();
+  return a.join() == b.join();
+}
+
 /// Every way a child can get "find b" wrong, with the number it gives. A
 /// slip that happens to give the right answer (no regrouping needed, a
 /// palindrome) cannot happen in this problem, so it is left out.
