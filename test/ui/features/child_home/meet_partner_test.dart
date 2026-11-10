@@ -70,6 +70,8 @@ void main() {
           'line.q.what-now': 'Q | A',
           'line.intro.ai': 'I am an AI.',
           'line.intro.see': 'Your grown-up sees this.',
+          // said at breaks, not in the first meeting
+          'line.intro.reminder': 'Remember, I am a computer helper.',
         },
         const ['draft'],
       ),

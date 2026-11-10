@@ -289,7 +289,11 @@ void main() {
         ...r,
         'decision': {
           ...r['decision']! as Map<String, Object?>,
-          if (id != null) 'seenBefore': {'problemId': id, 'solvedAt': 1},
+          'help': {
+            'action': 'seen_before',
+            if (id != null)
+              'seen_before': {'problem_id': id, 'level': 'L4', 'solved_at': 1},
+          },
         },
       };
       lesson((vm, time) {
@@ -317,11 +321,62 @@ void main() {
       ...evaluator('seen_before'),
       'decision': {
         ...evaluator('seen_before')['decision']! as Map<String, Object?>,
-        'seenBefore': {'problemId': 'mango', 'solvedAt': 1791400000000},
+        'help': {
+          'action': 'seen_before',
+          'seen_before': {
+            'problem_id': 'mango',
+            'level': 'L4',
+            'solved_at': '2026-10-01T09:00:00Z',
+          },
+        },
       },
     });
     expect(seen?.seenBefore?.problemId, 'mango');
+    expect(
+      seen?.seenBefore?.solvedAt,
+      DateTime.utc(2026, 10, 1, 9).millisecondsSinceEpoch,
+    );
     expect(aiChoice(evaluator('seen_before'))?.seenBefore, isNull);
     expect(aiChoice(evaluator('teleport')), isNull);
+  });
+
+  test('read again and seen before come from the rules too: the server '
+      'answers them as the action, whoever decided', () {
+    expect(
+      aiChoice({'action': 'read_again', 'source': 'rules'})?.help,
+      'read_again',
+    );
+    final seen = aiChoice({
+      'action': 'seen_before',
+      'source': 'rules',
+      'fallbackUsed': true,
+      'decision': {
+        'help': {
+          'action': 'seen_before',
+          'seen_before': {'problem_id': 'mango', 'solved_at': 5},
+        },
+      },
+    });
+    expect(seen?.help, 'seen_before');
+    expect(seen?.seenBefore, (problemId: 'mango', solvedAt: 5));
+  });
+
+  test('a wrong step offers the prompts the app shows, so the server can '
+      'give them', () {
+    api.decideWith = (_) async => {
+      'action': 'read_again',
+      'source': 'rules',
+      'fallbackUsed': false,
+    };
+    lesson((vm, time) {
+      vm.readAgainPrompt = vm.seenBeforeBridge = true;
+      vm.send(const NumberEntered(300));
+      time.flushMicrotasks();
+      expect(
+        api.decisions.last.$2['allowed'],
+        containsAll(['read_again', 'seen_before']),
+      );
+      expect(vm.prompt, TutorPrompt.readAgain);
+    });
   });
 }

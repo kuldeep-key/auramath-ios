@@ -26,6 +26,7 @@ Map<String, Object?> afterStepDecision({
   required int seq,
   required StepSignals signals,
   required int maxSideLessons,
+  Set<String> prompts = const {},
 }) {
   final c = committed.payload;
   final correct = c['correct'] == true;
@@ -41,6 +42,9 @@ Map<String, Object?> afterStepDecision({
             if (after.sideLessons < maxSideLessons) 'side_lesson',
             'hint',
             'continue',
+            // the prompts this app shows: the server's rules give them
+            // first when due (AI-09, AI-10)
+            ...prompts,
           ],
     // a correct step always carries on (backend, 5 Nov)
     'rulesDefault': correct
@@ -97,8 +101,8 @@ const nextActions = {
   'end_session',
 };
 
-/// The earlier case a `seen_before` decision links to (AI-10). The
-/// backend is adding it to the decision; it may be missing.
+/// The earlier case a `seen_before` decision links to (AI-10), from its
+/// `help.seen_before`; it may be missing.
 typedef SeenBefore = ({String problemId, int? solvedAt});
 
 /// What the lesson acts on from a decision: its help and next action, the
@@ -114,10 +118,24 @@ typedef AiChoice = ({
 /// the rules made it there too (the evaluator off, a fallback, a reply
 /// this app can't read): then the phone's own choice stands. Pure.
 AiChoice? aiChoice(Map<String, Object?> reply) {
+  final d = reply['decision'];
+  final help = d is Map ? d['help'] : null;
+  // read again and seen before come from the rules, whoever decided
+  if (const {'read_again', 'seen_before'}.contains(reply['action'])) {
+    final seen = help is Map ? help['seen_before'] : null;
+    final seenId = seen is Map ? seen['problem_id'] : null;
+    return (
+      help: reply['action']! as String,
+      next: 'continue',
+      sideSkill: null,
+      seenBefore: seenId is String
+          ? (problemId: seenId, solvedAt: _ms((seen as Map)['solved_at']))
+          : null,
+    );
+  }
   if (reply['source'] != 'evaluator' || reply['fallbackUsed'] == true) {
     return null;
   }
-  final d = reply['decision'];
   if (d is! Map) {
     // no record: the action itself, one of after_step's allowed
     final help = switch (reply['action']) {
@@ -131,17 +149,24 @@ AiChoice? aiChoice(Map<String, Object?> reply) {
         : (help: help, next: 'continue', sideSkill: null, seenBefore: null);
   }
   if (d['fallback_used'] == true) return null;
-  final help = (d['help'] as Map?)?['action'];
-  if (!helpActions.contains(help)) return null;
+  final action = (help as Map?)?['action'];
+  if (!helpActions.contains(action)) return null;
   final next = (d['next'] as Map?)?['action'];
-  final seen = d['seenBefore'] ?? reply['seenBefore'];
-  final seenId = seen is Map ? seen['problemId'] : null;
+  final seen = help!['seen_before'];
+  final seenId = seen is Map ? seen['problem_id'] : null;
   return (
-    help: help as String,
+    help: action as String,
     next: nextActions.contains(next) ? next as String : 'continue',
-    sideSkill: (d['help'] as Map)['side_lesson_skill'] as String?,
+    sideSkill: help['side_lesson_skill'] as String?,
     seenBefore: seenId is String
-        ? (problemId: seenId, solvedAt: (seen as Map)['solvedAt'] as int?)
+        ? (problemId: seenId, solvedAt: _ms((seen as Map)['solved_at']))
         : null,
   );
 }
+
+/// `solved_at` as epoch ms: the server sends an ISO time or a number.
+int? _ms(Object? at) => switch (at) {
+  final int ms => ms,
+  final String iso => DateTime.tryParse(iso)?.millisecondsSinceEpoch,
+  _ => null,
+};

@@ -16,15 +16,19 @@ class PartnerIntroRepository {
   Future<void> markMet(String? childId) => _store.write(_key(childId), '1');
 
   /// The partner's lines as the content serves them (policy `lines.pack`
-  /// ids starting `line.intro.`, in order), else [drafts]. A served line
-  /// with a slot the app can't fill isn't used.
+  /// ids starting `line.intro.`, in order, but the reminder said at
+  /// breaks), else [drafts]. A served line with a slot the app can't fill
+  /// isn't used.
   static List<String> lines(
     Map<String, String> policyLines,
     List<String> drafts,
   ) {
     final served = [
       for (final MapEntry(:key, :value) in policyLines.entries)
-        if (key.startsWith('line.intro.') && !value.contains('{')) value,
+        if (key.startsWith('line.intro.') &&
+            key != 'line.intro.reminder' &&
+            !value.contains('{'))
+          value,
     ];
     return served.isEmpty ? drafts : served;
   }

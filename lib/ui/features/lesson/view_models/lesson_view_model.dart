@@ -547,6 +547,10 @@ class LessonViewModel extends ChangeNotifier {
               seq: first + i,
               signals: _signals,
               maxSideLessons: _pack.maxSideLessons,
+              prompts: {
+                if (actOnDecisions && readAgainPrompt) 'read_again',
+                if (actOnDecisions && seenBeforeBridge) 'seen_before',
+              },
             ),
     ];
     if (entering != null) {
