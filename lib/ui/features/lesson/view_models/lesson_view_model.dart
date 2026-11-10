@@ -892,6 +892,48 @@ class LessonViewModel extends ChangeNotifier {
     return (left: p.aValue, right: p.diff, subtract: p.big == BigSide.a);
   }
 
+  /// The flag `child_questions` (TUT-13): tap-to-ask buttons on the board.
+  bool childQuestions = false;
+
+  /// The current step's question buttons (policy `question_buttons`), the
+  /// step's own first, then every step's; at most three. Each answer is
+  /// Julia's library line: it never gives the step's answer away.
+  List<({String id, String question, String answer})> get questions {
+    if (!childQuestions || !_onBoard || _p == null) return const [];
+    final buttons = _pack.questionButtons;
+    final slots = {...lineSlots(_problem), 'kind': _kind};
+    return [
+      for (final id in [...?buttons[specStepId(_state.step)], ...?buttons['*']])
+        // "What does taller mean? | Taller means ..."
+        if (_pack.policyLines[id]?.split(' | ') case [final q, final a])
+          (id: id, question: fillLine(q, slots), answer: fillLine(a, slots)),
+    ].take(3).toList();
+  }
+
+  /// The thing both are, for a line's `{kind}`: "tree" for the lemon tree
+  /// and the fig tree, else "one".
+  String get _kind {
+    final a = _problem.a.name.toLowerCase().split(' ').last;
+    return a == _problem.b.name.toLowerCase().split(' ').last ? a : 'one';
+  }
+
+  /// A question button tapped: its answer is the coach's line, read aloud
+  /// if read-aloud is on, and `question_chip_tapped` is logged.
+  void ask(({String id, String question, String answer}) q) {
+    coachText = q.answer;
+    autoSay(q.answer);
+    notifyListeners();
+    unawaited(
+      _record([
+        SpecEvent('question_chip_tapped', {
+          'chip_id': q.id,
+          'step_id': ?specStepId(_state.step),
+          'line_id': q.id,
+        }),
+      ]),
+    );
+  }
+
   /// The child, for the practice sums' `/arithmetic` (set by the route).
   String? childId;
 

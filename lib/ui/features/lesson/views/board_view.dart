@@ -15,6 +15,7 @@ import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
 import 'answer_sheet.dart';
 import 'help_sheet.dart';
+import 'question_chips.dart';
 import 'thinking_cue.dart';
 import 'tutor_prompts.dart';
 
@@ -104,6 +105,10 @@ class _BoardViewState extends State<BoardView> {
                   onSeeQuestion: vm.readQuestion,
                 ),
               ),
+              if (vm.questions case final qs when qs.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                QuestionChips(questions: qs, onAsk: vm.ask),
+              ],
               const SizedBox(height: 12),
               Expanded(
                 child: _arrive(

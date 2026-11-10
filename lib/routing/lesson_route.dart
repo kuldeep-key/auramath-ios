@@ -127,6 +127,7 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..readQuestionAloud = flags.on('read_question_aloud')
       ..showBadges = flags.on('mastery_badges')
       ..selfRating = flags.on('self_rating')
+      ..childQuestions = flags.on('child_questions')
       ..selfRatingMinAge = flags.selfRatingMinAge
       ..childAge = age
       ..askDecisions = Env.serverProblems
