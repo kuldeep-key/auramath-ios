@@ -3243,6 +3243,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\'It\' and the {name} are in the same colour.'**
   String lessonItHighlighted(String name);
+
+  /// DRAFT, for Julia and Design (TUT-18): the detour pause, a strip at the top of a side lesson saying the case is paused with its board kept. No Figma frame yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Your case is waiting. Your drawing is kept.'**
+  String get lessonDetourPaused;
 }
 
 class _AppLocalizationsDelegate

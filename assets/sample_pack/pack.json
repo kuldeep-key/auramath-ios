@@ -42,11 +42,16 @@
     "cmp.twoBars": "We need two bars. Let us draw.",
     "cmp.takeYourTime": "Take your time.",
     "cmp.showMeHow": "Let's try a smaller one together.",
+    "cmp.sideKindBack": "That was a tricky one. Back to your case, with a hint.",
+    "cmp.firstHint.find_unknown": "Look at your bars. Is the {b} bar longer or shorter than the {a} bar?",
+    "cmp.firstHint.find_total": "The question asks for both together. Look at both bars.",
+    "cmp.firstHint.place_total": "The total is both bars together.",
     "cmp.itRight": "Yes! 'It' is the {a}. Now size the {b} bar.",
     "side.takeAcrossTen": "The ten splits into ten ones.",
     "side.addWithCarry": "Bundle ten ones into a ten, and carry it."
   },
   "versions": {
+    "_note_tut18": "DRAFT, for Julia (TUT-18): cmp.sideKindBack and cmp.firstHint.* are Key's lines for a side lesson that ends unfinished; the policy has no hint for steps without a rung (steps_without_rung).",
     "_note": "DRAFT, for Julia (TUT-14): Key's extra versions of each step, rung and mistake line. The first version is the library's (or the pack's) own; these follow it in turn, never the same one twice in a row. All unapproved (CON-04, CON-09); height words only, a weight story keeps its one mass line.",
     "cmp.drawA": [
       "Put a bar here for the {a}.",

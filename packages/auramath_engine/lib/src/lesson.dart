@@ -79,6 +79,13 @@ final class SideLessonDone extends LessonInput {
   final bool completed;
 }
 
+/// The side lesson ended unfinished (TUT-18): the child got policy
+/// `side_lessons.abandon_after_wrong_practice` practice sums wrong. It
+/// ends kindly, counts as run, and the step shows its first hint.
+final class SideLessonAbandoned extends LessonInput {
+  const SideLessonAbandoned();
+}
+
 /// The server chose a side lesson the rules didn't open (AI-04): it opens
 /// on the step the child is on.
 final class SideLessonChosen extends LessonInput {
@@ -401,7 +408,7 @@ StepResult step(
 ) {
   if (input is QuietFor) return _quiet(pack, p, s, input.ms);
   final r = _boardSteps.contains(s.step) ? _help(pack, p, s, input) : null;
-  var moved = r ?? _move(p, s, input, pack.maxSideLessons);
+  var moved = r ?? _move(pack, p, s, input);
   final after = moved.state;
   if (after.stepHints != 0 &&
       _boardSteps.contains(s.step) &&
@@ -494,6 +501,38 @@ StepResult _nextRung(Pack pack, LessonState s) {
   );
 }
 
+/// Back from an unfinished side lesson to the step it paused, with a kind
+/// word and that step's first hint (TUT-18). A step with no rung on the
+/// policy ladder gets its drafted first hint (pack `cmp.firstHint.<step>`,
+/// policy `steps_without_rung`: "Key drafts hint lines for these steps").
+StepResult _abandoned(Pack pack, ComparisonProblem p, LessonState s) {
+  final back = s.copyWith(
+    step: s.returnStep,
+    knowFlow: s.returnFlow,
+    returnFlow: KnowFlow.none,
+    stepHints: 0,
+  );
+  final stepId = specStepId(back.step);
+  final rungs = pack.rungsFor(stepId);
+  final rung = rungs.isNotEmpty
+      ? rungs.first
+      : HintRung(
+          id: 'draft.$stepId',
+          step: '$stepId',
+          lineId: 'cmp.firstHint.$stepId',
+        );
+  return (
+    state: back.copyWith(
+      hintsUsed: s.hintsUsed + 1,
+      stepHints: rungs.isNotEmpty ? 1 : 0,
+    ),
+    decisions: [
+      Coach('cmp.sideKindBack', lineSlots(p)),
+      ShowHint(rung.lineId, rung: rung),
+    ],
+  );
+}
+
 /// The rung shown last on this step asks which thing "it" means (H1-4a,
 /// or the highlight H1-4b, which asks again).
 bool _asksWhichIt(Pack pack, LessonState s) {
@@ -541,11 +580,12 @@ StepResult _quiet(Pack pack, ComparisonProblem p, LessonState s, int ms) {
 }
 
 StepResult _move(
+  Pack pack,
   ComparisonProblem p,
   LessonState s,
   LessonInput input,
-  int maxSide,
 ) {
+  final maxSide = pack.maxSideLessons;
   final slots = lineSlots(p);
   StepResult to(LessonState next, [List<Decision> d = const []]) =>
       (state: next, decisions: d);
@@ -640,6 +680,9 @@ StepResult _move(
     case (_, SideLessonChosen(:final kind))
         when _boardSteps.contains(s.step) && _canSide(s, maxSide):
       return to(_sideLesson(s, s.step, kind), [OpenSideLesson(kind)]);
+
+    case (LessonStep.sideLesson, SideLessonAbandoned()):
+      return _abandoned(pack, p, s);
 
     case (LessonStep.sideLesson, SideLessonDone()):
       // back to the step, or the answer sheet, it was opened from (TUT-18)

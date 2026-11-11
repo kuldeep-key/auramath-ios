@@ -46,6 +46,7 @@ Map<String, Object?> inputToJson(LessonInput i) => switch (i) {
   QuietFor(:final ms) => {'type': 'quietFor', 'ms': ms},
   ExampleDone() => {'type': 'exampleDone'},
   ItPicked(:final option) => {'type': 'itPicked', 'option': option},
+  SideLessonAbandoned() => {'type': 'sideLessonAbandoned'},
 };
 
 LessonInput inputFromJson(Map<String, Object?> j) {
@@ -81,6 +82,7 @@ LessonInput inputFromJson(Map<String, Object?> j) {
     'quietFor' => QuietFor(n('ms')),
     'exampleDone' => const ExampleDone(),
     'itPicked' => ItPicked(j['option'] as String),
+    'sideLessonAbandoned' => const SideLessonAbandoned(),
     final t => throw FormatException('unknown input type: $t'),
   };
 }

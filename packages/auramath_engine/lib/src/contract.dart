@@ -247,6 +247,26 @@ List<SpecEvent> eventsFor(
           'completed': completed,
         }),
       );
+    case SideLessonAbandoned():
+      // ended unfinished: completed false, then the step's first hint
+      out.add(
+        SpecEvent('side_lesson_ended', {
+          'skill_id': _sideSkill[before.sideLesson],
+          'completed': false,
+        }),
+      );
+      for (final d in decisions) {
+        if (d case ShowHint(:final lineId, :final rung)) {
+          out.add(
+            SpecEvent('hint_shown', {
+              'step_id': specStepId(after.step),
+              'rung_id': rung?.id ?? 'H${after.hintsUsed}',
+              'line_id': lineId,
+              'model_used': false,
+            }),
+          );
+        }
+      }
     case SideLessonChosen():
       break; // side_lesson_started, below
     case Undo():
@@ -401,6 +421,8 @@ List<LessonInput> inputsFrom(
   final inputs = <LessonInput>[];
   // hint_shown events an input wrote for a hint it showed by itself
   var skipHints = 0;
+  // practice sums were answered in the side lesson open now
+  var practised = false;
   for (final e in events) {
     final j = e.payload;
     final LessonInput? input = switch (e.name) {
@@ -439,6 +461,10 @@ List<LessonInput> inputsFrom(
         ),
         _ => KnowIt(j['value']! as int),
       },
+      // unfinished after practice sums: abandoned (TUT-18); unfinished
+      // with none: closed unrun for the server's help (AI-04)
+      'side_lesson_ended' when j['completed'] == false && practised =>
+        const SideLessonAbandoned(),
       'side_lesson_ended' => SideLessonDone(completed: j['completed'] != false),
       // opened by the server's choice; one the rules opened is already open
       'side_lesson_started' when s.step != LessonStep.sideLesson =>
@@ -458,6 +484,12 @@ List<LessonInput> inputsFrom(
       'idle_prompt_shown' => QuietFor(j['after_ms']! as int),
       _ => null,
     };
+    if (e.name == 'quick_sum_answered' &&
+        j['context'] == 'side_lesson' &&
+        s.step == LessonStep.sideLesson) {
+      practised = true;
+    }
+    if (e.name == 'side_lesson_started') practised = false;
     if (input == null) {
       if (e.name == 'hint_shown') skipHints--;
       continue;

@@ -997,6 +997,23 @@ class LessonViewModel extends ChangeNotifier {
   /// Every practice sum was wrong: a kind ending, then back (TUT-18).
   bool get practiceAllWrong => practice.isNotEmpty && practiceRight == 0;
 
+  /// Practice sums answered wrong in this side lesson.
+  int get practiceWrong => practiceAt - practiceRight;
+
+  /// The side lesson can't be finished (TUT-18): policy
+  /// `abandon_after_wrong_practice` sums wrong, or every one there was.
+  /// It ends kindly, logs `completed: false`, and the step it paused shows
+  /// its first hint.
+  bool get sideAbandoned =>
+      practice.isNotEmpty &&
+      (practiceWrong >= _pack.abandonAfterWrongPractice ||
+          practiceAt == practice.length && practiceRight == 0);
+
+  /// "Back to the problem" from a side lesson: finished, or not (TUT-18).
+  Future<void> endSideLesson() => send(
+    sideAbandoned ? const SideLessonAbandoned() : const SideLessonDone(),
+  );
+
   Future<void> checkOwnSum(int value) async {
     final s = sideSum;
     ownSumRight = value == (s.subtract ? s.left - s.right : s.left + s.right);
@@ -1025,7 +1042,9 @@ class LessonViewModel extends ChangeNotifier {
     if (correct) practiceRight++;
     final now = _now();
     final at = practiceAt++;
-    if (practiceAt == practice.length) sideStage = SideStage.back;
+    if (practiceAt == practice.length || sideAbandoned) {
+      sideStage = SideStage.back;
+    }
     notifyListeners();
     await _record([
       SpecEvent('quick_sum_answered', {

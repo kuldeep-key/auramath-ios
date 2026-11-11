@@ -1844,4 +1844,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String lessonItHighlighted(String name) {
     return '\'It\' and the $name are in the same colour.';
   }
+
+  @override
+  String get lessonDetourPaused =>
+      'Your case is waiting. Your drawing is kept.';
 }

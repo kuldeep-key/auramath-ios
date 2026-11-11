@@ -92,6 +92,7 @@ class Pack {
     this.libraryIds = const {},
     this.policyMassLines = const {},
     this.lineVersions = const {},
+    this.abandonAfterWrongPractice = 3,
   });
 
   factory Pack.fromJson(Map<String, Object?> j) => Pack(
@@ -130,6 +131,7 @@ class Pack {
     QuietLines? quietLines,
     Map<String, String>? policyMassLines,
     Map<String, List<String>>? lineVersions,
+    int? abandonAfterWrongPractice,
   }) => Pack(
     version: version,
     timers: timers ?? this.timers,
@@ -148,6 +150,8 @@ class Pack {
     libraryIds: libraryIds,
     policyMassLines: policyMassLines ?? this.policyMassLines,
     lineVersions: lineVersions ?? this.lineVersions,
+    abandonAfterWrongPractice:
+        abandonAfterWrongPractice ?? this.abandonAfterWrongPractice,
   );
 
   /// The content bundle's `praise` lines (TUT-12) over the policy's own.
@@ -172,6 +176,10 @@ class Pack {
   /// Policy `side_lessons.practice_if_unsure`: how many smaller sums follow
   /// a side lesson whose own sum the child got wrong (TUT-08).
   final int practiceSums;
+
+  /// Policy `side_lessons.abandon_after_wrong_practice` (TUT-18): this many
+  /// wrong practice sums end the side lesson kindly.
+  final int abandonAfterWrongPractice;
 
   /// Policy `question_buttons` (TUT-13): line ids by spec step id, `*` for
   /// every step.

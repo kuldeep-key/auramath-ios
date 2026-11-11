@@ -1,4 +1,3 @@
-import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
@@ -77,7 +76,7 @@ class _SideLessonViewState extends State<SideLessonView> {
         _sumText,
         _sum.answer,
       ),
-      SideStage.back when vm.practiceAllWrong => l.sideKindEnd,
+      SideStage.back when vm.sideAbandoned => l.sideKindEnd,
       SideStage.back when vm.practice.isNotEmpty => l.sidePracticeDone,
       SideStage.back => l.sideAnswerIs(_sumText, _sum.answer),
     };
@@ -147,6 +146,9 @@ class _SideLessonViewState extends State<SideLessonView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // DRAFT for Design (TUT-18): the detour pause; the case waits
+                  const _CaseWaiting(),
+                  const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -230,7 +232,7 @@ class _SideLessonViewState extends State<SideLessonView> {
             AuraButton(
               label: l.backToProblem,
               color: AuraButtonColor.blue,
-              onPressed: () => widget.vm.send(const SideLessonDone()),
+              onPressed: widget.vm.endSideLesson,
             )
           else if (tap == null)
             AuraButton(
@@ -242,6 +244,34 @@ class _SideLessonViewState extends State<SideLessonView> {
       ),
     );
   }
+}
+
+/// "Your case is waiting": the detour pauses the case, its board kept
+/// (TUT-08, TUT-18). Draft: no Figma frame.
+class _CaseWaiting extends StatelessWidget {
+  const _CaseWaiting();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    key: const Key('caseWaiting'),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    decoration: BoxDecoration(
+      color: AuraColors.yellowTint,
+      borderRadius: BorderRadius.circular(AuraRadii.small),
+    ),
+    child: Row(
+      children: [
+        const Icon(Icons.pause_circle_rounded, color: AuraColors.yellowInk),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            AppLocalizations.of(context)!.lessonDetourPaused,
+            style: AuraText.chip.copyWith(color: AuraColors.yellowInk),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 enum _Block { hundred, ten, one }

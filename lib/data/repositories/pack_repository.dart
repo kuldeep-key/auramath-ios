@@ -33,6 +33,7 @@ class PackRepository {
     maxSideLessons: policy.maxSideLessons,
     noProgressMs: policy.noProgressMs,
     practiceSums: policy.practiceSums,
+    abandonAfterWrongPractice: policy.abandonAfterWrongPractice,
     questionButtons: policy.questionButtons,
     policyLines: policy.lines,
     hintLadder: policy.hintLadder,

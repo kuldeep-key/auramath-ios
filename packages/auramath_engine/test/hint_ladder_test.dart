@@ -44,6 +44,39 @@ List<String?> rungs(List<Decision> d) => [
 const _toSizeB = [Started(), BarADrawn(), BarBPlaced()];
 
 void main() {
+  test('an abandoned side lesson returns to its step with the first hint: '
+      'the drafted one on a step with no rung, the first rung on one with', () {
+    const toFindB = [
+      ..._toSizeB,
+      BarBSized(Relation.shorter),
+      PieceDropped(Piece.gap, Target.gapSlot),
+      PieceDropped(Piece.total, Target.totalSlot),
+      OpChosen(Op.subtract),
+    ];
+    final r = run([
+      ...toFindB,
+      const NumberEntered(81),
+      const SideLessonAbandoned(),
+    ]);
+    expect(r.state.step, LessonStep.findB);
+    expect(r.state.sideLessons, 1);
+    expect(
+      r.decisions.whereType<ShowHint>().last.lineId,
+      'cmp.firstHint.find_unknown',
+    );
+    final ended = r.events.lastWhere((e) => e.name == 'side_lesson_ended');
+    expect(ended.payload['completed'], isFalse);
+
+    final drawing = run([
+      ..._toSizeB,
+      const SideLessonChosen(SideLesson.takeAcrossTen),
+      const SideLessonAbandoned(),
+    ]);
+    expect(drawing.state.step, LessonStep.sizeB);
+    expect(rungs(drawing.decisions), ['H1-3']);
+    expect(drawing.state.stepHints, 1);
+  });
+
   showMeHowTests();
   whichItTests();
 

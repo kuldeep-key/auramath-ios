@@ -79,6 +79,58 @@ void main() {
     expectContract(api.received);
   });
 
+  test(
+    'three wrong practice sums: the side lesson ends unfinished '
+    '(completed false) and find_unknown shows its first hint (TUT-18)',
+    () async {
+      final (vm, api) = await inSideLesson(
+        sums: [sum(56, 19), sum(43, 18), sum(72, 35)],
+      );
+      addTearDown(vm.dispose);
+      await vm.checkOwnSum(81);
+      for (var i = 0; i < 3; i++) {
+        await vm.answerPractice(1);
+      }
+      expect(vm.sideAbandoned, isTrue);
+      await vm.endSideLesson();
+      expect(vm.state.step, LessonStep.findB, reason: 'the same step');
+      expect(
+        api.received.lastWhere((e) => e.name == 'side_lesson_ended').payload,
+        {'skill_id': 'arith.sub-3d-regroup', 'completed': false},
+      );
+      final hint = api.received.lastWhere((e) => e.name == 'hint_shown');
+      expect(hint.payload['step_id'], 'find_unknown');
+      expect(hint.payload['line_id'], 'cmp.firstHint.find_unknown');
+      expect(vm.coachText, startsWith('Look at your bars.'));
+      expect(vm.state.sideLessons, 1, reason: 'it ran');
+      expectContract(api.received);
+      // the log replays to the same board
+      final pack = samplePack();
+      final events = [for (final e in api.received) e.spec];
+      expect(
+        replay(pack, vm.problem, inputsFrom(pack, vm.problem, events)),
+        vm.state,
+      );
+    },
+  );
+
+  test('one practice sum right: finished, completed true', () async {
+    final (vm, api) = await inSideLesson(
+      sums: [sum(56, 19), sum(43, 18), sum(72, 35)],
+    );
+    addTearDown(vm.dispose);
+    await vm.checkOwnSum(81);
+    await vm.answerPractice(37);
+    await vm.answerPractice(1);
+    await vm.answerPractice(1);
+    expect(vm.sideAbandoned, isFalse);
+    await vm.endSideLesson();
+    expect(
+      api.received.lastWhere((e) => e.name == 'side_lesson_ended').payload,
+      {'skill_id': 'arith.sub-3d-regroup', 'completed': true},
+    );
+  });
+
   test('no sums from the server: the answer, then back', () async {
     final (vm, _) = await inSideLesson();
     addTearDown(vm.dispose);
