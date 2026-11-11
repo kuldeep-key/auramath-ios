@@ -112,6 +112,34 @@ void main() {
     }
   });
 
+  test("FL-47: the server's hintStartRung wins over the template's; one "
+      "that isn't on the step's ladder, or none, keeps the template's", () {
+    ComparisonProblem served(String? rung) => ComparisonProblem(
+      id: lemon.id,
+      a: lemon.a,
+      b: lemon.b,
+      aValue: lemon.aValue,
+      diff: lemon.diff,
+      big: lemon.big,
+      unit: lemon.unit,
+      ask: lemon.ask,
+      text: lemon.text,
+      say: lemon.say,
+      next: lemon.next,
+      templateId: lemon.templateId,
+      templateVersion: lemon.templateVersion,
+      storyId: lemon.storyId,
+      variant: lemon.variant,
+      steps: [ServedStep(id: 'draw_known_bar', hintStartRung: rung)],
+    );
+    List<String?> first(ComparisonProblem p) =>
+        rungs(run(const [Started(), HintTaken()], p: p).decisions);
+    expect(first(served('H1-2')), ['H1-2']);
+    expect(first(served('H1-5')), ['H1-1'], reason: 'another step\'s rung');
+    expect(first(served(null)), ['H1-1']);
+    expect(laddered.rungsFor('draw_known_bar', start: 'H1-2').first.id, 'H1-2');
+  });
+
   test('on draw_known_bar: H1-1, H1-2, the everyday example, then show me '
       'how', () {
     final r = run([

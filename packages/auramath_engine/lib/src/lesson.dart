@@ -528,15 +528,15 @@ StepResult? _help(
 ) {
   switch (input) {
     case HintTaken() when pack.hintLadder.isNotEmpty:
-      return _nextRung(pack, s);
-    case ItPicked(:final option) when _asksWhichIt(pack, s):
+      return _nextRung(pack, p, s);
+    case ItPicked(:final option) when _asksWhichIt(pack, p, s):
       // "it" is the first thing named (the template's frame: "The {a} is
       // ... It is ... than the {b}"). A wrong pick wobbles, isn't charged,
       // and leads to the next rung, the highlight (H1-4b)
       if (option == 'a') {
         return (state: s, decisions: [Coach('cmp.itRight', lineSlots(p))]);
       }
-      final next = _nextRung(pack, s);
+      final next = _nextRung(pack, p, s);
       return (
         state: next.state,
         decisions: [const Wobble(), ...next.decisions],
@@ -577,8 +577,8 @@ StepResult? _help(
 
 /// The step's next rung on the policy ladder (TUT-04). Past the last, or
 /// on a step with no rung, show me how is offered and no hint is charged.
-StepResult _nextRung(Pack pack, LessonState s) {
-  final rungs = pack.rungsFor(specStepId(s.step));
+StepResult _nextRung(Pack pack, ComparisonProblem p, LessonState s) {
+  final rungs = _rungs(pack, p, specStepId(s.step));
   if (s.stepHints >= rungs.length) {
     return (state: s, decisions: const [SuggestShowMeHow()]);
   }
@@ -601,7 +601,7 @@ StepResult _abandoned(Pack pack, ComparisonProblem p, LessonState s) {
     stepHints: 0,
   );
   final stepId = specStepId(back.step);
-  final rungs = pack.rungsFor(stepId);
+  final rungs = _rungs(pack, p, stepId);
   final rung = rungs.isNotEmpty
       ? rungs.first
       : HintRung(
@@ -623,14 +623,22 @@ StepResult _abandoned(Pack pack, ComparisonProblem p, LessonState s) {
 
 /// The rung shown last on this step asks which thing "it" means (H1-4a,
 /// or the highlight H1-4b, which asks again).
-bool _asksWhichIt(Pack pack, LessonState s) {
+bool _asksWhichIt(Pack pack, ComparisonProblem p, LessonState s) {
   if (s.stepHints == 0) return false;
-  final rungs = pack.rungsFor(specStepId(s.step));
+  final rungs = _rungs(pack, p, specStepId(s.step));
   if (s.stepHints > rungs.length) return false;
   final r = rungs[s.stepHints - 1];
   return r.choice.contains('a') && r.choice.contains('b') ||
       r.highlight != null;
 }
+
+/// The ladder on [stepId] for [p]: from the server's `hintStartRung` for
+/// that step when it served one (FL-47), else the template's.
+List<HintRung> _rungs(Pack pack, ComparisonProblem p, String? stepId) =>
+    pack.rungsFor(
+      stepId,
+      start: stepId == null ? null : p.servedStep(stepId)?.hintStartRung,
+    );
 
 /// Whether a hint request on [step] gives a hint: false on a step with no
 /// rung (policy `steps_without_rung`), where Help me offers show me how

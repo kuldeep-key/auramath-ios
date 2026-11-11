@@ -238,18 +238,20 @@ class Pack {
   final Map<String, String> hintStart;
 
   /// The rungs a hint request walks on [stepId], in order: from the step's
-  /// start rung, then the everyday example (`step: any`). Empty when the
-  /// step has no rung (policy `steps_without_rung`): Help me offers show
-  /// me how and something easier there.
-  List<HintRung> rungsFor(String? stepId) {
+  /// start rung ([start], the server's `hintStartRung` when it sent one,
+  /// else the template's), then the everyday example (`step: any`). Empty
+  /// when the step has no rung (policy `steps_without_rung`): Help me
+  /// offers show me how and something easier there.
+  List<HintRung> rungsFor(String? stepId, {String? start}) {
     final own = [
       for (final r in hintLadder)
         if (r.step == stepId) r,
     ];
     if (own.isEmpty) return const [];
-    final start = own.indexWhere((r) => r.id == hintStart[stepId]);
+    var from = own.indexWhere((r) => r.id == start);
+    if (from < 0) from = own.indexWhere((r) => r.id == hintStart[stepId]);
     return [
-      ...own.skip(start < 0 ? 0 : start),
+      ...own.skip(from < 0 ? 0 : from),
       for (final r in hintLadder)
         if (r.step == 'any') r,
     ];
