@@ -41,13 +41,16 @@ List<RouteBase> lessonRoutes(Deps deps) => [
           queryParameters: {if (elsewhere.isNotEmpty) 'device': elsewhere},
         ).toString();
       }
-      // a case whose session ended carries on in a new one (SES-01, SES-04)
+      // a case whose session ended carries on in a new one (SES-01,
+      // SES-04); the time on Choose today goes along (LES-14)
       final carry = next?.carryFrom;
-      return resume != null
-          ? '${Paths.lesson(id)}?resume=$resume'
-          : carry != null
-          ? '${Paths.lesson(id)}?s=${const Uuid().v4()}&carry=$carry'
-          : '${Paths.lesson(id)}?s=${const Uuid().v4()}';
+      final ms = state.uri.queryParameters['ms'];
+      return Uri(
+        path: Paths.lesson(id),
+        queryParameters: resume != null
+            ? {'resume': resume}
+            : {'s': const Uuid().v4(), 'carry': ?carry, 'today': ?ms},
+      ).toString();
     },
   ),
   GoRoute(
@@ -62,6 +65,7 @@ List<RouteBase> lessonRoutes(Deps deps) => [
         problemId: state.pathParameters['problemId']!,
         resumeSessionId: state.uri.queryParameters['resume'],
         carryFrom: state.uri.queryParameters['carry'],
+        chosenMs: int.tryParse(state.uri.queryParameters['today'] ?? ''),
         deps: deps,
       ),
     ),
@@ -76,6 +80,7 @@ class _LessonRoute extends StatefulWidget {
     required this.resumeSessionId,
     required this.deps,
     this.carryFrom,
+    this.chosenMs,
   });
 
   final String problemId;
@@ -85,6 +90,10 @@ class _LessonRoute extends StatefulWidget {
 
   /// Set when carrying on a case whose session ended (SES-01, SES-04).
   final String? carryFrom;
+
+  /// The story problem was picked on Choose today, after this long there
+  /// (LES-14).
+  final int? chosenMs;
   final Deps deps;
 
   @override
@@ -157,7 +166,8 @@ class _LessonRouteState extends State<_LessonRoute> {
           ? 'parent_handover'
           : 'child_opened'
       ..biggerPad = prefs.biggerPad
-      ..carryFrom = widget.carryFrom;
+      ..carryFrom = widget.carryFrom
+      ..chosenToday = widget.chosenMs;
     widget.deps.sitting.useMinutes(prefs.minutes);
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
   }

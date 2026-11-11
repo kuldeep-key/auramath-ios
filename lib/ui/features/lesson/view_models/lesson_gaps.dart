@@ -35,6 +35,30 @@ mixin _LessonGaps on ChangeNotifier {
     notifyListeners();
   }
 
+  /// The story problem was picked on Choose today (LES-14), this many ms
+  /// after it showed: logged once the case shows.
+  int? chosenToday;
+
+  /// After the new session's `problem_shown`: Choose today's choice, then
+  /// a case carried on from an ended session.
+  Future<void> _afterShown() async {
+    if (chosenToday case final ms?) {
+      chosenToday = null;
+      await _vm._record([
+        SpecEvent('choice_selected', {
+          'step_id': 'choose_today',
+          'option_id': 'story_problem',
+          'ms_from_step_start': ms,
+        }),
+        const SpecEvent('prompt_answered', {
+          'prompt': 'choose_today',
+          'choice': 'story_problem',
+        }),
+      ]);
+    }
+    await _carryOn();
+  }
+
   /// The ended session (time up, or ended by the server) whose case this
   /// lesson carries on: set by the route before [LessonViewModel.start].
   String? carryFrom;

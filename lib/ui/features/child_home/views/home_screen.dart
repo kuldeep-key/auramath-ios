@@ -19,6 +19,7 @@ class HomeScreen extends StatelessWidget {
     required this.grownUps,
     this.trail = true,
     this.badges = true,
+    this.play = Paths.lessonNext,
   });
 
   /// The child's name; null shows the portrait alone.
@@ -32,6 +33,9 @@ class HomeScreen extends StatelessWidget {
   /// `mastery_badges`).
   final bool trail;
   final bool badges;
+
+  /// Where Keep going leads: the next case, or Choose today (LES-14).
+  final String play;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +78,7 @@ class HomeScreen extends StatelessWidget {
           AuraButton(
             label: l.keepGoing,
             icon: Icons.play_arrow_rounded,
-            onPressed: () => context.go(Paths.lessonNext),
+            onPressed: () => context.go(play),
           ),
           // Figma's icons don't fit beside the labels in a half-width button
           // on a phone; they show where there is room (iPad).

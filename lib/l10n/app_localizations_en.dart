@@ -1859,4 +1859,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidQuickHome => 'Back home';
+
+  @override
+  String get kidTodayTitle => 'What shall we do today?';
+
+  @override
+  String get kidTodayStory => 'A story problem';
+
+  @override
+  String get kidTodayQuick => 'Quick sums';
 }

@@ -3279,6 +3279,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back home'**
   String get kidQuickHome;
+
+  /// DRAFT, for Julia (LES-14, Figma A3 / 4.2): Choose today's title.
+  ///
+  /// In en, this message translates to:
+  /// **'What shall we do today?'**
+  String get kidTodayTitle;
+
+  /// DRAFT, for Julia (LES-14): today's case, at the child's level.
+  ///
+  /// In en, this message translates to:
+  /// **'A story problem'**
+  String get kidTodayStory;
+
+  /// DRAFT, for Julia (LES-14, LES-16): five quick sums at the child's level. Figma 4.2's Taking away is part of these.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick sums'**
+  String get kidTodayQuick;
 }
 
 class _AppLocalizationsDelegate

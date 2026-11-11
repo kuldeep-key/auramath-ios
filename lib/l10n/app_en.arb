@@ -678,5 +678,11 @@
   "kidQuickStory": "A story problem",
   "@kidQuickStory": {"description": "DRAFT, for Julia (LES-16): after Quick sums, on to today's story problem."},
   "kidQuickHome": "Back home",
-  "@kidQuickHome": {"description": "DRAFT, for Julia (LES-16): after Quick sums, back to Home."}
+  "@kidQuickHome": {"description": "DRAFT, for Julia (LES-16): after Quick sums, back to Home."},
+  "kidTodayTitle": "What shall we do today?",
+  "@kidTodayTitle": {"description": "DRAFT, for Julia (LES-14, Figma A3 / 4.2): Choose today's title."},
+  "kidTodayStory": "A story problem",
+  "@kidTodayStory": {"description": "DRAFT, for Julia (LES-14): today's case, at the child's level."},
+  "kidTodayQuick": "Quick sums",
+  "@kidTodayQuick": {"description": "DRAFT, for Julia (LES-14, LES-16): five quick sums at the child's level. Figma 4.2's Taking away is part of these."}
 }

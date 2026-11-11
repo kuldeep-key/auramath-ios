@@ -243,7 +243,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
       problemShown(_problem),
     ];
     await _record(events);
-    await _carryOn();
+    await _afterShown();
   }
 
   /// The starting check's four sums (SKL-07), while a new child does them

@@ -11,6 +11,7 @@ import 'views/after_case_screen.dart';
 import 'views/badge_screen.dart';
 import 'views/badges_screen.dart';
 import 'views/check_screen.dart';
+import 'views/choose_today_screen.dart';
 import 'views/home_screen.dart';
 import 'views/meet_partner_screen.dart';
 import 'views/loaded.dart';
@@ -62,6 +63,10 @@ List<RouteBase> childRoutes(Deps deps) {
                   : Paths.kids,
               trail: deps.flags.on('trail'),
               badges: deps.flags.on('mastery_badges'),
+              // Choose today first, with Quick sums on (LES-14)
+              play: deps.flags.on('quick_sums')
+                  ? Paths.chooseToday
+                  : Paths.lessonNext,
             ),
           ),
         ),
@@ -124,6 +129,15 @@ List<RouteBase> childRoutes(Deps deps) {
     ),
     GoRoute(path: Paths.trailTop, builder: (_, _) => const TrailTopScreen()),
     GoRoute(path: Paths.check, builder: (_, _) => const CheckScreen()),
+    GoRoute(
+      path: Paths.chooseToday,
+      redirect: (_, _) => deps.flags.on('quick_sums') ? null : Paths.lessonNext,
+      pageBuilder: (_, s) => MotionPage(
+        key: s.pageKey,
+        arrive: Arrive.fade,
+        child: const ChooseTodayScreen(),
+      ),
+    ),
     GoRoute(
       path: Paths.meetPartner,
       builder: (context, _) => MeetPartnerScreen(
