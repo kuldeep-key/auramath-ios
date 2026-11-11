@@ -212,6 +212,9 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
       final sessionId = _sessionId ??=
           await _continueAfterTimeUp() ?? await _openSession();
       final next = _nextProblem;
+      // SES-07: the server says the child is back on a later day (on any
+      // phone) and Home didn't greet them: welcome back first
+      if (_offerWelcomeBack(sessionId)) return;
       if (_p == null && next != null) {
         // a new child's four starting sums come first (SKL-07)
         if (await _startingCheck(sessionId)) return;

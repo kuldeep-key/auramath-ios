@@ -39,8 +39,12 @@ class FakeApi implements Api {
       reviewDue: reviewDue,
       sittingId: sittingId ?? id,
       todaySuggestion: todaySuggestion,
+      welcomeBack: welcomeBack,
     );
   }
+
+  /// SES-07: back on a later day, as every session says.
+  WelcomeBack? welcomeBack;
 
   /// LES-14: the selector's suggestion, as every session says.
   TodaySuggestion? todaySuggestion;

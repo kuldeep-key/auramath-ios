@@ -19,7 +19,12 @@ class WelcomeBackScreen extends StatelessWidget {
     required this.name,
     this.caseWaiting = true,
     this.chooseToday = false,
+    this.onCarryOn,
   });
+
+  /// "Let's see" / "Keep going" inside a lesson that greets from the
+  /// server's `welcomeBack`; null: to the lesson.
+  final VoidCallback? onCarryOn;
 
   final String? name;
 
@@ -53,7 +58,7 @@ class WelcomeBackScreen extends StatelessWidget {
         AuraButton(
           key: const Key('carryOn'),
           label: caseWaiting ? l.kidLetsSee : l.keepGoing,
-          onPressed: () => context.go(Paths.lessonNext),
+          onPressed: onCarryOn ?? () => context.go(Paths.lessonNext),
         ),
         if (chooseToday)
           AuraButton(

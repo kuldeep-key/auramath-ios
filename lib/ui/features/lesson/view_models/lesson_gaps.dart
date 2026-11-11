@@ -39,6 +39,28 @@ mixin _LessonGaps on ChangeNotifier {
   /// after it showed: logged once the case shows.
   int? chosenToday;
 
+  /// SES-07: WelcomeBack shows over the lesson, from the server's
+  /// `welcomeBack`, before the first case.
+  WelcomeBack? welcomingBack;
+
+  bool _offerWelcomeBack(String sessionId) {
+    final s = _vm._sessions;
+    final w = s.welcomeBack(sessionId);
+    if (w == null || s.greeted || _vm._seq > 0 || carryFrom != null) {
+      return false;
+    }
+    s.greeted = true;
+    welcomingBack = w;
+    notifyListeners();
+    return true;
+  }
+
+  /// "Keep going" on the lesson's WelcomeBack: on to the case.
+  Future<void> welcomedBack() {
+    welcomingBack = null;
+    return _vm.start();
+  }
+
   /// The flag `quick_sums`: once the starting check has placed a new child,
   /// Choose today (LES-14) shows before the first case, the selector's
   /// suggestion first.

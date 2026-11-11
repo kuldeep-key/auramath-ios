@@ -203,6 +203,7 @@ class HttpApi implements Api {
       ],
       sittingId: json['sittingId'] as String?,
       todaySuggestion: todaySuggestionFromJson(json['todaySuggestion']),
+      welcomeBack: welcomeBackFromJson(json['welcomeBack']),
     );
   }
 

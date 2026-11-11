@@ -171,6 +171,26 @@ void main() {
     expect(suggestsQuickSums(null), isFalse);
   });
 
+  test('SES-07: welcomeBack is read; null and absent are none', () async {
+    for (final (body, want) in [
+      (
+        ',"welcomeBack":{"lastLessonAt":1791000000000,"daysAway":3,'
+            '"timeZone":"Australia/Sydney","caseWaiting":true}',
+        (lastLessonAt: 1791000000000, daysAway: 3, caseWaiting: true),
+      ),
+      (',"welcomeBack":null', null),
+      ('', null),
+    ]) {
+      final api = HttpApi(
+        clientFor(
+          (_) async =>
+              http.Response('{"id":"s1","childRef":"ch_abc12345"$body}', 200),
+        ),
+      );
+      expect((await api.startSession(isDemo: false)).welcomeBack, want);
+    }
+  });
+
   test("the starting check's result is sent, and the server's level read "
       'back', () async {
     String? asked;

@@ -100,6 +100,21 @@ bool suggestsQuickSums(TodaySuggestion? s) =>
         s.skill.startsWith('arith.') ||
         RegExp(r'^A\d+$').hasMatch(s.level));
 
+/// SES-07: the child is back on a later day than their last lesson, on
+/// any phone, in the family's time zone (`welcomeBack`).
+typedef WelcomeBack = ({int lastLessonAt, int daysAway, bool caseWaiting});
+
+/// The server's [WelcomeBack], or null (the same day, a first lesson, or
+/// a server that doesn't send it).
+WelcomeBack? welcomeBackFromJson(Object? j) {
+  if (j is! Map || j['daysAway'] is! int) return null;
+  return (
+    lastLessonAt: j['lastLessonAt'] as int? ?? 0,
+    daysAway: j['daysAway'] as int,
+    caseWaiting: j['caseWaiting'] == true,
+  );
+}
+
 /// A session the server just opened.
 typedef StartedSession = ({
   String sessionId,
@@ -132,6 +147,10 @@ typedef StartedSession = ({
   /// LES-14: the selector's suggestion for today; null from a server that
   /// sends none (then the story problem comes first, as before).
   TodaySuggestion? todaySuggestion,
+
+  /// SES-07: back on a later day, as the server counts days; null on the
+  /// same day, for a first lesson, or from an older server.
+  WelcomeBack? welcomeBack,
 });
 
 /// The lesson's calls to the backend. Throws [ApiException] on any failure.

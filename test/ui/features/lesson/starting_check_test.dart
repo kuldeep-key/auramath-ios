@@ -267,6 +267,29 @@ void main() {
     });
   });
 
+  test("SES-07: the server's welcomeBack greets first, once a launch; "
+      'Home having greeted, not again', () async {
+    final (vm, api) = await makeVm(due: false);
+    addTearDown(vm.dispose);
+    api.welcomeBack = (lastLessonAt: 1, daysAway: 2, caseWaiting: false);
+    await vm.start();
+    expect(vm.welcomingBack?.daysAway, 2);
+    expect(vm.ready, isFalse);
+    expect(api.asked, isEmpty);
+    await vm.welcomedBack();
+    expect(vm.welcomingBack, isNull);
+    expect(vm.ready, isTrue);
+    expect(vm.sessions.greeted, isTrue);
+
+    final (vm2, api2) = await makeVm(due: false);
+    addTearDown(vm2.dispose);
+    api2.welcomeBack = (lastLessonAt: 1, daysAway: 1, caseWaiting: true);
+    vm2.sessions.greeted = true; // Home's WelcomeBack showed
+    await vm2.start();
+    expect(vm2.welcomingBack, isNull);
+    expect(vm2.ready, isTrue);
+  });
+
   test('not due: straight to the case, no sums asked', () async {
     final (vm, api) = await makeVm(due: false);
     addTearDown(vm.dispose);

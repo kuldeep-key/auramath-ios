@@ -145,7 +145,10 @@ class ProgressRepository {
     _welcomed = true;
     final next = await _sessions.whereNext(_pack);
     caseWaiting = next?.resumeSessionId != null || next?.carryFrom != null;
-    return caseWaiting || await _laterDay();
+    final due = caseWaiting || await _laterDay();
+    // the lesson needn't greet again from the server's welcomeBack
+    if (due) _sessions.greeted = true;
+    return due;
   }
 
   /// The child's last lesson was on an earlier day than today (local).

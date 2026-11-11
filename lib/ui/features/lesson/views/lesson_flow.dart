@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../routing/paths.dart';
 import '../../child_home/views/choose_today_screen.dart';
+import '../../child_home/views/welcome_back_screen.dart';
 
 import '../view_models/lesson_view_model.dart';
 import 'bar_sense_view.dart';
@@ -58,6 +59,14 @@ class LessonFlow extends StatelessWidget {
               },
             ),
           ),
+        );
+      }
+      if (vm.welcomingBack case final w?) {
+        // SES-07: back on a later day, as the server counts it
+        return WelcomeBackScreen(
+          name: null,
+          caseWaiting: w.caseWaiting,
+          onCarryOn: vm.welcomedBack,
         );
       }
       if (vm.choosingToday) {

@@ -129,6 +129,14 @@ class SessionRepository {
   /// or Welcome back, before a session is open, puts it first.
   TodaySuggestion? lastSuggestion;
 
+  /// SES-07: the server's "back on a later day" with [sessionId]'s start.
+  WelcomeBack? welcomeBack(String sessionId) => _welcomeBacks[sessionId];
+  final Map<String, WelcomeBack> _welcomeBacks = {};
+
+  /// The child was greeted back this launch (Home's WelcomeBack, or the
+  /// lesson's from the server's `welcomeBack`): once is enough.
+  bool greeted = false;
+
   /// The `child_ref` each open session's events carry, from the server.
   final Map<String, String> _childRefs = {};
 
@@ -163,6 +171,7 @@ class SessionRepository {
     if (s.leftProblem != null) _left[s.sessionId] = s.leftProblem!;
     if (s.reviewDue.isNotEmpty) _reviewDue[s.sessionId] = s.reviewDue;
     if (s.sittingId != null) _sittings[s.sessionId] = s.sittingId!;
+    if (s.welcomeBack case final w?) _welcomeBacks[s.sessionId] = w;
     if (s.todaySuggestion case final t?) {
       _suggestions[s.sessionId] = lastSuggestion = t;
     }
@@ -507,6 +516,8 @@ class SessionRepository {
     _suggestions.clear();
     lastSuggestion = null;
     _afterLesson.clear();
+    _welcomeBacks.clear();
+    greeted = false;
     _easier.clear();
     for (final (pack, id) in _served) {
       pack.problems.remove(id);
