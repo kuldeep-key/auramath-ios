@@ -834,8 +834,10 @@
         "relation": {
           "enum": [
             "taller",
-            "shorter"
-          ]
+            "shorter",
+            "more"
+          ],
+          "description": "taller/shorter: comparison; more: total and difference (CON-07, behind flags.total_and_difference)"
         },
         "level": {
           "type": "string",
@@ -850,20 +852,41 @@
           ]
         },
         "numbers": {
-          "type": "object",
-          "required": [
-            "A",
-            "D"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "A": {
-              "type": "integer"
+          "description": "Comparison: A and D. Total and difference (CON-07): total and difference.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "A",
+                "D"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "A": {
+                  "type": "integer"
+                },
+                "D": {
+                  "type": "integer"
+                }
+              }
             },
-            "D": {
-              "type": "integer"
+            {
+              "type": "object",
+              "required": [
+                "total",
+                "difference"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "total": {
+                  "type": "integer"
+                },
+                "difference": {
+                  "type": "integer"
+                }
+              }
             }
-          }
+          ]
         }
       }
     },
