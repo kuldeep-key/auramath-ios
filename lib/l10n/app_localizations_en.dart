@@ -1871,4 +1871,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidWelcomeChooseToday => 'Choose today\'s work';
+
+  @override
+  String kidWordWhat(String word) {
+    return 'What does $word mean?';
+  }
+
+  @override
+  String get kidWordTaller =>
+      'Taller means it reaches higher. The taller one gets the longer bar.';
+
+  @override
+  String get kidWordShorter =>
+      'Shorter means it does not reach as high. The shorter one gets the shorter bar.';
+
+  @override
+  String get kidWordMore =>
+      'More means it weighs more. The heavier one gets the longer bar.';
+
+  @override
+  String get kidWordLess =>
+      'Less means it weighs less. The lighter one gets the shorter bar.';
+
+  @override
+  String get kidWordGotIt => 'Got it';
 }

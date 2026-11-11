@@ -7,17 +7,21 @@ import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_card.dart';
 import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
+import 'word_meaning.dart';
 
 /// The story with each item's name in its bar's colour (LES-02): lemon in
 /// the lemon bar's yellow, fig in the fig bar's blue. The names stay
 /// words, so colour is never the only signal (NFR-03).
-TextSpan storySpan(ComparisonProblem p) {
+///
+/// [words] (LES-10) are underlined, dotted: a maths word to tap below.
+TextSpan storySpan(ComparisonProblem p, {List<String> words = const []}) {
   final names = {
     p.a.name.toLowerCase(): AuraColors.yellowInk,
     p.b.name.toLowerCase(): AuraColors.blueInk,
+    for (final w in words) w: null,
   };
   final pattern = RegExp(
-    names.keys.map(RegExp.escape).join('|'),
+    names.keys.map((k) => '\\b${RegExp.escape(k)}\\b').join('|'),
     caseSensitive: false,
   );
   final spans = <TextSpan>[];
@@ -28,7 +32,15 @@ TextSpan storySpan(ComparisonProblem p) {
       ..add(
         TextSpan(
           text: m[0],
-          style: AuraText.storyName.copyWith(color: names[m[0]!.toLowerCase()]),
+          style: switch (names[m[0]!.toLowerCase()]) {
+            final Color c => AuraText.storyName.copyWith(color: c),
+            // a maths word: dotted underline, the story's own colour
+            null => const TextStyle(
+              decoration: TextDecoration.underline,
+              decorationStyle: TextDecorationStyle.dotted,
+              decorationThickness: 2,
+            ),
+          },
         ),
       );
     at = m.end;
@@ -76,7 +88,19 @@ class QuestionOverlay extends StatelessWidget {
                                 style: const TextStyle(fontSize: 56),
                               ),
                               const SizedBox(height: 12),
-                              Text.rich(storySpan(p), style: AuraText.story),
+                              Text.rich(
+                                storySpan(
+                                  p,
+                                  words: vm.wordMeanings
+                                      ? wordsIn(p)
+                                      : const [],
+                                ),
+                                style: AuraText.story,
+                              ),
+                              if (vm.wordMeanings) ...[
+                                const SizedBox(height: 16),
+                                WordButtons(vm: vm),
+                              ],
                             ],
                           ),
                         ),

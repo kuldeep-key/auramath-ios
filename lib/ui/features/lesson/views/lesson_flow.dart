@@ -9,6 +9,7 @@ import 'board_view.dart';
 import 'break_views.dart';
 import 'question_overlay.dart';
 import 'question_view.dart';
+import 'word_meaning.dart';
 import 'side_lesson_view.dart';
 import 'solved_view.dart';
 import 'starting_check_view.dart';
@@ -131,6 +132,8 @@ class LessonFlow extends StatelessWidget {
                           },
                   ),
                   if (vm.questionOpen) QuestionOverlay(vm: vm),
+                  if (vm.wordOpen case final word?)
+                    WordMeaningSheet(vm: vm, word: word),
                   if (!vm.online)
                     LostInternetPause(
                       onRetry: () {

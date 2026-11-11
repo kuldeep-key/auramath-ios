@@ -100,4 +100,28 @@ mixin _LessonGaps on ChangeNotifier {
       SpecEvent('i_know_it_opened', {'step_id': specStepId(_vm.state.step)}),
     ]),
   );
+
+  /// The flag `word_meanings` (LES-10): the question's maths words can be
+  /// tapped for what they mean.
+  bool wordMeanings = false;
+
+  /// The word whose meaning is open (`taller`), if any.
+  String? wordOpen;
+
+  /// Opens [word]'s meaning and logs `word_meaning_opened`.
+  void openWord(String word) {
+    if (!wordMeanings) return;
+    wordOpen = word;
+    notifyListeners();
+    unawaited(
+      _vm._record([
+        SpecEvent('word_meaning_opened', {'word_id': word}),
+      ]),
+    );
+  }
+
+  void closeWord() {
+    wordOpen = null;
+    notifyListeners();
+  }
 }

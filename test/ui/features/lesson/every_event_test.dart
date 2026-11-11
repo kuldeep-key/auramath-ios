@@ -21,7 +21,6 @@ const notInOneProblem = {
   'self_rating_given': 'the self_rating flag, after a solved case',
   'prompt_offered': 'the server\'s decision (ai_decisions)',
   'number_sentence_entered': 'the optional number_sentence step (LES-06)',
-  'word_meaning_opened': 'tap a word (LES-10), behind its flag',
   'badge_shared': 'the grown-up\'s screens',
   'streak_moment_shown': 'Home, after a case',
   'avatar_chosen': 'set-up (ACC-12)',
@@ -34,22 +33,28 @@ void main() {
     );
     final (sessions, db, _) = await memorySessions();
     var now = 1000;
-    final vm = LessonViewModel(
-      pack: samplePack().copyWith(
-        questionButtons: policy.questionButtons,
-        policyLines: policy.lines,
-      ),
-      problemId: 'lemon',
-      sessionId: 's1',
-      sessions: sessions,
-      voice: FakeVoice(),
-      openSession: sessions.open,
-      sitting: Sitting(capMs: 30 * 60 * 1000),
-      nowMs: () => now += 700,
-      tickEvery: null,
-    )..childQuestions = true;
+    final vm =
+        LessonViewModel(
+            pack: samplePack().copyWith(
+              questionButtons: policy.questionButtons,
+              policyLines: policy.lines,
+            ),
+            problemId: 'lemon',
+            sessionId: 's1',
+            sessions: sessions,
+            voice: FakeVoice(),
+            openSession: sessions.open,
+            sitting: Sitting(capMs: 30 * 60 * 1000),
+            nowMs: () => now += 700,
+            tickEvery: null,
+          )
+          ..childQuestions = true
+          ..wordMeanings = true;
     await vm.start();
-    vm.readQuestion();
+    vm
+      ..readQuestion()
+      ..openWord('taller')
+      ..closeWord();
     await vm.send(const Started());
     vm
       ..seeQuestion()

@@ -8,6 +8,7 @@ import '../../../core/parts/lesson_header.dart';
 import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
 import 'question_overlay.dart';
+import 'word_meaning.dart';
 
 /// The question, big and alone, read aloud first. Figma: M0.
 class QuestionView extends StatefulWidget {
@@ -56,10 +57,17 @@ class _QuestionViewState extends State<QuestionView> {
                       ),
                       const SizedBox(height: 12),
                       Text.rich(
-                        storySpan(p),
+                        storySpan(
+                          p,
+                          words: widget.vm.wordMeanings ? wordsIn(p) : const [],
+                        ),
                         style: AuraText.story,
                         textAlign: TextAlign.left,
                       ),
+                      if (widget.vm.wordMeanings) ...[
+                        const SizedBox(height: 16),
+                        WordButtons(vm: widget.vm),
+                      ],
                     ],
                   ),
                 ),

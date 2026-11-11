@@ -686,5 +686,17 @@
   "kidTodayQuick": "Quick sums",
   "@kidTodayQuick": {"description": "DRAFT, for Julia (LES-14, LES-16): five quick sums at the child's level. Figma 4.2's Taking away is part of these."},
   "kidWelcomeChooseToday": "Choose today's work",
-  "@kidWelcomeChooseToday": {"description": "DRAFT, for Julia (SES-07, Figma 25.3): WelcomeBack's second choice, after carrying on the last case; opens Choose today (LES-14)."}
+  "@kidWelcomeChooseToday": {"description": "DRAFT, for Julia (SES-07, Figma 25.3): WelcomeBack's second choice, after carrying on the last case; opens Choose today (LES-14)."},
+  "kidWordWhat": "What does {word} mean?",
+  "@kidWordWhat": {"description": "DRAFT, for Julia (LES-10): what a screen reader says on a word button under the question.", "placeholders": {"word": {"type": "String"}}},
+  "kidWordTaller": "Taller means it reaches higher. The taller one gets the longer bar.",
+  "@kidWordTaller": {"description": "DRAFT, for Julia (LES-10, Figma J09): under the drawing for 'taller'. Julia (journey 36): 'better with a teaching of the drawing'."},
+  "kidWordShorter": "Shorter means it does not reach as high. The shorter one gets the shorter bar.",
+  "@kidWordShorter": {"description": "DRAFT, for Julia (LES-10, Figma J09): under the drawing for 'shorter'."},
+  "kidWordMore": "More means it weighs more. The heavier one gets the longer bar.",
+  "@kidWordMore": {"description": "DRAFT, for Julia (LES-10, CON-11): under the drawing for 'more' in a weight story."},
+  "kidWordLess": "Less means it weighs less. The lighter one gets the shorter bar.",
+  "@kidWordLess": {"description": "DRAFT, for Julia (LES-10, CON-11): under the drawing for 'less' in a weight story."},
+  "kidWordGotIt": "Got it",
+  "@kidWordGotIt": {"description": "DRAFT, for Julia (LES-10): closes a word's meaning."}
 }

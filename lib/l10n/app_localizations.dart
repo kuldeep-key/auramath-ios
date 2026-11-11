@@ -3303,6 +3303,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose today\'s work'**
   String get kidWelcomeChooseToday;
+
+  /// DRAFT, for Julia (LES-10): what a screen reader says on a word button under the question.
+  ///
+  /// In en, this message translates to:
+  /// **'What does {word} mean?'**
+  String kidWordWhat(String word);
+
+  /// DRAFT, for Julia (LES-10, Figma J09): under the drawing for 'taller'. Julia (journey 36): 'better with a teaching of the drawing'.
+  ///
+  /// In en, this message translates to:
+  /// **'Taller means it reaches higher. The taller one gets the longer bar.'**
+  String get kidWordTaller;
+
+  /// DRAFT, for Julia (LES-10, Figma J09): under the drawing for 'shorter'.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorter means it does not reach as high. The shorter one gets the shorter bar.'**
+  String get kidWordShorter;
+
+  /// DRAFT, for Julia (LES-10, CON-11): under the drawing for 'more' in a weight story.
+  ///
+  /// In en, this message translates to:
+  /// **'More means it weighs more. The heavier one gets the longer bar.'**
+  String get kidWordMore;
+
+  /// DRAFT, for Julia (LES-10, CON-11): under the drawing for 'less' in a weight story.
+  ///
+  /// In en, this message translates to:
+  /// **'Less means it weighs less. The lighter one gets the shorter bar.'**
+  String get kidWordLess;
+
+  /// DRAFT, for Julia (LES-10): closes a word's meaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get kidWordGotIt;
 }
 
 class _AppLocalizationsDelegate
