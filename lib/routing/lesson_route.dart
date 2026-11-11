@@ -153,6 +153,7 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..selfRating = flags.on('self_rating')
       ..childQuestions = flags.on('child_questions')
       ..wordMeanings = flags.on('word_meanings')
+      ..weightStories = flags.on('weight_stories')
       ..selfRatingMinAge = flags.selfRatingMinAge
       ..childAge = age
       ..askDecisions = Env.serverProblems

@@ -36,6 +36,8 @@ ComparisonProblem problemFromServer(Map<String, Object?> j) {
     storyId: j['storyId']! as String,
     variant: j['variant'] as String? ?? 'standard',
     level: j['level'] as String?,
+    // a weight story's bars lie across (LES-04, CON-11)
+    quantity: story['quantity'] as String? ?? 'height',
   );
 }
 

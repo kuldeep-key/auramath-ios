@@ -131,4 +131,8 @@ mixin _LessonGaps on ChangeNotifier {
   /// [addingUp] also offers "D + ? = A" at choose_operation (LES-06).
   void enableSteps(Set<String> steps, {bool addingUp = false}) =>
       _vm._pack = _vm._pack.copyWith(optionalSteps: steps, addingUp: addingUp);
+
+  /// The flag `weight_stories` (CON-11): a weight story's bars are drawn
+  /// across (LES-04). Off, the server sends no weight stories.
+  bool weightStories = false;
 }

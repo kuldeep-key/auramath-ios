@@ -63,7 +63,12 @@ class _BoardViewState extends State<BoardView> {
     final l = AppLocalizations.of(context)!;
     final p = vm.problem;
     final s = vm.state;
-    final rel = p.big == BigSide.a ? l.taller : l.shorter;
+    // a weight story says more and less (CON-11)
+    final rel = p.isMass
+        ? (p.big == BigSide.a ? l.lessonMore : l.lessonLess)
+        : p.big == BigSide.a
+        ? l.taller
+        : l.shorter;
 
     return Stack(
       children: [
@@ -124,6 +129,8 @@ class _BoardViewState extends State<BoardView> {
                     glowPiece: vm.glowPiece,
                     showHand: vm.showHand,
                     wobbles: vm.wobbles,
+                    // across for a weight story (LES-04, CON-11)
+                    across: p.isMass && vm.weightStories,
                   ),
                 ),
               ),

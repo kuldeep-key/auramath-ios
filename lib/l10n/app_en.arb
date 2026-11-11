@@ -712,5 +712,13 @@
   "lessonSentenceCheck": "Check my sentence",
   "@lessonSentenceCheck": {"description": "DRAFT, for Julia (LES-06, J36): sends the number sentence. Any equivalent form counts."},
   "lessonSentenceTitle": "Make a number sentence for the {b}.",
-  "@lessonSentenceTitle": {"description": "DRAFT, for Julia (LES-06, J36): above the number sentence builder.", "placeholders": {"b": {"type": "String"}}}
+  "@lessonSentenceTitle": {"description": "DRAFT, for Julia (LES-06, J36): above the number sentence builder.", "placeholders": {"b": {"type": "String"}}},
+  "lessonHeavier": "Heavier",
+  "@lessonHeavier": {"description": "DRAFT, for Julia (CON-11): the sizing chip on a weight story's board, in place of Taller (policy choice_mass: heavier)."},
+  "lessonLighter": "Lighter",
+  "@lessonLighter": {"description": "DRAFT, for Julia (CON-11): the sizing chip on a weight story's board, in place of Shorter."},
+  "lessonMore": "more",
+  "@lessonMore": {"description": "DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 more')."},
+  "lessonLess": "less",
+  "@lessonLess": {"description": "DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 less')."}
 }

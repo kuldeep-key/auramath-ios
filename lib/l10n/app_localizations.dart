@@ -3381,6 +3381,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Make a number sentence for the {b}.'**
   String lessonSentenceTitle(String b);
+
+  /// DRAFT, for Julia (CON-11): the sizing chip on a weight story's board, in place of Taller (policy choice_mass: heavier).
+  ///
+  /// In en, this message translates to:
+  /// **'Heavier'**
+  String get lessonHeavier;
+
+  /// DRAFT, for Julia (CON-11): the sizing chip on a weight story's board, in place of Shorter.
+  ///
+  /// In en, this message translates to:
+  /// **'Lighter'**
+  String get lessonLighter;
+
+  /// DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 more').
+  ///
+  /// In en, this message translates to:
+  /// **'more'**
+  String get lessonMore;
+
+  /// DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 less').
+  ///
+  /// In en, this message translates to:
+  /// **'less'**
+  String get lessonLess;
 }
 
 class _AppLocalizationsDelegate

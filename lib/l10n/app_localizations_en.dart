@@ -1922,4 +1922,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String lessonSentenceTitle(String b) {
     return 'Make a number sentence for the $b.';
   }
+
+  @override
+  String get lessonHeavier => 'Heavier';
+
+  @override
+  String get lessonLighter => 'Lighter';
+
+  @override
+  String get lessonMore => 'more';
+
+  @override
+  String get lessonLess => 'less';
 }
