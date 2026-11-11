@@ -43,10 +43,10 @@
     "cmp.takeYourTime": "Take your time.",
     "cmp.showMeHow": "Let's try a smaller one together.",
     "cmp.sideKindBack": "That was a tricky one. Back to your case, with a hint.",
-    "cmp.firstHint.find_unknown": "Look at your bars. Is the {b} bar longer or shorter than the {a} bar?",
+    "cmp.firstHint.find_unknown": "Look at your bars. Is the {b} bar longer or shorter?",
     "cmp.firstHint.find_total": "The question asks for both together. Look at both bars.",
     "cmp.firstHint.place_total": "The total is both bars together.",
-    "cmp.itRight": "Yes! 'It' is the {a}. Now size the {b} bar.",
+    "cmp.itRight": "'It' is the {a}. Now size the {b} bar.",
     "side.takeAcrossTen": "The ten splits into ten ones.",
     "side.addWithCarry": "Bundle ten ones into a ten, and carry it."
   },
@@ -151,7 +151,7 @@
     ],
     "line.hint.longer-or-shorter-bar": [
       "Look at your bars. Would a taller {kind} have a longer bar or a shorter bar?",
-      "Which bar is longer? Is that the one you need to find?"
+      "Look at your bars. Do you need the longer bar or the shorter one?"
     ],
     "line.hint.which-taller": [
       "Which {kind} is taller? Read the story again.",
