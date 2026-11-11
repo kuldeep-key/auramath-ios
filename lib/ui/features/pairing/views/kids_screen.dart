@@ -8,6 +8,7 @@ import '../../../../routing/paths.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
+import '../../../core/parts/avatar.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'play_message.dart';
@@ -174,7 +175,7 @@ class _ChildTile extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Portrait(size: 96),
+                AvatarDisc(avatar: child.avatar, size: 96),
                 const SizedBox(height: 8),
                 Text(
                   child.name,

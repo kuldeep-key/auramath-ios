@@ -5,8 +5,8 @@ import '../../../../data/repositories/family_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_page.dart';
+import '../../../core/parts/avatar.dart';
 import '../../../core/parts/choice_tile.dart';
-import '../../../core/parts/ribbon.dart';
 import 'play_message.dart';
 
 /// A newly paired phone asks which of the family's children it's for.
@@ -66,8 +66,8 @@ class _WhichChildScreenState extends State<WhichChildScreen> {
                       child: ChoiceTile(
                         label: c.name,
                         selected: false,
-                        leading: const ExcludeSemantics(
-                          child: Portrait(size: 48),
+                        leading: ExcludeSemantics(
+                          child: AvatarDisc(avatar: c.avatar, size: 48),
                         ),
                         onTap: () => context.push(
                           Uri(

@@ -164,7 +164,7 @@ class _ChildCardState extends State<_ChildCard> {
     return GuCard(
       child: Row(
         children: [
-          ChildAvatar(name: child.name),
+          ChildAvatar(name: child.name, avatar: child.avatar),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

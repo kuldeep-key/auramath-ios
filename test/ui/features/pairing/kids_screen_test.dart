@@ -1,6 +1,8 @@
 import 'package:auramath/deps.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/pairing/views/kids_screen.dart';
+import 'package:auramath/ui/core/parts/ribbon.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/app_harness.dart';
@@ -43,6 +45,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(deps.account.childId, 'c0');
     expect(find.text('went to ${Paths.home}'), findsOneWidget);
+  });
+
+  testWidgets('two children show their own chosen avatars (ACC-12)', (
+    tester,
+  ) async {
+    final (deps, server) = await setUp(tester);
+    server.on(_children, {
+      'children': [
+        {'id': 'c0', 'displayName': 'Sam', 'avatar': 'print'},
+        {'id': 'c1', 'displayName': 'Ari', 'avatar': 'key'},
+        {'id': 'c2', 'displayName': 'Jo', 'avatar': 'not-in-this-build'},
+      ],
+    });
+    await loadPortraits(tester);
+    await shotAllSizes(tester, 'pairing_kids_avatars', screen(deps));
+    expect(find.byIcon(Icons.fingerprint_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.key_rounded), findsOneWidget);
+    // one this build doesn't know: the detective picture
+    expect(find.byType(Portrait), findsOneWidget);
   });
 
   testWidgets('Grown-ups goes to the grown-up area', (tester) async {
