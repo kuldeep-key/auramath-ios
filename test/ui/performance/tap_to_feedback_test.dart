@@ -72,27 +72,26 @@ void main() {
   testWidgets('a wrong sum typed: the wobble, within the budget', (
     tester,
   ) async {
-    final t = await pumpLesson(tester, theme: buildAuraTheme());
-    await t.send(toFindB);
     final ms = <double>[];
     for (var i = 0; i < runs; i++) {
+      final t = await pumpLesson(tester, theme: buildAuraTheme());
+      await t.send(toFindB);
       for (final d in '300'.split('')) {
         await tester.tap(find.text(d).last);
         await tester.pump();
       }
-      final before = t.vm.wobbles;
       ms.add(
         await timedTap(
           tester,
           find.byIcon(Icons.check_rounded),
-          () => t.vm.wobbles == before + 1,
+          () => t.vm.wobbles == 1,
         ),
       );
       // the outbox's write finishes outside the measured frame
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 5)),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpWidget(const SizedBox());
     }
     report('wrong sum', ms);
     expect(p95(ms), lessThan(budgetMs));
