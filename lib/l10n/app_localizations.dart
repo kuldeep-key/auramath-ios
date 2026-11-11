@@ -1204,6 +1204,54 @@ abstract class AppLocalizations {
   /// **'Every email also has a link to stop them.'**
   String get guEmailUnsubscribeNote;
 
+  /// No description provided for @guEmailHowOften.
+  ///
+  /// In en, this message translates to:
+  /// **'How often'**
+  String get guEmailHowOften;
+
+  /// No description provided for @guEmailHowOftenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How often should we email?'**
+  String get guEmailHowOftenTitle;
+
+  /// No description provided for @guEmailEach.
+  ///
+  /// In en, this message translates to:
+  /// **'After each session'**
+  String get guEmailEach;
+
+  /// No description provided for @guEmailEachDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'One short note when a session ends'**
+  String get guEmailEachDetail;
+
+  /// No description provided for @guEmailWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a week'**
+  String get guEmailWeekly;
+
+  /// No description provided for @guEmailWeeklyDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'One note on Monday about the week before'**
+  String get guEmailWeeklyDetail;
+
+  /// No description provided for @guEmailOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get guEmailOff;
+
+  /// No description provided for @guEmailOffDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'No emails about lessons'**
+  String get guEmailOffDetail;
+
   /// No description provided for @guRightsLink.
   ///
   /// In en, this message translates to:

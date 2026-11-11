@@ -659,6 +659,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'Every email also has a link to stop them.';
 
   @override
+  String get guEmailHowOften => 'How often';
+
+  @override
+  String get guEmailHowOftenTitle => 'How often should we email?';
+
+  @override
+  String get guEmailEach => 'After each session';
+
+  @override
+  String get guEmailEachDetail => 'One short note when a session ends';
+
+  @override
+  String get guEmailWeekly => 'Once a week';
+
+  @override
+  String get guEmailWeeklyDetail => 'One note on Monday about the week before';
+
+  @override
+  String get guEmailOff => 'Off';
+
+  @override
+  String get guEmailOffDetail => 'No emails about lessons';
+
+  @override
   String get guRightsLink => 'Your data and rights';
 
   @override

@@ -7,9 +7,10 @@ import '../../../../routing/paths.dart';
 import '../../../core/theme/tokens.dart';
 import 'parts.dart';
 
-/// Settings' report email card (PAR-05): on or off. Off to on goes through
-/// Notify (659:52), the designed ask; on to off is one tap. Not designed
-/// in Figma: built as the lesson settings card.
+/// Settings' report email card (PAR-05): on or off, and once on, how
+/// often (PAR-06). Off to on goes through Notify (659:52), the designed
+/// ask; on to off is one tap. Not designed in Figma: built as the lesson
+/// settings card.
 class ReportEmailCard extends StatefulWidget {
   const ReportEmailCard({super.key, required this.email});
 
@@ -68,9 +69,23 @@ class _ReportEmailCardState extends State<ReportEmailCard> {
                     ? l.guOn
                     : l.guOff,
                 hint: l.guSetChangeHint,
-                divider: false,
+                divider: f != null && f.on,
                 onTap: loading || _busy ? null : () => _toggle(f),
               ),
+              if (!loading && f != null && f.on)
+                KvRow(
+                  label: l.guEmailHowOften,
+                  value: f == ReportFrequency.weekly
+                      ? l.guEmailWeekly
+                      : l.guEmailEach,
+                  divider: false,
+                  onTap: _busy
+                      ? null
+                      : () async {
+                          await context.push(Paths.emailFrequency);
+                          if (mounted) _reload();
+                        },
+                ),
               if (snap.hasError)
                 ErrorNote(snap.error!, onRetry: _reload)
               else if (_error != null)

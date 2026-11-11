@@ -1,5 +1,6 @@
 import 'package:auramath/data/repositories/report_email_repository.dart';
 import 'package:auramath/routing/paths.dart';
+import 'package:auramath/ui/features/grown_ups/views/email_frequency_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/forgot_passcode_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/grown_up_home_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/settings_screen.dart';
@@ -211,6 +212,51 @@ void main() {
     });
   });
 
+  group('How often (PAR-06)', () {
+    Widget screen(Gu g) =>
+        EmailFrequencyScreen(email: ReportEmailRepository(g.deps.client));
+
+    testWidgets('at every size, the current choice ticked', (tester) async {
+      final g = await Gu.make(tester);
+      await shotAllSizes(tester, 'grown_ups_email_frequency', screen(g));
+      expect(find.text('After each session'), findsOneWidget);
+      expect(find.text('Once a week'), findsOneWidget);
+      expect(find.text('Off'), findsOneWidget);
+    });
+
+    for (final (label, wire) in [
+      ('Once a week', 'weekly'),
+      ('Off', 'off'),
+      ('After each session', 'each_session'),
+    ]) {
+      testWidgets('$label saves $wire and goes back', (tester) async {
+        final g = await Gu.make(tester);
+        g.server.on('PUT /api/family/settings/reports', null, status: 204);
+        await tester.pumpWidget(shotApp(screen(g)));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(label));
+        await tester.pumpAndSettle();
+        expect(g.bodyOf('PUT /api/family/settings/reports'), {
+          'frequency': wire,
+        });
+        expect(find.text('went to ${Paths.settings}'), findsOneWidget);
+      });
+    }
+
+    testWidgets('a refusal stays and says why', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.on('PUT /api/family/settings/reports', {
+        'error': 'database is down',
+      }, status: 500);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Off'));
+      await tester.pumpAndSettle();
+      expect(find.text('database is down'), findsOneWidget);
+      expect(find.textContaining('went to'), findsNothing);
+    });
+  });
+
   group('Settings', () {
     Widget screen(Gu g) => SettingsScreen(
       family: g.deps.family,
@@ -279,6 +325,20 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('went to ${Paths.notify}'), findsOneWidget);
       expect(g.calls, isNot(contains('PUT /api/family/settings/reports')));
+    });
+
+    testWidgets('report email on: How often opens the picker (PAR-06)', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('GET /api/family/settings/reports', {'frequency': 'weekly'});
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('How often'));
+      expect(find.text('Once a week'), findsOneWidget);
+      await tester.tap(find.text('How often'));
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${Paths.emailFrequency}'), findsOneWidget);
     });
 
     testWidgets('Sign out opens its confirmation', (tester) async {

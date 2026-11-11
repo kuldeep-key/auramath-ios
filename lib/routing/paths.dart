@@ -82,6 +82,9 @@ abstract final class Paths {
   static const forgotPasscode = '/grown-ups/forgot'; // ForgotPass 653:132
   static const grownUps = '/grown-ups'; // PHome 658:84
   static const settings = '/grown-ups/settings'; // 652:75
+
+  /// How often the report email goes (PAR-06; no Figma frame yet).
+  static const emailFrequency = '/grown-ups/settings/email';
   static const family = '/grown-ups/family'; // 652:213
   static const invite = '/grown-ups/family/invite'; // 652:251
   static const newCode = '/grown-ups/family/new-code'; // NewCode 653:89

@@ -9,6 +9,7 @@ import 'views/add_child_screen.dart';
 import 'views/book_screen.dart';
 import 'views/consent_screens.dart';
 import 'views/edit_child_screen.dart';
+import 'views/email_frequency_screen.dart';
 import 'views/family_remove_screens.dart';
 import 'views/family_screen.dart';
 import 'views/forgot_passcode_screen.dart';
@@ -60,6 +61,10 @@ List<RouteBase> grownUpRoutes(Deps deps) {
       path: Paths.settings,
       builder: (_, _) =>
           SettingsScreen(family: family, repo: repo, email: email),
+    ),
+    GoRoute(
+      path: Paths.emailFrequency,
+      builder: (_, _) => EmailFrequencyScreen(email: email),
     ),
     GoRoute(
       path: Paths.family,
