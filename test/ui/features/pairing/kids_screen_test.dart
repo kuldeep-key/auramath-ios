@@ -47,6 +47,19 @@ void main() {
     expect(find.text('went to ${Paths.home}'), findsOneWidget);
   });
 
+  testWidgets('one child already chosen: the picker stays, so Grown-ups '
+      'can be reached from Home', (tester) async {
+    final (deps, server) = await setUp(tester);
+    server.on(_children, familyJson(['Sam']));
+    await tester.runAsync(() => deps.account.chooseChild('c0'));
+    await tester.pumpWidget(shotApp(screen(deps)));
+    await tester.pumpAndSettle();
+    expect(find.text('went to ${Paths.home}'), findsNothing);
+    await tester.tap(find.text('Grown-ups'));
+    await tester.pumpAndSettle();
+    expect(find.text('went to ${Paths.grownUps}'), findsOneWidget);
+  });
+
   testWidgets('two children show their own chosen avatars (ACC-12)', (
     tester,
   ) async {

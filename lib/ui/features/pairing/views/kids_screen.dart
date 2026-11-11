@@ -15,9 +15,10 @@ import 'play_message.dart';
 
 /// The shared phone's picker: a child taps their picture, a grown-up taps
 /// Grown-ups (the router asks for the passcode). Figma: A1 · Who's
-/// learning? (644:38). A family with one child has nothing to pick: the
-/// phone goes straight to that child's Home (DEV-01), and Home's own
-/// Grown-ups button is the way back.
+/// learning? (644:38). A family with one child has nothing to pick: until
+/// a child is chosen, the phone goes straight to that child's Home
+/// (DEV-01). Once one is, Home's Grown-ups button lands here, so the
+/// picker shows and its Grown-ups button opens the grown-up area.
 class KidsScreen extends StatefulWidget {
   const KidsScreen({super.key, required this.account, required this.family});
 
@@ -33,7 +34,9 @@ class _KidsScreenState extends State<KidsScreen> {
 
   Future<List<Child>> _load() async {
     final children = await widget.family.children();
-    if (children.length == 1) await _pick(children.single);
+    if (children.length == 1 && widget.account.childId == null) {
+      await _pick(children.single);
+    }
     return children;
   }
 
@@ -61,7 +64,7 @@ class _KidsScreenState extends State<KidsScreen> {
               future: _children,
               builder: (context, snap) {
                 if (snap.connectionState != ConnectionState.done ||
-                    snap.data?.length == 1) {
+                    snap.data?.length == 1 && widget.account.childId == null) {
                   return const Center(
                     child: CircularProgressIndicator(color: AuraColors.white),
                   );
