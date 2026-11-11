@@ -119,6 +119,27 @@ void main() {
       expect(find.text('went to ${Paths.learning('child-1')}'), findsOneWidget);
     });
 
+    testWidgets('a picked avatar is sent, nothing else (ACC-14)', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      options(g);
+      g.server.on('PATCH /api/children/child-1', {
+        'id': 'child-1',
+        'displayName': 'Aarav',
+        'avatar': 'map',
+      });
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.bySemanticsLabel('Compass'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Compass'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(g.bodyOf('PATCH /api/children/child-1'), {'avatar': 'map'});
+    });
+
     testWidgets('nothing changed: no call', (tester) async {
       final g = await Gu.make(tester);
       options(g);

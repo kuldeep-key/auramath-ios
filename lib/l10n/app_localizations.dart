@@ -2194,6 +2194,18 @@ abstract class AppLocalizations {
   /// **'School year'**
   String get guEditYear;
 
+  /// No description provided for @guEditAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Detective'**
+  String get guEditAvatar;
+
+  /// No description provided for @guEditAvatarHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Let {name} pick one.'**
+  String guEditAvatarHint(String name);
+
   /// No description provided for @guEditSave.
   ///
   /// In en, this message translates to:

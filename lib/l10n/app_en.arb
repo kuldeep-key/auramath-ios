@@ -437,6 +437,9 @@
   "guEditNameLong": "Keep it to 40 letters or fewer.",
   "guEditAge": "Age",
   "guEditYear": "School year",
+  "guEditAvatar": "Detective",
+  "guEditAvatarHint": "Let {name} pick one.",
+  "@guEditAvatarHint": {"placeholders": {"name": {"type": "String"}}},
   "guEditSave": "Save",
 
   "guReportTitle": "Simple report",

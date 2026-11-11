@@ -1245,6 +1245,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guEditYear => 'School year';
 
   @override
+  String get guEditAvatar => 'Detective';
+
+  @override
+  String guEditAvatarHint(String name) {
+    return 'Let $name pick one.';
+  }
+
+  @override
   String get guEditSave => 'Save';
 
   @override
