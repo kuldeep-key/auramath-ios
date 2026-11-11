@@ -34,9 +34,20 @@ void main() {
     expect(find.text('went to ${Paths.home}'), findsOneWidget);
   });
 
-  testWidgets('Grown-ups goes to the grown-up area', (tester) async {
+  testWidgets('one child: no picker, straight to their home (DEV-01)', (
+    tester,
+  ) async {
     final (deps, server) = await setUp(tester);
     server.on(_children, familyJson(['Sam']));
+    await tester.pumpWidget(shotApp(screen(deps)));
+    await tester.pumpAndSettle();
+    expect(deps.account.childId, 'c0');
+    expect(find.text('went to ${Paths.home}'), findsOneWidget);
+  });
+
+  testWidgets('Grown-ups goes to the grown-up area', (tester) async {
+    final (deps, server) = await setUp(tester);
+    server.on(_children, familyJson(['Sam', 'Ari']));
     await tester.pumpWidget(shotApp(screen(deps)));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Grown-ups'));
@@ -60,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text("That didn't work: database is down"), findsOneWidget);
 
-    server.on(_children, familyJson(['Sam']));
+    server.on(_children, familyJson(['Sam', 'Ari']));
     await tester.tap(find.text('Try again'));
     await tester.pumpAndSettle();
     expect(find.text('Sam'), findsOneWidget);
