@@ -17,6 +17,7 @@ import 'data/repositories/pack_repository.dart';
 import 'data/repositories/session_repository.dart';
 import 'data/services/api_client.dart';
 import 'data/services/content_bundle.dart';
+import 'data/services/content_versions.dart';
 import 'data/services/device_lock.dart';
 import 'data/services/error_reporter.dart';
 import 'data/services/flags.dart';
@@ -111,14 +112,13 @@ Future<void> main() async {
   unawaited(flags.refresh());
   // the version of each content file this launch teaches from, served or
   // bundled (PLAT-04); the template's comes with each problem
-  final versions = <String, String>{};
-  for (final name in ['app-config', 'policy', 'skill-map']) {
-    final text =
-        bundle.yamlOf('$name.yaml') ??
-        await rootBundle.loadString('assets/spec/$name.yaml');
-    final v = RegExp(r'version"?\s*:\s*"?(\d+\.\d+\.\d+)').firstMatch(text);
-    if (v != null) versions[name] = v[1]!;
-  }
+  final versions = contentVersions(
+    served: bundle.yamlOf,
+    bundled: {
+      for (final name in ['app-config', 'policy', 'skill-map'])
+        '$name.yaml': await rootBundle.loadString('assets/spec/$name.yaml'),
+    },
+  );
   final sessions = SessionRepository(
     db: db,
     api: HttpApi(client),
