@@ -572,6 +572,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This account has no email address to send a link to.';
 
   @override
+  String get guForgotOr =>
+      'Or sign in again here with Apple or Google, then choose a new passcode.';
+
+  @override
   String get guHomeHi => 'Hi there';
 
   @override

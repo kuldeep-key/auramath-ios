@@ -196,6 +196,7 @@
   "@guForgotSentBody": {"placeholders": {"email": {"type": "String"}}},
   "guForgotResend": "Send it again",
   "guForgotNoEmail": "This account has no email address to send a link to.",
+  "guForgotOr": "Or sign in again here with Apple or Google, then choose a new passcode.",
 
   "guHomeHi": "Hi there",
   "guHomeWeek": "{count, plural, =0{No sessions this week} =1{1 session this week} other{{count} sessions this week}}",

@@ -1066,6 +1066,12 @@ abstract class AppLocalizations {
   /// **'This account has no email address to send a link to.'**
   String get guForgotNoEmail;
 
+  /// No description provided for @guForgotOr.
+  ///
+  /// In en, this message translates to:
+  /// **'Or sign in again here with Apple or Google, then choose a new passcode.'**
+  String get guForgotOr;
+
   /// No description provided for @guHomeHi.
   ///
   /// In en, this message translates to:

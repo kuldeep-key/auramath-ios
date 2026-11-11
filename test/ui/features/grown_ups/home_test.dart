@@ -57,6 +57,63 @@ void main() {
     });
   });
 
+  group('ForgotPass: sign in again (ACC-11)', () {
+    Widget screen(Gu g) =>
+        ForgotPasscodeScreen(account: g.deps.account, repo: g.repo);
+
+    void auth(Gu g) => g.server
+      ..on('GET /api/auth/config', {
+        'googleClientId': 'google-server-id',
+        'appleSignIn': true,
+        'emailLink': true,
+      })
+      ..on('POST /api/auth/apple', {'token': 'fresh-apple'})
+      ..on('POST /api/auth/google', {'token': 'fresh-google'});
+
+    for (final (button, token) in [
+      ('Continue with Apple', 'fresh-apple'),
+      ('Continue with Google', 'fresh-google'),
+    ]) {
+      testWidgets('$button signs in again, then GPass resets', (tester) async {
+        final g = await Gu.make(tester);
+        auth(g);
+        await tester.pumpWidget(shotApp(screen(g)));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text(button));
+        await tester.tap(find.text(button));
+        await tester.pumpAndSettle();
+        expect(g.deps.account.bearer, token);
+        expect(find.text('went to ${Paths.grownUpsPass}'), findsOneWidget);
+        expect(
+          await tester.runAsync(() => g.repo.passcodeResetReady(token)),
+          isTrue,
+        );
+      });
+    }
+
+    testWidgets('Apple off on this server: says so, nothing kept', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      auth(g);
+      g.server.on('GET /api/auth/config', {
+        'googleClientId': 'google-server-id',
+        'appleSignIn': false,
+      });
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Continue with Apple'));
+      await tester.tap(find.text('Continue with Apple'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text("Apple sign-in isn't switched on for this server yet."),
+        findsOneWidget,
+      );
+      expect(g.store.values['passcodeReset'], isNull);
+      expect(find.textContaining('went to'), findsNothing);
+    });
+  });
+
   group('PHome', () {
     Widget screen(Gu g) => GrownUpHomeScreen(
       account: g.deps.account,
