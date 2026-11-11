@@ -60,4 +60,20 @@ mixin _LessonGaps on ChangeNotifier {
     vm._coach('cmp.welcomeBack', const {});
     notifyListeners();
   }
+
+  /// The child's answer to a prompt over the lesson (DAT-03): `still_there`,
+  /// `too_hard`, `time_up`, `paused` or `offline`, and the choice tapped.
+  void promptAnswered(String prompt, String choice) => unawaited(
+    _vm._record([
+      SpecEvent('prompt_answered', {'prompt': prompt, 'choice': choice}),
+    ]),
+  );
+
+  /// "I know it" tapped (DAT-03): `i_know_it_opened` with the step the
+  /// child is on.
+  void _knowItOpened() => unawaited(
+    _vm._record([
+      SpecEvent('i_know_it_opened', {'step_id': specStepId(_vm.state.step)}),
+    ]),
+  );
 }

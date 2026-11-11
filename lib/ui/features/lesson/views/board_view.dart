@@ -324,6 +324,10 @@ class _BoardViewState extends State<BoardView> {
     );
   }
 
+  /// "Still there?" or the way-out offer answered (DAT-03).
+  void _answered(String choice) =>
+      vm.promptAnswered(vm.tooHard ? 'too_hard' : 'still_there', choice);
+
   Widget _stillThere(AppLocalizations l) => Positioned(
     left: 16,
     right: 16,
@@ -358,6 +362,7 @@ class _BoardViewState extends State<BoardView> {
                 label: l.helpMe,
                 color: AuraButtonColor.white,
                 onPressed: () {
+                  _answered('help_me');
                   vm.dismissStillThere();
                   _help();
                 },
@@ -366,13 +371,19 @@ class _BoardViewState extends State<BoardView> {
               AuraButton(
                 label: l.anEasierOne,
                 color: AuraButtonColor.white,
-                onPressed: () => vm.send(EasierTaken(noProgress: vm.tooHard)),
+                onPressed: () {
+                  _answered('easier_one');
+                  vm.send(EasierTaken(noProgress: vm.tooHard));
+                },
               ),
               const SizedBox(height: 8),
               AuraButton(
                 label: l.stillThinking,
                 color: AuraButtonColor.blue,
-                onPressed: vm.dismissStillThere,
+                onPressed: () {
+                  _answered('still_thinking');
+                  vm.dismissStillThere();
+                },
               ),
             ],
           ),
