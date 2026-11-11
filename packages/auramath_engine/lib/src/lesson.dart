@@ -249,6 +249,7 @@ class LessonState {
     this.knowFlow = KnowFlow.none,
     this.returnFlow = KnowFlow.none,
     this.quietLevel = 0,
+    this.knowMisses = 0,
   });
 
   final LessonStep step;
@@ -278,6 +279,10 @@ class LessonState {
   /// How many quiet-child thresholds have fired since the last move (0–4).
   final int quietLevel;
 
+  /// Wrong answers at the answer sheet's current stage (policy
+  /// `answer_sheet`: a second wrong answer at any one stage draws it).
+  final int knowMisses;
+
   LessonState copyWith({
     LessonStep? step,
     bool? barA,
@@ -295,6 +300,7 @@ class LessonState {
     KnowFlow? knowFlow,
     KnowFlow? returnFlow,
     int? quietLevel,
+    int? knowMisses,
   }) => LessonState(
     step: step ?? this.step,
     barA: barA ?? this.barA,
@@ -312,6 +318,7 @@ class LessonState {
     knowFlow: knowFlow ?? this.knowFlow,
     returnFlow: returnFlow ?? this.returnFlow,
     quietLevel: quietLevel ?? this.quietLevel,
+    knowMisses: knowMisses ?? this.knowMisses,
   );
 
   List<Object?> get _fields => [
@@ -331,6 +338,7 @@ class LessonState {
     knowFlow,
     returnFlow,
     quietLevel,
+    knowMisses,
   ];
 
   @override
@@ -516,7 +524,6 @@ StepResult _move(
           isDigitPermutation(value, p.total)) {
         return to(s, [Coach('cmp.recheck', slots)]);
       }
-      if ((value - p.total).abs() <= 10) return wrongMove('cmp.recheck');
       return wrongMove('cmp.addBoth');
 
     case (LessonStep.sideLesson, SideLessonDone(completed: false)):
@@ -555,19 +562,9 @@ StepResult _move(
       return _partChecked(p, s, value, slots, maxSide);
 
     case (_, KnowTotalChecked(:final value))
-        when s.knowFlow == KnowFlow.checkingTotal:
-      if (value == p.total) {
-        return to(
-          s.copyWith(step: LessonStep.solved, knowFlow: KnowFlow.none),
-          [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
-        );
-      }
-      if (value == dropCarry(p.aValue, p.bValue) && _canSide(s, maxSide)) {
-        return to(_sideLesson(s, s.step, SideLesson.addWithCarry), [
-          const OpenSideLesson(SideLesson.addWithCarry),
-        ]);
-      }
-      return to(s, [Coach('cmp.recheck', slots)]);
+        when s.knowFlow == KnowFlow.checkingTotal ||
+            s.knowFlow == KnowFlow.askingWhat:
+      return _totalAfterUnknown(p, s, value, maxSide);
 
     case (_, Undo()):
       return _undo(p, s);
@@ -720,46 +717,85 @@ LessonState _drawIt(LessonState s) => LessonState(
 );
 
 StepResult _knowIt(ComparisonProblem p, LessonState s, int value, int maxSide) {
-  if (p.ask == Ask.b) {
-    if (value == p.bValue) {
-      return (
-        state: s.copyWith(step: LessonStep.solved, knowFlow: KnowFlow.none),
-        decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
-      );
-    }
-    if (isDigitPermutation(value, p.bValue)) {
-      return (
-        state: s.copyWith(knowFlow: KnowFlow.none),
-        decisions: const [OpenRecheck()],
-      );
-    }
-    return (state: _drawIt(s), decisions: const [DrawIt()]);
+  final slots = lineSlots(p);
+  // levels 1 and 2 ask for the unknown: its stage's rules from the start
+  if (p.ask == Ask.b) return _unknownStage(p, s, value, slots, maxSide);
+  // the total asked again: "a wrong total after that uses the adding rules"
+  if (s.knowFlow == KnowFlow.askingWhat) {
+    return _totalAfterUnknown(p, s, value, maxSide);
   }
   if (value == p.total) {
     return (
-      state: s.copyWith(step: LessonStep.solved, knowFlow: KnowFlow.none),
+      state: s.copyWith(
+        step: LessonStep.solved,
+        knowFlow: KnowFlow.none,
+        knowMisses: 0,
+      ),
       decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
     );
   }
+  // a second wrong total: draw it (policy answer_sheet)
+  if (s.knowMisses > 0) return _drawItFor(p, s, null);
   if (value == p.bValue) {
     return (
-      state: s.copyWith(knowFlow: KnowFlow.askingWhat),
+      state: s.copyWith(knowFlow: KnowFlow.askingWhat, knowMisses: 0),
       decisions: const [AskWhatQuestionAsks()],
     );
   }
-  final nearMiss =
-      (value - p.total).abs() <= 10 && value != dropCarry(p.aValue, p.bValue);
-  if (nearMiss || isDigitPermutation(value, p.total)) {
+  // swapped digits: check the sum again, then the same answer once more
+  if (isDigitPermutation(value, p.total)) {
     return (
-      state: s.copyWith(knowFlow: KnowFlow.none),
+      state: s.copyWith(knowFlow: KnowFlow.none, knowMisses: 1),
       decisions: const [OpenRecheck()],
     );
   }
   return (
-    state: s.copyWith(knowFlow: KnowFlow.checkingPart),
+    state: s.copyWith(knowFlow: KnowFlow.checkingPart, knowMisses: 0),
     decisions: const [CheckOnePart()],
   );
 }
+
+/// The total once the unknown is known right, or asked again after the
+/// unknown was given for it (template `total_after_unknown`).
+StepResult _totalAfterUnknown(
+  ComparisonProblem p,
+  LessonState s,
+  int value,
+  int maxSide,
+) {
+  if (value == p.total) {
+    return (
+      state: s.copyWith(
+        step: LessonStep.solved,
+        knowFlow: KnowFlow.none,
+        knowMisses: 0,
+      ),
+      decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
+    );
+  }
+  if (s.knowMisses > 0) return _drawItFor(p, s, null);
+  if (value == dropCarry(p.aValue, p.bValue) && _canSide(s, maxSide)) {
+    final back = s.copyWith(knowFlow: KnowFlow.checkingTotal, knowMisses: 1);
+    return (
+      state: _sideLesson(back, s.step, SideLesson.addWithCarry),
+      decisions: const [OpenSideLesson(SideLesson.addWithCarry)],
+    );
+  }
+  if (isDigitPermutation(value, p.total)) {
+    return (
+      state: s.copyWith(knowFlow: KnowFlow.checkingTotal, knowMisses: 1),
+      decisions: const [OpenRecheck()],
+    );
+  }
+  return _drawItFor(p, s, null);
+}
+
+/// "Not yet: let's draw it", with the opening line policy
+/// `answer_sheet.opening_line` gives for [lineId]'s error, if any.
+StepResult _drawItFor(ComparisonProblem p, LessonState s, String? lineId) => (
+  state: _drawIt(s),
+  decisions: [if (lineId != null) Coach(lineId, lineSlots(p)), const DrawIt()],
+);
 
 StepResult _partChecked(
   ComparisonProblem p,
@@ -767,35 +803,58 @@ StepResult _partChecked(
   int value,
   Map<String, String> slots,
   int maxSide,
+) => _unknownStage(p, s, value, slots, maxSide);
+
+/// The answer sheet's unknown stage (template `answer_sheet_rules`, policy
+/// `answer_sheet.route_by_error_type`): a take-away slip goes to its side
+/// lesson and back, swapped digits are checked again, a mix-up in the story
+/// draws it with its first hint, and a second wrong answer draws it.
+StepResult _unknownStage(
+  ComparisonProblem p,
+  LessonState s,
+  int value,
+  Map<String, String> slots,
+  int maxSide,
 ) {
   if (value == p.bValue) {
+    if (p.ask == Ask.b) {
+      return (
+        state: s.copyWith(
+          step: LessonStep.solved,
+          knowFlow: KnowFlow.none,
+          knowMisses: 0,
+        ),
+        decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
+      );
+    }
     return (
-      state: s.copyWith(knowFlow: KnowFlow.checkingTotal),
+      state: s.copyWith(knowFlow: KnowFlow.checkingTotal, knowMisses: 0),
       decisions: [Coach('cmp.partRight', slots)],
     );
   }
   final a = p.aValue, d = p.diff;
-  final counted = s.copyWith(wrong: s.wrong + 1);
+  final flow = p.ask == Ask.b ? KnowFlow.none : KnowFlow.checkingPart;
+  if (s.knowMisses > 0) return _drawItFor(p, s, null);
   if (p.big == BigSide.a && value == noBorrow(a, d) && _canSide(s, maxSide)) {
+    final counted = s.copyWith(
+      wrong: s.wrong + 1,
+      knowFlow: flow,
+      knowMisses: 1,
+    );
     return (
       state: _sideLesson(counted, s.step, SideLesson.takeAcrossTen),
       decisions: const [OpenSideLesson(SideLesson.takeAcrossTen)],
     );
   }
-  if (p.big == BigSide.a && value == a + d) {
-    return (
-      state: _drawIt(s),
-      decisions: [Coach('cmp.drawIt', slots), const DrawIt()],
-    );
-  }
-  if (value == d) {
-    return (
-      state: _drawIt(s),
-      decisions: [Coach('cmp.twoBars', slots), const DrawIt()],
-    );
-  }
+  // a mix-up in the story: thought the other one was taller
+  final reversed = p.big == BigSide.a ? a + d : a - d;
+  if (value == reversed) return _drawItFor(p, s, 'cmp.drawIt');
+  if (value == d) return _drawItFor(p, s, 'cmp.twoBars');
   if (isDigitPermutation(value, p.bValue)) {
-    return (state: s, decisions: const [OpenRecheck()]);
+    return (
+      state: s.copyWith(knowFlow: flow, knowMisses: 1),
+      decisions: const [OpenRecheck()],
+    );
   }
-  return (state: _drawIt(s), decisions: const [DrawIt()]);
+  return _drawItFor(p, s, null);
 }

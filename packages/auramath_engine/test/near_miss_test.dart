@@ -104,13 +104,13 @@ void main() {
     expect(total.state.step, LessonStep.drawA);
   });
 
-  test('a near miss that is not swapped digits still counts', () {
+  test('a near miss that is not swapped digits is a wrong move', () {
     final r = run([
       ...toFindB,
       const NumberEntered(79),
       const NumberEntered(268),
     ]);
-    expect(r.decisions, contains(coach('cmp.recheck')));
+    expect(r.decisions, contains(coach('cmp.addBoth')));
     expect(r.state.wrong, 1);
   });
 }
