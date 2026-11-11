@@ -17,6 +17,10 @@ class FilePackSource implements PackSource {
   @override
   Future<String> readPolicy() async =>
       policy ?? File('assets/spec/policy.yaml').readAsStringSync();
+
+  @override
+  Future<String> readTemplate() =>
+      File('assets/spec/comparison-two-step.yaml').readAsString();
 }
 
 void main() {
@@ -27,7 +31,16 @@ void main() {
     for (final p in pack.problems.values) {
       expect(hasCollision(p), isFalse, reason: p.id);
     }
-    expect(pack.hintLineIds, hasLength(6));
+    // the policy's ladder, not a flat list in the pack (TUT-04)
+    expect(pack.hintLineIds, isEmpty);
+    expect(pack.rungsFor('size_second_bar').map((r) => r.id), [
+      'H1-3',
+      'H1-4',
+      'H1-4a',
+      'H1-4b',
+      'H1-6',
+    ]);
+    expect(pack.hintStart['size_second_bar'], 'H1-3');
   });
 
   test('every next problem in the sample pack exists', () async {

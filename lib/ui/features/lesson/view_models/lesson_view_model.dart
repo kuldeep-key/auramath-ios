@@ -1190,10 +1190,15 @@ class LessonViewModel extends ChangeNotifier {
 
   void _coach(String lineId, Map<String, String> slots) {
     // Every Coach carries the problem's own slots; hints and fallbacks don't.
-    final all = {...lineSlots(_problem), ...slots};
-    coachText = fillLine(_pack.lines[lineId] ?? '', all);
+    final all = {...lineSlots(_problem), ...policySlots(_problem), ...slots};
+    final line = _pack.lines[lineId] ?? _pack.policyLines[lineId] ?? '';
+    coachText = fillLine(line, all);
     autoSay(coachText);
   }
+
+  /// Help me offers a hint on this step: false on a step with no rung on
+  /// the policy ladder (TUT-04), where it offers show me how and easier.
+  bool get canHint => _p == null || hasHint(_pack, _state.step);
 
   /// The line said on entering a board step, unless the engine said one.
   /// Prototype: STEPLINE.

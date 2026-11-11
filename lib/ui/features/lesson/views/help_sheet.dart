@@ -15,6 +15,7 @@ class HelpSheet extends StatelessWidget {
     required this.onClose,
     required this.onChoose,
     this.onEasierSentence,
+    this.hint = true,
   });
 
   final VoidCallback onClose;
@@ -23,6 +24,9 @@ class HelpSheet extends StatelessWidget {
   /// "Show the sum in words" (TUT-09, policy help_menu also_offers); null
   /// hides it (not a sum step).
   final VoidCallback? onEasierSentence;
+
+  /// False on a step with no hint rung (TUT-04): no "A hint".
+  final bool hint;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +45,8 @@ class HelpSheet extends StatelessWidget {
         Text(l.pickOne, style: AuraText.sheetLine, textAlign: TextAlign.center),
         const SizedBox(height: 16),
         for (final (label, icon, input) in [
-          (l.aHint, Icons.lightbulb_outline_rounded, const HintTaken()),
+          if (hint)
+            (l.aHint, Icons.lightbulb_outline_rounded, const HintTaken()),
           (
             l.showMeHow,
             Icons.play_circle_outline_rounded,

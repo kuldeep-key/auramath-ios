@@ -1,3 +1,4 @@
+import 'contract.dart' show specStepId;
 import 'mistakes.dart';
 import 'pack.dart';
 import 'problem.dart';
@@ -185,8 +186,11 @@ final class DrawIt extends Decision {
 }
 
 final class ShowHint extends Decision {
-  const ShowHint(this.lineId);
+  const ShowHint(this.lineId, {this.rung});
   final String lineId;
+
+  /// The policy rung shown (TUT-04); null for a pack's flat hint list.
+  final HintRung? rung;
 }
 
 /// Every hint is used: offer the worked example.
@@ -249,6 +253,7 @@ class LessonState {
     this.knowFlow = KnowFlow.none,
     this.returnFlow = KnowFlow.none,
     this.quietLevel = 0,
+    this.stepHints = 0,
   });
 
   final LessonStep step;
@@ -278,6 +283,10 @@ class LessonState {
   /// How many quiet-child thresholds have fired since the last move (0–4).
   final int quietLevel;
 
+  /// Rungs of the hint ladder shown on the current step (TUT-04); a new
+  /// step starts its own ladder again.
+  final int stepHints;
+
   LessonState copyWith({
     LessonStep? step,
     bool? barA,
@@ -295,6 +304,7 @@ class LessonState {
     KnowFlow? knowFlow,
     KnowFlow? returnFlow,
     int? quietLevel,
+    int? stepHints,
   }) => LessonState(
     step: step ?? this.step,
     barA: barA ?? this.barA,
@@ -312,6 +322,7 @@ class LessonState {
     knowFlow: knowFlow ?? this.knowFlow,
     returnFlow: returnFlow ?? this.returnFlow,
     quietLevel: quietLevel ?? this.quietLevel,
+    stepHints: stepHints ?? this.stepHints,
   );
 
   List<Object?> get _fields => [
@@ -331,6 +342,7 @@ class LessonState {
     knowFlow,
     returnFlow,
     quietLevel,
+    stepHints,
   ];
 
   @override
@@ -364,7 +376,15 @@ StepResult step(
 ) {
   if (input is QuietFor) return _quiet(pack, p, s, input.ms);
   final r = _boardSteps.contains(s.step) ? _help(pack, p, s, input) : null;
-  final moved = r ?? _move(p, s, input, pack.maxSideLessons);
+  var moved = r ?? _move(p, s, input, pack.maxSideLessons);
+  final after = moved.state;
+  if (after.stepHints != 0 &&
+      _boardSteps.contains(s.step) &&
+      _boardSteps.contains(after.step) &&
+      specStepId(after.step) != specStepId(s.step)) {
+    // a new step: its own hint ladder, from its start rung
+    moved = (state: after.copyWith(stepHints: 0), decisions: moved.decisions);
+  }
   final accepted = !identical(moved.state, s) || moved.decisions.isNotEmpty;
   if (!accepted || moved.state.quietLevel == 0) return moved;
   return (
@@ -387,6 +407,8 @@ StepResult? _help(
   LessonInput input,
 ) {
   switch (input) {
+    case HintTaken() when pack.hintLadder.isNotEmpty:
+      return _nextRung(pack, s);
     case HintTaken():
       final used = s.hintsUsed + 1;
       final hints = pack.hintLineIds;
@@ -410,6 +432,26 @@ StepResult? _help(
       return null;
   }
 }
+
+/// The step's next rung on the policy ladder (TUT-04). Past the last, or
+/// on a step with no rung, show me how is offered and no hint is charged.
+StepResult _nextRung(Pack pack, LessonState s) {
+  final rungs = pack.rungsFor(specStepId(s.step));
+  if (s.stepHints >= rungs.length) {
+    return (state: s, decisions: const [SuggestShowMeHow()]);
+  }
+  final rung = rungs[s.stepHints];
+  return (
+    state: s.copyWith(hintsUsed: s.hintsUsed + 1, stepHints: s.stepHints + 1),
+    decisions: [ShowHint(rung.lineId, rung: rung)],
+  );
+}
+
+/// Whether a hint request on [step] gives a hint: false on a step with no
+/// rung (policy `steps_without_rung`), where Help me offers show me how
+/// and something easier instead.
+bool hasHint(Pack pack, LessonStep step) =>
+    pack.hintLadder.isEmpty || pack.rungsFor(specStepId(step)).isNotEmpty;
 
 StepResult _quiet(Pack pack, ComparisonProblem p, LessonState s, int ms) {
   if (!_boardSteps.contains(s.step)) return (state: s, decisions: const []);
@@ -686,6 +728,31 @@ Map<String, String> lineSlots(ComparisonProblem p) => {
   'u': p.unit,
   'rel': p.big == BigSide.a ? 'shorter' : 'taller',
 };
+
+/// The slots Julia's policy lines use (`{A}`, `{D}`, `{unit}`, `{kind}`,
+/// `{b_word}`, `{problem_name}`), for problem [p]. Kept apart from
+/// [lineSlots], which the engine's decisions carry.
+Map<String, String> policySlots(ComparisonProblem p) {
+  final a = p.a.name.toLowerCase(), b = p.b.name.toLowerCase();
+  final kind = a.split(' ').last == b.split(' ').last
+      ? a.split(' ').last
+      : 'one';
+  String title(String s) => [
+    for (final w in s.split(' '))
+      if (w.isNotEmpty) w[0].toUpperCase() + w.substring(1),
+  ].join(' ');
+  return {
+    'A': '${p.aValue}',
+    'D': '${p.diff}',
+    'unit': p.unit,
+    'kind': kind,
+    'b_word': p.big == BigSide.a ? 'shorter' : 'taller',
+    // the template's problem_name: "Tree Word Problem", "Bowl and Mug ..."
+    'problem_name':
+        '${kind == 'one' ? '${title(a)} and ${title(b)}' : title(kind)} '
+        'Word Problem',
+  };
+}
 
 const _boardSteps = {
   LessonStep.drawA,

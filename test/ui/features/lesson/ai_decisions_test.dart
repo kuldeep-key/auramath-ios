@@ -82,14 +82,15 @@ void main() {
   String line(String id) => samplePack().lines[id]!;
   List<String> names() => [for (final e in api.received) e.name];
 
-  test('on time: the server\'s hint shows in place of the rules\' line', () {
+  test('on time: the server\'s hint shows in place of the rules\' line; '
+      'find_unknown has no rung, so it offers show me how (TUT-04)', () {
     api.decideWith = (_) async => evaluator('hint');
     lesson((vm, time) {
       vm.send(const NumberEntered(300)); // the rules: "Not yet. Try ..."
       time.flushMicrotasks();
       expect(vm.thinking, isFalse);
-      expect(vm.state.hintsUsed, 1);
-      expect(vm.coachText, line('cmp.hint1').replaceAll('{a}', 'lemon tree'));
+      expect(vm.state.hintsUsed, 0);
+      expect(vm.coachText, line('cmp.showMeHow'));
       final opened = api.received.lastWhere((e) => e.name == 'help_opened');
       expect(opened.payload['trigger'], 'after_wrong');
       expect(vm.wobbles, 1); // the phone's own check, once
@@ -105,7 +106,7 @@ void main() {
       time.flushMicrotasks();
       expect(vm.state.step, LessonStep.findB);
       expect(vm.state.sideLessons, 0);
-      expect(vm.state.hintsUsed, 1);
+      expect(vm.coachText, line('cmp.showMeHow'));
       expect(
         api.received.lastWhere((e) => e.name == 'side_lesson_ended').payload,
         {'skill_id': 'arith.sub-3d-regroup', 'completed': false},
@@ -145,7 +146,8 @@ void main() {
           'show_me_how' => vm.showingExample,
           'easier' => vm.sessionId != 's1' || !vm.ready,
           'check_again' => vm.coachText == line('cmp.recheck'),
-          'hint' => vm.state.hintsUsed == 1,
+          // find_unknown has no rung: the ladder offers show me how
+          'hint' => vm.coachText == line('cmp.showMeHow'),
           'side_lesson' => vm.state.step == LessonStep.sideLesson,
           // shown by their own prompts (AI-09, AI-10); off here: the rules'
           _ => vm.coachText == line('cmp.tryAgain'),

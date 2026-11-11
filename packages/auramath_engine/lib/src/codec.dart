@@ -90,7 +90,11 @@ Map<String, Object?> decisionToJson(Decision d) => switch (d) {
   OpenRecheck() => {'type': 'openRecheck'},
   CheckOnePart() => {'type': 'checkOnePart'},
   DrawIt() => {'type': 'drawIt'},
-  ShowHint(:final lineId) => {'type': 'showHint', 'lineId': lineId},
+  ShowHint(:final lineId, :final rung) => {
+    'type': 'showHint',
+    'lineId': lineId,
+    'rungId': ?rung?.id,
+  },
   SuggestShowMeHow() => {'type': 'suggestShowMeHow'},
   SwitchProblem(:final problemId) => {
     'type': 'switchProblem',

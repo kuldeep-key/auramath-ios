@@ -62,6 +62,7 @@ class ComparisonTemplate {
     required this.version,
     required this.levels,
     required this.stories,
+    this.hintStart = const {},
   });
 
   factory ComparisonTemplate.fromYaml(String text) {
@@ -74,6 +75,11 @@ class ComparisonTemplate {
         for (final l in y['levels'] as YamlList)
           _level(l as YamlMap, (l['numbers'] as YamlMap?) ?? base),
       ],
+      hintStart: {
+        for (final st
+            in (y['steps'] as YamlList? ?? YamlList()).cast<YamlMap>())
+          if (st['hint_start_rung'] case final String rung) '${st['id']}': rung,
+      },
       stories: [
         for (final s in y['stories'] as YamlList)
           Story(
@@ -107,6 +113,9 @@ class ComparisonTemplate {
 
   final String id;
   final String version;
+
+  /// `steps[].hint_start_rung` by step id (TUT-04).
+  final Map<String, String> hintStart;
   final List<Level> levels;
   final List<Story> stories;
 
@@ -251,6 +260,7 @@ class Policy {
     this.forbiddenPhrases = const [],
     this.ageWordList,
     this.abandonAfterWrongPractice = 3,
+    this.hintLadder = const [],
   });
 
   factory Policy.fromYaml(String text) {
@@ -264,7 +274,19 @@ class Policy {
     final side = y['side_lessons'] as YamlMap;
     final story = y['story_generation'] as YamlMap?;
     final words = story?['age_word_list'];
+    final ladder = y['hint_ladder'] as YamlMap?;
     return Policy(
+      hintLadder: [
+        for (final r in (ladder?['rungs'] as List? ?? const []).cast<YamlMap>())
+          HintRung(
+            id: '${r['id']}',
+            step: '${r['step']}',
+            lineId: '${(r['lines'] as List).first}',
+            choice: [for (final c in r['choice'] as List? ?? const []) '$c'],
+            highlight: r['highlight'] as String?,
+            everydayExample: r['everyday_example'] == true,
+          ),
+      ],
       version: '${y['version'] ?? ''}',
       forbiddenPhrases: [
         for (final f
@@ -302,6 +324,9 @@ class Policy {
       practiceSums: side['practice_if_unsure'] as int? ?? 3,
     );
   }
+
+  /// `hint_ladder.rungs` (TUT-04), in order.
+  final List<HintRung> hintLadder;
 
   /// The policy file's own `version` (0.4.0 from spec pack v0.4).
   final String version;

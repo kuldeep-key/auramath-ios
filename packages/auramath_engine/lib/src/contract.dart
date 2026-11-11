@@ -257,17 +257,19 @@ List<SpecEvent> eventsFor(
       );
     case HintTaken(:final afterWrong):
       helpOpened(afterWrong: afterWrong);
-      out.add(
-        SpecEvent('hint_shown', {
-          'step_id': stepId,
-          'rung_id': 'H${after.hintsUsed}',
-          'line_id': switch (decisions.firstOrNull) {
-            ShowHint(:final lineId) => lineId,
-            _ => 'cmp.showMeHow',
-          },
-          'model_used': false,
-        }),
-      );
+      final hint = decisions.whereType<ShowHint>().firstOrNull;
+      // no rung on this step, or past the last: show me how is offered,
+      // and no hint was shown (TUT-04)
+      if (hint != null || after.hintsUsed != before.hintsUsed) {
+        out.add(
+          SpecEvent('hint_shown', {
+            'step_id': stepId,
+            'rung_id': hint?.rung?.id ?? 'H${after.hintsUsed}',
+            'line_id': hint?.lineId ?? 'cmp.showMeHow',
+            'model_used': false,
+          }),
+        );
+      }
     case ShowMeHowTaken(:final afterWrong):
       helpOpened(afterWrong: afterWrong);
       out.add(

@@ -8,6 +8,9 @@ abstract interface class PackSource {
 
   /// The spec pack's `tutor/policy.yaml`.
   Future<String> readPolicy();
+
+  /// The spec pack's comparison template, for its steps' hint start rungs.
+  Future<String> readTemplate();
 }
 
 /// The sample pack bundled with the app, until packs are downloaded; the
@@ -25,4 +28,9 @@ class AssetPackSource implements PackSource {
   Future<String> readPolicy() async =>
       served?.yamlOf('policy.yaml') ??
       await rootBundle.loadString('assets/spec/policy.yaml');
+
+  @override
+  Future<String> readTemplate() async =>
+      served?.yamlOf('comparison-two-step.yaml') ??
+      await rootBundle.loadString('assets/spec/comparison-two-step.yaml');
 }

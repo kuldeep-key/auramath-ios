@@ -140,6 +140,7 @@ class _BoardViewState extends State<BoardView> {
         if (vm.stillThere) _stillThere(l),
         if (_helpOpen)
           HelpSheet(
+            hint: vm.canHint,
             onClose: () => setState(() => _helpOpen = false),
             onChoose: (input) {
               setState(() => _helpOpen = false);

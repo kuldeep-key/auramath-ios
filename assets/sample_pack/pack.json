@@ -1,7 +1,6 @@
 {
   "version": "sample-1",
   "timers": {"pulseMs": 15000, "glowMs": 25000, "handMs": 40000, "stillMs": 60000},
-  "hints": ["cmp.hint1", "cmp.hint2", "cmp.hint3", "cmp.hint4", "cmp.hint5", "cmp.hint6"],
   "badges": {
     "tree": {"name": "Tree Detective", "says": "Cracked a tree case by drawing it."},
     "asker": {"name": "Brave Asker", "says": "Asked for help and kept going."}
@@ -33,12 +32,6 @@
     "cmp.twoBars": "We need two bars. Let us draw.",
     "cmp.takeYourTime": "Take your time.",
     "cmp.showMeHow": "Let's try a smaller one together.",
-    "cmp.hint1": "What height is the {a}?",
-    "cmp.hint2": "Make it reach {av} {u}.",
-    "cmp.hint3": "Good! Now what is the height of the {b}?",
-    "cmp.hint4": "Is the {b} taller or shorter?",
-    "cmp.hint5": "{d} taller or shorter?",
-    "cmp.hint6": "Sit with a grown-up and try it together.",
     "side.takeAcrossTen": "The ten splits into ten ones.",
     "side.addWithCarry": "Bundle ten ones into a ten, and carry it."
   },
