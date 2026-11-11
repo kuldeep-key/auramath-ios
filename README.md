@@ -99,6 +99,15 @@ test/                              unit, widget and screenshot tests
 
 The architecture is MVVM: views listen to `ChangeNotifier` view models, which call repositories. Navigation is `go_router`, with redirects for each role (no account, the child's own phone, a grown-up).
 
+## App links (PLAT-11)
+
+The emailed sign-in link is `https://auramath.net/parent#m=<token>`. With the app installed it opens the app on Verify; without it, the browser.
+
+- **iOS:** `ios/Runner/Runner.entitlements` claims `applinks:auramath.net`. iOS checks `https://auramath.net/.well-known/apple-app-site-association`, which the backend serves once `APPLE_APP_IDS` is `<TEAM_ID>.net.auramath.app`.
+- **Android:** the `autoVerify` intent filter in `AndroidManifest.xml` claims `https://auramath.net/parent`. Android checks `https://auramath.net/.well-known/assetlinks.json`, which the backend serves once `ANDROID_APP_LINKS` is `net.auramath.app=<SHA-256 of the release key>` (`keytool -list -v -keystore <your keystore>`). Add the Play App Signing key's SHA-256 too once Play signs the app.
+- Until those are set the files are a 404 and the link opens in the browser. `auramath://auth/verify?m=…` still works for dev.
+- Only `m=` (sign-in) links open in the app. The others on `/parent` (`v=`, `r=`, `i=`) go to the app's start, so the backend should claim only `#m=*` in its AASA components.
+
 ## Docs
 
 | Doc | What it covers |

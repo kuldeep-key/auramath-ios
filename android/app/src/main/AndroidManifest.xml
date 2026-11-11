@@ -27,14 +27,28 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- auramath://auth/verify?m=... : the emailed sign-in link (dev).
-                 Production adds an https App Link once the domain is live. -->
+            <!-- auramath://auth/verify?m=... : the emailed sign-in link (dev). -->
             <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="auramath" />
+            </intent-filter>
+            <!-- PLAT-11: https://auramath.net/parent#m=... opens the app (an
+                 App Link). Verified against
+                 https://auramath.net/.well-known/assetlinks.json, which the
+                 backend serves once ANDROID_APP_LINKS names this package and
+                 the release key's SHA-256 (it is a 404 until then, and the
+                 link opens the browser). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="auramath.net" />
+                <data android:path="/parent" />
+                <data android:pathPrefix="/parent/" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
