@@ -432,10 +432,11 @@ class SessionRepository {
         }
       }
     }
-    // ended by the server: a new session carries the case on, its board
-    // rebuilt from these events; nothing begun, it starts again from its
-    // question
-    if (await _db.isEnded(sessionId)) {
+    // ended (time up, or by the server): a new session carries the case
+    // on, its board rebuilt from these events; nothing begun, it starts
+    // again from its question
+    if (await _db.isEnded(sessionId) ||
+        events.any((e) => e.name == 'session_ended')) {
       final begun = inputsFrom(pack, problem, events).length > 1;
       return (
         problemId: problem.id,
