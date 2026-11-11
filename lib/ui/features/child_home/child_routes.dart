@@ -40,7 +40,8 @@ List<RouteBase> childRoutes(Deps deps) {
     account: deps.account,
   );
 
-  final moments = HomeMomentsSource(rewards: RewardsRepository(deps.client));
+  final rewards = RewardsRepository(deps.client);
+  final moments = HomeMomentsSource(rewards: rewards);
 
   Widget named(Widget Function(String? name) screen) => FutureBuilder(
     initialData: progress.cachedName,
@@ -127,9 +128,18 @@ List<RouteBase> childRoutes(Deps deps) {
     GoRoute(
       path: Paths.trail,
       builder: (_, _) => Loaded(
-        load: progress.trail,
-        builder: (t) =>
-            t.atTop ? const TrailTopScreen() : TrailScreen(here: t.here),
+        // REW-04: the server's trail (every phone the same), else this
+        // phone's
+        load: () async {
+          final id = deps.account.childId;
+          return (
+            local: await progress.trail(),
+            served: id == null ? null : await rewards.trail(id),
+          );
+        },
+        builder: (t) => (t.served?.atTop ?? t.local.atTop)
+            ? const TrailTopScreen()
+            : TrailScreen(here: t.local.here, served: t.served),
       ),
     ),
     GoRoute(path: Paths.trailTop, builder: (_, _) => const TrailTopScreen()),
