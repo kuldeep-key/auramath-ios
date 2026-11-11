@@ -676,5 +676,19 @@
   "lessonGrownUp": "Grown-up",
   "@lessonGrownUp": {"description": "DRAFT, for Julia (TUT-06): the label under the grown-up in the H1-6 picture."},
   "lessonYou": "You",
-  "@lessonYou": {"description": "DRAFT, for Julia (TUT-06): the label under the child in the H1-6 picture."}
+  "@lessonYou": {"description": "DRAFT, for Julia (TUT-06): the label under the child in the H1-6 picture."},
+  "lessonBarSenseLine": "A longer bar shows a bigger number.",
+  "@lessonBarSenseLine": {"description": "DRAFT, for Julia (TUT-17): bar-sense side lesson 1, from her slide 8 ('a longer bar represents a greater number'). Behind bar_sense_side_lessons."},
+  "lessonBarSenseAsk": "Which bar shows {n}?",
+  "@lessonBarSenseAsk": {"description": "DRAFT, for Julia (TUT-17): bar-sense lesson 1, the child taps the bar for the bigger number.", "placeholders": {"n": {"type": "int"}}},
+  "lessonStarsAsk": "Let's compare {a} stars and {b} stars. Which row has more?",
+  "@lessonStarsAsk": {"description": "DRAFT, for Julia (TUT-17): bar-sense lesson 2, her words 'Let's compare 3 stars and 5 stars', for a child still unsure after lesson 1.", "placeholders": {"a": {"type": "int"}, "b": {"type": "int"}}},
+  "lessonStarsRight": "Yes! More stars make a longer row. Back to the bars.",
+  "@lessonStarsRight": {"description": "DRAFT, for Julia (TUT-17): bar-sense lesson 2, after the right row; the bars question comes again."},
+  "lessonBarSenseRight": "Yes! The longer bar shows the bigger number.",
+  "@lessonBarSenseRight": {"description": "DRAFT, for Julia (TUT-17): bar-sense lesson 1, after the right bar; then back to the case."},
+  "lessonBarLabel": "Bar {n}",
+  "@lessonBarLabel": {"description": "DRAFT (TUT-17): what a screen reader says for each bar in the bar-sense lesson, by its place (1 or 2), so it doesn't say the number.", "placeholders": {"n": {"type": "int"}}},
+  "lessonStarRow": "Row {n}",
+  "@lessonStarRow": {"description": "DRAFT (TUT-17): what a screen reader says for each row in the stars lesson, by its place (1 or 2).", "placeholders": {"n": {"type": "int"}}}
 }

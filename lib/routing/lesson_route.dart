@@ -132,6 +132,7 @@ class _LessonRouteState extends State<_LessonRoute> {
               (age == null || flags.readAloudAges.contains(age)))
       ..readQuestionAloud = flags.on('read_question_aloud')
       ..readAloudFlag = flags.on('read_aloud')
+      ..barSenseLessons = flags.on('bar_sense_side_lessons')
       ..showBadges = flags.on('mastery_badges')
       ..selfRating = flags.on('self_rating')
       ..childQuestions = flags.on('child_questions')

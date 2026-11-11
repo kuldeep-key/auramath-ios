@@ -908,6 +908,11 @@ class LessonViewModel extends ChangeNotifier {
   /// own phone, or a grown-up's phone handed over.
   String launchSource = 'child_opened';
 
+  /// The flag `bar_sense_side_lessons` (TUT-17, tentative): the
+  /// wrong-way-round detour is Julia's bar-sense lessons, not the worked
+  /// example.
+  bool barSenseLessons = false;
+
   /// The flag `read_aloud`: with it on and read-aloud off for this child,
   /// the Sound screen asks once a sitting (NFR-06, journey 20).
   bool readAloudFlag = false;

@@ -1860,4 +1860,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonYou => 'You';
+
+  @override
+  String get lessonBarSenseLine => 'A longer bar shows a bigger number.';
+
+  @override
+  String lessonBarSenseAsk(int n) {
+    return 'Which bar shows $n?';
+  }
+
+  @override
+  String lessonStarsAsk(int a, int b) {
+    return 'Let\'s compare $a stars and $b stars. Which row has more?';
+  }
+
+  @override
+  String get lessonStarsRight =>
+      'Yes! More stars make a longer row. Back to the bars.';
+
+  @override
+  String get lessonBarSenseRight =>
+      'Yes! The longer bar shows the bigger number.';
+
+  @override
+  String lessonBarLabel(int n) {
+    return 'Bar $n';
+  }
+
+  @override
+  String lessonStarRow(int n) {
+    return 'Row $n';
+  }
 }

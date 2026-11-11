@@ -3273,6 +3273,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You'**
   String get lessonYou;
+
+  /// DRAFT, for Julia (TUT-17): bar-sense side lesson 1, from her slide 8 ('a longer bar represents a greater number'). Behind bar_sense_side_lessons.
+  ///
+  /// In en, this message translates to:
+  /// **'A longer bar shows a bigger number.'**
+  String get lessonBarSenseLine;
+
+  /// DRAFT, for Julia (TUT-17): bar-sense lesson 1, the child taps the bar for the bigger number.
+  ///
+  /// In en, this message translates to:
+  /// **'Which bar shows {n}?'**
+  String lessonBarSenseAsk(int n);
+
+  /// DRAFT, for Julia (TUT-17): bar-sense lesson 2, her words 'Let's compare 3 stars and 5 stars', for a child still unsure after lesson 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s compare {a} stars and {b} stars. Which row has more?'**
+  String lessonStarsAsk(int a, int b);
+
+  /// DRAFT, for Julia (TUT-17): bar-sense lesson 2, after the right row; the bars question comes again.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes! More stars make a longer row. Back to the bars.'**
+  String get lessonStarsRight;
+
+  /// DRAFT, for Julia (TUT-17): bar-sense lesson 1, after the right bar; then back to the case.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes! The longer bar shows the bigger number.'**
+  String get lessonBarSenseRight;
+
+  /// DRAFT (TUT-17): what a screen reader says for each bar in the bar-sense lesson, by its place (1 or 2), so it doesn't say the number.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar {n}'**
+  String lessonBarLabel(int n);
+
+  /// DRAFT (TUT-17): what a screen reader says for each row in the stars lesson, by its place (1 or 2).
+  ///
+  /// In en, this message translates to:
+  /// **'Row {n}'**
+  String lessonStarRow(int n);
 }
 
 class _AppLocalizationsDelegate

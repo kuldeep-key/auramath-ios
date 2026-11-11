@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../routing/paths.dart';
 
 import '../view_models/lesson_view_model.dart';
+import 'bar_sense_view.dart';
 import 'board_view.dart';
 import 'break_views.dart';
 import 'question_view.dart';
@@ -125,6 +126,12 @@ class LessonFlow extends StatelessWidget {
                               vm: vm,
                               onHome: vm.askBreak,
                             ),
+                            // bars the wrong way round, with the flag on:
+                            // Julia's bar-sense lessons (TUT-17, draft)
+                            LessonStep.sideLesson
+                                when vm.sideLesson == SideLesson.readRelation &&
+                                    vm.barSenseLessons =>
+                              BarSenseView(vm: vm, onHome: vm.askBreak),
                             // a detour on reading the story (TUT-08): the
                             // smaller worked example, then back
                             LessonStep.sideLesson
