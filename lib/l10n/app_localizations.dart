@@ -2764,6 +2764,30 @@ abstract class AppLocalizations {
   /// **'Your child never types personal details.'**
   String get setupDataFirstNameDetail;
 
+  /// DRAFT (ACC-10) for Legal and Julia: the processors, under D-15/D-50. Not final wording.
+  ///
+  /// In en, this message translates to:
+  /// **'Who helps us'**
+  String get setupDataHelpers;
+
+  /// DRAFT (ACC-10) for Legal and Julia. Names the model provider, the voice service and email, as ACC-10 asks. The email service is not chosen yet (BE-02).
+  ///
+  /// In en, this message translates to:
+  /// **'Google Cloud in Sydney runs Auramath, its AI model (Gemini) and its voice. An email service sends your sign-in emails and notes. They work only for us, and none of them gets a name.'**
+  String get setupDataHelpersDetail;
+
+  /// DRAFT (ACC-10) for Legal and Julia: her weekly summary during the home week.
+  ///
+  /// In en, this message translates to:
+  /// **'Julia sees how families are doing'**
+  String get setupDataJulia;
+
+  /// DRAFT (ACC-10) for Legal and Julia. Confirm what the summary holds and whether it names the child.
+  ///
+  /// In en, this message translates to:
+  /// **'During the home week, Julia, our teacher, gets a weekly summary of her families\' lessons.'**
+  String get setupDataJuliaDetail;
+
   /// No description provided for @setupDataDelete.
   ///
   /// In en, this message translates to:

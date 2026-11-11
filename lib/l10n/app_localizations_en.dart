@@ -1559,6 +1559,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your child never types personal details.';
 
   @override
+  String get setupDataHelpers => 'Who helps us';
+
+  @override
+  String get setupDataHelpersDetail =>
+      'Google Cloud in Sydney runs Auramath, its AI model (Gemini) and its voice. An email service sends your sign-in emails and notes. They work only for us, and none of them gets a name.';
+
+  @override
+  String get setupDataJulia => 'Julia sees how families are doing';
+
+  @override
+  String get setupDataJuliaDetail =>
+      'During the home week, Julia, our teacher, gets a weekly summary of her families\' lessons.';
+
+  @override
   String get setupDataDelete => 'Delete it any time';
 
   @override
