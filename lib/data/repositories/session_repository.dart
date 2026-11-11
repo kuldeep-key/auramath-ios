@@ -65,6 +65,10 @@ class SessionRepository {
   /// log). The lesson on it shows "we'll keep this for next time".
   final ended = ValueNotifier<String?>(null);
 
+  /// Why the server ended [ended]: `consent` when the family withdrew it,
+  /// so the lesson says lessons are paused.
+  String? endedWhy;
+
   /// The `child_ref` each open session's events carry, from the server.
   final Map<String, String> _childRefs = {};
 
@@ -300,6 +304,7 @@ class SessionRepository {
             }
             if (reply.ended != null) {
               await _db.markEnded(sessionId);
+              endedWhy = reply.ended;
               ended.value = sessionId;
             }
           }

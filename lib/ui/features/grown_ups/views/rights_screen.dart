@@ -171,8 +171,11 @@ class _RightsScreenState extends State<RightsScreen> {
             future: _consent,
             builder: (context, snap) {
               if (snap.hasError) {
+                // the fixed title, then the server's own reason
                 return ErrorNote(
-                  ApiException(l.guConsentError),
+                  ApiException(
+                    '${l.guConsentError}: ${ErrorNote.message(snap.error!)}',
+                  ),
                   onRetry: () =>
                       setState(() => _consent = widget.family.consent()),
                 );

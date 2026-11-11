@@ -83,7 +83,12 @@ class LessonFlow extends StatelessWidget {
         });
       }
       if (vm.endedByServer) {
-        return Scaffold(body: KeptForNextTimeView(onOk: onHome));
+        return Scaffold(
+          body: vm.pausedByConsent
+              // consent withdrawn mid-lesson, as at the start
+              ? LessonsPausedView(onOk: onHome)
+              : KeptForNextTimeView(onOk: onHome),
+        );
       }
       if (vm.timeUp) {
         return Scaffold(

@@ -197,6 +197,21 @@ void main() {
       expect(find.text('Ready. Tap to save it on this phone.'), findsOneWidget);
     });
 
+    testWidgets("a consent read that fails shows the server's reason", (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('GET /api/parent/consents', {
+        'error': 'no such family',
+      }, status: 404);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining("Couldn't check your consent: no such family"),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a failed export says so', (tester) async {
       final g = await Gu.make(tester);
       g.server.on('POST /api/parent/export-jobs', {
