@@ -229,8 +229,20 @@ void main() {
     expect(r.state.wrong, 1);
   });
 
-  test('know it is ignored on the question screen and when solved', () {
-    final s = initialState();
+  test('@LES-01 know it from the question itself (M0) solves as know', () {
+    final r = step(pack, lemon, initialState(), const KnowIt(265));
+    expect(r.state.step, LessonStep.solved);
+    expect(r.decisions.whereType<Solved>().single.by, SolvedBy.know);
+  });
+
+  test('@LES-01 not yet, from M0: the board opens to draw it', () {
+    final r = run(lemon, [const KnowIt(300), const PartChecked(107)]);
+    expect(r.decisions, contains(isA<DrawIt>()));
+    expect(r.state.step, LessonStep.drawA);
+  });
+
+  test('know it is ignored once solved', () {
+    final s = run(lemon, [const KnowIt(265)]).state;
     expect(step(pack, lemon, s, const KnowIt(265)).state, same(s));
   });
 

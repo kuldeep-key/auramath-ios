@@ -601,8 +601,9 @@ StepResult _move(
         [Coach('cmp.sideBack', slots)],
       );
 
+    // from the board, or from the question itself (M0, LES-01)
     case (_, KnowIt(:final value))
-        when _boardSteps.contains(s.step) &&
+        when (_boardSteps.contains(s.step) || s.step == LessonStep.question) &&
             (s.knowFlow == KnowFlow.none || s.knowFlow == KnowFlow.askingWhat):
       return _knowIt(p, s, value, maxSide);
 
