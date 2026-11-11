@@ -136,7 +136,7 @@ class ProgressRepository {
     if (_welcomed) return false;
     _welcomed = true;
     final next = await _sessions.whereNext(_pack);
-    return next?.resumeSessionId != null;
+    return next?.resumeSessionId != null || next?.carryFrom != null;
   }
 
   String? _name;

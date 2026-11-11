@@ -41,9 +41,13 @@ List<RouteBase> lessonRoutes(Deps deps) => [
           queryParameters: {if (elsewhere.isNotEmpty) 'device': elsewhere},
         ).toString();
       }
-      return resume == null
-          ? '${Paths.lesson(id)}?s=${const Uuid().v4()}'
-          : '${Paths.lesson(id)}?resume=$resume';
+      // a case whose session ended carries on in a new one (SES-01, SES-04)
+      final carry = next?.carryFrom;
+      return resume != null
+          ? '${Paths.lesson(id)}?resume=$resume'
+          : carry != null
+          ? '${Paths.lesson(id)}?s=${const Uuid().v4()}&carry=$carry'
+          : '${Paths.lesson(id)}?s=${const Uuid().v4()}';
     },
   ),
   GoRoute(
@@ -57,6 +61,7 @@ List<RouteBase> lessonRoutes(Deps deps) => [
         key: ValueKey(state.uri.toString()),
         problemId: state.pathParameters['problemId']!,
         resumeSessionId: state.uri.queryParameters['resume'],
+        carryFrom: state.uri.queryParameters['carry'],
         deps: deps,
       ),
     ),
@@ -70,12 +75,16 @@ class _LessonRoute extends StatefulWidget {
     required this.problemId,
     required this.resumeSessionId,
     required this.deps,
+    this.carryFrom,
   });
 
   final String problemId;
 
   /// Set when reopening a case that was left part way.
   final String? resumeSessionId;
+
+  /// Set when carrying on a case whose session ended (SES-01, SES-04).
+  final String? carryFrom;
   final Deps deps;
 
   @override
@@ -147,7 +156,8 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..launchSource = deps.account.role == Role.parent
           ? 'parent_handover'
           : 'child_opened'
-      ..biggerPad = prefs.biggerPad;
+      ..biggerPad = prefs.biggerPad
+      ..carryFrom = widget.carryFrom;
     widget.deps.sitting.useMinutes(prefs.minutes);
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
   }

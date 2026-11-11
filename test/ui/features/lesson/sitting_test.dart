@@ -67,6 +67,7 @@ void main() {
       problemId: 'lemon',
       resumeSessionId: 's1',
       startedOn: null,
+      carryFrom: null,
     ));
   });
 

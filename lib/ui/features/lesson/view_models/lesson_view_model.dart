@@ -216,7 +216,9 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
         }
         _p = await next(sessionId, level: _askLevel);
         _askLevel = null;
-      } else if (next != null && _sessions.checkDue(sessionId)) {
+      } else if (next != null &&
+          carryFrom == null &&
+          _sessions.checkDue(sessionId)) {
         // a case fetched ahead last session: the check due here comes first
         _p = await next(sessionId);
       }
@@ -241,6 +243,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
       problemShown(_problem),
     ];
     await _record(events);
+    await _carryOn();
   }
 
   /// The starting check's four sums (SKL-07), while a new child does them

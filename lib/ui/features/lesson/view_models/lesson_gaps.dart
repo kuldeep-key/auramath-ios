@@ -2,7 +2,8 @@ part of 'lesson_view_model.dart';
 
 /// The lesson's board and session parts closed after the PRD v4.1 audit,
 /// kept apart from the tutor's help so each can change on its own: the
-/// whole question on any working screen (LES-02).
+/// whole question on any working screen (LES-02); a case whose session
+/// ended carrying on in a new one (SES-01, SES-04).
 mixin _LessonGaps on ChangeNotifier {
   LessonViewModel get _vm => this as LessonViewModel;
 
@@ -31,6 +32,32 @@ mixin _LessonGaps on ChangeNotifier {
 
   void closeQuestion() {
     questionOpen = false;
+    notifyListeners();
+  }
+
+  /// The ended session (time up, or ended by the server) whose case this
+  /// lesson carries on: set by the route before [LessonViewModel.start].
+  String? carryFrom;
+
+  /// After the new session's `problem_shown`: links it to the ended one
+  /// and rebuilds the board from that session's events, through the
+  /// engine, so the child carries on at the same step (SES-01, SES-04).
+  Future<void> _carryOn() async {
+    final from = carryFrom;
+    final vm = _vm;
+    final sessionId = vm._sessionId;
+    if (from == null || sessionId == null || from == sessionId) return;
+    carryFrom = null;
+    await vm._sessions.carry(sessionId, from);
+    final (:events, lastSeq: _) = await vm._sessions.resume(sessionId);
+    vm._state = replay(
+      vm._pack,
+      vm._problem,
+      inputsFrom(vm._pack, vm._problem, events),
+    );
+    // the question was read last time: no reading time on this one
+    if (vm._state.step != LessonStep.question) vm._startedAt = vm._now();
+    vm._coach('cmp.welcomeBack', const {});
     notifyListeners();
   }
 }
