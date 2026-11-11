@@ -39,6 +39,67 @@ mixin _LessonGaps on ChangeNotifier {
   /// after it showed: logged once the case shows.
   int? chosenToday;
 
+  /// The flag `quick_sums`: once the starting check has placed a new child,
+  /// Choose today (LES-14) shows before the first case, the selector's
+  /// suggestion first.
+  bool chooseToday = false;
+
+  /// Choose today is showing, after the starting check: no case yet.
+  bool choosingToday = false;
+
+  /// The starting check ran in this lesson and placed the child.
+  bool _placed = false;
+
+  /// The selector suggests Quick sums today (`todaySuggestion`, LES-14).
+  bool get suggestQuickSums =>
+      suggestsQuickSums(_vm._sessions.todaySuggestion(_vm.sessionId));
+
+  /// True when Choose today shows now: just placed, and not already chosen
+  /// on the way in (Home's Choose today).
+  bool _offerToday() {
+    if (!chooseToday || !_placed || chosenToday != null) return false;
+    _placed = false;
+    choosingToday = true;
+    notifyListeners();
+    return true;
+  }
+
+  /// The story problem, picked [ms] after Choose today showed: the case at
+  /// the level the check placed the child at, the choice logged with it.
+  Future<void> chooseStory(int ms) {
+    choosingToday = false;
+    chosenToday = ms;
+    return _vm.start();
+  }
+
+  /// Quick sums, picked [ms] after Choose today showed: this session, which
+  /// holds the starting check, ends with the choice in it; Quick sums
+  /// opens its own.
+  Future<void> chooseQuickSums(int ms) async {
+    choosingToday = false;
+    final vm = _vm;
+    await vm._record([
+      SpecEvent('session_started', {
+        'launch_source': vm.launchSource,
+        'content_versions': vm._sessions.identity.contentVersions,
+        'is_demo': vm._sessions.identity.isDemo,
+      }),
+      SpecEvent('choice_selected', {
+        'step_id': 'choose_today',
+        'option_id': 'quick_sums',
+        'ms_from_step_start': ms,
+      }),
+      const SpecEvent('prompt_answered', {
+        'prompt': 'choose_today',
+        'choice': 'quick_sums',
+      }),
+      SpecEvent('session_ended', {
+        'reason': 'finished',
+        'active_ms': vm._sitting.activeMs,
+      }),
+    ]);
+  }
+
   /// After the new session's `problem_shown`: Choose today's choice, then
   /// a case carried on from an ended session.
   Future<void> _afterShown() async {

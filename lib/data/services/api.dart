@@ -77,6 +77,29 @@ typedef OpenCase = ({
   List<List<LessonEvent>> carried,
 });
 
+/// LES-14: what the selector suggests for today, from the skill memory
+/// (`todaySuggestion {skill, level, reason}`): an arithmetic skill
+/// (`arith.*`, an `A` level) is Quick sums; anything else, the story
+/// problem.
+typedef TodaySuggestion = ({String skill, String level, String reason});
+
+/// The server's [TodaySuggestion], or null when it sent none.
+TodaySuggestion? todaySuggestionFromJson(Object? j) {
+  if (j is! Map || j['skill'] is! String) return null;
+  return (
+    skill: j['skill'] as String,
+    level: j['level'] as String? ?? '',
+    reason: j['reason'] as String? ?? '',
+  );
+}
+
+/// Quick sums is the suggestion (LES-14): an arithmetic skill or level.
+bool suggestsQuickSums(TodaySuggestion? s) =>
+    s != null &&
+    (s.skill == 'quick_sums' ||
+        s.skill.startsWith('arith.') ||
+        RegExp(r'^A\d+$').hasMatch(s.level));
+
 /// A session the server just opened.
 typedef StartedSession = ({
   String sessionId,
@@ -105,6 +128,10 @@ typedef StartedSession = ({
   /// The sitting this lesson belongs to (the id of its first session),
   /// informational (PAR-01: one note per sitting).
   String? sittingId,
+
+  /// LES-14: the selector's suggestion for today; null from a server that
+  /// sends none (then the story problem comes first, as before).
+  TodaySuggestion? todaySuggestion,
 });
 
 /// The lesson's calls to the backend. Throws [ApiException] on any failure.

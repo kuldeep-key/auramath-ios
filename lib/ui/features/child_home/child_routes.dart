@@ -7,6 +7,7 @@ import '../../../data/repositories/partner_intro_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
 import '../../../data/repositories/rewards_repository.dart';
 import '../../../data/models/lesson_event.dart';
+import '../../../data/services/api.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
 import 'views/after_case_screen.dart';
@@ -196,7 +197,10 @@ List<RouteBase> childRoutes(Deps deps) {
       pageBuilder: (_, s) => MotionPage(
         key: s.pageKey,
         arrive: Arrive.fade,
-        child: const ChooseTodayScreen(),
+        // the selector's suggestion from the last session opened (LES-14)
+        child: ChooseTodayScreen(
+          suggestQuickSums: suggestsQuickSums(deps.sessions.lastSuggestion),
+        ),
       ),
     ),
     GoRoute(

@@ -113,6 +113,75 @@ void main() {
     expectContract(api.received);
   });
 
+  test('LES-14: with quick_sums on, Choose today follows the check; the '
+      'story problem is then the case at the placed level', () async {
+    final (vm, api) = await makeVm();
+    addTearDown(vm.dispose);
+    vm.chooseToday = true;
+    await vm.start();
+    for (final v in [83, 37, 400, 254]) {
+      await vm.answerStarting(v);
+    }
+    expect(vm.choosingToday, isTrue);
+    expect(vm.suggestQuickSums, isFalse, reason: 'no suggestion sent');
+    expect(api.asked, isEmpty, reason: 'no case before the choice');
+    await vm.chooseStory(1500);
+    expect(vm.choosingToday, isFalse);
+    expect(api.asked.single.$2, 'L3');
+    expect(vm.ready, isTrue);
+    final log = api.received.where((e) => e.sessionId == vm.sessionId);
+    expect(log.singleWhere((e) => e.name == 'choice_selected').payload, {
+      'step_id': 'choose_today',
+      'option_id': 'story_problem',
+      'ms_from_step_start': 1500,
+    });
+    expectContract(api.received);
+  });
+
+  test("LES-14: the server's suggestion of Quick sums comes first; chosen, "
+      'the check session ends with the choice in it', () async {
+    final (vm, api) = await makeVm();
+    addTearDown(vm.dispose);
+    api.todaySuggestion = (
+      skill: 'arith.addsub-2d-regroup',
+      level: 'A6',
+      reason: 'regrouping',
+    );
+    vm.chooseToday = true;
+    await vm.start();
+    for (final v in [83, 37, 400, 254]) {
+      await vm.answerStarting(v);
+    }
+    expect(vm.suggestQuickSums, isTrue);
+    expect(vm.sessions.lastSuggestion?.level, 'A6');
+    await vm.chooseQuickSums(900);
+    final log = api.received.where((e) => e.sessionId == vm.sessionId);
+    expect([for (final e in log) e.name].skip(4), [
+      'session_started',
+      'choice_selected',
+      'prompt_answered',
+      'session_ended',
+    ]);
+    expect(log.elementAt(5).payload['option_id'], 'quick_sums');
+    expect(api.asked, isEmpty, reason: 'no case: Quick sums is its own');
+    expectContract(api.received);
+  });
+
+  test('LES-14: chosen on the way in (Home), Choose today is not asked '
+      'again after the check', () async {
+    final (vm, api) = await makeVm();
+    addTearDown(vm.dispose);
+    vm
+      ..chooseToday = true
+      ..chosenToday = 700;
+    await vm.start();
+    for (final v in [83, 37, 400, 254]) {
+      await vm.answerStarting(v);
+    }
+    expect(vm.choosingToday, isFalse);
+    expect(vm.ready, isTrue);
+  });
+
   test('not due: straight to the case, no sums asked', () async {
     final (vm, api) = await makeVm(due: false);
     addTearDown(vm.dispose);

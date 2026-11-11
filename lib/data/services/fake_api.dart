@@ -38,8 +38,12 @@ class FakeApi implements Api {
       leftProblem: leftProblem,
       reviewDue: reviewDue,
       sittingId: sittingId ?? id,
+      todaySuggestion: todaySuggestion,
     );
   }
+
+  /// LES-14: the selector's suggestion, as every session says.
+  TodaySuggestion? todaySuggestion;
 
   /// TUT-08's review queue, as every session says.
   List<Map<String, Object?>> reviewDue = const [];

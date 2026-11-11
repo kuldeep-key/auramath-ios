@@ -120,6 +120,15 @@ class SessionRepository {
   String? sittingOf(String sessionId) => _sittings[sessionId];
   final Map<String, String> _sittings = {};
 
+  /// LES-14: the selector's suggestion for today with [sessionId]'s start
+  /// (`todaySuggestion`), if the server sent one.
+  TodaySuggestion? todaySuggestion(String sessionId) => _suggestions[sessionId];
+  final Map<String, TodaySuggestion> _suggestions = {};
+
+  /// The last suggestion any session opened with: Choose today from Home
+  /// or Welcome back, before a session is open, puts it first.
+  TodaySuggestion? lastSuggestion;
+
   /// The `child_ref` each open session's events carry, from the server.
   final Map<String, String> _childRefs = {};
 
@@ -154,6 +163,9 @@ class SessionRepository {
     if (s.leftProblem != null) _left[s.sessionId] = s.leftProblem!;
     if (s.reviewDue.isNotEmpty) _reviewDue[s.sessionId] = s.reviewDue;
     if (s.sittingId != null) _sittings[s.sessionId] = s.sittingId!;
+    if (s.todaySuggestion case final t?) {
+      _suggestions[s.sessionId] = lastSuggestion = t;
+    }
     return s.sessionId;
   }
 
@@ -430,6 +442,8 @@ class SessionRepository {
     _firstSeq.clear();
     _reviewDue.clear();
     _sittings.clear();
+    _suggestions.clear();
+    lastSuggestion = null;
     _easier.clear();
     for (final (pack, id) in _served) {
       pack.problems.remove(id);

@@ -215,6 +215,8 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
       if (_p == null && next != null) {
         // a new child's four starting sums come first (SKL-07)
         if (await _startingCheck(sessionId)) return;
+        // just placed: Choose today before the first case (LES-14)
+        if (_offerToday()) return;
         // a case left last time: offered back first (SES-06)
         final left = _sessions.leftProblem(_pack, sessionId);
         if (left != null) {
@@ -307,6 +309,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
       _sessions.failed(sessionId, 'starting check not sent: $e');
     }
     _startingChecked = true;
+    _placed = true;
     startingSums = const [];
     return false;
   }

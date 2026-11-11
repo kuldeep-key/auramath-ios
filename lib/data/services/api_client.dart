@@ -189,6 +189,7 @@ class HttpApi implements Api {
           if (r is Map) r.cast<String, Object?>(),
       ],
       sittingId: json['sittingId'] as String?,
+      todaySuggestion: todaySuggestionFromJson(json['todaySuggestion']),
     );
   }
 

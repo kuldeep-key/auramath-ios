@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../routing/paths.dart';
+import '../../child_home/views/choose_today_screen.dart';
 
 import '../view_models/lesson_view_model.dart';
 import 'bar_sense_view.dart';
@@ -57,6 +58,21 @@ class LessonFlow extends StatelessWidget {
               },
             ),
           ),
+        );
+      }
+      if (vm.choosingToday) {
+        // LES-14: the starting check just placed the child
+        return ChooseTodayScreen(
+          suggestQuickSums: vm.suggestQuickSums,
+          onStory: vm.chooseStory,
+          onQuick: (ms) async {
+            await vm.chooseQuickSums(ms);
+            if (context.mounted) context.go(Paths.quickSums);
+          },
+          onHome: () async {
+            await vm.leave();
+            onHome();
+          },
         );
       }
       if (!vm.ready) {
