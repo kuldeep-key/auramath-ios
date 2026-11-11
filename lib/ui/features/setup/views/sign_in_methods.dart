@@ -155,47 +155,97 @@ class _SignInMethodsState extends State<SignInMethods> {
   }
 }
 
-/// "Continue with Apple" in the app's own button (Apple allows a custom
-/// style): Apple's logo artwork, logo and title in the same colour, on
-/// white, as large as every other option (HIG, Sign in with Apple).
+/// Apple's own Sign in with Apple button (ACC-02, D-38: official buttons
+/// for store review), from `sign_in_with_apple`: the black style, Apple's
+/// logo and its "Continue with Apple" title, drawn by the package to the
+/// HIG. Taller than its 44 pt default and with the app's corners, which
+/// the HIG allows, so it lines up with the other options.
 class AppleButton extends StatelessWidget {
   const AppleButton({super.key, required this.onPressed});
 
   final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) => AuraButton(
-    label: AppLocalizations.of(context)!.setupContinueApple,
-    color: AuraButtonColor.white,
+  Widget build(BuildContext context) => SignInWithAppleButton(
+    key: const Key('appleSignIn'),
+    text: AppLocalizations.of(context)!.setupContinueApple,
+    height: 56,
+    borderRadius: BorderRadius.circular(AuraRadii.small),
     onPressed: onPressed,
-    leading: const ExcludeSemantics(
-      child: SizedBox(
-        // the logo's own proportions (25:31), sized to the label
-        width: 22 * 25 / 31,
-        height: 22,
-        child: CustomPaint(painter: AppleLogoPainter(color: AuraColors.navy)),
-      ),
-    ),
   );
 }
 
-/// "Continue with Google" in the app's own button (Google allows a custom
-/// button): the official full-colour "G", unchanged, on white.
+/// Google's "Continue with Google" button built to its branding
+/// guidelines (ACC-02, D-38; the Flutter plugin ships no button on
+/// iOS or Android): the light theme, a #FFFFFF fill with a 1 px #747775
+/// stroke, the standard full-colour "G" unchanged, then the label in
+/// Roboto Medium, #1F1F1F, the logo 12 from the left edge and 10 from the
+/// label. Scaled up evenly from the 40 dp spec to the other options'
+/// height, in the pill shape.
 class GoogleButton extends StatelessWidget {
   const GoogleButton({super.key, required this.onPressed});
 
   final VoidCallback? onPressed;
 
+  /// The spec's 40 dp button, scaled to 56.
+  static const _scale = 56 / 40;
+
   @override
-  Widget build(BuildContext context) => AuraButton(
-    label: AppLocalizations.of(context)!.setupContinueGoogle,
-    color: AuraButtonColor.white,
-    onPressed: onPressed,
-    leading: Image.asset(
-      'assets/images/google_g.png',
-      width: 22,
-      height: 22,
-      excludeFromSemantics: true,
-    ),
-  );
+  Widget build(BuildContext context) {
+    final label = AppLocalizations.of(context)!.setupContinueGoogle;
+    final enabled = onPressed != null;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: label,
+      excludeSemantics: true,
+      child: Opacity(
+        // the spec's disabled state: the whole button at 38%
+        opacity: enabled ? 1 : 0.38,
+        child: Material(
+          key: const Key('googleSignIn'),
+          color: const Color(0xFFFFFFFF),
+          shape: const StadiumBorder(
+            side: BorderSide(color: Color(0xFF747775)),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onPressed,
+            child: SizedBox(
+              height: 40 * _scale,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12 * _scale),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/google_g.png',
+                      width: 20 * _scale,
+                      height: 20 * _scale,
+                      excludeFromSemantics: true,
+                    ),
+                    const SizedBox(width: 10 * _scale),
+                    Flexible(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Roboto',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14 * _scale,
+                          height: 20 / 14,
+                          color: Color(0xFF1F1F1F),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

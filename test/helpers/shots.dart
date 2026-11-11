@@ -30,6 +30,10 @@ Future<void> loadAppFonts() async {
   final nunito = FontLoader('Nunito')
     ..addFont(rootBundle.load('assets/fonts/Nunito-Variable.ttf'));
   await nunito.load();
+  // Google's sign-in button's own font (ACC-02)
+  await (FontLoader(
+    'Roboto',
+  )..addFont(rootBundle.load('assets/fonts/Roboto-Medium.ttf'))).load();
   final flutterRoot =
       Platform.environment['FLUTTER_ROOT'] ??
       File(Platform.resolvedExecutable).parent.parent.parent.parent.parent.path;

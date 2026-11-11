@@ -54,3 +54,9 @@ flutter:
     - family: Nunito
       fonts:
         - asset: assets/fonts/Nunito-Variable.ttf
+    # Google's sign-in button must be Roboto Medium (ACC-02, D-38); iOS
+    # has no Roboto of its own
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 500
