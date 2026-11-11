@@ -171,6 +171,18 @@ class ProgressRepository {
   /// frame.
   String? get cachedName => _nameOf == _account.childId ? _name : null;
 
+  String? _avatar;
+
+  /// The active child's avatar (ACC-12) from the same read as
+  /// [cachedName], or one just picked; null while there is none.
+  String? get cachedAvatar => _nameOf == _account.childId ? _avatar : null;
+
+  /// The child just picked [avatar] (ACC-12): Home shows it at once.
+  void avatarPicked(String avatar) {
+    _nameOf = _account.childId;
+    _avatar = avatar;
+  }
+
   /// The active child's name (`/api/children`). Offline or on a server
   /// error, the last name read; Home shows no name rather than a wrong one.
   Future<String?> childName() async {
@@ -178,7 +190,9 @@ class ProgressRepository {
     try {
       final kids = await _family.children();
       _nameOf = id;
-      return _name = kids.where((c) => c.id == id).firstOrNull?.name;
+      final child = kids.where((c) => c.id == id).firstOrNull;
+      _avatar = child?.avatar;
+      return _name = child?.name;
     } on ApiException {
       return cachedName;
     }

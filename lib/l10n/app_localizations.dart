@@ -3526,6 +3526,24 @@ abstract class AppLocalizations {
   /// **'Back to my sums'**
   String get kidQuickSideBack;
 
+  /// DRAFT, for Julia (ACC-12, no Figma frame): the child's avatar picker's ribbon, and the name of the small avatar on Home that opens it.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your detective'**
+  String get kidPickAvatar;
+
+  /// DRAFT, for Julia (ACC-12): saves the avatar the child picked.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s me!'**
+  String get kidPickAvatarSave;
+
+  /// DRAFT, for Julia (ACC-12): the avatar couldn't be saved (offline, or the server said no).
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t save. Check the internet and tap again.'**
+  String get kidPickAvatarFailed;
+
   /// DRAFT, for Julia (LES-16): after the run of five. No score or count.
   ///
   /// In en, this message translates to:

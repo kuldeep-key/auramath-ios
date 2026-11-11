@@ -18,6 +18,7 @@ import 'views/choose_today_screen.dart';
 import 'views/home_moments.dart';
 import 'views/home_screen.dart';
 import 'views/meet_partner_screen.dart';
+import 'views/pick_avatar_screen.dart';
 import 'views/loaded.dart';
 import 'views/trail_screen.dart';
 import 'views/trail_top_screen.dart';
@@ -88,6 +89,7 @@ List<RouteBase> childRoutes(Deps deps) {
                 trail: deps.flags.on('trail'),
                 badges: deps.flags.on('mastery_badges'),
                 moment: moment,
+                avatar: progress.cachedAvatar,
                 // Choose today first, with Quick sums on (LES-14)
                 play: deps.flags.on('quick_sums')
                     ? Paths.chooseToday
@@ -190,6 +192,28 @@ List<RouteBase> childRoutes(Deps deps) {
       ),
     ),
     GoRoute(path: Paths.trailTop, builder: (_, _) => const TrailTopScreen()),
+    GoRoute(
+      path: Paths.avatar,
+      pageBuilder: (_, s) => MotionPage(
+        key: s.pageKey,
+        arrive: Arrive.rise,
+        child: PickAvatarScreen(
+          current: progress.cachedAvatar,
+          // ACC-12: the child's own phone uses its device token's route
+          // (BE-20); a grown-up's phone edits the child as ever
+          onSave: (avatar) async {
+            final id = deps.account.childId;
+            if (id == null) return;
+            if (deps.account.role == Role.device) {
+              await deps.family.setAvatar(id, avatar);
+            } else {
+              await deps.family.editChild(id, {'avatar': avatar});
+            }
+            progress.avatarPicked(avatar);
+          },
+        ),
+      ),
+    ),
     GoRoute(path: Paths.check, builder: (_, _) => const CheckScreen()),
     GoRoute(
       path: Paths.chooseToday,

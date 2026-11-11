@@ -97,4 +97,5 @@ bool _needsChild(String loc) =>
     loc == Paths.meetPartner ||
     loc == Paths.afterCase ||
     loc == Paths.chooseToday ||
-    loc == Paths.quickSums;
+    loc == Paths.quickSums ||
+    loc == Paths.avatar;

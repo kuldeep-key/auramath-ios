@@ -59,6 +59,9 @@ abstract final class Paths {
   static const chooseToday = '/today'; // A3, Figma 4.2 (LES-14)
   static const quickSums = '/quick-sums'; // no Figma frame yet (LES-16)
 
+  /// The child picks their detective (ACC-12). No Figma frame: DRAFT.
+  static const avatar = '/avatar';
+
   /// The case partner's first meeting (AI-07), before a child's first
   /// lesson. Not in Figma.
   static const meetPartner = '/meet';

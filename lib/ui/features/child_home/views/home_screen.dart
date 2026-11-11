@@ -6,6 +6,7 @@ import '../../../../routing/paths.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
+import '../../../core/parts/avatar.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'play_icon_button.dart';
@@ -21,7 +22,12 @@ class HomeScreen extends StatelessWidget {
     this.badges = true,
     this.play = Paths.lessonNext,
     this.moment,
+    this.avatar,
   });
+
+  /// The detective the child picked (ACC-12); the portrait until then. The
+  /// small one opens the picker.
+  final String? avatar;
 
   /// The child's name; null shows the portrait alone.
   final String? name;
@@ -52,7 +58,21 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.only(top: 4),
         child: Row(
           children: [
-            const Portrait(size: 52),
+            Tooltip(
+              message: l.kidPickAvatar,
+              child: Semantics(
+                button: true,
+                child: GestureDetector(
+                  key: const Key('pickAvatar'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => context.push(Paths.avatar),
+                  child: SizedBox.square(
+                    dimension: 56,
+                    child: AvatarDisc(avatar: avatar, size: 52),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -73,7 +93,9 @@ class HomeScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         spacing: moment == null ? 32 : 16,
         children: [
-          Float(child: Portrait(size: moment == null ? 210 : 120)),
+          Float(
+            child: AvatarDisc(avatar: avatar, size: moment == null ? 210 : 120),
+          ),
           ?moment,
           Ribbon(text: l.readyForNewCase),
         ],

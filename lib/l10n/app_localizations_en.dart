@@ -2011,6 +2011,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidQuickSideBack => 'Back to my sums';
 
   @override
+  String get kidPickAvatar => 'Pick your detective';
+
+  @override
+  String get kidPickAvatarSave => 'That\'s me!';
+
+  @override
+  String get kidPickAvatarFailed =>
+      'That didn\'t save. Check the internet and tap again.';
+
+  @override
   String get kidQuickDone => 'Quick sums done!';
 
   @override

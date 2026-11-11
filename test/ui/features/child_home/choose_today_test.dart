@@ -1,5 +1,6 @@
 import 'package:auramath/ui/core/parts/aura_button.dart';
 import 'package:auramath/ui/features/child_home/views/choose_today_screen.dart';
+import 'package:auramath/ui/features/child_home/views/pick_avatar_screen.dart';
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
 import 'package:auramath/ui/features/lesson/view_models/sitting.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +42,14 @@ void main() {
     await tester.tap(find.text('A story problem'));
     await tester.pumpAndSettle();
     expect(find.textContaining('went to /lesson?ms='), findsOneWidget);
+  });
+
+  testWidgets('ACC-12: the avatar picker fits every size', (tester) async {
+    await shots(
+      tester,
+      'child_home_pick_avatar',
+      PickAvatarScreen(current: 'map', onSave: (_) async {}),
+    );
   });
 
   test('the story problem chosen is logged in its session', () async {
