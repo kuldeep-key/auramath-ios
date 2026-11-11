@@ -769,9 +769,21 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
         op: e.name == 'step_committed' ? op : null,
       );
     }
-    // the server is deciding this step's help, or a side lesson is open
-    if (due == null || _held != null || !_onBoard) return;
-    if (_state.sideLessons >= _pack.maxSideLessons) return;
+    if (due == null) return;
+    // the server is deciding this step's help: it opens once that's shown
+    if (_held != null) {
+      _repeatDue = (kind: due, problemId: _problem.id);
+      return;
+    }
+    await _openRepeat(due);
+  }
+
+  /// A repeat side lesson due while the server decided a step's help.
+  ({SideLesson kind, String problemId})? _repeatDue;
+
+  Future<void> _openRepeat(SideLesson due) async {
+    // a side lesson is open, or the session's are used up
+    if (!_onBoard || _state.sideLessons >= _pack.maxSideLessons) return;
     await send(SideLessonChosen(due));
   }
 
@@ -849,9 +861,20 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     });
   }
 
-  /// Shows the held step's help: the server's [ai] choice where it differs
-  /// from the rules' and this app can show it, else the rules' own.
+  /// Shows the held step's help, then a repeat side lesson that came due
+  /// meanwhile, if the case is still on its board.
   Future<void> _settle(AiChoice? ai) async {
+    await _showHeld(ai);
+    final due = _repeatDue;
+    _repeatDue = null;
+    if (due != null && _p?.id == due.problemId && _held == null) {
+      await _openRepeat(due.kind);
+    }
+  }
+
+  /// The held step's help: the server's [ai] choice where it differs from
+  /// the rules' and this app can show it, else the rules' own.
+  Future<void> _showHeld(AiChoice? ai) async {
     final held = _held!;
     _held = null;
     held.cue?.cancel();
