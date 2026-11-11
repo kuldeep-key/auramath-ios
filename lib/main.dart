@@ -52,6 +52,12 @@ Future<void> main() async {
   );
   account.client = client;
   await account.load();
+  // AUR-34: lessons go with the child's device token once paired
+  final lessonClient = ApiClient(
+    baseUrl: Env.apiBase,
+    bearer: () => account.lessonBearer,
+    onUnauthorized: account.lessonUnauthorized,
+  );
 
   final errors = ErrorReporter(
     client,
@@ -132,7 +138,9 @@ Future<void> main() async {
   );
   final sessions = SessionRepository(
     db: db,
-    api: HttpApi(client),
+    api: HttpApi(lessonClient),
+    // the paired device's id from pairing on, no restart needed (AUR-34)
+    deviceId: () => account.deviceRef,
     identity: (
       deviceId: account.deviceRef,
       appVersion: Env.appVersion,

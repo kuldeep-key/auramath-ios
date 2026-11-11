@@ -86,6 +86,11 @@ class AccountRepository extends ChangeNotifier {
 
   String? get bearer => _parentToken ?? _deviceToken;
 
+  /// The token lessons go with (AUR-34): the child's device token once the
+  /// phone is paired, even with a grown-up signed in on it, so the lesson
+  /// is the child's phone's (DEV-04); else the grown-up's.
+  String? get lessonBearer => _deviceToken ?? _parentToken;
+
   /// The child learning on this phone, once chosen.
   String? get childId => _childId;
 
@@ -254,6 +259,14 @@ class AccountRepository extends ChangeNotifier {
       _grownUpsUnlocked = false;
       _store.write('parentToken', null);
     }
+    notifyListeners();
+  }
+
+  /// A 401 on a lesson call (AUR-34): with a device token that was it, so
+  /// the phone was removed; the grown-up stays signed in.
+  void lessonUnauthorized() {
+    if (_deviceToken == null) return unauthorized();
+    _removed = true;
     notifyListeners();
   }
 

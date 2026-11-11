@@ -37,12 +37,19 @@ class SessionRepository {
     this.template,
     String Function()? newId,
     int Function()? nowMs,
+    this._deviceId,
   }) : _newId = newId ?? const Uuid().v4,
        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch);
 
   final OutboxDb _db;
   final Api _api;
   final Identity identity;
+
+  /// This phone as events name it now (AUR-34): pairing changes it from
+  /// the install's id to the paired device's, without a restart. Else
+  /// [identity]'s.
+  final String Function()? _deviceId;
+  String get deviceId => _deviceId?.call() ?? identity.deviceId;
   final String Function() _newId;
   final int Function() _now;
 
@@ -204,7 +211,7 @@ class SessionRepository {
       at: _now(),
       name: 'session_resumed',
       childRef: last.childRef,
-      deviceId: identity.deviceId,
+      deviceId: deviceId,
       appVersion: identity.appVersion,
       payload: const {},
     );
@@ -396,7 +403,7 @@ class SessionRepository {
           at: at,
           name: e.name,
           childRef: childRef,
-          deviceId: identity.deviceId,
+          deviceId: deviceId,
           appVersion: identity.appVersion,
           payload: e.payload,
         ),
@@ -468,7 +475,7 @@ class SessionRepository {
           at: w.at,
           name: w.event.name,
           childRef: childRef,
-          deviceId: identity.deviceId,
+          deviceId: deviceId,
           appVersion: identity.appVersion,
           payload: w.event.payload,
         ),
