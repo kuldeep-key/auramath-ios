@@ -362,7 +362,7 @@ class GrownUpRepository {
     }
   }
 
-  /// `each_session`, `weekly` or `off` (PAR-06). This is the report email:
+  /// `each`, `weekly` or `off` (PAR-06). This is the report email:
   /// there is no push service.
   Future<void> setReportFrequency(String frequency) =>
       _client.put('/api/family/settings/reports', {'frequency': frequency});

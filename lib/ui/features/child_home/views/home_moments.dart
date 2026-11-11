@@ -35,7 +35,10 @@ class HomeMomentsSource {
       badge = (
         sessionId: lastStop.sessionId,
         reason: lastStop.reason,
-        served: await rewards.sessionBadge(lastStop.sessionId),
+        served: await rewards.sessionBadge(
+          lastStop.sessionId,
+          childId: childId,
+        ),
       );
     }
     // REW-05 (flag streak_moment): the server counts the days, in the

@@ -35,19 +35,33 @@ void main() {
   });
 
   group('REW-04: the trail the server serves', () {
-    final served = RewardsRepository.trailFrom({
-      'stops': [
-        for (final (i, n) in [
-          'Cave',
-          'Bridge',
-          'Lighthouse',
-          'Tower',
-          'Peak',
-        ].indexed)
-          {'id': 'stop-$i', 'name': n, 'skillId': 'cmp.compare-bars'},
+    Map<String, Object?> served5(List<String> states) => {
+      'questionTypes': [
+        {
+          'templateId': 'cmp.comparison',
+          'skill': 'cmp.compare-bars',
+          'stops': [
+            for (final (i, n) in [
+              'Cave',
+              'Bridge',
+              'Lighthouse',
+              'Tower',
+              'Peak',
+            ].indexed)
+              {
+                'stopId': 'cmp.comparison.L${i + 1}',
+                'level': 'L${i + 1}',
+                'name': n,
+                'state': states[i],
+              },
+          ],
+        },
       ],
-      'here': 'stop-2',
-    })!;
+      'draftNames': true,
+    };
+    final served = RewardsRepository.trailFrom(
+      served5(['passed', 'passed', 'here', 'next', 'mist']),
+    )!;
 
     testWidgets('fits every size', (tester) async {
       await shots(
@@ -70,17 +84,18 @@ void main() {
       expect(find.text('Tree cases'), findsNothing);
     });
 
-    test('read loosely: an index, or nothing usable', () {
-      final t = RewardsRepository.trailFrom({
-        'stops': [
-          {'id': 'a', 'name': 'A'},
-          {'id': 'b', 'name': 'B'},
-        ],
-        'here': 9,
-        'at_top': true,
-      })!;
-      expect((t.here, t.atTop), (1, true));
-      expect(RewardsRepository.trailFrom({'stops': <Object>[]}), isNull);
+    test('the comparison type, its here; all passed is the top; nothing '
+        'usable is null', () {
+      expect((served.here, served.atTop), (2, false));
+      expect(served.stops.first.skillId, 'cmp.compare-bars');
+      final top = RewardsRepository.trailFrom(
+        served5(List.filled(5, 'passed')),
+      )!;
+      expect((top.here, top.atTop), (4, true));
+      expect(
+        RewardsRepository.trailFrom({'questionTypes': <Object>[]}),
+        isNull,
+      );
       expect(RewardsRepository.trailFrom(null), isNull);
     });
   });

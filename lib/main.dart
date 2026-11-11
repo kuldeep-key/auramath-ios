@@ -124,6 +124,7 @@ Future<void> main() async {
   // bundled (PLAT-04); the template's comes with each problem
   final versions = contentVersions(
     served: bundle.yamlOf,
+    held: bundle.contentVersions,
     bundled: {
       for (final name in ['app-config', 'policy', 'skill-map'])
         '$name.yaml': await rootBundle.loadString('assets/spec/$name.yaml'),

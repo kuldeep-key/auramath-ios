@@ -1,4 +1,3 @@
-import '../services/api.dart';
 import '../services/api_client.dart';
 
 /// How often the report email goes (PAR-05, PAR-06). There is no push
@@ -10,9 +9,9 @@ enum ReportFrequency {
 
   bool get on => this != off;
 
-  /// What the server says, read loosely: `each_session` today, `each` in
-  /// the newer wording; a plain on/off answer counts too. Null when it
-  /// is something this build doesn't know.
+  /// What the server says, read loosely: its GET gives back what it
+  /// stored, `each_session`, for `each`; a plain on/off answer counts
+  /// too. Null when it is something this build doesn't know.
   static ReportFrequency? parse(Object? json) {
     if (json is Map) {
       final f = json['frequency'] ?? json['reportFrequency'];
@@ -44,21 +43,15 @@ class ReportEmailRepository {
   Future<ReportFrequency?> frequency() async =>
       ReportFrequency.parse(await _client.get(_path));
 
-  /// Sends `each_session`, `weekly` or `off`. A server that refuses
-  /// `each_session` as a bad value (400/422) gets the newer `each`.
-  Future<void> setFrequency(ReportFrequency f) async {
-    final wire = switch (f) {
-      ReportFrequency.each => 'each_session',
-      ReportFrequency.weekly => 'weekly',
-      ReportFrequency.off => 'off',
-    };
-    try {
-      await _client.put(_path, {'frequency': wire});
-    } on ApiException catch (e) {
-      if (f != ReportFrequency.each || (e.status != 400 && e.status != 422)) {
-        rethrow;
-      }
-      await _client.put(_path, {'frequency': 'each'});
-    }
-  }
+  /// Sends `each`, `weekly` or `off` (the backend's PUT body; 204).
+  Future<void> setFrequency(ReportFrequency f) =>
+      _client.put(_path, {'frequency': f.wire});
+}
+
+extension on ReportFrequency {
+  String get wire => switch (this) {
+    ReportFrequency.each => 'each',
+    ReportFrequency.weekly => 'weekly',
+    ReportFrequency.off => 'off',
+  };
 }

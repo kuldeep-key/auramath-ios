@@ -51,10 +51,12 @@ class SessionNote {
 /// The last few session notes for a child (PAR-12), behind the
 /// `recent_notes_in_app` flag.
 ///
-/// Asks `GET /api/children/{id}/notes/recent?limit=5` (the backend's
-/// last-five route, shape not final: `{"notes": [...]}` or a bare list).
-/// A server without that route (404) is answered from the routes that
-/// exist: the progress list, then each session's summary.
+/// Asks `GET /api/family/notes?childId={id}&limit=5` (the backend's
+/// PAR-12 route): `{"notes": [{sessionId, childId, childName, startedAt,
+/// endedAt, sentences: [{part, text, eventIds, claimIds}], delivery}]}`,
+/// newest first, finished lessons only. An older server without that
+/// route (404) is answered from the progress list, then each session's
+/// summary.
 class RecentNotesRepository {
   RecentNotesRepository(this._client, this._grownUps);
 
@@ -66,8 +68,8 @@ class RecentNotesRepository {
   Future<List<SessionNote>> recent(String childId) async {
     try {
       final j = await _client.get(
-        '/api/children/$childId/notes/recent',
-        query: {'limit': '$limit'},
+        '/api/family/notes',
+        query: {'childId': childId, 'limit': '$limit'},
       );
       final list = j is Map ? (j['notes'] ?? j['items']) : j;
       return [

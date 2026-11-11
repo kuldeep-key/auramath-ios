@@ -21,7 +21,8 @@ void main() {
           : http.Response(
               '{"files":{"content/app-config.yaml":'
               '{"session":{"cap_minutes":20},"flags":{"trail":true}}},'
-              '"praise":{"line.praise.solved":"You solved the {problem_name}!"}}',
+              '"praise":{"line.praise.solved":"You solved the {problem_name}!"},'
+              '"contentVersions":{"scoring":"0.4.0","template.cmp":"0.4.0"}}',
               200,
               headers: {'etag': '"v1"'},
             );
@@ -45,5 +46,7 @@ void main() {
     expect(next.praise, {
       'line.praise.solved': 'You solved the {problem_name}!',
     });
+    // PLAT-04: the server's versions, kept with the copy
+    expect(next.contentVersions, {'scoring': '0.4.0', 'template.cmp': '0.4.0'});
   });
 }

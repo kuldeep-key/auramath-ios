@@ -19,14 +19,41 @@ void main() {
 
     test('the server names it; it shows once per session', () async {
       final (m, server) = await source();
-      server.on('GET /api/sessions/s1/badge', {
-        'badge': {'id': 'tree', 'name': 'Tree Word Problem', 'kind': 'session'},
+      server.on('GET /api/children/c1/rewards', {
+        'sessionBadges': [
+          {
+            'badgeId': 'session.solved.mango',
+            'kind': 'session',
+            'name': 'Mango Word Problem',
+            'for': 'solved',
+            'draftName': true,
+            'sessionId': 's0',
+            'awardedAt': 1,
+          },
+          {
+            'badgeId': 'session.worked_on.tree-word-problem-explorer',
+            'kind': 'session',
+            'name': 'Tree Word Problem Explorer',
+            'for': 'worked_on',
+            'draftName': true,
+            'sessionId': 's1',
+            'awardedAt': 2,
+          },
+        ],
+        'trail': null,
+        'streak': null,
+        'levelBadges': null,
+        'draft': true,
       });
       const stop = (sessionId: 's1', reason: 'time_up');
-      final first = await m.next(lastStop: stop);
-      expect(first.badge!.served!.name, 'Tree Word Problem');
-      expect((await m.next(lastStop: stop)).badge, isNull);
-      expect((await m.next(lastStop: null)).badge, isNull);
+      final first = await m.next(lastStop: stop, childId: 'c1');
+      expect(first.badge!.served!.name, 'Tree Word Problem Explorer');
+      expect(
+        first.badge!.served!.id,
+        'session.worked_on.tree-word-problem-explorer',
+      );
+      expect((await m.next(lastStop: stop, childId: 'c1')).badge, isNull);
+      expect((await m.next(lastStop: null, childId: 'c1')).badge, isNull);
     });
 
     test('no server badge yet: still a badge, never zero', () async {
@@ -71,7 +98,14 @@ void main() {
     test('only with the flag, when the server says, once a day', () async {
       final (deps, server) = await testDeps();
       final m = HomeMomentsSource(rewards: RewardsRepository(deps.client));
-      server.on('GET /api/children/c1/streak', {'show': true});
+      Map<String, Object?> rewards({required bool show}) => {
+        'sessionBadges': null,
+        'trail': null,
+        'streak': {'show': show, 'band': show ? '2' : null},
+        'levelBadges': null,
+        'draft': true,
+      };
+      server.on('GET /api/children/c1/rewards', rewards(show: true));
       final monday = DateTime(2026, 11, 9, 16);
       Future<bool> visit({bool on = true, DateTime? at}) async => (await m.next(
         lastStop: null,
@@ -83,7 +117,7 @@ void main() {
       expect(await visit(), isTrue);
       expect(await visit(), isFalse); // once that day
       expect(await visit(at: monday.add(const Duration(days: 1))), isTrue);
-      server.on('GET /api/children/c1/streak', {'show': false});
+      server.on('GET /api/children/c1/rewards', rewards(show: false));
       expect(await visit(at: monday.add(const Duration(days: 3))), isFalse);
     });
 
@@ -109,6 +143,27 @@ void main() {
       expect(find.textContaining('Back on the case again'), findsOneWidget);
       expect(find.textContaining(RegExp(r'\d')), findsNothing);
     });
+  });
+
+  test('REW-06: the level badges the server says were earned', () async {
+    final (deps, server) = await testDeps();
+    server.on('GET /api/children/c1/rewards', {
+      'levelBadges': [
+        {
+          'badgeId': 'level.cmp.comparison.l1',
+          'kind': 'skill_mastered',
+          'name': 'Level 1 passed',
+          'questionType': 'cmp.comparison',
+          'level': 'L1',
+          'sessionId': 's1',
+          'draftName': true,
+        },
+      ],
+    });
+    final badges = await RewardsRepository(deps.client).levelBadges('c1');
+    expect(badges.map((b) => (b.id, b.name)), [
+      ('level.cmp.comparison.l1', 'Level 1 passed'),
+    ]);
   });
 
   test('a served badge without a name is not used', () {

@@ -40,6 +40,16 @@ class ContentBundle {
       if (value is String) '$key': value,
   };
 
+  /// The bundle's `contentVersions` (PLAT-04): the server's version of
+  /// each content file by the names `session_started.content_versions`
+  /// uses (app-config, policy, skill-map, arithmetic, scoring,
+  /// line-library, `template.<id>`); empty until a copy is held.
+  Map<String, String> get contentVersions => {
+    for (final MapEntry(:key, :value)
+        in ((_saved?['contentVersions'] as Map?) ?? const {}).entries)
+      if (value is String) '$key': value,
+  };
+
   /// Asks for a newer copy (needs a token). 304 keeps this one; a failure
   /// is logged and keeps it too: no screen waits on content.
   Future<void> refresh() async {
@@ -54,6 +64,7 @@ class ContentBundle {
         'etag': r.etag,
         'files': json['files'],
         'praise': ?json['praise'],
+        'contentVersions': ?json['contentVersions'],
       };
       await _file.writeAsString(jsonEncode(_saved));
     } on ApiException catch (e) {

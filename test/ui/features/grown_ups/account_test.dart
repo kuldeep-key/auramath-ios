@@ -105,7 +105,7 @@ void main() {
       await tester.tap(find.text('Yes please'));
       await tester.pumpAndSettle();
       expect(g.bodyOf('PUT /api/family/settings/reports'), {
-        'frequency': 'each_session',
+        'frequency': 'each',
       });
       expect(find.text('went to ${Paths.grownUps}'), findsOneWidget);
     });

@@ -17,20 +17,23 @@ void main() {
     }
   });
 
-  test('sends each_session; a server that refuses it gets each', () async {
+  test('sends each, weekly and off as the backend names them, once each; '
+      'reads back the each_session it stored', () async {
     final (deps, server) = await testDeps();
     final repo = ReportEmailRepository(deps.client);
-    server.routes['PUT /api/family/settings/reports'] = (body) =>
-        body['frequency'] == 'each_session'
-        ? (422, {'error': 'frequency: not one of off, each, weekly'})
-        : (204, null);
-    await repo.setFrequency(ReportFrequency.each);
+    server
+      ..on('PUT /api/family/settings/reports', null, status: 204)
+      ..on('GET /api/family/settings/reports', {'frequency': 'each_session'});
+    for (final f in ReportFrequency.values) {
+      await repo.setFrequency(f);
+    }
     expect(
       [
         for (final (c, b) in server.calls)
           if (c == 'PUT /api/family/settings/reports') b['frequency'],
       ],
-      ['each_session', 'each'],
+      ['each', 'weekly', 'off'],
     );
+    expect(await repo.frequency(), ReportFrequency.each);
   });
 }

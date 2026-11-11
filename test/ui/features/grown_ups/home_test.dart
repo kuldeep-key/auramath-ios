@@ -129,7 +129,7 @@ void main() {
       tester,
     ) async {
       final g = await Gu.make(tester);
-      g.server.on('GET /api/children/child-1/notes/recent', {
+      g.server.on('GET /api/family/notes', {
         'notes': [
           for (var i = 0; i < 7; i++)
             {
@@ -146,6 +146,12 @@ void main() {
       expect(find.text('Note 0.'), findsOneWidget);
       expect(find.text('Note 4.'), findsOneWidget);
       expect(find.text('Note 5.'), findsNothing); // five at most
+      expect(
+        g.server.urls
+            .lastWhere((u) => u.path == '/api/family/notes')
+            .queryParameters,
+        {'childId': 'child-1', 'limit': '5'},
+      );
     });
 
     testWidgets('no last-five route yet: built from progress and summaries', (
@@ -163,7 +169,7 @@ void main() {
 
     testWidgets('none yet says so', (tester) async {
       final g = await Gu.make(tester);
-      g.server.on('GET /api/children/child-1/notes/recent', <Object>[]);
+      g.server.on('GET /api/family/notes', <Object>[]);
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
       expect(find.textContaining('No notes yet'), findsOneWidget);
@@ -310,7 +316,7 @@ void main() {
     for (final (label, wire) in [
       ('Once a week', 'weekly'),
       ('Off', 'off'),
-      ('After each session', 'each_session'),
+      ('After each session', 'each'),
     ]) {
       testWidgets('$label saves $wire and goes back', (tester) async {
         final g = await Gu.make(tester);

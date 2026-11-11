@@ -22,6 +22,9 @@ class FakeServer {
       {};
   final List<(String, Map<String, Object?>)> calls = [];
 
+  /// Every request's full URL, query and all, in order.
+  final List<Uri> urls = [];
+
   void on(String route, Object? json, {int status = 200}) =>
       routes[route] = (_) => (status, json);
 
@@ -31,6 +34,7 @@ class FakeServer {
         ? <String, Object?>{}
         : jsonDecode(req.body) as Map<String, Object?>;
     calls.add((key, body));
+    urls.add(req.url);
     final handler = routes[key];
     final (status, json) = handler == null
         ? (404, {'error': 'no route $key'})

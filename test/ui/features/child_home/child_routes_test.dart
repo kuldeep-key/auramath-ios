@@ -43,15 +43,19 @@ void main() {
     await boot(
       tester,
       Paths.badges,
-      serve: (server) => server.on('GET /api/children/child-1/badges', {
-        'badges': [
+      serve: (server) => server.on('GET /api/children/child-1/rewards', {
+        'levelBadges': [
           {
-            'id': 'level-cmp-l4',
-            'kind': 'level',
+            'badgeId': 'level.cmp.comparison.l4',
+            'kind': 'skill_mastered',
             'name': 'Taller and shorter, up to 1000',
+            'questionType': 'cmp.comparison',
+            'level': 'L4',
+            'sessionId': 's1',
+            'draftName': true,
           },
           // another kind is not a level badge
-          {'id': 'tree', 'kind': 'session', 'name': 'Tree'},
+          {'badgeId': 'tree', 'kind': 'session', 'name': 'Tree'},
         ],
       }),
     );

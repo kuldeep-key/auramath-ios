@@ -12,11 +12,17 @@ import 'package:yaml/yaml.dart';
 ///   (`lines.pack`); its own `lines.version` when the content gives one,
 ///   else the policy's version.
 ///
+/// The served bundle's own `contentVersions` ([held]) fill in the keys
+/// the server holds (`arithmetic`, `scoring`, `line-library`) that the
+/// files gave none for; what the phone read wins, as the backend's
+/// `with_server_versions` does.
+///
 /// A file that is missing, unreadable or has no `x.y.z` version is left
 /// out: the event schema takes only semver values.
 Map<String, String> contentVersions({
   required String? Function(String fileName) served,
   required Map<String, String> bundled,
+  Map<String, String> held = const {},
 }) {
   Object? read(String file) {
     final text = served(file) ?? bundled[file];
@@ -46,6 +52,12 @@ Map<String, String> contentVersions({
   put('policy', policyVersion);
   final lines = policy is Map ? policy['lines'] : null;
   put('line-library', versionOf(lines) ?? policyVersion);
+  for (final key in const ['arithmetic', 'scoring', 'line-library']) {
+    if (!out.containsKey(key)) {
+      final v = held[key];
+      if (v != null && _semver.hasMatch(v)) out[key] = v;
+    }
+  }
   return out;
 }
 
