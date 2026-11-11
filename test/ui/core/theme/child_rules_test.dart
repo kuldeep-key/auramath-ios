@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:auramath/ui/core/parts/aura_button.dart';
 import 'package:auramath/ui/core/parts/keypad.dart';
 import 'package:auramath/ui/core/theme/app_theme.dart';
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -86,14 +87,13 @@ void main() {
 
   test('draft child copy avoids policy forbidden_phrases, and AI-07\'s: '
       'no friend, no feelings, no guilt', () {
-    final policy = File('assets/spec/policy.yaml').readAsStringSync();
-    final list = RegExp(
-      r'forbidden_phrases:[^\n]*\n((?:\s+- "[^"]+"\n)+)',
-    ).firstMatch(policy)![1]!;
+    final policy = Policy.fromYaml(
+      File('assets/spec/policy.yaml').readAsStringSync(),
+    );
     final forbidden = [
-      for (final m in RegExp(r'"([^"]+)"').allMatches(list)) m[1]!,
+      ...policy.forbiddenPhrases,
       // AI-07 (spec ai_and_online.feature @AI-07)
-      'friend', 'i missed you', 'i love', 'miss you', 'sad without',
+      'sad without',
     ];
     expect(forbidden, containsAll(['great job', 'try again', 'wrong']));
     final arb =

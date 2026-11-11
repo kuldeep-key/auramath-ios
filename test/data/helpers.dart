@@ -59,7 +59,7 @@ List<SpecEvent> lessonEvents(
   return out;
 }
 
-/// The backend's event contract (spec pack v0.3.0), kept beside the engine.
+/// The backend's event contract (spec pack v0.4.0), kept beside the engine.
 final _schema = JsonSchema.create(
   jsonDecode(
     File(

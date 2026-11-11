@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import 'fixtures.dart';
 
-/// Julia's files, as the app bundles them (copied from spec pack v0.3.0).
+/// Julia's files, as the app bundles them (copied from spec pack v0.4.0).
 final template = ComparisonTemplate.fromYaml(
   File('../../assets/spec/comparison-two-step.yaml').readAsStringSync(),
 );
@@ -41,6 +41,16 @@ bool regroupsAdd(int x, int y) {
 }
 
 void main() {
+  test('the bundled policy is v0.4.0, with the AI layer\'s drafts', () {
+    expect(policy.version, '0.4.0');
+    expect(policy.lines['line.intro.computer-helper'], contains('AI'));
+    expect(policy.ageWordList?.id, 'draft-2026-11-10');
+    expect(policy.ageWordList?.approved, isFalse);
+    expect(policy.ageWordList?.words, containsAll(['taller', 'bar', 'tree']));
+    expect(policy.forbiddenPhrases, containsAll(['great job', 'friend']));
+    expect(policy.abandonAfterWrongPractice, 3);
+  });
+
   test("policy question_buttons and Julia's line library (TUT-13)", () {
     expect(policy.questionButtons['*'], ['line.q.what-now']);
     expect(policy.questionButtons['size_second_bar'], ['line.q.taller-means']);

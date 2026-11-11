@@ -247,6 +247,10 @@ class Policy {
     required this.practiceSums,
     this.questionButtons = const {},
     this.lines = const {},
+    this.version = '',
+    this.forbiddenPhrases = const [],
+    this.ageWordList,
+    this.abandonAfterWrongPractice = 3,
   });
 
   factory Policy.fromYaml(String text) {
@@ -257,7 +261,26 @@ class Policy {
     final every = [for (final b in buttons?['every_step'] as List? ?? []) '$b'];
     final byStep = buttons?['by_step'] as YamlMap? ?? YamlMap();
     final pack = (y['lines'] as YamlMap?)?['pack'] as List? ?? const [];
+    final side = y['side_lessons'] as YamlMap;
+    final story = y['story_generation'] as YamlMap?;
+    final words = story?['age_word_list'];
     return Policy(
+      version: '${y['version'] ?? ''}',
+      forbiddenPhrases: [
+        for (final f
+            in (y['lines'] as YamlMap?)?['forbidden_phrases'] as List? ??
+                const [])
+          '$f',
+      ],
+      ageWordList: words is YamlMap
+          ? AgeWordList(
+              id: '${words['id']}',
+              approved: words['approved'] == true,
+              words: {for (final w in words['words'] as List) '$w'},
+            )
+          : null,
+      abandonAfterWrongPractice:
+          side['abandon_after_wrong_practice'] as int? ?? 3,
       questionButtons: {
         '*': every,
         for (final MapEntry(:key, :value) in byStep.entries)
@@ -274,12 +297,25 @@ class Policy {
         handMs: ms('demo_after_s'),
         stillMs: ms('still_there_after_s'),
       ),
-      maxSideLessons: (y['side_lessons'] as YamlMap)['max_per_session'] as int,
+      maxSideLessons: side['max_per_session'] as int,
       noProgressMs: (y['no_progress_minutes'] as int) * 60 * 1000,
-      practiceSums:
-          (y['side_lessons'] as YamlMap)['practice_if_unsure'] as int? ?? 3,
+      practiceSums: side['practice_if_unsure'] as int? ?? 3,
     );
   }
+
+  /// The policy file's own `version` (0.4.0 from spec pack v0.4).
+  final String version;
+
+  /// `lines.forbidden_phrases` (TUT-12, AI-07): no child line may contain
+  /// one, in any case.
+  final List<String> forbiddenPhrases;
+
+  /// `story_generation.age_word_list` (CON-08), from v0.4; null before.
+  final AgeWordList? ageWordList;
+
+  /// `side_lessons.abandon_after_wrong_practice` (TUT-18, v0.4): this many
+  /// wrong practice sums end a side lesson kindly.
+  final int abandonAfterWrongPractice;
 
   final Timers timers;
   final int maxSideLessons;
@@ -297,6 +333,22 @@ class Policy {
 
   /// `lines.pack`: Julia's line library, text by line id.
   final Map<String, String> lines;
+}
+
+/// The words a hint may use for ages 6 to 10 (policy
+/// `story_generation.age_word_list`). A draft until Julia approves it.
+class AgeWordList {
+  const AgeWordList({
+    required this.id,
+    required this.approved,
+    required this.words,
+  });
+
+  final String id;
+  final bool approved;
+
+  /// Lower case.
+  final Set<String> words;
 }
 
 /// App settings that aren't teaching rules, from the spec pack's
