@@ -1,4 +1,5 @@
 import 'problem.dart';
+import 'template.dart';
 
 /// Quiet-child thresholds, in milliseconds since the child's last move.
 class Timers {
@@ -93,6 +94,9 @@ class Pack {
     this.policyMassLines = const {},
     this.lineVersions = const {},
     this.abandonAfterWrongPractice = 3,
+    this.template,
+    this.optionalSteps = const {},
+    this.addingUp = false,
   });
 
   factory Pack.fromJson(Map<String, Object?> j) => Pack(
@@ -132,6 +136,9 @@ class Pack {
     Map<String, String>? policyMassLines,
     Map<String, List<String>>? lineVersions,
     int? abandonAfterWrongPractice,
+    ComparisonTemplate? template,
+    Set<String>? optionalSteps,
+    bool? addingUp,
   }) => Pack(
     version: version,
     timers: timers ?? this.timers,
@@ -152,6 +159,9 @@ class Pack {
     lineVersions: lineVersions ?? this.lineVersions,
     abandonAfterWrongPractice:
         abandonAfterWrongPractice ?? this.abandonAfterWrongPractice,
+    template: template ?? this.template,
+    optionalSteps: optionalSteps ?? this.optionalSteps,
+    addingUp: addingUp ?? this.addingUp,
   );
 
   /// The content bundle's `praise` lines (TUT-12) over the policy's own.
@@ -202,6 +212,19 @@ class Pack {
   /// library hasn't it), after its own text (TUT-14): the pack's drafted
   /// `versions`, then any the policy gives as `lines.pack[].versions`.
   final Map<String, List<String>> lineVersions;
+
+  /// Julia's comparison template (served, else bundled): the step order
+  /// (LES-03), the choice options (LES-12) and the worked examples (CON-05).
+  /// Null: the engine's own order and options.
+  final ComparisonTemplate? template;
+
+  /// The template's optional steps turned on (by flag): `name_quantities`,
+  /// `number_sentence`.
+  final Set<String> optionalSteps;
+
+  /// choose_operation also offers adding up, "D + ? = A" (LES-06, Julia's
+  /// J14), until the template has it: a draft for Apoorv and Julia.
+  final bool addingUp;
 
   /// A pack's own flat hint list, used only when there is no policy
   /// [hintLadder] (older packs and the golden vectors).

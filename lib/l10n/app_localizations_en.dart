@@ -1891,4 +1891,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String lessonStarRow(int n) {
     return 'Row $n';
   }
+
+  @override
+  String get lessonTakeBack => 'Take it back';
+
+  @override
+  String get lessonSeeQuestion => 'See the question';
+
+  @override
+  String get lessonQuestionBack => 'Back to my work';
+
+  @override
+  String get lessonUndo => 'Undo';
+
+  @override
+  String get kidQuickLine => 'Quick sums! Type the answer.';
+
+  @override
+  String get kidQuickOneMore => 'Check it and have one more go.';
+
+  @override
+  String get kidQuickRegroup =>
+      'Look at the ones first. Do you need to regroup?';
+
+  @override
+  String get kidQuickDone => 'Quick sums done!';
+
+  @override
+  String get kidQuickStory => 'A story problem';
+
+  @override
+  String get kidQuickHome => 'Back home';
+
+  @override
+  String get kidTodayTitle => 'What shall we do today?';
+
+  @override
+  String get kidTodayStory => 'A story problem';
+
+  @override
+  String get kidTodayQuick => 'Quick sums';
+
+  @override
+  String get kidWelcomeChooseToday => 'Choose today\'s work';
+
+  @override
+  String kidWordWhat(String word) {
+    return 'What does $word mean?';
+  }
+
+  @override
+  String get kidWordTaller =>
+      'Taller means it reaches higher. The taller one gets the longer bar.';
+
+  @override
+  String get kidWordShorter =>
+      'Shorter means it does not reach as high. The shorter one gets the shorter bar.';
+
+  @override
+  String get kidWordMore =>
+      'More means it weighs more. The heavier one gets the longer bar.';
+
+  @override
+  String get kidWordLess =>
+      'Less means it weighs less. The lighter one gets the shorter bar.';
+
+  @override
+  String get kidWordGotIt => 'Got it';
+
+  @override
+  String lessonNameHowTall(String a) {
+    return 'How tall is the $a?';
+  }
+
+  @override
+  String lessonNameHowHeavy(String a) {
+    return 'How heavy is the $a?';
+  }
+
+  @override
+  String get lessonSentenceBox => 'Empty box';
+
+  @override
+  String get lessonSentenceAdd => 'Add. Tap to take away.';
+
+  @override
+  String get lessonSentenceTake => 'Take away. Tap to add.';
+
+  @override
+  String get lessonSentenceCheck => 'Check my sentence';
+
+  @override
+  String lessonSentenceTitle(String b) {
+    return 'Make a number sentence for the $b.';
+  }
+
+  @override
+  String get lessonHeavier => 'Heavier';
+
+  @override
+  String get lessonLighter => 'Lighter';
+
+  @override
+  String get lessonMore => 'more';
+
+  @override
+  String get lessonLess => 'less';
 }

@@ -2,11 +2,13 @@ import 'contract.dart' show specStepId;
 import 'mistakes.dart';
 import 'pack.dart';
 import 'problem.dart';
+import 'template.dart';
 
 /// Where the child is in a comparison lesson. The UI maps each step to its
 /// Figma screen.
 enum LessonStep {
   question,
+  nameQuantities,
   drawA,
   placeB,
   sizeB,
@@ -15,6 +17,7 @@ enum LessonStep {
   chooseOp,
   findB,
   findTotal,
+  numberSentence,
   sideLesson,
   solved,
 }
@@ -88,8 +91,32 @@ final class PieceDropped extends LessonInput {
 }
 
 final class OpChosen extends LessonInput {
-  const OpChosen(this.op);
+  const OpChosen(this.op, {this.optionId, this.errorType});
   final Op op;
+
+  /// The template option tapped (`a_minus_d`), and what it's charged as
+  /// when wrong (LES-12); null: the engine's own two sums.
+  final String? optionId;
+  final String? errorType;
+}
+
+/// A number sentence built on the number_sentence step (LES-06, J36), in
+/// the template's symbols with no spaces: `A-D=box`, `D+box=A`.
+final class SentenceEntered extends LessonInput {
+  const SentenceEntered(this.form);
+  final String form;
+}
+
+/// An option tapped on a choice step that isn't the sum (LES-12): today
+/// `name_quantities`, "which number is the {a}'s height?".
+final class ChoiceMade extends LessonInput {
+  const ChoiceMade(this.optionId, {required this.right, this.errorType});
+
+  final String optionId;
+
+  /// The template's `correct_for` holds this problem's relation.
+  final bool right;
+  final String? errorType;
 }
 
 final class NumberEntered extends LessonInput {
@@ -154,8 +181,11 @@ final class HintTaken extends LessonInput {
 }
 
 final class ShowMeHowTaken extends LessonInput {
-  const ShowMeHowTaken({this.afterWrong = false});
+  const ShowMeHowTaken({this.afterWrong = false, this.storyId});
   final bool afterWrong;
+
+  /// The worked example's story (template `worked_examples`, CON-05).
+  final String? storyId;
 }
 
 /// The child's pick on "Which tree does 'it' mean?" (TUT-16, H1-4a and
@@ -312,6 +342,10 @@ class LessonState {
     this.returnFlow = KnowFlow.none,
     this.quietLevel = 0,
     this.stepHints = 0,
+    this.knowMisses = 0,
+    this.bSized = false,
+    this.bFound = false,
+    this.misplaced,
   });
 
   final LessonStep step;
@@ -345,6 +379,21 @@ class LessonState {
   /// step starts its own ladder again.
   final int stepHints;
 
+  /// Wrong answers at the answer sheet's current stage (policy
+  /// `answer_sheet`: a second wrong answer at any one stage draws it).
+  final int knowMisses;
+
+  /// Bar B is sized against bar A (the board draws it at its height).
+  final bool bSized;
+
+  /// B's value is found (the board writes it in bar B).
+  final bool bFound;
+
+  /// Where the current step's piece was dropped wrongly. It stays there,
+  /// wobbling (LES-07), and isn't charged yet: an Undo takes it back for
+  /// free (LES-15); moving it on charges the slip.
+  final Target? misplaced;
+
   LessonState copyWith({
     LessonStep? step,
     bool? barA,
@@ -363,6 +412,11 @@ class LessonState {
     KnowFlow? returnFlow,
     int? quietLevel,
     int? stepHints,
+    int? knowMisses,
+    bool? bSized,
+    bool? bFound,
+    Target? misplaced,
+    bool clearMisplaced = false,
   }) => LessonState(
     step: step ?? this.step,
     barA: barA ?? this.barA,
@@ -381,6 +435,10 @@ class LessonState {
     returnFlow: returnFlow ?? this.returnFlow,
     quietLevel: quietLevel ?? this.quietLevel,
     stepHints: stepHints ?? this.stepHints,
+    knowMisses: knowMisses ?? this.knowMisses,
+    bSized: bSized ?? this.bSized,
+    bFound: bFound ?? this.bFound,
+    misplaced: clearMisplaced ? null : misplaced ?? this.misplaced,
   );
 
   List<Object?> get _fields => [
@@ -401,6 +459,10 @@ class LessonState {
     returnFlow,
     quietLevel,
     stepHints,
+    knowMisses,
+    bSized,
+    bFound,
+    misplaced,
   ];
 
   @override
@@ -613,10 +675,21 @@ StepResult _move(
 ) {
   final maxSide = pack.maxSideLessons;
   final slots = lineSlots(p);
+  // the step after [from] in the template's order; solved after the last
+  LessonStep after(LessonStep from) => nextStep(pack, p, from);
   StepResult to(LessonState next, [List<Decision> d = const []]) =>
       (state: next, decisions: d);
   StepResult right(LessonState next, [List<Decision> d = const []]) =>
       to(next.copyWith(wrongRow: 0), d);
+  // a right move: on to the next step in order, or solved after the last
+  StepResult advance(LessonState next, [List<Decision> d = const []]) {
+    final upNext = after(s.step);
+    return right(next.copyWith(step: upNext), [
+      ...d,
+      if (upNext == LessonStep.solved) _solved(p, next, SolvedBy.draw),
+    ]);
+  }
+
   StepResult wrongMove(String lineId) {
     final next = s.copyWith(wrong: s.wrong + 1, wrongRow: s.wrongRow + 1);
     return to(next, [
@@ -626,55 +699,74 @@ StepResult _move(
     ]);
   }
 
+  // A drop on the board. A wrong one stays where it landed, wobbling, and
+  // isn't charged (LES-07, LES-15); moving it on from there charges it.
+  StepResult place(Target target, Target slot, String wrongLine) {
+    if (target == s.misplaced) return to(s);
+    final charged = s.misplaced == null
+        ? s
+        : s.copyWith(wrong: s.wrong + 1, clearMisplaced: true);
+    if (target == slot) {
+      return advance(
+        charged.copyWith(
+          gapPlaced: slot == Target.gapSlot ? true : null,
+          totalPlaced: slot == Target.totalSlot ? true : null,
+        ),
+      );
+    }
+    final next = charged.copyWith(misplaced: target, wrongRow: s.wrongRow + 1);
+    return to(next, [
+      const Wobble(),
+      if (next.wrongRow >= 2) const ShakeHelp(),
+      Coach(wrongLine, slots),
+    ]);
+  }
+
   final bigA = p.big == BigSide.a;
 
   switch ((s.step, input)) {
     case (LessonStep.question, Started()):
-      return to(s.copyWith(step: LessonStep.drawA));
+      return to(s.copyWith(step: after(LessonStep.question)));
 
     case (LessonStep.drawA, BarADrawn()):
-      return right(s.copyWith(step: LessonStep.placeB, barA: true));
+      return advance(s.copyWith(barA: true));
 
     case (LessonStep.placeB, BarBPlaced()):
-      return right(s.copyWith(step: LessonStep.sizeB, barB: true));
+      return advance(s.copyWith(barB: true));
 
     case (LessonStep.sizeB, BarBSized(:final rel)):
       if (rel == Relation.same) return to(s, [Coach('cmp.sizeB', slots)]);
       final ok = rel == (bigA ? Relation.shorter : Relation.taller);
       if (!ok) return wrongMove('cmp.sizeBWrong');
-      return right(s.copyWith(step: LessonStep.placeGap));
+      return advance(s.copyWith(bSized: true));
 
     case (LessonStep.placeGap, PieceDropped(piece: Piece.gap, :final target)):
-      if (target != Target.gapSlot) return wrongMove('cmp.gapWrong');
-      return right(
-        s.copyWith(
-          step: p.ask == Ask.total
-              ? LessonStep.placeTotal
-              : LessonStep.chooseOp,
-          gapPlaced: true,
-        ),
-      );
+      return place(target, Target.gapSlot, 'cmp.gapWrong');
 
     case (
       LessonStep.placeTotal,
       PieceDropped(piece: Piece.total, :final target),
     ):
-      if (target != Target.totalSlot) return wrongMove('cmp.totalWrong');
-      return right(s.copyWith(step: LessonStep.chooseOp, totalPlaced: true));
+      return place(target, Target.totalSlot, 'cmp.totalWrong');
+
+    case (LessonStep.numberSentence, SentenceEntered(:final form)):
+      // any equivalent form counts: the answer, not the method (LES-06)
+      if (!sentenceRight(pack, p, form)) return wrongMove('cmp.sentenceWrong');
+      return advance(s);
+
+    case (LessonStep.nameQuantities, ChoiceMade(:final right)):
+      if (!right) return wrongMove('cmp.nameWrong');
+      return advance(s);
 
     case (LessonStep.chooseOp, OpChosen(:final op)):
       if (op != (bigA ? Op.subtract : Op.add)) return wrongMove('cmp.opWrong');
-      return right(s.copyWith(step: LessonStep.findB, op: op));
+      return advance(s.copyWith(op: op));
 
     case (LessonStep.findB, NumberEntered(:final value)):
-      return _findB(p, s, value, slots, right, wrongMove, maxSide);
+      return _findB(p, s, value, slots, advance, wrongMove, maxSide);
 
     case (LessonStep.findTotal, NumberEntered(:final value)):
-      if (value == p.total) {
-        return right(s.copyWith(step: LessonStep.solved), [
-          _solved(p, s, SolvedBy.draw),
-        ]);
-      }
+      if (value == p.total) return advance(s);
       if (value == dropCarry(p.aValue, p.bValue) && _canSide(s, maxSide)) {
         return to(
           _sideLesson(s, LessonStep.findTotal, SideLesson.addWithCarry),
@@ -689,7 +781,6 @@ StepResult _move(
           isDigitPermutation(value, p.total)) {
         return to(s, [Coach('cmp.recheck', slots)]);
       }
-      if ((value - p.total).abs() <= 10) return wrongMove('cmp.recheck');
       return wrongMove('cmp.addBoth');
 
     case (LessonStep.sideLesson, SideLessonDone(completed: false)):
@@ -721,8 +812,9 @@ StepResult _move(
         [Coach('cmp.sideBack', slots)],
       );
 
+    // from the board, or from the question itself (M0, LES-01)
     case (_, KnowIt(:final value))
-        when _boardSteps.contains(s.step) &&
+        when (_boardSteps.contains(s.step) || s.step == LessonStep.question) &&
             (s.knowFlow == KnowFlow.none || s.knowFlow == KnowFlow.askingWhat):
       return _knowIt(p, s, value, maxSide);
 
@@ -731,22 +823,12 @@ StepResult _move(
       return _partChecked(p, s, value, slots, maxSide);
 
     case (_, KnowTotalChecked(:final value))
-        when s.knowFlow == KnowFlow.checkingTotal:
-      if (value == p.total) {
-        return to(
-          s.copyWith(step: LessonStep.solved, knowFlow: KnowFlow.none),
-          [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
-        );
-      }
-      if (value == dropCarry(p.aValue, p.bValue) && _canSide(s, maxSide)) {
-        return to(_sideLesson(s, s.step, SideLesson.addWithCarry), [
-          const OpenSideLesson(SideLesson.addWithCarry),
-        ]);
-      }
-      return to(s, [Coach('cmp.recheck', slots)]);
+        when s.knowFlow == KnowFlow.checkingTotal ||
+            s.knowFlow == KnowFlow.askingWhat:
+      return _totalAfterUnknown(p, s, value, maxSide);
 
     case (_, Undo()):
-      return _undo(p, s);
+      return _undo(pack, p, s);
 
     default:
       return to(s);
@@ -758,20 +840,13 @@ StepResult _findB(
   LessonState s,
   int value,
   Map<String, String> slots,
-  StepResult Function(LessonState, [List<Decision>]) right,
+  StepResult Function(LessonState, [List<Decision>]) advance,
   StepResult Function(String) wrongMove,
   int maxSide,
 ) {
   if (value == p.bValue) {
-    final v = {...slots, 'v': '$value'};
-    if (p.ask == Ask.b) {
-      return right(s.copyWith(step: LessonStep.solved), [
-        Coach('cmp.right', v),
-        _solved(p, s, SolvedBy.draw),
-      ]);
-    }
-    return right(s.copyWith(step: LessonStep.findTotal), [
-      Coach('cmp.right', v),
+    return advance(s.copyWith(bFound: true), [
+      Coach('cmp.right', {...slots, 'v': '$value'}),
     ]);
   }
 
@@ -822,25 +897,204 @@ StepResult _findB(
   }
 }
 
-StepResult _undo(ComparisonProblem p, LessonState s) {
-  final LessonState? back = switch (s.step) {
-    LessonStep.sizeB => s.copyWith(step: LessonStep.placeB, barB: false),
-    LessonStep.placeGap => s.copyWith(step: LessonStep.sizeB),
-    LessonStep.placeTotal => s.copyWith(
-      step: LessonStep.placeGap,
-      gapPlaced: false,
-    ),
-    LessonStep.chooseOp when p.ask == Ask.total => s.copyWith(
-      step: LessonStep.placeTotal,
-      totalPlaced: false,
-    ),
-    LessonStep.chooseOp => s.copyWith(
-      step: LessonStep.placeGap,
-      gapPlaced: false,
-    ),
-    _ => null,
+StepResult _undo(Pack pack, ComparisonProblem p, LessonState s) {
+  // a piece dropped in the wrong place goes back to the tray, for free
+  if (s.misplaced != null) {
+    return (state: s.copyWith(clearMisplaced: true), decisions: const []);
+  }
+  final back = undoneStep(pack, p, s);
+  return (
+    state: back == null
+        ? s
+        : switch (back) {
+            LessonStep.placeB => s.copyWith(step: back, barB: false),
+            LessonStep.sizeB => s.copyWith(step: back, bSized: false),
+            LessonStep.placeGap => s.copyWith(step: back, gapPlaced: false),
+            _ => s.copyWith(step: back, totalPlaced: false),
+          },
+    decisions: const [],
+  );
+}
+
+/// The placement an Undo now takes back: the step before this one, when it
+/// put something on the board (bar B, its size, the gap or the total).
+LessonStep? undoneStep(Pack pack, ComparisonProblem p, LessonState s) {
+  const undoable = {
+    LessonStep.sizeB,
+    LessonStep.placeGap,
+    LessonStep.placeTotal,
+    LessonStep.chooseOp,
   };
-  return (state: back ?? s, decisions: const []);
+  const placements = {
+    LessonStep.placeB,
+    LessonStep.sizeB,
+    LessonStep.placeGap,
+    LessonStep.placeTotal,
+  };
+  if (!undoable.contains(s.step)) return null;
+  final steps = lessonSteps(pack, p);
+  final i = steps.indexOf(s.step);
+  final back = i > 0 ? steps[i - 1] : null;
+  return placements.contains(back) ? back : null;
+}
+
+/// The steps problem [p] runs, in its template's order (LES-03): the
+/// pack's template's `steps` for the problem's level, else the engine's own
+/// order. A problem that asks only for b never places or finds the total.
+List<LessonStep> lessonSteps(Pack pack, ComparisonProblem p) {
+  final t = pack.template;
+  final ids = t == null || t.steps.isEmpty
+      ? [
+          for (final id in knownSteps)
+            if (!optionalSteps.contains(id) || pack.optionalSteps.contains(id))
+              id,
+        ]
+      : t.stepsFor(p.level, optionalOn: pack.optionalSteps);
+  return [
+    for (final id in ids)
+      if (p.ask == Ask.total || (id != 'place_total' && id != 'find_total'))
+        ...switch (id) {
+          'name_quantities' => const [LessonStep.nameQuantities],
+          'draw_known_bar' => const [LessonStep.drawA],
+          'size_second_bar' => const [LessonStep.placeB, LessonStep.sizeB],
+          'place_difference' => const [LessonStep.placeGap],
+          'place_total' => const [LessonStep.placeTotal],
+          'choose_operation' => const [LessonStep.chooseOp],
+          'find_unknown' => const [LessonStep.findB],
+          'find_total' => const [LessonStep.findTotal],
+          'number_sentence' => const [LessonStep.numberSentence],
+          _ => const <LessonStep>[],
+        },
+  ];
+}
+
+/// The options a choice step offers for [p] (LES-12), from the pack's
+/// template: each with its label in [p]'s numbers ("186 − 107"), whether
+/// it's right for [p]'s relation, and, on choose_operation, the sum it
+/// sets up. Without a template, the engine's own two sums.
+List<ChoiceOption> choiceOptions(
+  Pack pack,
+  ComparisonProblem p,
+  String stepId,
+) {
+  final relation = p.big == BigSide.a ? 'taller' : 'shorter';
+  final rightOp = p.big == BigSide.a ? Op.subtract : Op.add;
+  final wrongOp = rightOp == Op.add ? Op.subtract : Op.add;
+  final options =
+      pack.template?.stepById(stepId)?.options ??
+      (stepId == 'choose_operation'
+          ? const [
+              StepOption(
+                id: 'a_minus_d',
+                text: 'A - D',
+                correctFor: ['taller'],
+                errorType: 'keyword_strategy',
+              ),
+              StepOption(
+                id: 'a_plus_d',
+                text: 'A + D',
+                correctFor: ['shorter'],
+                errorType: 'operation_reversed',
+              ),
+            ]
+          : const <StepOption>[]);
+  // the adding-up option for Julia's J14 (LES-06), proposed to Apoorv and
+  // Julia and not in the template yet: offered where the pack turns it on
+  final withAddingUp = [
+    ...options,
+    if (stepId == 'choose_operation' &&
+        pack.addingUp &&
+        !options.any((o) => o.text.contains('box')))
+      const StepOption(
+        id: 'd_plus_box',
+        text: 'D + box = A',
+        correctFor: ['taller'],
+        errorType: 'keyword_strategy',
+      ),
+  ];
+  String label(String text) => text
+      .replaceAll('{A}', '${p.aValue}')
+      .replaceAll('{D}', '${p.diff}')
+      .replaceAll('{unit}', p.unit)
+      .replaceAll('{a}', p.a.name.toLowerCase())
+      .replaceAll('{b}', p.b.name.toLowerCase())
+      .replaceAllMapped(RegExp(r'\bA\b'), (_) => '${p.aValue}')
+      .replaceAllMapped(RegExp(r'\bD\b'), (_) => '${p.diff}')
+      .replaceAll('box', '?')
+      .replaceAll(' - ', ' − ');
+  return [
+    for (final o in withAddingUp)
+      ChoiceOption(
+        id: o.id,
+        label: label(o.text),
+        right: o.correctFor.contains(relation),
+        errorType: o.errorType,
+        op: o.correctFor.contains(relation) ? rightOp : wrongOp,
+      ),
+  ];
+}
+
+/// The number sentence forms the template accepts (LES-06), as
+/// `(form, relations it's right for)`, forms without spaces; the
+/// template's list as written when the pack has none.
+List<(String, List<String>)> sentenceForms(Pack pack) {
+  final accepts = pack.template?.stepById('number_sentence')?.accepts;
+  if (accepts != null && accepts.isNotEmpty) {
+    return [
+      for (final a in accepts) (a.form.replaceAll(' ', ''), a.correctFor),
+    ];
+  }
+  return const [
+    ('A-D=box', ['taller']),
+    ('D+box=A', ['taller']),
+    ('box+D=A', ['taller']),
+    ('A-box=D', ['taller']),
+    ('A+D=box', ['shorter']),
+    ('D+A=box', ['shorter']),
+    ('box-D=A', ['shorter']),
+    ('box-A=D', ['shorter']),
+  ];
+}
+
+/// [form] is a right number sentence for [p]'s relation.
+bool sentenceRight(Pack pack, ComparisonProblem p, String form) {
+  final relation = p.big == BigSide.a ? 'taller' : 'shorter';
+  return sentenceForms(
+    pack,
+  ).any((f) => f.$1 == form && f.$2.contains(relation));
+}
+
+/// One option of a choice step, for one problem (LES-12).
+class ChoiceOption {
+  const ChoiceOption({
+    required this.id,
+    required this.label,
+    required this.right,
+    required this.op,
+    this.errorType,
+  });
+
+  final String id;
+  final String label;
+  final bool right;
+
+  /// On choose_operation: the sum it sets up for finding B.
+  final Op op;
+  final String? errorType;
+
+  /// The input tapping it sends.
+  LessonInput input(String stepId) => stepId == 'choose_operation'
+      ? OpChosen(op, optionId: id, errorType: errorType)
+      : ChoiceMade(id, right: right, errorType: errorType);
+}
+
+/// The step after [from] for problem [p]; [LessonStep.solved] after the
+/// last one.
+LessonStep nextStep(Pack pack, ComparisonProblem p, LessonStep from) {
+  final steps = lessonSteps(pack, p);
+  if (from == LessonStep.question) return steps.first;
+  final i = steps.indexOf(from);
+  return i >= 0 && i + 1 < steps.length ? steps[i + 1] : LessonStep.solved;
 }
 
 Solved _solved(ComparisonProblem p, LessonState s, SolvedBy by) {
@@ -889,6 +1143,7 @@ Map<String, String> policySlots(ComparisonProblem p) {
 }
 
 const _boardSteps = {
+  LessonStep.nameQuantities,
   LessonStep.drawA,
   LessonStep.placeB,
   LessonStep.sizeB,
@@ -897,6 +1152,7 @@ const _boardSteps = {
   LessonStep.chooseOp,
   LessonStep.findB,
   LessonStep.findTotal,
+  LessonStep.numberSentence,
 };
 
 bool _canSide(LessonState s, int max) => s.sideLessons < max;
@@ -921,46 +1177,85 @@ LessonState _drawIt(LessonState s) => LessonState(
 );
 
 StepResult _knowIt(ComparisonProblem p, LessonState s, int value, int maxSide) {
-  if (p.ask == Ask.b) {
-    if (value == p.bValue) {
-      return (
-        state: s.copyWith(step: LessonStep.solved, knowFlow: KnowFlow.none),
-        decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
-      );
-    }
-    if (isDigitPermutation(value, p.bValue)) {
-      return (
-        state: s.copyWith(knowFlow: KnowFlow.none),
-        decisions: const [OpenRecheck()],
-      );
-    }
-    return (state: _drawIt(s), decisions: const [DrawIt()]);
+  final slots = lineSlots(p);
+  // levels 1 and 2 ask for the unknown: its stage's rules from the start
+  if (p.ask == Ask.b) return _unknownStage(p, s, value, slots, maxSide);
+  // the total asked again: "a wrong total after that uses the adding rules"
+  if (s.knowFlow == KnowFlow.askingWhat) {
+    return _totalAfterUnknown(p, s, value, maxSide);
   }
   if (value == p.total) {
     return (
-      state: s.copyWith(step: LessonStep.solved, knowFlow: KnowFlow.none),
+      state: s.copyWith(
+        step: LessonStep.solved,
+        knowFlow: KnowFlow.none,
+        knowMisses: 0,
+      ),
       decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
     );
   }
+  // a second wrong total: draw it (policy answer_sheet)
+  if (s.knowMisses > 0) return _drawItFor(p, s, null);
   if (value == p.bValue) {
     return (
-      state: s.copyWith(knowFlow: KnowFlow.askingWhat),
+      state: s.copyWith(knowFlow: KnowFlow.askingWhat, knowMisses: 0),
       decisions: const [AskWhatQuestionAsks()],
     );
   }
-  final nearMiss =
-      (value - p.total).abs() <= 10 && value != dropCarry(p.aValue, p.bValue);
-  if (nearMiss || isDigitPermutation(value, p.total)) {
+  // swapped digits: check the sum again, then the same answer once more
+  if (isDigitPermutation(value, p.total)) {
     return (
-      state: s.copyWith(knowFlow: KnowFlow.none),
+      state: s.copyWith(knowFlow: KnowFlow.none, knowMisses: 1),
       decisions: const [OpenRecheck()],
     );
   }
   return (
-    state: s.copyWith(knowFlow: KnowFlow.checkingPart),
+    state: s.copyWith(knowFlow: KnowFlow.checkingPart, knowMisses: 0),
     decisions: const [CheckOnePart()],
   );
 }
+
+/// The total once the unknown is known right, or asked again after the
+/// unknown was given for it (template `total_after_unknown`).
+StepResult _totalAfterUnknown(
+  ComparisonProblem p,
+  LessonState s,
+  int value,
+  int maxSide,
+) {
+  if (value == p.total) {
+    return (
+      state: s.copyWith(
+        step: LessonStep.solved,
+        knowFlow: KnowFlow.none,
+        knowMisses: 0,
+      ),
+      decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
+    );
+  }
+  if (s.knowMisses > 0) return _drawItFor(p, s, null);
+  if (value == dropCarry(p.aValue, p.bValue) && _canSide(s, maxSide)) {
+    final back = s.copyWith(knowFlow: KnowFlow.checkingTotal, knowMisses: 1);
+    return (
+      state: _sideLesson(back, s.step, SideLesson.addWithCarry),
+      decisions: const [OpenSideLesson(SideLesson.addWithCarry)],
+    );
+  }
+  if (isDigitPermutation(value, p.total)) {
+    return (
+      state: s.copyWith(knowFlow: KnowFlow.checkingTotal, knowMisses: 1),
+      decisions: const [OpenRecheck()],
+    );
+  }
+  return _drawItFor(p, s, null);
+}
+
+/// "Not yet: let's draw it", with the opening line policy
+/// `answer_sheet.opening_line` gives for [lineId]'s error, if any.
+StepResult _drawItFor(ComparisonProblem p, LessonState s, String? lineId) => (
+  state: _drawIt(s),
+  decisions: [if (lineId != null) Coach(lineId, lineSlots(p)), const DrawIt()],
+);
 
 StepResult _partChecked(
   ComparisonProblem p,
@@ -968,35 +1263,58 @@ StepResult _partChecked(
   int value,
   Map<String, String> slots,
   int maxSide,
+) => _unknownStage(p, s, value, slots, maxSide);
+
+/// The answer sheet's unknown stage (template `answer_sheet_rules`, policy
+/// `answer_sheet.route_by_error_type`): a take-away slip goes to its side
+/// lesson and back, swapped digits are checked again, a mix-up in the story
+/// draws it with its first hint, and a second wrong answer draws it.
+StepResult _unknownStage(
+  ComparisonProblem p,
+  LessonState s,
+  int value,
+  Map<String, String> slots,
+  int maxSide,
 ) {
   if (value == p.bValue) {
+    if (p.ask == Ask.b) {
+      return (
+        state: s.copyWith(
+          step: LessonStep.solved,
+          knowFlow: KnowFlow.none,
+          knowMisses: 0,
+        ),
+        decisions: [_solved(p, s, s.barA ? SolvedBy.partway : SolvedBy.know)],
+      );
+    }
     return (
-      state: s.copyWith(knowFlow: KnowFlow.checkingTotal),
+      state: s.copyWith(knowFlow: KnowFlow.checkingTotal, knowMisses: 0),
       decisions: [Coach('cmp.partRight', slots)],
     );
   }
   final a = p.aValue, d = p.diff;
-  final counted = s.copyWith(wrong: s.wrong + 1);
+  final flow = p.ask == Ask.b ? KnowFlow.none : KnowFlow.checkingPart;
+  if (s.knowMisses > 0) return _drawItFor(p, s, null);
   if (p.big == BigSide.a && value == noBorrow(a, d) && _canSide(s, maxSide)) {
+    final counted = s.copyWith(
+      wrong: s.wrong + 1,
+      knowFlow: flow,
+      knowMisses: 1,
+    );
     return (
       state: _sideLesson(counted, s.step, SideLesson.takeAcrossTen),
       decisions: const [OpenSideLesson(SideLesson.takeAcrossTen)],
     );
   }
-  if (p.big == BigSide.a && value == a + d) {
-    return (
-      state: _drawIt(s),
-      decisions: [Coach('cmp.drawIt', slots), const DrawIt()],
-    );
-  }
-  if (value == d) {
-    return (
-      state: _drawIt(s),
-      decisions: [Coach('cmp.twoBars', slots), const DrawIt()],
-    );
-  }
+  // a mix-up in the story: thought the other one was taller
+  final reversed = p.big == BigSide.a ? a + d : a - d;
+  if (value == reversed) return _drawItFor(p, s, 'cmp.drawIt');
+  if (value == d) return _drawItFor(p, s, 'cmp.twoBars');
   if (isDigitPermutation(value, p.bValue)) {
-    return (state: s, decisions: const [OpenRecheck()]);
+    return (
+      state: s.copyWith(knowFlow: flow, knowMisses: 1),
+      decisions: const [OpenRecheck()],
+    );
   }
-  return (state: _drawIt(s), decisions: const [DrawIt()]);
+  return _drawItFor(p, s, null);
 }

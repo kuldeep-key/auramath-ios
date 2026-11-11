@@ -12,7 +12,19 @@ Map<String, Object?> inputToJson(LessonInput i) => switch (i) {
     'piece': piece.name,
     'target': target.name,
   },
-  OpChosen(:final op) => {'type': 'opChosen', 'op': op.name},
+  OpChosen(:final op, :final optionId, :final errorType) => {
+    'type': 'opChosen',
+    'op': op.name,
+    'optionId': ?optionId,
+    'errorType': ?errorType,
+  },
+  SentenceEntered(:final form) => {'type': 'sentenceEntered', 'form': form},
+  ChoiceMade(:final optionId, :final right, :final errorType) => {
+    'type': 'choiceMade',
+    'optionId': optionId,
+    'right': right,
+    'errorType': ?errorType,
+  },
   NumberEntered(:final value) => {'type': 'numberEntered', 'value': value},
   SideLessonDone(:final completed) => {
     'type': 'sideLessonDone',
@@ -60,7 +72,17 @@ LessonInput inputFromJson(Map<String, Object?> j) {
       Piece.values.byName(j['piece'] as String),
       Target.values.byName(j['target'] as String),
     ),
-    'opChosen' => OpChosen(Op.values.byName(j['op'] as String)),
+    'opChosen' => OpChosen(
+      Op.values.byName(j['op'] as String),
+      optionId: j['optionId'] as String?,
+      errorType: j['errorType'] as String?,
+    ),
+    'sentenceEntered' => SentenceEntered(j['form']! as String),
+    'choiceMade' => ChoiceMade(
+      j['optionId']! as String,
+      right: j['right'] == true,
+      errorType: j['errorType'] as String?,
+    ),
     'numberEntered' => NumberEntered(n('value')),
     'sideLessonDone' => SideLessonDone(completed: j['completed'] != false),
     'sideLessonChosen' => SideLessonChosen(

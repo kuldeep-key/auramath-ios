@@ -10,6 +10,16 @@ import '../models/server_problem.dart';
 import '../services/api.dart';
 import '../services/outbox_db.dart';
 
+/// Where the child's next lesson goes: [problemId], resumed in
+/// [resumeSessionId], or carried on from the ended [carryFrom] in a new
+/// session; [startedOn] names the other phone a case was started on.
+typedef WhereNext = ({
+  String problemId,
+  String? resumeSessionId,
+  String? startedOn,
+  String? carryFrom,
+});
+
 /// A sum from the server's arithmetic generator: its text ("56 - 19 = ?"),
 /// answer and arithmetic level (`A6`).
 typedef Sum = ({String text, int answer, String level});
@@ -176,6 +186,10 @@ class SessionRepository {
       ),
   ];
 
+  /// A set of Quick sums at the child's arithmetic level (LES-16), from
+  /// the server's generator (CON-10), as `(text, answer, level)`.
+  Future<List<Sum>> quickSums(String childId) => _sums(childId, 'quick_sums');
+
   /// True while [sessionId]'s starting check is still to do.
   bool startingCheckDue(String sessionId) =>
       _startingChecks.contains(sessionId);
@@ -321,23 +335,43 @@ class SessionRepository {
 
   /// A session's events from its latest `problem_shown` on (what a resume
   /// replays), and the last seq saved, which the next event follows.
+  /// A session carrying on an ended one's case ([carry]) has that
+  /// session's board first, so the case is rebuilt as the child left it.
   Future<({List<SpecEvent> events, int lastSeq})> resume(
     String sessionId,
   ) async {
     final all = await _db.forSession(sessionId);
     final from = all.lastIndexWhere((e) => e.name == 'problem_shown');
-    return (
-      events: [for (final e in all.skip(math.max(from, 0))) e.spec],
-      lastSeq: all.isEmpty ? -1 : all.last.seq,
-    );
+    var events = [for (final e in all.skip(math.max(from, 0))) e.spec];
+    final carried = await _db.carriedFrom(sessionId);
+    // only for the session's first case: a later one is its own
+    if (carried != null &&
+        from >= 0 &&
+        all.indexWhere((e) => e.name == 'problem_shown') == from) {
+      final before = (await resume(carried)).events;
+      if (before.firstOrNull?.payload['problem_id'] ==
+          events.first.payload['problem_id']) {
+        events = [
+          ...before.where((e) => !e.name.startsWith('session_')),
+          ...events.skip(1),
+        ];
+      }
+    }
+    return (events: events, lastSeq: all.isEmpty ? -1 : all.last.seq);
   }
+
+  /// [sessionId] carries on [fromId]'s case: time was up there, or the
+  /// server ended it, so its work goes on in a new session (SES-01, SES-04).
+  Future<void> carry(String sessionId, String fromId) =>
+      _db.saveCarried(sessionId, fromId);
 
   /// Where Home's Keep going leads: back into the child's unfinished case
   /// (the server's, so it follows them across phones; else this phone's
   /// log), or on to the problem the engine chose. Null when nothing is
-  /// saved or the pack no longer has that problem.
-  Future<({String problemId, String? resumeSessionId, String? startedOn})?>
-  whereNext(Pack pack, {String? childId}) async {
+  /// saved or the pack no longer has that problem. A case whose session
+  /// ended (time up, or the server ended it) is [WhereNext.carryFrom]: it
+  /// carries on in a new session, its board rebuilt (SES-01, SES-04).
+  Future<WhereNext?> whereNext(Pack pack, {String? childId}) async {
     // set when the server's open case was started on another phone
     ({String sessionId, String label})? elsewhere;
     try {
@@ -372,7 +406,12 @@ class SessionRepository {
     if (events.any((e) => e.name == 'problem_left')) {
       final next = problem.next.fast;
       return pack.problems.containsKey(next)
-          ? (problemId: next, resumeSessionId: null, startedOn: null)
+          ? (
+              problemId: next,
+              resumeSessionId: null,
+              startedOn: null,
+              carryFrom: null,
+            )
           : null;
     }
     var state = initialState();
@@ -387,20 +426,34 @@ class SessionRepository {
         };
         if (next != null) {
           return pack.problems.containsKey(next)
-              ? (problemId: next, resumeSessionId: null, startedOn: null)
+              ? (
+                  problemId: next,
+                  resumeSessionId: null,
+                  startedOn: null,
+                  carryFrom: null,
+                )
               : null;
         }
       }
     }
-    // ponytail: a case the server ended starts again from its question in a
-    // new session; rebuild its board from the events if children mind.
-    if (await _db.isEnded(sessionId)) {
-      return (problemId: problem.id, resumeSessionId: null, startedOn: null);
+    // ended (time up, or by the server): a new session carries the case
+    // on, its board rebuilt from these events; nothing begun, it starts
+    // again from its question
+    if (await _db.isEnded(sessionId) ||
+        events.any((e) => e.name == 'session_ended')) {
+      final begun = inputsFrom(pack, problem, events).length > 1;
+      return (
+        problemId: problem.id,
+        resumeSessionId: null,
+        startedOn: null,
+        carryFrom: begun ? sessionId : null,
+      );
     }
     return (
       problemId: problem.id,
       resumeSessionId: sessionId,
       startedOn: elsewhere?.sessionId == sessionId ? elsewhere?.label : null,
+      carryFrom: null,
     );
   }
 

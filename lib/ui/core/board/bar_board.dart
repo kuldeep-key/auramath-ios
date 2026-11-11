@@ -28,6 +28,7 @@ class BarBoard extends StatefulWidget {
     this.glowPiece = false,
     this.showHand = false,
     this.wobbles = 0,
+    this.across = false,
   });
 
   final ComparisonProblem problem;
@@ -38,6 +39,9 @@ class BarBoard extends StatefulWidget {
 
   /// Goes up on each wrong move: bar B wobbles while it's being sized.
   final int wobbles;
+
+  /// Bars drawn across, not upright: a weight story (LES-04, CON-11).
+  final bool across;
 
   @override
   State<BarBoard> createState() => _BarBoardState();
@@ -89,8 +93,7 @@ class _BarBoardState extends State<BarBoard> {
       _bursts++;
       AuraHaptics.snap();
     }
-    bool found(LessonState s) => s.step.index > LessonStep.findB.index;
-    if (!found(was) && found(now) ||
+    if (!was.bFound && now.bFound ||
         was.step != LessonStep.solved && now.step == LessonStep.solved) {
       _cheers++;
     }
@@ -127,12 +130,17 @@ class _BarBoardState extends State<BarBoard> {
 
   LessonStep get _step => widget.state.step;
 
-  BoardPiece? get _piece => switch (_step) {
+  /// The piece this step places, whether it waits in the tray or sits
+  /// where it was wrongly dropped.
+  BoardPiece? get _stepPiece => switch (_step) {
     LessonStep.drawA || LessonStep.placeB => BoardPiece.bar,
     LessonStep.placeGap => BoardPiece.gap,
     LessonStep.placeTotal => BoardPiece.total,
     _ => null,
   };
+
+  /// The piece in the tray: none while it sits on the board, misplaced.
+  BoardPiece? get _piece => widget.state.misplaced == null ? _stepPiece : null;
 
   void _drop(BoardPiece piece, _Zone zone) {
     final LessonInput? input = switch ((piece, zone, _step)) {
@@ -171,16 +179,25 @@ class _BarBoardState extends State<BarBoard> {
 
   /// A drop target that also accepts the tap alternative; [child] is told
   /// when a piece is over it.
-  Widget _zone(_Zone zone, Widget Function(bool hot) child) =>
-      DragTarget<BoardPiece>(
-        onAcceptWithDetails: (d) => _drop(d.data, zone),
-        builder: (context, candidates, _) => GestureDetector(
+  /// A bar takes a tap only while a gap or total can be put on it: then
+  /// it's a target with its name, else just a drawing.
+  Widget _zone(_Zone zone, Widget Function(bool hot) child, {String? label}) {
+    final bar = zone == _Zone.barA || zone == _Zone.barB;
+    final taps =
+        !bar || _stepPiece == BoardPiece.gap || _stepPiece == BoardPiece.total;
+    return DragTarget<BoardPiece>(
+      onAcceptWithDetails: (d) => _drop(d.data, zone),
+      builder: (context, candidates, _) => Semantics(
+        label: taps ? label : null,
+        child: GestureDetector(
           key: Key(zone.name),
           behavior: HitTestBehavior.opaque,
-          onTap: () => _tapZone(zone),
+          onTap: taps ? () => _tapZone(zone) : null,
           child: child(candidates.isNotEmpty),
         ),
-      );
+      ),
+    );
+  }
 
   /// A dashed slot that pulses while its piece is on the way.
   Widget _slot(_Zone zone, String label) => _zone(
@@ -190,6 +207,7 @@ class _BarBoardState extends State<BarBoard> {
       waiting: _armed != null || _dragging || _hinting,
       hot: hot,
     ),
+    label: label,
   );
 
   void _endSizing(double maxH) {
@@ -212,13 +230,14 @@ class _BarBoardState extends State<BarBoard> {
     final p = widget.problem;
     final s = widget.state;
     final piece = _piece;
-    final showTray = piece != null || _step == LessonStep.sizeB;
+    final showTray = _stepPiece != null || _step == LessonStep.sizeB;
+    if (widget.across) return _across(l, p, s, piece, showTray);
 
     return LayoutBuilder(
       builder: (context, c) {
         final w = c.maxWidth, h = c.maxHeight;
         final trayH = showTray ? 76.0 : 0.0;
-        final totH = p.ask == Ask.total ? 58.0 : 0.0;
+        final totH = p.ask == Ask.total ? 62.0 : 0.0;
         const capH = 56.0, topH = 40.0;
         final base = trayH + totH + capH;
         final maxH = (h - base - topH).clamp(60.0, double.infinity);
@@ -228,14 +247,14 @@ class _BarBoardState extends State<BarBoard> {
 
         final bigA = p.big == BigSide.a;
         final hA = (bigA ? 0.85 : 0.48) * maxH;
-        final sized = s.step.index > LessonStep.sizeB.index;
+        final sized = s.bSized;
         final hBFinal = (hA * p.bValue / p.aValue).clamp(0.15 * maxH, maxH);
         final hB = sized
             ? hBFinal
             : (hA + _dragDy * -1).clamp(0.1 * maxH, maxH).toDouble();
         final lo = hA < hB ? hA : hB, hi = hA < hB ? hB : hA;
         final shortX = hA < hB ? xA : xB;
-        final bFound = s.step.index > LessonStep.findB.index;
+        final bFound = s.bFound;
         final solved = s.step == LessonStep.solved;
 
         Widget at(
@@ -271,7 +290,8 @@ class _BarBoardState extends State<BarBoard> {
               ),
             ),
             // bar A, or its slot
-            if (!s.barA)
+            // naming the heights comes before any drawing (LES-12)
+            if (!s.barA && _step != LessonStep.nameQuantities)
               at(xA, base, bw, 0.7 * maxH, _slot(_Zone.slotA, p.a.name))
             else ...[
               at(
@@ -283,6 +303,7 @@ class _BarBoardState extends State<BarBoard> {
                   _Zone.barA,
                   (_) =>
                       _grown(_cheered(0, const Bar(color: AuraColors.yellow))),
+                  label: p.a.name,
                 ),
               ),
               at(
@@ -339,6 +360,7 @@ class _BarBoardState extends State<BarBoard> {
                       ),
                     ),
                   ),
+                  label: p.b.name,
                 ),
               ),
               if (_step == LessonStep.sizeB)
@@ -371,7 +393,7 @@ class _BarBoardState extends State<BarBoard> {
                 shortX,
                 base + lo,
                 bw,
-                (hi - lo).clamp(30.0, maxH),
+                (hi - lo).clamp(56.0, maxH),
                 _slot(_Zone.gapSlot, '${l.pieceGap}?'),
               ),
             if (s.gapPlaced)
@@ -395,10 +417,13 @@ class _BarBoardState extends State<BarBoard> {
                   alignment: Alignment.topCenter,
                   child: Column(
                     children: [
-                      // Figma's caption: the emoji at 26 / 28.6
-                      Text(
-                        item.pic,
-                        style: const TextStyle(fontSize: 26, height: 1.1),
+                      // Figma's caption: the emoji at 26 / 28.6; a picture
+                      // of the name under it, so not read out
+                      ExcludeSemantics(
+                        child: Text(
+                          item.pic,
+                          style: const TextStyle(fontSize: 26, height: 1.1),
+                        ),
                       ),
                       Text(
                         item.name,
@@ -416,8 +441,8 @@ class _BarBoardState extends State<BarBoard> {
               Positioned(
                 left: xA,
                 width: xB + bw - xA,
-                bottom: trayH + 8,
-                height: 44,
+                bottom: trayH + 4,
+                height: 56,
                 child: _slot(_Zone.totalSlot, '${l.pieceTotal}?'),
               ),
             if (s.totalPlaced)
@@ -431,71 +456,18 @@ class _BarBoardState extends State<BarBoard> {
                   ),
                 ),
               ),
-            // the tray
-            if (showTray)
+            // a wrong drop stays where it landed, wobbling (LES-07, Figma W1,
+            // W2): tap it to take it back (free, LES-15), or drag it on
+            if ((_stepPiece, s.misplaced) case (final p?, final on?))
               Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: trayH - 8,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AuraColors.blueTint,
-                    borderRadius: BorderRadius.circular(AuraRadii.panel),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      if (piece != null)
-                        _trayPiece(piece, switch (piece) {
-                          BoardPiece.bar => l.pieceBar,
-                          BoardPiece.gap => l.pieceGap,
-                          BoardPiece.total => l.pieceTotal,
-                        }),
-                      if (_step == LessonStep.sizeB)
-                        Padding(
-                          // leaves the undo key its corner
-                          padding: const EdgeInsets.only(left: 12, right: 68),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: _chip(l.shorter, Relation.shorter),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(child: _chip(l.taller, Relation.taller)),
-                            ],
-                          ),
-                        ),
-                      if (s.barB)
-                        Positioned(
-                          right: 10,
-                          child: GestureDetector(
-                            key: const Key('undo'),
-                            onTap: () => widget.onInput(const Undo()),
-                            child: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: AuraColors.white,
-                                borderRadius: BorderRadius.circular(
-                                  AuraRadii.small,
-                                ),
-                                border: Border.all(
-                                  color: AuraColors.navy,
-                                  width: 3,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.undo_rounded,
-                                color: AuraColors.navy,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                left: (on == Target.barA ? xA : xB) + bw / 2 - 80,
+                width: 160,
+                bottom: base + (on == Target.barA ? hA : hB) / 2 - 28,
+                height: 56,
+                child: Center(child: _misplaced(p, l)),
               ),
+            // the tray
+            if (showTray) _tray(l, s, piece, trayH),
             // star bursts where a piece landed, and on the bars when right
             if (_landed case final landed?)
               Positioned(
@@ -652,6 +624,321 @@ class _BarBoardState extends State<BarBoard> {
     );
   }
 
+  /// A weight story's board (LES-04, CON-11): the bars lie across from a
+  /// shared left edge, A above B, each named on its left; the gap sits
+  /// past the shorter bar's end, and the total is a bracket holding both
+  /// on the right. Bar B is sized by dragging its right end. DRAFT design
+  /// for Apoorv: Figma has no weight screens yet.
+  Widget _across(
+    AppLocalizations l,
+    ComparisonProblem p,
+    LessonState s,
+    BoardPiece? piece,
+    bool showTray,
+  ) => LayoutBuilder(
+    builder: (context, c) {
+      final w = c.maxWidth, h = c.maxHeight;
+      final trayH = showTray ? 76.0 : 0.0;
+      const capW = 72.0, valueW = 72.0;
+      final totW = p.ask == Ask.total ? 64.0 : 0.0;
+      final maxL = (w - capW - valueW - totW).clamp(60.0, double.infinity);
+      final bw = ((h - trayH - 40) / 3).clamp(56.0, 80.0);
+      final rows = 2 * bw + 24;
+      final yA = ((h - trayH - rows) / 2).clamp(0.0, double.infinity);
+      final yB = yA + bw + 24;
+      final bigA = p.big == BigSide.a;
+      final lA = (bigA ? 0.85 : 0.48) * maxL;
+      final lBFinal = (lA * p.bValue / p.aValue).clamp(0.15 * maxL, maxL);
+      final lB = s.bSized
+          ? lBFinal
+          : (lA - _dragDy).clamp(0.1 * maxL, maxL).toDouble();
+      final lo = lA < lB ? lA : lB, hi = lA < lB ? lB : lA;
+      final shortY = lA < lB ? yA : yB;
+
+      Widget at(double x, double y, double width, double height, Widget c) =>
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 450),
+            curve: Curves.easeOutBack,
+            left: x,
+            top: y,
+            width: width,
+            height: height,
+            child: c,
+          );
+
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // the shared left edge
+          Positioned(
+            left: capW - 3,
+            top: yA - 6,
+            width: 6,
+            height: rows + 12,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AuraColors.line,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+          for (final (y, item) in [(yA, p.a), (yB, p.b)])
+            Positioned(
+              left: 0,
+              top: y,
+              width: capW - 8,
+              height: bw,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ExcludeSemantics(
+                    child: Text(item.pic, style: const TextStyle(fontSize: 24)),
+                  ),
+                  Text(
+                    item.name,
+                    style: AuraText.barName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          if (!s.barA && _step != LessonStep.nameQuantities)
+            at(capW, yA, 0.7 * maxL, bw, _slot(_Zone.slotA, p.a.name))
+          else if (s.barA) ...[
+            at(
+              capW,
+              yA,
+              lA,
+              bw,
+              _zone(
+                _Zone.barA,
+                (_) => _cheered(0, const Bar(color: AuraColors.yellow)),
+                label: p.a.name,
+              ),
+            ),
+            at(
+              capW + lA + 6,
+              yA,
+              valueW,
+              bw,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('${p.aValue} ${p.unit}', style: AuraText.barValue),
+              ),
+            ),
+          ],
+          if (s.barA && !s.barB)
+            at(capW, yB, 0.7 * maxL, bw, _slot(_Zone.slotB, p.b.name)),
+          if (s.barB) ...[
+            at(
+              capW,
+              yB,
+              lB,
+              bw,
+              _zone(
+                _Zone.barB,
+                (_) => Wobbly(
+                  count: _barWobble,
+                  child: _cheered(
+                    1,
+                    Bar(
+                      color: AuraColors.blue,
+                      child: Text(
+                        s.bFound ? '${p.bValue} ${p.unit}' : '? ${p.unit}',
+                        style: AuraText.barInside,
+                      ),
+                    ),
+                  ),
+                ),
+                label: p.b.name,
+              ),
+            ),
+            if (_step == LessonStep.sizeB)
+              at(
+                capW + lB - 14,
+                yB + bw / 2 - 24,
+                28,
+                48,
+                Listener(
+                  key: const Key('handleB'),
+                  onPointerDown: (e) => _dragStartY = e.position.dx,
+                  // stored as the upright board's dy: right is longer
+                  onPointerMove: (e) => setState(
+                    () => _dragDy =
+                        -(e.position.dx - (_dragStartY ?? e.position.dx)),
+                  ),
+                  onPointerUp: (_) => _endSizing(maxL),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AuraColors.white,
+                      borderRadius: BorderRadius.circular(AuraRadii.small),
+                      border: Border.all(color: AuraColors.navy, width: 3),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+          if (_step == LessonStep.placeGap)
+            at(
+              capW + lo,
+              shortY,
+              (hi - lo).clamp(56.0, maxL),
+              bw,
+              _slot(_Zone.gapSlot, '${l.pieceGap}?'),
+            ),
+          if (s.gapPlaced)
+            at(
+              capW + lo,
+              shortY,
+              (hi - lo).clamp(56.0, maxL),
+              bw,
+              Pop(child: GapSegment(label: '${p.diff}')),
+            ),
+          if (_step == LessonStep.placeTotal)
+            at(
+              w - totW,
+              yA,
+              totW,
+              rows,
+              _slot(_Zone.totalSlot, '${l.pieceTotal}?'),
+            ),
+          if (s.totalPlaced)
+            at(
+              w - totW,
+              yA,
+              totW,
+              rows,
+              Pop(
+                child: _AcrossBrace(
+                  label: s.step == LessonStep.solved
+                      ? '${p.total}\n${p.unit}'
+                      : '?\n${p.unit}',
+                ),
+              ),
+            ),
+          if ((_stepPiece, s.misplaced) case (final pc?, final on?))
+            Positioned(
+              left: capW + (on == Target.barA ? lA : lB) / 2 - 80,
+              width: 160,
+              top: (on == Target.barA ? yA : yB) + bw / 2 - 28,
+              height: 56,
+              child: Center(child: _misplaced(pc, l)),
+            ),
+          if (showTray) _tray(l, s, piece, trayH),
+        ],
+      );
+    },
+  );
+
+  /// The tray: the piece waiting, the sizing chips, and undo.
+  Widget _tray(
+    AppLocalizations l,
+    LessonState s,
+    BoardPiece? piece,
+    double trayH,
+  ) => Positioned(
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: trayH - 8,
+    child: Container(
+      decoration: BoxDecoration(
+        color: AuraColors.blueTint,
+        borderRadius: BorderRadius.circular(AuraRadii.panel),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (piece != null)
+            _trayPiece(piece, switch (piece) {
+              BoardPiece.bar => l.pieceBar,
+              BoardPiece.gap => l.pieceGap,
+              BoardPiece.total => l.pieceTotal,
+            }),
+          if (_step == LessonStep.sizeB)
+            Padding(
+              // leaves the undo key its corner
+              padding: const EdgeInsets.only(left: 12, right: 68),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _chip(
+                      widget.across ? l.lessonLighter : l.shorter,
+                      Relation.shorter,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _chip(
+                      widget.across ? l.lessonHeavier : l.taller,
+                      Relation.taller,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (s.barB)
+            Positioned(
+              right: 10,
+              child: Semantics(
+                button: true,
+                label: l.lessonUndo,
+                child: GestureDetector(
+                  key: const Key('undo'),
+                  onTap: () => widget.onInput(const Undo()),
+                  child: Container(
+                    // a child's target: 56 pt (NFR-02)
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AuraColors.white,
+                      borderRadius: BorderRadius.circular(AuraRadii.small),
+                      border: Border.all(color: AuraColors.navy, width: 3),
+                    ),
+                    child: const Icon(
+                      Icons.undo_rounded,
+                      color: AuraColors.navy,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+
+  /// The piece where it was wrongly dropped: it wobbles with each wrong
+  /// move; a tap takes it back to the tray, a drag moves it on.
+  Widget _misplaced(BoardPiece piece, AppLocalizations l) {
+    final visual = FittedBox(
+      fit: BoxFit.scaleDown,
+      child: TrayPiece(
+        piece: piece,
+        label: piece == BoardPiece.gap ? l.pieceGap : l.pieceTotal,
+      ),
+    );
+    return Draggable<BoardPiece>(
+      key: const Key('misplaced'),
+      data: piece,
+      feedback: Material(color: Colors.transparent, child: visual),
+      childWhenDragging: Opacity(opacity: 0.3, child: visual),
+      onDragStarted: _touched,
+      child: Semantics(
+        button: true,
+        label: l.lessonTakeBack,
+        child: GestureDetector(
+          onTap: () => widget.onInput(const Undo()),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: Wobbly(count: widget.wobbles, child: visual),
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Bar A grows up from the baseline when it's first drawn.
   Widget _grown(Widget bar) => Entrance(
     duration: const Duration(milliseconds: 450),
@@ -794,5 +1081,49 @@ class _Hand extends StatelessWidget {
         );
       },
     ),
+  );
+}
+
+/// The total on a weight story's board: a bracket on the right holding
+/// both bars, with the total in it.
+class _AcrossBrace extends StatelessWidget {
+  const _AcrossBrace({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Container(
+        width: 16,
+        decoration: const BoxDecoration(
+          border: Border(
+            top: BorderSide(color: AuraColors.navy, width: 3),
+            right: BorderSide(color: AuraColors.navy, width: 3),
+            bottom: BorderSide(color: AuraColors.navy, width: 3),
+          ),
+          borderRadius: BorderRadius.horizontal(
+            right: Radius.circular(AuraRadii.small),
+          ),
+        ),
+      ),
+      Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+          decoration: BoxDecoration(
+            color: AuraColors.navy,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: AuraText.braceLabel,
+            ),
+          ),
+        ),
+      ),
+    ],
   );
 }

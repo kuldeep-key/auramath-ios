@@ -16,6 +16,7 @@ import '../view_models/lesson_view_model.dart';
 import 'answer_sheet.dart';
 import 'everyday_example.dart';
 import 'help_sheet.dart';
+import 'number_sentence.dart';
 import 'question_chips.dart';
 import 'thinking_cue.dart';
 import 'tutor_prompts.dart';
@@ -52,9 +53,9 @@ class _BoardViewState extends State<BoardView> {
 
   late int _wobbles = vm.wobbles;
 
-  /// The sum button tapped last, which wobbles if it was the wrong one,
-  /// and the wrong moves before that tap.
-  Op? _lastOp;
+  /// The option tapped last, which wobbles if it was the wrong one, and
+  /// the wrong moves before that tap.
+  String? _lastOption;
   int _wobblesAtTap = 0;
 
   LessonViewModel get vm => widget.vm;
@@ -73,7 +74,12 @@ class _BoardViewState extends State<BoardView> {
     final l = AppLocalizations.of(context)!;
     final p = vm.problem;
     final s = vm.state;
-    final rel = p.big == BigSide.a ? l.taller : l.shorter;
+    // a weight story says more and less (CON-11)
+    final rel = p.isMass
+        ? (p.big == BigSide.a ? l.lessonMore : l.lessonLess)
+        : p.big == BigSide.a
+        ? l.taller
+        : l.shorter;
 
     return Stack(
       children: [
@@ -116,7 +122,8 @@ class _BoardViewState extends State<BoardView> {
                         lit: s.gapPlaced,
                       ),
                     ],
-                    onSeeQuestion: vm.readQuestion,
+                    onSeeQuestion: vm.seeQuestion,
+                    seeQuestionLabel: l.lessonSeeQuestion,
                   ),
                 ),
                 if (vm.questions case final qs when qs.isNotEmpty) ...[
@@ -136,6 +143,8 @@ class _BoardViewState extends State<BoardView> {
                       glowPiece: vm.glowPiece,
                       showHand: vm.showHand,
                       wobbles: vm.wobbles,
+                      // across for a weight story (LES-04, CON-11)
+                      across: p.isMass && vm.weightStories,
                     ),
                   ),
                 ),
@@ -202,34 +211,78 @@ class _BoardViewState extends State<BoardView> {
 
   Widget _bottom(AppLocalizations l, ComparisonProblem p, LessonState s) {
     switch (s.step) {
-      case LessonStep.chooseOp:
+      case LessonStep.chooseOp || LessonStep.nameQuantities:
+        // the template's options (LES-12): D4's sums, or naming the height
+        final stepId = specStepId(s.step)!;
+        final options = choiceOptions(vm.pack, p, stepId);
         return Column(
           children: [
-            Row(
+            if (s.step == LessonStep.nameQuantities)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  p.isMass
+                      ? l.lessonNameHowHeavy(p.a.name.toLowerCase())
+                      : l.lessonNameHowTall(p.a.name.toLowerCase()),
+                  style: AuraText.title,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                for (final (op, sign) in [(Op.subtract, '−'), (Op.add, '+')])
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Wobbly(
-                        count: _lastOp == op ? vm.wobbles - _wobblesAtTap : 0,
-                        child: AuraButton(
-                          label: '${p.aValue} $sign ${p.diff}',
-                          color: AuraButtonColor.white,
-                          onPressed: () {
-                            setState(() {
-                              _lastOp = op;
-                              _wobblesAtTap = vm.wobbles;
-                            });
-                            vm.send(OpChosen(op));
-                          },
-                        ),
+                for (final o in options)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: options.length > 2 ? 100 : 150,
+                    ),
+                    child: Wobbly(
+                      count: _lastOption == o.id
+                          ? vm.wobbles - _wobblesAtTap
+                          : 0,
+                      child: AuraButton(
+                        key: Key('option-${o.id}'),
+                        label: o.label,
+                        color: AuraButtonColor.white,
+                        onPressed: () {
+                          setState(() {
+                            _lastOption = o.id;
+                            _wobblesAtTap = vm.wobbles;
+                          });
+                          vm.send(o.input(stepId));
+                        },
                       ),
                     ),
                   ),
               ],
             ),
             TextButton.icon(
+              // a child's target: 56 pt (NFR-02)
+              style: TextButton.styleFrom(minimumSize: const Size(56, 56)),
+              onPressed: _help,
+              icon: const Icon(Icons.support_rounded),
+              label: Text(l.helpMe, style: AuraText.link),
+            ),
+          ],
+        );
+      case LessonStep.numberSentence:
+        return Column(
+          children: [
+            Text(
+              l.lessonSentenceTitle(p.b.name.toLowerCase()),
+              style: AuraText.title,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            SentenceBuilder(
+              problem: p,
+              wobbles: vm.wobbles,
+              onSentence: vm.send,
+            ),
+            TextButton.icon(
+              style: TextButton.styleFrom(minimumSize: const Size(56, 56)),
               onPressed: _help,
               icon: const Icon(Icons.support_rounded),
               label: Text(l.helpMe, style: AuraText.link),
@@ -260,6 +313,10 @@ class _BoardViewState extends State<BoardView> {
                 _AnswerBox(text: _typed, wobbles: vm.wobbles),
                 const SizedBox(width: 8),
                 IconButton.outlined(
+                  constraints: const BoxConstraints.tightFor(
+                    width: 56,
+                    height: 56,
+                  ),
                   onPressed: _help,
                   icon: const Icon(Icons.support_rounded),
                   tooltip: l.helpMe,
@@ -350,6 +407,10 @@ class _BoardViewState extends State<BoardView> {
     );
   }
 
+  /// "Still there?" or the way-out offer answered (DAT-03).
+  void _answered(String choice) =>
+      vm.promptAnswered(vm.tooHard ? 'too_hard' : 'still_there', choice);
+
   Widget _stillThere(AppLocalizations l) => Positioned(
     left: 16,
     right: 16,
@@ -387,6 +448,7 @@ class _BoardViewState extends State<BoardView> {
                   label: l.helpMe,
                   color: AuraButtonColor.white,
                   onPressed: () {
+                    _answered('help_me');
                     vm.dismissStillThere();
                     _help();
                   },
@@ -396,21 +458,30 @@ class _BoardViewState extends State<BoardView> {
               AuraButton(
                 label: l.anEasierOne,
                 color: AuraButtonColor.white,
-                onPressed: () => vm.send(EasierTaken(noProgress: vm.tooHard)),
+                onPressed: () {
+                  _answered('easier_one');
+                  vm.send(EasierTaken(noProgress: vm.tooHard));
+                },
               ),
               const SizedBox(height: 8),
               if (vm.tooHard && widget.onLeave != null) ...[
                 AuraButton(
                   label: l.lessonLeaveForNow,
                   color: AuraButtonColor.white,
-                  onPressed: widget.onLeave,
+                  onPressed: () {
+                    _answered('leave');
+                    widget.onLeave!();
+                  },
                 ),
                 const SizedBox(height: 8),
               ],
               AuraButton(
                 label: l.stillThinking,
                 color: AuraButtonColor.blue,
-                onPressed: vm.stillThinking,
+                onPressed: () {
+                  _answered('still_thinking');
+                  vm.stillThinking();
+                },
               ),
             ],
           ),

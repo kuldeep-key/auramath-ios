@@ -163,7 +163,7 @@
     "step": "drawA",
     "decisions": [
       {
-        "type": "openRecheck"
+        "type": "checkOnePart"
       }
     ]
   }

@@ -92,11 +92,19 @@ Future<void> main() async {
     }
   }
 
-  final pack = await served(
+  // Julia's comparison template: draws a left case, and gives the lesson
+  // its step order, choices and worked examples (LES-03, LES-12, CON-05)
+  final template = await served(
+    (b) async => ComparisonTemplate.fromYaml(
+      b?.yamlOf('comparison-two-step.yaml') ??
+          await rootBundle.loadString('assets/spec/comparison-two-step.yaml'),
+    ),
+  );
+  final pack = (await served(
     (b) async => (await PackRepository(
       source: AssetPackSource(served: b),
     ).load()).withPraise(b?.praise ?? const {}),
-  );
+  )).copyWith(template: template);
   final config = await served(
     (b) async => AppConfig.fromYaml(
       b?.yamlOf('app-config.yaml') ??
@@ -138,12 +146,7 @@ Future<void> main() async {
     ),
     onFailed: (sessionId, message) =>
         errors.report('error', message, screen: 'lesson', sessionId: sessionId),
-    template: await served(
-      (b) async => ComparisonTemplate.fromYaml(
-        b?.yamlOf('comparison-two-step.yaml') ??
-            await rootBundle.loadString('assets/spec/comparison-two-step.yaml'),
-      ),
-    ),
+    template: template,
   );
   // the server's problems this phone has shown, for a case left part way
   await sessions.loadProblems(pack);

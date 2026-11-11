@@ -25,7 +25,12 @@ class WorkedExampleView extends StatefulWidget {
 }
 
 class _WorkedExampleViewState extends State<WorkedExampleView> {
-  static const _a = 6, _d = 2;
+  /// The template's worked example (CON-05): Building A 6 m, B 4 m
+  /// shorter. Its numbers, with B shorter or taller as in the child's
+  /// problem. With no template, the same numbers.
+  late final _example = exampleFor(widget.vm.pack, widget.vm.problem);
+  late final _a = _example?.a ?? 6;
+  late final _d = _example?.d ?? 4;
   int _step = 0;
 
   bool get _shorter => widget.vm.problem.big == BigSide.a;
@@ -70,6 +75,8 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
             onSpeak: () => widget.vm.say(line),
             speaking: widget.vm.voice.speaking,
             onHome: widget.onHome,
+            onSeeQuestion: widget.vm.seeQuestion,
+            seeQuestionLabel: l.lessonSeeQuestion,
           ),
           const SizedBox(height: 12),
           Container(

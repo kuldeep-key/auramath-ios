@@ -19,6 +19,7 @@ typedef Timing = ({int stepMs, int problemMs, int readingMs});
 
 /// The spec's id for a step; null for screens that aren't drawing steps.
 String? specStepId(LessonStep s) => switch (s) {
+  LessonStep.nameQuantities => 'name_quantities',
   LessonStep.drawA => 'draw_known_bar',
   LessonStep.placeB || LessonStep.sizeB => 'size_second_bar',
   LessonStep.placeGap => 'place_difference',
@@ -26,6 +27,7 @@ String? specStepId(LessonStep s) => switch (s) {
   LessonStep.chooseOp => 'choose_operation',
   LessonStep.findB => 'find_unknown',
   LessonStep.findTotal => 'find_total',
+  LessonStep.numberSentence => 'number_sentence',
   _ => null,
 };
 
@@ -163,28 +165,32 @@ List<SpecEvent> eventsFor(
         committed(moved, moved ? null : 'relation_reversed');
       }
     case PieceDropped(:final piece, :final target):
+      final object = piece == Piece.gap ? 'difference' : 'total';
+      final misplaced = before.misplaced;
+      // picked up from where it was wrongly dropped: that slip is charged now
+      if (misplaced != null) {
+        out.add(
+          SpecEvent('object_moved', {
+            'step_id': stepId,
+            'object': object,
+            'ms_from_step_start': t.stepMs,
+          }),
+        );
+        committed(false, _placedError(piece, misplaced));
+      }
       placed(
-        piece == Piece.gap ? 'difference' : 'total',
-        switch (target) {
-          Target.gapSlot => 'gap',
-          Target.totalSlot => 'across_both',
-          Target.barA => 'bar_a',
-          Target.barB => 'bar_b',
-        },
-        true,
+        object,
+        _targetId(target),
+        // a wrong drop is held, not committed, until it's moved or undone
+        after.misplaced == null,
         {if (piece == Piece.gap) 'value': p.diff},
       );
-      committed(
-        moved,
-        !moved && piece == Piece.gap && target == Target.barB
-            ? 'difference_as_amount'
-            : null,
-      );
-    case OpChosen(:final op):
+      if (moved) committed(true);
+    case OpChosen(:final op, :final optionId, :final errorType):
       out.add(
         SpecEvent('choice_selected', {
           'step_id': stepId,
-          'option_id': op == Op.add ? 'a_plus_d' : 'a_minus_d',
+          'option_id': optionId ?? (op == Op.add ? 'a_plus_d' : 'a_minus_d'),
           'ms_from_step_start': t.stepMs,
         }),
       );
@@ -192,8 +198,35 @@ List<SpecEvent> eventsFor(
         moved,
         moved
             ? null
-            : (op == Op.add ? 'operation_reversed' : 'keyword_strategy'),
+            : errorType ??
+                  (op == Op.add ? 'operation_reversed' : 'keyword_strategy'),
       );
+    case SentenceEntered(:final form):
+      const known = {
+        'A-D=box', 'D+box=A', 'box+D=A', 'A-box=D', //
+        'A+D=box', 'D+A=box', 'box-D=A', 'box-A=D',
+      };
+      out.add(
+        SpecEvent('number_sentence_entered', {
+          'form': known.contains(form) ? form : 'other',
+          'numbers': [
+            for (final m in RegExp(r'box|A|D').allMatches(form))
+              if (m[0] == 'A') p.aValue else if (m[0] == 'D') p.diff,
+          ],
+          'correct': moved,
+          'ms_from_step_start': t.stepMs,
+        }),
+      );
+      committed(moved, moved ? null : 'operation_reversed');
+    case ChoiceMade(:final optionId, :final right, :final errorType):
+      out.add(
+        SpecEvent('choice_selected', {
+          'step_id': stepId,
+          'option_id': optionId,
+          'ms_from_step_start': t.stepMs,
+        }),
+      );
+      committed(right, right ? null : errorType);
     case NumberEntered(:final value):
       out.add(
         SpecEvent('value_entered', {
@@ -279,14 +312,24 @@ List<SpecEvent> eventsFor(
       }
     case SideLessonChosen():
       break; // side_lesson_started, below
+    case Undo() when before.misplaced != null:
+      out.add(
+        SpecEvent('undo_used', {
+          'step_id': stepId,
+          'object': before.step == LessonStep.placeTotal
+              ? 'total'
+              : 'difference',
+        }),
+      );
     case Undo():
       out.add(
         SpecEvent('undo_used', {
           'step_id': stepId,
-          'object': switch (before.step) {
-            LessonStep.sizeB || LessonStep.placeGap => 'bar_b',
-            LessonStep.placeTotal => 'difference',
-            _ => p.ask == Ask.total ? 'total' : 'difference',
+          // what the undo took back: the step it went back to
+          'object': switch (after.step) {
+            LessonStep.placeB || LessonStep.sizeB => 'bar_b',
+            LessonStep.placeGap => 'difference',
+            _ => 'total',
           },
         }),
       );
@@ -305,11 +348,11 @@ List<SpecEvent> eventsFor(
           }),
         );
       }
-    case ShowMeHowTaken(:final afterWrong):
+    case ShowMeHowTaken(:final afterWrong, :final storyId):
       helpOpened(afterWrong: afterWrong);
       out.add(
-        const SpecEvent('worked_example_shown', {
-          'example_story_id': 'building-a-b',
+        SpecEvent('worked_example_shown', {
+          'example_story_id': storyId ?? 'building-a-b',
         }),
       );
     case EasierTaken(:final noProgress, :final afterWrong):
@@ -456,14 +499,20 @@ List<LessonInput> inputsFrom(
         ),
       },
       'choice_selected' => switch (j['option_id']) {
+        // which "it" the question means (TUT-16 H1-4a)
         'it_a' => const ItPicked('a'),
         'it_b' => const ItPicked('b'),
-        'a_plus_d' => const OpChosen(Op.add),
-        _ => const OpChosen(Op.subtract),
+        final id => switch (j['step_id']) {
+          'choose_operation' ||
+          null => _chosen(pack, p, 'choose_operation', id),
+          'name_quantities' => _chosen(pack, p, 'name_quantities', id),
+          _ => null, // Choose today's, before the case (LES-14)
+        },
       },
       // a hint the input before it showed by itself (a wrong pick's H1-4b)
       'hint_shown' when skipHints > 0 => null,
       'value_entered' => NumberEntered(j['value']! as int),
+      'number_sentence_entered' => SentenceEntered(j['form']! as String),
       'i_know_it_answered' => switch (j['stage']) {
         'total_after_unknown' => KnowTotalChecked(j['value']! as int),
         'unknown' when s.knowFlow == KnowFlow.checkingPart => PartChecked(
@@ -490,7 +539,9 @@ List<LessonInput> inputsFrom(
       'problem_completed' when s.step != LessonStep.solved =>
         const ExampleDone(),
       'hint_shown' => const HintTaken(),
-      'worked_example_shown' => const ShowMeHowTaken(),
+      'worked_example_shown' => ShowMeHowTaken(
+        storyId: j['example_story_id'] as String?,
+      ),
       'easier_chosen' => EasierTaken(noProgress: j['trigger'] == 'no_progress'),
       'idle_prompt_shown' => QuietFor(j['after_ms']! as int),
       _ => null,
@@ -513,6 +564,39 @@ List<LessonInput> inputsFrom(
         : r.decisions.whereType<ShowHint>().length;
   }
   return inputs;
+}
+
+String _targetId(Target target) => switch (target) {
+  Target.gapSlot => 'gap',
+  Target.totalSlot => 'across_both',
+  Target.barA => 'bar_a',
+  Target.barB => 'bar_b',
+};
+
+/// Template `error_rules` for a piece placed wrongly: the gap on bar B is
+/// the difference taken as an amount.
+String? _placedError(Piece piece, Target target) =>
+    piece == Piece.gap && target == Target.barB ? 'difference_as_amount' : null;
+
+/// The input a logged choice was: the template's option by its id; an
+/// old log's sum by its sign.
+LessonInput? _chosen(
+  Pack pack,
+  ComparisonProblem p,
+  String stepId,
+  Object? id,
+) {
+  if (stepId == 'choose_operation' && pack.template?.stepById(stepId) == null) {
+    return OpChosen(id == 'a_plus_d' ? Op.add : Op.subtract);
+  }
+  final option = choiceOptions(
+    pack,
+    p,
+    stepId,
+  ).where((o) => o.id == id).firstOrNull;
+  if (option != null) return option.input(stepId);
+  if (stepId != 'choose_operation') return null;
+  return OpChosen(id == 'a_plus_d' ? Op.add : Op.subtract);
 }
 
 /// Template `error_rules` / `answer_sheet_rules` for a wrong unknown. On the

@@ -19,10 +19,14 @@ class QuestionStrip extends StatelessWidget {
     super.key,
     required this.chips,
     required this.onSeeQuestion,
+    this.seeQuestionLabel = 'See the question',
   });
 
   final List<StripChip> chips;
+
+  /// Opens the whole question (LES-02).
   final VoidCallback onSeeQuestion;
+  final String seeQuestionLabel;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -46,13 +50,15 @@ class QuestionStrip extends StatelessWidget {
         ),
         Semantics(
           button: true,
-          label: 'See the question',
+          label: seeQuestionLabel,
           child: GestureDetector(
+            key: const Key('seeQuestion'),
             onTap: onSeeQuestion,
             child: PressScale(
               child: Container(
-                width: 44,
-                height: 44,
+                // a child's target: 56 pt (NFR-02)
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: AuraColors.blue,
                   borderRadius: BorderRadius.circular(12),

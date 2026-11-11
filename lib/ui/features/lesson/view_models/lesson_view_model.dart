@@ -11,6 +11,8 @@ import 'line_library.dart';
 import 'sitting.dart';
 import 'step_decision.dart';
 
+part 'lesson_gaps.dart';
+
 /// Which answer sheet is open during "I know it".
 enum KnowPrompt { answer, whatAsked, recheck, checkPart, checkTotal }
 
@@ -44,7 +46,7 @@ String fillLine(String template, Map<String, String> slots) => template
 
 /// Runs one lesson: hands each child input to the engine, saves it, and turns
 /// the engine's decisions into what the screens show. Decides nothing itself.
-class LessonViewModel extends ChangeNotifier {
+class LessonViewModel extends ChangeNotifier with _LessonGaps {
   LessonViewModel({
     required Pack pack,
     required String problemId,
@@ -74,7 +76,7 @@ class LessonViewModel extends ChangeNotifier {
     _voice.resting.addListener(_voiceResting);
   }
 
-  final Pack _pack;
+  Pack _pack;
   final Sitting _sitting;
   final SessionRepository _sessions;
   final Voice _voice;
@@ -215,7 +217,9 @@ class LessonViewModel extends ChangeNotifier {
         }
         _p = await next(sessionId, level: _askLevel);
         _askLevel = null;
-      } else if (next != null && _sessions.checkDue(sessionId)) {
+      } else if (next != null &&
+          carryFrom == null &&
+          _sessions.checkDue(sessionId)) {
         // a case fetched ahead last session: the check due here comes first
         _p = await next(sessionId);
       }
@@ -240,6 +244,7 @@ class LessonViewModel extends ChangeNotifier {
       problemShown(_problem),
     ];
     await _record(events);
+    await _afterShown();
   }
 
   /// The starting check's four sums (SKL-07), while a new child does them
@@ -516,6 +521,7 @@ class LessonViewModel extends ChangeNotifier {
   }
 
   Future<void> send(LessonInput input) async {
+    input = _withExample(input);
     final sessionId = _sessionId;
     // no session yet, no case yet (the starting sums, a left case on
     // offer), paused for the connection, or over: the board isn't live
@@ -653,6 +659,15 @@ class LessonViewModel extends ChangeNotifier {
     if (_state.sideLessons >= _pack.maxSideLessons) return;
     await send(SideLessonChosen(due));
   }
+
+  /// "Show me how" names the template's worked example it draws (CON-05).
+  LessonInput _withExample(LessonInput input) =>
+      input is ShowMeHowTaken && input.storyId == null && _p != null
+      ? ShowMeHowTaken(
+          afterWrong: input.afterWrong,
+          storyId: exampleFor(_pack, _problem)?.storyId,
+        )
+      : input;
 
   /// The engine's result for one input, shown: its state, its decisions,
   /// and the line for a step just entered.
@@ -1221,6 +1236,7 @@ class LessonViewModel extends ChangeNotifier {
   /// Opens the sheet that matches where an "I know it" answer is up to, so a
   /// dismissed "check one part" reopens as itself.
   void openKnowIt() {
+    _knowItOpened();
     knowPrompt = switch (_state.knowFlow) {
       KnowFlow.askingWhat => KnowPrompt.whatAsked,
       KnowFlow.checkingPart => KnowPrompt.checkPart,

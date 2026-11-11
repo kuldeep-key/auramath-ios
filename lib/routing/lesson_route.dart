@@ -41,9 +41,16 @@ List<RouteBase> lessonRoutes(Deps deps) => [
           queryParameters: {if (elsewhere.isNotEmpty) 'device': elsewhere},
         ).toString();
       }
-      return resume == null
-          ? '${Paths.lesson(id)}?s=${const Uuid().v4()}'
-          : '${Paths.lesson(id)}?resume=$resume';
+      // a case whose session ended carries on in a new one (SES-01,
+      // SES-04); the time on Choose today goes along (LES-14)
+      final carry = next?.carryFrom;
+      final ms = state.uri.queryParameters['ms'];
+      return Uri(
+        path: Paths.lesson(id),
+        queryParameters: resume != null
+            ? {'resume': resume}
+            : {'s': const Uuid().v4(), 'carry': ?carry, 'today': ?ms},
+      ).toString();
     },
   ),
   GoRoute(
@@ -57,6 +64,8 @@ List<RouteBase> lessonRoutes(Deps deps) => [
         key: ValueKey(state.uri.toString()),
         problemId: state.pathParameters['problemId']!,
         resumeSessionId: state.uri.queryParameters['resume'],
+        carryFrom: state.uri.queryParameters['carry'],
+        chosenMs: int.tryParse(state.uri.queryParameters['today'] ?? ''),
         deps: deps,
       ),
     ),
@@ -70,12 +79,21 @@ class _LessonRoute extends StatefulWidget {
     required this.problemId,
     required this.resumeSessionId,
     required this.deps,
+    this.carryFrom,
+    this.chosenMs,
   });
 
   final String problemId;
 
   /// Set when reopening a case that was left part way.
   final String? resumeSessionId;
+
+  /// Set when carrying on a case whose session ended (SES-01, SES-04).
+  final String? carryFrom;
+
+  /// The story problem was picked on Choose today, after this long there
+  /// (LES-14).
+  final int? chosenMs;
   final Deps deps;
 
   @override
@@ -136,6 +154,8 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..showBadges = flags.on('mastery_badges')
       ..selfRating = flags.on('self_rating')
       ..childQuestions = flags.on('child_questions')
+      ..wordMeanings = flags.on('word_meanings')
+      ..weightStories = flags.on('weight_stories')
       ..selfRatingMinAge = flags.selfRatingMinAge
       ..childAge = age
       ..askDecisions = Env.serverProblems
@@ -149,7 +169,14 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..launchSource = deps.account.role == Role.parent
           ? 'parent_handover'
           : 'child_opened'
-      ..biggerPad = prefs.biggerPad;
+      ..biggerPad = prefs.biggerPad
+      ..carryFrom = widget.carryFrom
+      ..chosenToday = widget.chosenMs;
+    // the template's optional steps, each behind its flag (LES-03)
+    _vm.enableSteps({
+      for (final step in const ['name_quantities', 'number_sentence'])
+        if (flags.on(step)) step,
+    }, addingUp: flags.on('adding_up_option'));
     widget.deps.sitting.useMinutes(prefs.minutes);
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
   }

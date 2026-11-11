@@ -1,5 +1,22 @@
 enum BigSide { a, b }
 
+/// The spec step ids this engine can run, in the order it runs them when a
+/// problem has no template to read them from (LES-03).
+const knownSteps = [
+  'name_quantities',
+  'draw_known_bar',
+  'size_second_bar',
+  'place_difference',
+  'place_total',
+  'choose_operation',
+  'find_unknown',
+  'find_total',
+  'number_sentence',
+];
+
+/// The steps the template marks optional: they run only where turned on.
+const optionalSteps = {'name_quantities', 'number_sentence'};
+
 /// What the question asks for: both together, or the second item alone.
 enum Ask { total, b }
 
@@ -52,6 +69,7 @@ class ComparisonProblem {
     required this.storyId,
     required this.variant,
     this.level,
+    this.quantity = 'height',
   });
 
   factory ComparisonProblem.fromJson(Map<String, Object?> j) {
@@ -74,6 +92,7 @@ class ComparisonProblem {
       storyId: j['story'] as String,
       variant: j['variant'] as String,
       level: j['level'] as String?,
+      quantity: j['quantity'] as String? ?? 'height',
     );
   }
 
@@ -99,6 +118,10 @@ class ComparisonProblem {
 
   /// `L1` to `L5`; null when the problem sits outside the ladder.
   final String? level;
+
+  /// `height` or `mass` (CON-11): a mass story's bars lie across (LES-04).
+  final String quantity;
+  bool get isMass => quantity == 'mass';
 
   int get bValue => big == BigSide.a ? aValue - diff : aValue + diff;
   int get total => aValue + bValue;

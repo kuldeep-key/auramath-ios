@@ -77,11 +77,12 @@ void main() {
       lessonEvents(pack, lemon, const [Started(), BarADrawn()]),
     );
     expect(repo.ended.value, 's1');
-    // the case starts again from its question, in a new session
+    // the case carries on in a new session, its board rebuilt (SES-04)
     expect(await repo.whereNext(pack), (
       problemId: 'lemon',
       resumeSessionId: null,
       startedOn: null,
+      carryFrom: 's1',
     ));
     repo.dispose();
     await db.close();
@@ -298,6 +299,7 @@ void main() {
         problemId: 'lemon',
         resumeSessionId: 's1',
         startedOn: null,
+        carryFrom: null,
       ));
       repo.dispose();
     });
@@ -311,6 +313,7 @@ void main() {
         problemId: 'easier',
         resumeSessionId: null,
         startedOn: null,
+        carryFrom: null,
       ));
       repo.dispose();
     });
@@ -334,6 +337,7 @@ void main() {
         problemId: 'shorter',
         resumeSessionId: null,
         startedOn: null,
+        carryFrom: null,
       ));
       repo.dispose();
     });
@@ -366,6 +370,7 @@ void main() {
         problemId: 'lemon',
         resumeSessionId: 'srv',
         startedOn: 'Phone A',
+        carryFrom: null,
       ));
       // adopted as already sent: nothing to resend, and resumable here
       expect(await db.unsent(), isEmpty);
@@ -395,6 +400,87 @@ void main() {
         closed: false,
       );
       expect((await repo.whereNext(pack))?.startedOn, isNull);
+      repo.dispose();
+      await db.close();
+    });
+  });
+
+  group('@SES-04 a case the server ended', () {
+    final pack = samplePack();
+
+    test('carries on in a new session with its board rebuilt', () async {
+      final db = await memoryOutbox();
+      final api = FakeApi();
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      final lemon = pack.problems['lemon']!;
+      final spec = lessonEvents(pack, lemon, const [
+        Started(),
+        BarADrawn(),
+        BarBPlaced(),
+      ]);
+      // offline ten minutes: the server ended it and serves it as closed
+      api.openCase = (
+        events: [
+          for (final (i, e) in spec.indexed)
+            ev('srv', i, e.name).withPayload(e.payload),
+        ],
+        sameDevice: true,
+        startedOn: null,
+        closed: true,
+      );
+      final next = await repo.whereNext(pack);
+      expect(next, (
+        problemId: 'lemon',
+        resumeSessionId: null,
+        startedOn: null,
+        carryFrom: 'srv',
+      ));
+      // the new session's board is the ended one's
+      final id = await repo.open();
+      await repo.record(id, 0, [
+        const SpecEvent('session_started', {
+          'launch_source': 'child_opened',
+          'content_versions': <String, String>{},
+          'is_demo': false,
+        }),
+        problemShown(lemon),
+      ]);
+      await repo.carry(id, 'srv');
+      final (:events, :lastSeq) = await repo.resume(id);
+      expect(lastSeq, 1, reason: "the new session's own seqs go on");
+      final state = replay(pack, lemon, inputsFrom(pack, lemon, events));
+      expect(state.step, LessonStep.sizeB);
+      expect(state.barB, isTrue);
+      repo.dispose();
+      await db.close();
+    });
+
+    test('nothing begun: it starts again from its question', () async {
+      final db = await memoryOutbox();
+      final api = FakeApi();
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      final lemon = pack.problems['lemon']!;
+      final spec = lessonEvents(pack, lemon, const []);
+      api.openCase = (
+        events: [
+          for (final (i, e) in spec.indexed)
+            ev('srv', i, e.name).withPayload(e.payload),
+        ],
+        sameDevice: true,
+        startedOn: null,
+        closed: true,
+      );
+      expect((await repo.whereNext(pack))?.carryFrom, isNull);
       repo.dispose();
       await db.close();
     });

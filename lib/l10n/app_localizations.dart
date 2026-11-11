@@ -3315,6 +3315,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Row {n}'**
   String lessonStarRow(int n);
+
+  /// DRAFT, for Julia (LES-07, LES-15): what a screen reader says on a piece dropped in the wrong place; a tap puts it back in the tray, free.
+  ///
+  /// In en, this message translates to:
+  /// **'Take it back'**
+  String get lessonTakeBack;
+
+  /// What a screen reader says on the eye button that opens the whole question (LES-02). Figma: Prototype parts › Question strip.
+  ///
+  /// In en, this message translates to:
+  /// **'See the question'**
+  String get lessonSeeQuestion;
+
+  /// DRAFT, for Julia and design (no Figma frame), LES-02: closes the whole question and returns to the same place.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my work'**
+  String get lessonQuestionBack;
+
+  /// DRAFT, for Julia (LES-15): what a screen reader says on the board's undo key. An undo before a step is checked costs nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get lessonUndo;
+
+  /// DRAFT, for Julia (LES-16, no Figma frame): the line over each Quick sum.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick sums! Type the answer.'**
+  String get kidQuickLine;
+
+  /// DRAFT, for Julia (LES-16): after a first wrong Quick sum; it gets one more try. Avoids the forbidden 'try again'.
+  ///
+  /// In en, this message translates to:
+  /// **'Check it and have one more go.'**
+  String get kidQuickOneMore;
+
+  /// DRAFT, for Julia (LES-16): a first wrong Quick sum that was a regrouping slip (a dropped carry, or the smaller digit taken from the larger).
+  ///
+  /// In en, this message translates to:
+  /// **'Look at the ones first. Do you need to regroup?'**
+  String get kidQuickRegroup;
+
+  /// DRAFT, for Julia (LES-16): after the run of five. No score or count.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick sums done!'**
+  String get kidQuickDone;
+
+  /// DRAFT, for Julia (LES-16): after Quick sums, on to today's story problem.
+  ///
+  /// In en, this message translates to:
+  /// **'A story problem'**
+  String get kidQuickStory;
+
+  /// DRAFT, for Julia (LES-16): after Quick sums, back to Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Back home'**
+  String get kidQuickHome;
+
+  /// DRAFT, for Julia (LES-14, Figma A3 / 4.2): Choose today's title.
+  ///
+  /// In en, this message translates to:
+  /// **'What shall we do today?'**
+  String get kidTodayTitle;
+
+  /// DRAFT, for Julia (LES-14): today's case, at the child's level.
+  ///
+  /// In en, this message translates to:
+  /// **'A story problem'**
+  String get kidTodayStory;
+
+  /// DRAFT, for Julia (LES-14, LES-16): five quick sums at the child's level. Figma 4.2's Taking away is part of these.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick sums'**
+  String get kidTodayQuick;
+
+  /// DRAFT, for Julia (SES-07, Figma 25.3): WelcomeBack's second choice, after carrying on the last case; opens Choose today (LES-14).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose today\'s work'**
+  String get kidWelcomeChooseToday;
+
+  /// DRAFT, for Julia (LES-10): what a screen reader says on a word button under the question.
+  ///
+  /// In en, this message translates to:
+  /// **'What does {word} mean?'**
+  String kidWordWhat(String word);
+
+  /// DRAFT, for Julia (LES-10, Figma J09): under the drawing for 'taller'. Julia (journey 36): 'better with a teaching of the drawing'.
+  ///
+  /// In en, this message translates to:
+  /// **'Taller means it reaches higher. The taller one gets the longer bar.'**
+  String get kidWordTaller;
+
+  /// DRAFT, for Julia (LES-10, Figma J09): under the drawing for 'shorter'.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorter means it does not reach as high. The shorter one gets the shorter bar.'**
+  String get kidWordShorter;
+
+  /// DRAFT, for Julia (LES-10, CON-11): under the drawing for 'more' in a weight story.
+  ///
+  /// In en, this message translates to:
+  /// **'More means it weighs more. The heavier one gets the longer bar.'**
+  String get kidWordMore;
+
+  /// DRAFT, for Julia (LES-10, CON-11): under the drawing for 'less' in a weight story.
+  ///
+  /// In en, this message translates to:
+  /// **'Less means it weighs less. The lighter one gets the shorter bar.'**
+  String get kidWordLess;
+
+  /// DRAFT, for Julia (LES-10): closes a word's meaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get kidWordGotIt;
+
+  /// DRAFT, for Julia and Apoorv (LES-12, name_quantities, M3; screen TBD): asks which number is the first thing's height, before drawing. The options come from the template.
+  ///
+  /// In en, this message translates to:
+  /// **'How tall is the {a}?'**
+  String lessonNameHowTall(String a);
+
+  /// DRAFT, for Julia and Apoorv (LES-12, CON-11): the weight story's name_quantities question.
+  ///
+  /// In en, this message translates to:
+  /// **'How heavy is the {a}?'**
+  String lessonNameHowHeavy(String a);
+
+  /// DRAFT, for Julia (LES-06, J36): what a screen reader says on an empty box of the number sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty box'**
+  String get lessonSentenceBox;
+
+  /// DRAFT, for Julia (LES-06): the number sentence's sign, now +.
+  ///
+  /// In en, this message translates to:
+  /// **'Add. Tap to take away.'**
+  String get lessonSentenceAdd;
+
+  /// DRAFT, for Julia (LES-06): the number sentence's sign, now −.
+  ///
+  /// In en, this message translates to:
+  /// **'Take away. Tap to add.'**
+  String get lessonSentenceTake;
+
+  /// DRAFT, for Julia (LES-06, J36): sends the number sentence. Any equivalent form counts.
+  ///
+  /// In en, this message translates to:
+  /// **'Check my sentence'**
+  String get lessonSentenceCheck;
+
+  /// DRAFT, for Julia (LES-06, J36): above the number sentence builder.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a number sentence for the {b}.'**
+  String lessonSentenceTitle(String b);
+
+  /// DRAFT, for Julia (CON-11): the sizing chip on a weight story's board, in place of Taller (policy choice_mass: heavier).
+  ///
+  /// In en, this message translates to:
+  /// **'Heavier'**
+  String get lessonHeavier;
+
+  /// DRAFT, for Julia (CON-11): the sizing chip on a weight story's board, in place of Shorter.
+  ///
+  /// In en, this message translates to:
+  /// **'Lighter'**
+  String get lessonLighter;
+
+  /// DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 more').
+  ///
+  /// In en, this message translates to:
+  /// **'more'**
+  String get lessonMore;
+
+  /// DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 less').
+  ///
+  /// In en, this message translates to:
+  /// **'less'**
+  String get lessonLess;
 }
 
 class _AppLocalizationsDelegate

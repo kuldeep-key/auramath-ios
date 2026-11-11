@@ -63,11 +63,53 @@ void main() {
     final ended = (await db.forSession('s1')).last;
     expect(ended.name, 'session_ended');
     expect(ended.payload['reason'], 'time_up');
+    // the ended session isn't appended to: a new one carries the case on
     expect(await vm.sessions.whereNext(pack), (
       problemId: 'lemon',
-      resumeSessionId: 's1',
+      resumeSessionId: null,
       startedOn: null,
+      carryFrom: 's1',
     ));
+  });
+
+  test('@SES-01 the next session reopens the same problem at the same step, '
+      'in a session of its own', () async {
+    await vm.send(const BarADrawn());
+    await vm.send(const BarBPlaced());
+    await spend(30 * minute);
+    await vm.callItADay();
+    final next = (await vm.sessions.whereNext(pack))!;
+    final later = LessonViewModel(
+      pack: pack,
+      problemId: next.problemId,
+      sessions: vm.sessions,
+      voice: FakeVoice(),
+      sitting: Sitting(capMs: 30 * minute),
+      nowMs: () => now,
+      openSession: vm.sessions.open,
+      tickEvery: null,
+    )..carryFrom = next.carryFrom;
+    await later.start();
+    expect(later.sessionId, 's2');
+    expect(later.state.step, LessonStep.sizeB);
+    expect(later.state.barA, isTrue);
+    // the new session starts clean: its own start, then the work goes on
+    final s2 = await db.forSession('s2');
+    expect(s2.map((e) => e.name).take(2), ['session_started', 'problem_shown']);
+    expect(s2.map((e) => e.name), isNot(contains('object_placed')));
+    // nothing more is written to the ended one
+    final s1 = (await db.forSession('s1')).length;
+    await later.send(const BarBSized(Relation.shorter));
+    expect((await db.forSession('s1')).length, s1);
+    expect(later.state.step, LessonStep.placeGap);
+    // and a resume of the new session still has the whole board
+    expect((await vm.sessions.whereNext(pack))?.resumeSessionId, 's2');
+    final (:events, lastSeq: _) = await vm.sessions.resume('s2');
+    expect(
+      replay(pack, later.problem, inputsFrom(pack, later.problem, events)),
+      later.state,
+    );
+    later.dispose();
   });
 
   test(

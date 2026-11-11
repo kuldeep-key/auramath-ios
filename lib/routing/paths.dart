@@ -56,6 +56,8 @@ abstract final class Paths {
   static const trail = '/trail'; // K2 651:68
   static const trailTop = '/trail/top'; // TrailTop 659:2
   static const check = '/check'; // A quick check 651:165
+  static const chooseToday = '/today'; // A3, Figma 4.2 (LES-14)
+  static const quickSums = '/quick-sums'; // no Figma frame yet (LES-16)
 
   /// The case partner's first meeting (AI-07), before a child's first
   /// lesson. Not in Figma.

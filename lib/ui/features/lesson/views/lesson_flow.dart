@@ -8,7 +8,9 @@ import '../view_models/lesson_view_model.dart';
 import 'bar_sense_view.dart';
 import 'board_view.dart';
 import 'break_views.dart';
+import 'question_overlay.dart';
 import 'question_view.dart';
+import 'word_meaning.dart';
 import 'side_lesson_view.dart';
 import 'solved_view.dart';
 import 'starting_check_view.dart';
@@ -104,10 +106,16 @@ class LessonFlow extends StatelessWidget {
         return Scaffold(
           body: TimeUpView(
             onStop: () async {
+              vm.promptAnswered('time_up', 'call_it_a_day');
               await vm.callItADay();
               onHome();
             },
-            onFinish: vm.canFinish ? vm.finishThisOne : null,
+            onFinish: vm.canFinish
+                ? () {
+                    vm.promptAnswered('time_up', 'finish_this_one');
+                    vm.finishThisOne();
+                  }
+                : null,
           ),
         );
       }
@@ -151,22 +159,34 @@ class LessonFlow extends StatelessWidget {
                             ),
                           },
                   ),
+                  if (vm.questionOpen) QuestionOverlay(vm: vm),
+                  if (vm.wordOpen case final word?)
+                    WordMeaningSheet(vm: vm, word: word),
                   if (!vm.online)
                     LostInternetPause(
-                      onRetry: vm.retryConnection,
+                      onRetry: () {
+                        vm.promptAnswered('offline', 'try_again');
+                        vm.retryConnection();
+                      },
                       onGoHome: () async {
+                        vm.promptAnswered('offline', 'stop_for_today');
                         await vm.leave();
                         onHome();
                       },
                     ),
                   if (vm.askingBreak)
                     BreakSheet(
-                      onKeepGoing: vm.keepGoing,
+                      onKeepGoing: () {
+                        vm.promptAnswered('paused', 'keep_going');
+                        vm.keepGoing();
+                      },
                       onGoHome: () async {
+                        vm.promptAnswered('paused', 'stop_for_today');
                         await vm.leave();
                         onHome();
                       },
                       onLeave: () async {
+                        vm.promptAnswered('paused', 'leave');
                         await vm.leaveProblem();
                         onFinished(LessonViewModel.newProblem);
                       },
