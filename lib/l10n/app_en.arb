@@ -475,6 +475,8 @@
   "kidOkLetsGo": "OK, let's go",
   "kidNextToEarn": "Next to earn",
   "kidSessionBadgeEarned": "Your badge for this session",
+  "kidStreakMoment": "Back on the case again! Detectives keep at it.",
+  "@kidStreakMoment": {"description": "DRAFT (REW-05, D-47) for Design and Julia: the kind streak moment. No number, no loss message, nothing sold."},
   "kidSessionBadgeFinished": "Case cracked",
   "@kidSessionBadgeFinished": {"description": "DRAFT (REW-01, D-47) for Design and Julia: session badge when a case was solved, until the server names it."},
   "kidSessionBadgeTimeUp": "Detective at work",

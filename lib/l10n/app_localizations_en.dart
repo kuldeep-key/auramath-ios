@@ -1348,6 +1348,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidSessionBadgeEarned => 'Your badge for this session';
 
   @override
+  String get kidStreakMoment =>
+      'Back on the case again! Detectives keep at it.';
+
+  @override
   String get kidSessionBadgeFinished => 'Case cracked';
 
   @override

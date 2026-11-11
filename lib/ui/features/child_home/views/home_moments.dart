@@ -7,23 +7,28 @@ import '../../../core/theme/tokens.dart';
 import 'badge_disc.dart';
 
 /// What Home celebrates when the child comes back to it: the badge of the
-/// session that just stopped (REW-01). It shows once.
-typedef HomeMoments = ({SessionBadge? badge});
+/// session that just stopped (REW-01), and the kind streak moment
+/// (REW-05). Each shows once.
+typedef HomeMoments = ({SessionBadge? badge, bool streak});
 
 /// The one badge a session earns, however it stopped (REW-01): the
 /// server's when it names one, else a DRAFT name for the way it ended.
 typedef SessionBadge = ({String sessionId, String reason, ServedBadge? served});
 
 /// Decides [HomeMoments] for one visit to Home, and remembers what it has
-/// shown so each session's badge shows once.
+/// shown so each session's badge, and each day's streak, shows once.
 class HomeMomentsSource {
   HomeMomentsSource({required this.rewards});
 
   final RewardsRepository rewards;
   final Set<String> _shownSessions = {};
+  DateTime? _streakShownOn;
 
   Future<HomeMoments> next({
     required ({String sessionId, String reason})? lastStop,
+    String? childId,
+    bool streakOn = false,
+    DateTime? now,
   }) async {
     SessionBadge? badge;
     if (lastStop != null && _shownSessions.add(lastStop.sessionId)) {
@@ -33,7 +38,16 @@ class HomeMomentsSource {
         served: await rewards.sessionBadge(lastStop.sessionId),
       );
     }
-    return (badge: badge);
+    // REW-05 (flag streak_moment): the server counts the days, in the
+    // family's time zone, with its free missed days; the phone only asks
+    // whether today's moment shows, and shows it once a day
+    final today = DateUtils.dateOnly(now ?? DateTime.now());
+    var streak = false;
+    if (streakOn && childId != null && _streakShownOn != today) {
+      streak = await rewards.streakMoment(childId);
+      if (streak) _streakShownOn = today;
+    }
+    return (badge: badge, streak: streak);
   }
 }
 
@@ -58,8 +72,8 @@ class HomeMomentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final b = moments.badge;
-    if (b == null) return const SizedBox.shrink();
-    final name = b.served?.name ?? draftName(l, b.reason);
+    if (b == null && !moments.streak) return const SizedBox.shrink();
+    final name = b == null ? null : b.served?.name ?? draftName(l, b.reason);
     return Pop(
       duration: const Duration(milliseconds: 450),
       child: Semantics(
@@ -74,21 +88,35 @@ class HomeMomentCard extends StatelessWidget {
           child: Column(
             spacing: 8,
             children: [
-              Row(
-                spacing: 12,
-                children: [
-                  BadgeDisc(art: badgeArt(b.served?.id ?? 'session'), size: 56),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(l.kidSessionBadgeEarned, style: AuraText.caption),
-                        Text(name, style: AuraText.option),
-                      ],
+              if (b != null && name != null)
+                Row(
+                  spacing: 12,
+                  children: [
+                    BadgeDisc(
+                      art: badgeArt(b.served?.id ?? 'session'),
+                      size: 56,
                     ),
-                  ),
-                ],
-              ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l.kidSessionBadgeEarned,
+                            style: AuraText.caption,
+                          ),
+                          Text(name, style: AuraText.option),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              // REW-05: no number, never a loss
+              if (moments.streak)
+                Text(
+                  l.kidStreakMoment,
+                  textAlign: TextAlign.center,
+                  style: AuraText.option,
+                ),
             ],
           ),
         ),

@@ -2380,6 +2380,12 @@ abstract class AppLocalizations {
   /// **'Your badge for this session'**
   String get kidSessionBadgeEarned;
 
+  /// DRAFT (REW-05, D-47) for Design and Julia: the kind streak moment. No number, no loss message, nothing sold.
+  ///
+  /// In en, this message translates to:
+  /// **'Back on the case again! Detectives keep at it.'**
+  String get kidStreakMoment;
+
   /// DRAFT (REW-01, D-47) for Design and Julia: session badge when a case was solved, until the server names it.
   ///
   /// In en, this message translates to:

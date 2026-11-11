@@ -60,8 +60,13 @@ List<RouteBase> childRoutes(Deps deps) {
         child: named(
           (name) => _WithMoment(
             // REW-01: the badge of the session that just stopped, whatever
-            // way it stopped; not behind mastery_badges
-            load: () => moments.next(lastStop: deps.sessions.lastStop.value),
+            // way it stopped, not behind mastery_badges; REW-05's streak
+            // moment behind streak_moment
+            load: () => moments.next(
+              lastStop: deps.sessions.lastStop.value,
+              childId: deps.account.childId,
+              streakOn: deps.flags.on('streak_moment'),
+            ),
             builder: (moment) => ListenableBuilder(
               listenable: deps.flags,
               builder: (_, _) => HomeScreen(
@@ -213,7 +218,9 @@ class _WithMomentState extends State<_WithMoment> {
     builder: (_, snap) {
       final m = snap.data;
       return widget.builder(
-        m == null || m.badge == null ? null : HomeMomentCard(moments: m),
+        m == null || (m.badge == null && !m.streak)
+            ? null
+            : HomeMomentCard(moments: m),
       );
     },
   );

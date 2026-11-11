@@ -55,7 +55,10 @@ void main() {
           name: 'Mira',
           grownUps: Paths.kids,
           moment: HomeMomentCard(
-            moments: (badge: (sessionId: 's1', reason: reason, served: null)),
+            moments: (
+              badge: (sessionId: 's1', reason: reason, served: null),
+              streak: false,
+            ),
           ),
         ),
       );
@@ -63,6 +66,50 @@ void main() {
       expect(find.text('Your badge for this session'), findsOneWidget);
     });
   }
+
+  group('REW-05: a kind streak moment', () {
+    test('only with the flag, when the server says, once a day', () async {
+      final (deps, server) = await testDeps();
+      final m = HomeMomentsSource(rewards: RewardsRepository(deps.client));
+      server.on('GET /api/children/c1/streak', {'show': true});
+      final monday = DateTime(2026, 11, 9, 16);
+      Future<bool> visit({bool on = true, DateTime? at}) async => (await m.next(
+        lastStop: null,
+        childId: 'c1',
+        streakOn: on,
+        now: at ?? monday,
+      )).streak;
+      expect(await visit(on: false), isFalse);
+      expect(await visit(), isTrue);
+      expect(await visit(), isFalse); // once that day
+      expect(await visit(at: monday.add(const Duration(days: 1))), isTrue);
+      server.on('GET /api/children/c1/streak', {'show': false});
+      expect(await visit(at: monday.add(const Duration(days: 3))), isFalse);
+    });
+
+    test('no route yet: no moment, and no error', () async {
+      final (deps, _) = await testDeps();
+      final m = HomeMomentsSource(rewards: RewardsRepository(deps.client));
+      expect(
+        (await m.next(lastStop: null, childId: 'c1', streakOn: true)).streak,
+        isFalse,
+      );
+    });
+
+    testWidgets('Home shows it with no number and no loss', (tester) async {
+      await shots(
+        tester,
+        'child_home_streak',
+        const HomeScreen(
+          name: 'Mira',
+          grownUps: Paths.kids,
+          moment: HomeMomentCard(moments: (badge: null, streak: true)),
+        ),
+      );
+      expect(find.textContaining('Back on the case again'), findsOneWidget);
+      expect(find.textContaining(RegExp(r'\d')), findsNothing);
+    });
+  });
 
   test('a served badge without a name is not used', () {
     expect(RewardsRepository.badgeFrom({'id': 'x'}), isNull);
