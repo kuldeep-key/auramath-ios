@@ -265,6 +265,24 @@ void main() {
     });
   });
 
+  test('a slow upload: the cue and the rules\' help still count from the '
+      'step (NFR-05)', () {
+    api.decideWith = (_) =>
+        Future.delayed(const Duration(seconds: 6), () => evaluator('hint'));
+    lesson((vm, time) {
+      api.eventsDelay = const Duration(seconds: 6);
+      vm.send(const NumberEntered(81));
+      time.flushMicrotasks();
+      time.elapse(const Duration(seconds: 1));
+      expect(vm.thinking, isTrue);
+      time.elapse(const Duration(seconds: 3));
+      expect(vm.thinking, isFalse);
+      expect(vm.state.step, LessonStep.sideLesson); // the rules' help
+      time.elapse(const Duration(seconds: 12));
+      expect(vm.state.step, LessonStep.sideLesson);
+    });
+  });
+
   test('an error: the rules\' help at once, no cue', () {
     api.decideWith = (_) async =>
         throw const ApiException('throttled', status: 429);

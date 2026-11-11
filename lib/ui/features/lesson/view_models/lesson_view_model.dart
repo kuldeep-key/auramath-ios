@@ -703,6 +703,9 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
           if (d is Wobble || d is ShakeHelp) d,
       ]);
       _held = held..fedBack = true;
+      // the cue and the fallback count from the step, not from the upload
+      // below (NFR-05)
+      _holdTimers(held);
     } else {
       _present(held);
     }
@@ -814,11 +817,6 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     Map<String, Object?> ask,
     _Held held,
   ) async {
-    held.cue = Timer(Duration(milliseconds: cueAfterMs), () {
-      if (!identical(_held, held) || _disposed) return;
-      thinking = true;
-      notifyListeners();
-    });
     Map<String, Object?>? reply;
     try {
       reply = await _sessions
@@ -836,12 +834,28 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     await _settle(reply == null ? null : aiChoice(reply));
   }
 
+  /// The thinking cue at [cueAfterMs] and the rules' help at
+  /// [fallbackAfterMs], from when [held] was held.
+  void _holdTimers(_Held held) {
+    held.cue = Timer(Duration(milliseconds: cueAfterMs), () {
+      if (!identical(_held, held) || _disposed) return;
+      thinking = true;
+      notifyListeners();
+    });
+    held.fallback = Timer(Duration(milliseconds: fallbackAfterMs), () {
+      if (!identical(_held, held) || _disposed) return;
+      debugPrint('decision: none in $fallbackAfterMs ms; the rules\' help');
+      unawaited(_settle(null));
+    });
+  }
+
   /// Shows the held step's help: the server's [ai] choice where it differs
   /// from the rules' and this app can show it, else the rules' own.
   Future<void> _settle(AiChoice? ai) async {
     final held = _held!;
     _held = null;
     held.cue?.cancel();
+    held.fallback?.cancel();
     thinking = false;
     final rules = held.r.decisions.any((d) => d is OpenSideLesson)
         ? 'side_lesson'
@@ -1556,6 +1570,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   void dispose() {
     _disposed = true;
     _held?.cue?.cancel();
+    _held?.fallback?.cancel();
     _doneRating();
     _sessions.online.removeListener(_onlineChanged);
     _sessions.ended.removeListener(_endedByServer);
@@ -1582,6 +1597,7 @@ class _Held {
   final LessonInput input;
   final LessonStep? entering;
   Timer? cue;
+  Timer? fallback;
 
   /// The wobble and Help me's shake already showed, while it waited.
   bool fedBack = false;

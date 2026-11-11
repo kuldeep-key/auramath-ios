@@ -185,11 +185,15 @@ class FakeApi implements Api {
   /// The badge the batch that ends a session answers with (REW-01).
   ServerBadge? badge;
 
+  /// How long each events upload takes: a slow connection.
+  Duration eventsDelay = Duration.zero;
+
   @override
   Future<EventsReply> sendEvents(
     String sessionId,
     List<LessonEvent> events,
   ) async {
+    if (eventsDelay > Duration.zero) await Future.delayed(eventsDelay);
     if (failNext > 0) {
       failNext--;
       throw const ApiException('offline');
