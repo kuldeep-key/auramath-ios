@@ -1828,4 +1828,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonSentenceBoth => 'both';
+
+  @override
+  String get lessonTakeBack => 'Take it back';
 }

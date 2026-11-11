@@ -658,5 +658,7 @@
   "lessonSentenceGap": "gap",
   "@lessonSentenceGap": {"description": "DRAFT (TUT-09): the word under the difference in the easier number sentence."},
   "lessonSentenceBoth": "both",
-  "@lessonSentenceBoth": {"description": "DRAFT (TUT-09): the word under the ? in the easier sentence for the total."}
+  "@lessonSentenceBoth": {"description": "DRAFT (TUT-09): the word under the ? in the easier sentence for the total."},
+  "lessonTakeBack": "Take it back",
+  "@lessonTakeBack": {"description": "DRAFT, for Julia (LES-07, LES-15): what a screen reader says on a piece dropped in the wrong place; a tap puts it back in the tray, free."}
 }

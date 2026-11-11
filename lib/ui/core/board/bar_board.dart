@@ -126,12 +126,17 @@ class _BarBoardState extends State<BarBoard> {
 
   LessonStep get _step => widget.state.step;
 
-  BoardPiece? get _piece => switch (_step) {
+  /// The piece this step places, whether it waits in the tray or sits
+  /// where it was wrongly dropped.
+  BoardPiece? get _stepPiece => switch (_step) {
     LessonStep.drawA || LessonStep.placeB => BoardPiece.bar,
     LessonStep.placeGap => BoardPiece.gap,
     LessonStep.placeTotal => BoardPiece.total,
     _ => null,
   };
+
+  /// The piece in the tray: none while it sits on the board, misplaced.
+  BoardPiece? get _piece => widget.state.misplaced == null ? _stepPiece : null;
 
   void _drop(BoardPiece piece, _Zone zone) {
     final LessonInput? input = switch ((piece, zone, _step)) {
@@ -211,7 +216,7 @@ class _BarBoardState extends State<BarBoard> {
     final p = widget.problem;
     final s = widget.state;
     final piece = _piece;
-    final showTray = piece != null || _step == LessonStep.sizeB;
+    final showTray = _stepPiece != null || _step == LessonStep.sizeB;
 
     return LayoutBuilder(
       builder: (context, c) {
@@ -424,6 +429,16 @@ class _BarBoardState extends State<BarBoard> {
                     label: solved ? '${p.total} ${p.unit}' : '? ${p.unit}',
                   ),
                 ),
+              ),
+            // a wrong drop stays where it landed, wobbling (LES-07, Figma W1,
+            // W2): tap it to take it back (free, LES-15), or drag it on
+            if ((_stepPiece, s.misplaced) case (final p?, final on?))
+              Positioned(
+                left: (on == Target.barA ? xA : xB) + bw / 2 - 80,
+                width: 160,
+                bottom: base + (on == Target.barA ? hA : hB) / 2 - 28,
+                height: 56,
+                child: Center(child: _misplaced(p, l)),
               ),
             // the tray
             if (showTray)
@@ -640,6 +655,36 @@ class _BarBoardState extends State<BarBoard> {
               ),
               child: visual,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The piece where it was wrongly dropped: it wobbles with each wrong
+  /// move; a tap takes it back to the tray, a drag moves it on.
+  Widget _misplaced(BoardPiece piece, AppLocalizations l) {
+    final visual = FittedBox(
+      fit: BoxFit.scaleDown,
+      child: TrayPiece(
+        piece: piece,
+        label: piece == BoardPiece.gap ? l.pieceGap : l.pieceTotal,
+      ),
+    );
+    return Draggable<BoardPiece>(
+      key: const Key('misplaced'),
+      data: piece,
+      feedback: Material(color: Colors.transparent, child: visual),
+      childWhenDragging: Opacity(opacity: 0.3, child: visual),
+      onDragStarted: _touched,
+      child: Semantics(
+        button: true,
+        label: l.lessonTakeBack,
+        child: GestureDetector(
+          onTap: () => widget.onInput(const Undo()),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: Wobbly(count: widget.wobbles, child: visual),
           ),
         ),
       ),

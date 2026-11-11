@@ -3219,6 +3219,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'both'**
   String get lessonSentenceBoth;
+
+  /// DRAFT, for Julia (LES-07, LES-15): what a screen reader says on a piece dropped in the wrong place; a tap puts it back in the tray, free.
+  ///
+  /// In en, this message translates to:
+  /// **'Take it back'**
+  String get lessonTakeBack;
 }
 
 class _AppLocalizationsDelegate
