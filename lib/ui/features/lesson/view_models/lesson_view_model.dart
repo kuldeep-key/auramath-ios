@@ -978,6 +978,14 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// unless the child taps a speak button.
   bool readAloud = true;
 
+  /// The header's speaker: muting stops the line being read and reads
+  /// nothing more on its own until the sound is turned back on.
+  void sound(bool on) {
+    readAloud = on;
+    if (!on) _voice.stop();
+    notifyListeners();
+  }
+
   /// The grown-up's "Bigger number pad" (Settings).
   bool biggerPad = false;
 

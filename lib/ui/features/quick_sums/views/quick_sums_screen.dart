@@ -40,6 +40,9 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
   String _typed = '';
   late int _wobbles = widget.vm.wobbles;
 
+  /// Quick sums never read on their own: the speaker reads on a tap.
+  bool _muted = true;
+
   QuickSumsViewModel get vm => widget.vm;
 
   Future<void> _home() async {
@@ -91,6 +94,8 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
         LessonHeader(
           line: line,
           onSpeak: () => widget.onSay?.call(line),
+          muted: _muted,
+          onSound: (on) => setState(() => _muted = !on),
           onHome: _home,
         ),
         const Spacer(),
@@ -168,6 +173,8 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
         LessonHeader(
           line: lines.last,
           onSpeak: () => widget.onSay?.call(lines.join(' ')),
+          muted: _muted,
+          onSound: (on) => setState(() => _muted = !on),
           onHome: _home,
         ),
         const SizedBox(height: 12),

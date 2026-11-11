@@ -96,6 +96,8 @@ class _BoardViewState extends State<BoardView> {
                   line: vm.coachText,
                   onSpeak: vm.sayAgain,
                   speaking: vm.voice.speaking,
+                  muted: !vm.readAloud,
+                  onSound: vm.sound,
                   onHome: widget.onHome,
                 ),
                 const SizedBox(height: 12),

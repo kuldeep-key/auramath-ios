@@ -125,18 +125,28 @@ void main() {
     tester,
   ) async {
     var spoke = 0, home = 0;
-    await tester.pumpWidget(
-      host(
-        LessonHeader(
-          line: 'Drag a bar up here.',
-          onSpeak: () => spoke++,
-          onHome: () => home++,
-        ),
+    final sound = <bool>[];
+    Widget header({required bool muted}) => host(
+      LessonHeader(
+        line: 'Drag a bar up here.',
+        onSpeak: () => spoke++,
+        muted: muted,
+        onSound: sound.add,
+        onHome: () => home++,
       ),
     );
+    await tester.pumpWidget(header(muted: false));
     expect(find.text('Drag a bar up here.'), findsOneWidget);
+    // sound on: the speaker mutes
     await tester.tap(find.byIcon(Icons.volume_up_rounded));
     await tester.tap(find.byIcon(Icons.home_rounded));
-    expect((spoke, home), (1, 1));
+    expect((spoke, home), (0, 1));
+    expect(sound, [false]);
+
+    // muted: the speaker turns the sound back on and reads the line
+    await tester.pumpWidget(header(muted: true));
+    await tester.tap(find.byIcon(Icons.volume_off_rounded));
+    expect(spoke, 1);
+    expect(sound, [false, true]);
   });
 }

@@ -24,7 +24,9 @@ class FakeVoice implements Voice {
   Future<void> say(String text) async => said.add(text);
 
   @override
-  Future<void> stop() async {}
+  Future<void> stop() async => stops++;
+
+  int stops = 0;
 
   @override
   Future<void> warm(List<String> lines) async {}
