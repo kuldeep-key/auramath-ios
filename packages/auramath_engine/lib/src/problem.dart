@@ -11,6 +11,7 @@ const knownSteps = [
   'choose_operation',
   'find_unknown',
   'find_total',
+  'number_sentence',
 ];
 
 /// The steps the template marks optional: they run only where turned on.

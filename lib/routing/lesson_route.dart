@@ -173,7 +173,7 @@ class _LessonRouteState extends State<_LessonRoute> {
     _vm.enableSteps({
       for (final step in const ['name_quantities', 'number_sentence'])
         if (flags.on(step)) step,
-    });
+    }, addingUp: flags.on('adding_up_option'));
     widget.deps.sitting.useMinutes(prefs.minutes);
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
   }

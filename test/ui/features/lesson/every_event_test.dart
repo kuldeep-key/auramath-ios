@@ -20,7 +20,6 @@ const notInOneProblem = {
   'easier_chosen': 'something easier switches the case',
   'self_rating_given': 'the self_rating flag, after a solved case',
   'prompt_offered': 'the server\'s decision (ai_decisions)',
-  'number_sentence_entered': 'the optional number_sentence step (LES-06)',
   'badge_shared': 'the grown-up\'s screens',
   'streak_moment_shown': 'Home, after a case',
   'avatar_chosen': 'set-up (ACC-12)',
@@ -49,7 +48,8 @@ void main() {
             tickEvery: null,
           )
           ..childQuestions = true
-          ..wordMeanings = true;
+          ..wordMeanings = true
+          ..enableSteps({'number_sentence'});
     await vm.start();
     vm
       ..readQuestion()
@@ -88,6 +88,7 @@ void main() {
     sessions.online.value = true;
     await vm.send(const NumberEntered(79));
     await vm.send(const NumberEntered(265));
+    await vm.send(const SentenceEntered('D+box=A'));
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(vm.state.step, LessonStep.solved);
 

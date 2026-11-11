@@ -49,6 +49,7 @@ class Pack {
     this.policyLines = const {},
     this.template,
     this.optionalSteps = const {},
+    this.addingUp = false,
   });
 
   factory Pack.fromJson(Map<String, Object?> j) => Pack(
@@ -77,6 +78,7 @@ class Pack {
     Map<String, String>? policyLines,
     ComparisonTemplate? template,
     Set<String>? optionalSteps,
+    bool? addingUp,
   }) => Pack(
     version: version,
     timers: timers ?? this.timers,
@@ -91,6 +93,7 @@ class Pack {
     policyLines: policyLines ?? this.policyLines,
     template: template ?? this.template,
     optionalSteps: optionalSteps ?? this.optionalSteps,
+    addingUp: addingUp ?? this.addingUp,
   );
 
   final String version;
@@ -124,6 +127,10 @@ class Pack {
   /// The template's optional steps turned on (by flag): `name_quantities`,
   /// `number_sentence`.
   final Set<String> optionalSteps;
+
+  /// choose_operation also offers adding up, "D + ? = A" (LES-06, Julia's
+  /// J14), until the template has it: a draft for Apoorv and Julia.
+  final bool addingUp;
   final List<String> hintLineIds;
   final Map<String, BadgeInfo> badges;
   final Map<String, String> lines;

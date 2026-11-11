@@ -3351,6 +3351,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'How heavy is the {a}?'**
   String lessonNameHowHeavy(String a);
+
+  /// DRAFT, for Julia (LES-06, J36): what a screen reader says on an empty box of the number sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty box'**
+  String get lessonSentenceBox;
+
+  /// DRAFT, for Julia (LES-06): the number sentence's sign, now +.
+  ///
+  /// In en, this message translates to:
+  /// **'Add. Tap to take away.'**
+  String get lessonSentenceAdd;
+
+  /// DRAFT, for Julia (LES-06): the number sentence's sign, now −.
+  ///
+  /// In en, this message translates to:
+  /// **'Take away. Tap to add.'**
+  String get lessonSentenceTake;
+
+  /// DRAFT, for Julia (LES-06, J36): sends the number sentence. Any equivalent form counts.
+  ///
+  /// In en, this message translates to:
+  /// **'Check my sentence'**
+  String get lessonSentenceCheck;
+
+  /// DRAFT, for Julia (LES-06, J36): above the number sentence builder.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a number sentence for the {b}.'**
+  String lessonSentenceTitle(String b);
 }
 
 class _AppLocalizationsDelegate

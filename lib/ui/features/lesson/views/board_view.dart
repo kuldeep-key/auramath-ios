@@ -15,6 +15,7 @@ import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
 import 'answer_sheet.dart';
 import 'help_sheet.dart';
+import 'number_sentence.dart';
 import 'question_chips.dart';
 import 'thinking_cue.dart';
 import 'tutor_prompts.dart';
@@ -225,6 +226,28 @@ class _BoardViewState extends State<BoardView> {
             ),
             TextButton.icon(
               // a child's target: 56 pt (NFR-02)
+              style: TextButton.styleFrom(minimumSize: const Size(56, 56)),
+              onPressed: _help,
+              icon: const Icon(Icons.support_rounded),
+              label: Text(l.helpMe, style: AuraText.link),
+            ),
+          ],
+        );
+      case LessonStep.numberSentence:
+        return Column(
+          children: [
+            Text(
+              l.lessonSentenceTitle(p.b.name.toLowerCase()),
+              style: AuraText.title,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            SentenceBuilder(
+              problem: p,
+              wobbles: vm.wobbles,
+              onSentence: vm.send,
+            ),
+            TextButton.icon(
               style: TextButton.styleFrom(minimumSize: const Size(56, 56)),
               onPressed: _help,
               icon: const Icon(Icons.support_rounded),

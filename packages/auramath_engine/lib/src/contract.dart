@@ -27,6 +27,7 @@ String? specStepId(LessonStep s) => switch (s) {
   LessonStep.chooseOp => 'choose_operation',
   LessonStep.findB => 'find_unknown',
   LessonStep.findTotal => 'find_total',
+  LessonStep.numberSentence => 'number_sentence',
   _ => null,
 };
 
@@ -185,6 +186,23 @@ List<SpecEvent> eventsFor(
             : errorType ??
                   (op == Op.add ? 'operation_reversed' : 'keyword_strategy'),
       );
+    case SentenceEntered(:final form):
+      const known = {
+        'A-D=box', 'D+box=A', 'box+D=A', 'A-box=D', //
+        'A+D=box', 'D+A=box', 'box-D=A', 'box-A=D',
+      };
+      out.add(
+        SpecEvent('number_sentence_entered', {
+          'form': known.contains(form) ? form : 'other',
+          'numbers': [
+            for (final m in RegExp(r'box|A|D').allMatches(form))
+              if (m[0] == 'A') p.aValue else if (m[0] == 'D') p.diff,
+          ],
+          'correct': moved,
+          'ms_from_step_start': t.stepMs,
+        }),
+      );
+      committed(moved, moved ? null : 'operation_reversed');
     case ChoiceMade(:final optionId, :final right, :final errorType):
       out.add(
         SpecEvent('choice_selected', {
@@ -415,6 +433,7 @@ List<LessonInput> inputsFrom(
         _ => null, // Choose today's, before the case (LES-14)
       },
       'value_entered' => NumberEntered(j['value']! as int),
+      'number_sentence_entered' => SentenceEntered(j['form']! as String),
       'i_know_it_answered' => switch (j['stage']) {
         'total_after_unknown' => KnowTotalChecked(j['value']! as int),
         'unknown' when s.knowFlow == KnowFlow.checkingPart => PartChecked(

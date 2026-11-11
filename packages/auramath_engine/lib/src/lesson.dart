@@ -16,6 +16,7 @@ enum LessonStep {
   chooseOp,
   findB,
   findTotal,
+  numberSentence,
   sideLesson,
   solved,
 }
@@ -70,6 +71,13 @@ final class OpChosen extends LessonInput {
   /// when wrong (LES-12); null: the engine's own two sums.
   final String? optionId;
   final String? errorType;
+}
+
+/// A number sentence built on the number_sentence step (LES-06, J36), in
+/// the template's symbols with no spaces: `A-D=box`, `D+box=A`.
+final class SentenceEntered extends LessonInput {
+  const SentenceEntered(this.form);
+  final String form;
 }
 
 /// An option tapped on a choice step that isn't the sum (LES-12): today
@@ -569,6 +577,11 @@ StepResult _move(
     ):
       return place(target, Target.totalSlot, 'cmp.totalWrong');
 
+    case (LessonStep.numberSentence, SentenceEntered(:final form)):
+      // any equivalent form counts: the answer, not the method (LES-06)
+      if (!sentenceRight(pack, p, form)) return wrongMove('cmp.sentenceWrong');
+      return advance(s);
+
     case (LessonStep.nameQuantities, ChoiceMade(:final right)):
       if (!right) return wrongMove('cmp.nameWrong');
       return advance(s);
@@ -774,6 +787,7 @@ List<LessonStep> lessonSteps(Pack pack, ComparisonProblem p) {
           'choose_operation' => const [LessonStep.chooseOp],
           'find_unknown' => const [LessonStep.findB],
           'find_total' => const [LessonStep.findTotal],
+          'number_sentence' => const [LessonStep.numberSentence],
           _ => const <LessonStep>[],
         },
   ];
@@ -809,6 +823,20 @@ List<ChoiceOption> choiceOptions(
               ),
             ]
           : const <StepOption>[]);
+  // the adding-up option for Julia's J14 (LES-06), proposed to Apoorv and
+  // Julia and not in the template yet: offered where the pack turns it on
+  final withAddingUp = [
+    ...options,
+    if (stepId == 'choose_operation' &&
+        pack.addingUp &&
+        !options.any((o) => o.text.contains('box')))
+      const StepOption(
+        id: 'd_plus_box',
+        text: 'D + box = A',
+        correctFor: ['taller'],
+        errorType: 'keyword_strategy',
+      ),
+  ];
   String label(String text) => text
       .replaceAll('{A}', '${p.aValue}')
       .replaceAll('{D}', '${p.diff}')
@@ -820,7 +848,7 @@ List<ChoiceOption> choiceOptions(
       .replaceAll('box', '?')
       .replaceAll(' - ', ' − ');
   return [
-    for (final o in options)
+    for (final o in withAddingUp)
       ChoiceOption(
         id: o.id,
         label: label(o.text),
@@ -829,6 +857,36 @@ List<ChoiceOption> choiceOptions(
         op: o.correctFor.contains(relation) ? rightOp : wrongOp,
       ),
   ];
+}
+
+/// The number sentence forms the template accepts (LES-06), as
+/// `(form, relations it's right for)`, forms without spaces; the
+/// template's list as written when the pack has none.
+List<(String, List<String>)> sentenceForms(Pack pack) {
+  final accepts = pack.template?.stepById('number_sentence')?.accepts;
+  if (accepts != null && accepts.isNotEmpty) {
+    return [
+      for (final a in accepts) (a.form.replaceAll(' ', ''), a.correctFor),
+    ];
+  }
+  return const [
+    ('A-D=box', ['taller']),
+    ('D+box=A', ['taller']),
+    ('box+D=A', ['taller']),
+    ('A-box=D', ['taller']),
+    ('A+D=box', ['shorter']),
+    ('D+A=box', ['shorter']),
+    ('box-D=A', ['shorter']),
+    ('box-A=D', ['shorter']),
+  ];
+}
+
+/// [form] is a right number sentence for [p]'s relation.
+bool sentenceRight(Pack pack, ComparisonProblem p, String form) {
+  final relation = p.big == BigSide.a ? 'taller' : 'shorter';
+  return sentenceForms(
+    pack,
+  ).any((f) => f.$1 == form && f.$2.contains(relation));
 }
 
 /// One option of a choice step, for one problem (LES-12).
@@ -894,6 +952,7 @@ const _boardSteps = {
   LessonStep.chooseOp,
   LessonStep.findB,
   LessonStep.findTotal,
+  LessonStep.numberSentence,
 };
 
 bool _canSide(LessonState s, int max) => s.sideLessons < max;

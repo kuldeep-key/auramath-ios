@@ -18,6 +18,7 @@ Map<String, Object?> inputToJson(LessonInput i) => switch (i) {
     'optionId': ?optionId,
     'errorType': ?errorType,
   },
+  SentenceEntered(:final form) => {'type': 'sentenceEntered', 'form': form},
   ChoiceMade(:final optionId, :final right, :final errorType) => {
     'type': 'choiceMade',
     'optionId': optionId,
@@ -72,6 +73,7 @@ LessonInput inputFromJson(Map<String, Object?> j) {
       optionId: j['optionId'] as String?,
       errorType: j['errorType'] as String?,
     ),
+    'sentenceEntered' => SentenceEntered(j['form']! as String),
     'choiceMade' => ChoiceMade(
       j['optionId']! as String,
       right: j['right'] == true,

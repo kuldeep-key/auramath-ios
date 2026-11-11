@@ -1905,4 +1905,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String lessonNameHowHeavy(String a) {
     return 'How heavy is the $a?';
   }
+
+  @override
+  String get lessonSentenceBox => 'Empty box';
+
+  @override
+  String get lessonSentenceAdd => 'Add. Tap to take away.';
+
+  @override
+  String get lessonSentenceTake => 'Take away. Tap to add.';
+
+  @override
+  String get lessonSentenceCheck => 'Check my sentence';
+
+  @override
+  String lessonSentenceTitle(String b) {
+    return 'Make a number sentence for the $b.';
+  }
 }

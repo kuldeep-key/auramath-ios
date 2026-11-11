@@ -702,5 +702,15 @@
   "lessonNameHowTall": "How tall is the {a}?",
   "@lessonNameHowTall": {"description": "DRAFT, for Julia and Apoorv (LES-12, name_quantities, M3; screen TBD): asks which number is the first thing's height, before drawing. The options come from the template.", "placeholders": {"a": {"type": "String"}}},
   "lessonNameHowHeavy": "How heavy is the {a}?",
-  "@lessonNameHowHeavy": {"description": "DRAFT, for Julia and Apoorv (LES-12, CON-11): the weight story's name_quantities question.", "placeholders": {"a": {"type": "String"}}}
+  "@lessonNameHowHeavy": {"description": "DRAFT, for Julia and Apoorv (LES-12, CON-11): the weight story's name_quantities question.", "placeholders": {"a": {"type": "String"}}},
+  "lessonSentenceBox": "Empty box",
+  "@lessonSentenceBox": {"description": "DRAFT, for Julia (LES-06, J36): what a screen reader says on an empty box of the number sentence."},
+  "lessonSentenceAdd": "Add. Tap to take away.",
+  "@lessonSentenceAdd": {"description": "DRAFT, for Julia (LES-06): the number sentence's sign, now +."},
+  "lessonSentenceTake": "Take away. Tap to add.",
+  "@lessonSentenceTake": {"description": "DRAFT, for Julia (LES-06): the number sentence's sign, now −."},
+  "lessonSentenceCheck": "Check my sentence",
+  "@lessonSentenceCheck": {"description": "DRAFT, for Julia (LES-06, J36): sends the number sentence. Any equivalent form counts."},
+  "lessonSentenceTitle": "Make a number sentence for the {b}.",
+  "@lessonSentenceTitle": {"description": "DRAFT, for Julia (LES-06, J36): above the number sentence builder.", "placeholders": {"b": {"type": "String"}}}
 }
