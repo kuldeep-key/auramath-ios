@@ -20,7 +20,8 @@ void main() {
           ? http.Response('', 304)
           : http.Response(
               '{"files":{"content/app-config.yaml":'
-              '{"session":{"cap_minutes":20},"flags":{"trail":true}}}}',
+              '{"session":{"cap_minutes":20},"flags":{"trail":true}}},'
+              '"praise":{"line.praise.solved":"You solved the {problem_name}!"}}',
               200,
               headers: {'etag': '"v1"'},
             );
@@ -40,5 +41,9 @@ void main() {
     await next.refresh();
     expect(sent, [null, '"v1"']);
     expect(next.yamlOf('app-config.yaml'), isNotNull);
+    // TUT-12: the finish line as the server serves it
+    expect(next.praise, {
+      'line.praise.solved': 'You solved the {problem_name}!',
+    });
   });
 }

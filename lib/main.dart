@@ -93,7 +93,9 @@ Future<void> main() async {
   }
 
   final pack = await served(
-    (b) => PackRepository(source: AssetPackSource(served: b)).load(),
+    (b) async => (await PackRepository(
+      source: AssetPackSource(served: b),
+    ).load()).withPraise(b?.praise ?? const {}),
   );
   final config = await served(
     (b) async => AppConfig.fromYaml(

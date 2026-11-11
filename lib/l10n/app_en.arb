@@ -478,7 +478,7 @@
   "kidDoneForToday": "Done for today",
   "kidOnARoll": "On a roll!",
   "kidCaseAfterCase": "Case after case. Detective work!",
-  "kidTryNewSkill": "Try a new skill!",
+  "kidTryNewSkill": "Try a new skill",
   "kidNewStopOpened": "A new stop opened on your trail: {stop}.",
   "@kidNewStopOpened": {"placeholders": {"stop": {"type": "String"}}},
   "kidSeeMyTrail": "See my trail",

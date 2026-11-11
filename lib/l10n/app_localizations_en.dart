@@ -1360,7 +1360,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidCaseAfterCase => 'Case after case. Detective work!';
 
   @override
-  String get kidTryNewSkill => 'Try a new skill!';
+  String get kidTryNewSkill => 'Try a new skill';
 
   @override
   String kidNewStopOpened(String stop) {

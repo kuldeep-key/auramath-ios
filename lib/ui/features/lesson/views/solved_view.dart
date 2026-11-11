@@ -51,7 +51,7 @@ class _SolvedViewState extends State<SolvedView> {
                     const Burst(child: Portrait(size: 200)),
                     const SizedBox(height: 24),
                     Text(
-                      l.youSolvedIt,
+                      widget.vm.praise ?? l.youSolvedIt,
                       style: AuraText.cheer,
                       textAlign: TextAlign.center,
                     ),

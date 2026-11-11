@@ -142,6 +142,11 @@ class Pack {
     policyMassLines: policyMassLines ?? this.policyMassLines,
   );
 
+  /// The content bundle's `praise` lines (TUT-12) over the policy's own.
+  Pack withPraise(Map<String, String> praise) => praise.isEmpty
+      ? this
+      : copyWith(policyLines: {...policyLines, ...praise});
+
   final String version;
   final Timers timers;
 

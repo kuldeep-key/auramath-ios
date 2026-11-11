@@ -31,6 +31,15 @@ class ContentBundle {
     return key == null ? null : jsonEncode(files![key]);
   }
 
+  /// The bundle's `praise` (TUT-12): the finish screen's lines by policy
+  /// id (`line.praise.solved`, `line.praise.solved-short`), as the server
+  /// serves them; empty until a copy is held.
+  Map<String, String> get praise => {
+    for (final MapEntry(:key, :value)
+        in ((_saved?['praise'] as Map?) ?? const {}).entries)
+      if (value is String) '$key': value,
+  };
+
   /// Asks for a newer copy (needs a token). 304 keeps this one; a failure
   /// is logged and keeps it too: no screen waits on content.
   Future<void> refresh() async {
@@ -40,7 +49,12 @@ class ContentBundle {
         etag: _saved?['etag'] as String?,
       );
       if (r == null) return;
-      _saved = {'etag': r.etag, 'files': (r.json! as Map)['files']};
+      final json = r.json! as Map;
+      _saved = {
+        'etag': r.etag,
+        'files': json['files'],
+        'praise': ?json['praise'],
+      };
       await _file.writeAsString(jsonEncode(_saved));
     } on ApiException catch (e) {
       debugPrint('content bundle not refreshed: $e');

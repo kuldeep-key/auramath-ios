@@ -2419,7 +2419,7 @@ abstract class AppLocalizations {
   /// No description provided for @kidTryNewSkill.
   ///
   /// In en, this message translates to:
-  /// **'Try a new skill!'**
+  /// **'Try a new skill'**
   String get kidTryNewSkill;
 
   /// No description provided for @kidNewStopOpened.

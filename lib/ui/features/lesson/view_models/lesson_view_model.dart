@@ -1226,6 +1226,13 @@ class LessonViewModel extends ChangeNotifier {
   String _lineText(String lineId, Map<String, String> slots) =>
       lines.line(lineId, _problem, slots);
 
+  /// The finish screen's praise (TUT-12): "You solved the Tree Word
+  /// Problem!" (`line.praise.solved`), else the short one; null without
+  /// either, and the screen keeps its own.
+  String? get praise =>
+      libraryLine('line.praise.solved') ??
+      libraryLine('line.praise.solved-short');
+
   /// Julia's library line [id] for this problem, or null when the library
   /// doesn't hold it (the screen keeps its own words).
   String? libraryLine(String id) =>
