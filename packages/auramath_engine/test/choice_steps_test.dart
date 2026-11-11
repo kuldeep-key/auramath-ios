@@ -89,5 +89,37 @@ void main() {
       expect(s.step, LessonStep.drawA);
       expect(s.wrong, 1);
     });
+
+    test('the template\'s opt_A and opt_D are sent lower case, as the '
+        'events schema asks, and replay either way', () {
+      final options = choiceOptions(on, lemon, 'name_quantities');
+      final events = play(on, [
+        const Started(),
+        options.last.input('name_quantities'),
+        options.first.input('name_quantities'),
+      ]);
+      final ids = [
+        for (final e in events)
+          if (e.name == 'choice_selected') e.payload['option_id'],
+      ];
+      expect(ids, ['opt_d', 'opt_a']);
+      for (final id in ids) {
+        expect(RegExp(r'^[a-z0-9][a-z0-9._-]{0,63}$').hasMatch('$id'), isTrue);
+      }
+      // a phone's events saved before, with the template's own case
+      final saved = [
+        for (final e in events)
+          e.name == 'choice_selected'
+              ? SpecEvent(e.name, {
+                  ...e.payload,
+                  'option_id': '${e.payload['option_id']}'.toUpperCase(),
+                })
+              : e,
+      ];
+      expect(
+        replay(on, lemon, inputsFrom(on, lemon, saved)).step,
+        LessonStep.drawA,
+      );
+    });
   });
 }

@@ -190,7 +190,9 @@ List<SpecEvent> eventsFor(
       out.add(
         SpecEvent('choice_selected', {
           'step_id': stepId,
-          'option_id': optionId ?? (op == Op.add ? 'a_plus_d' : 'a_minus_d'),
+          'option_id':
+              optionId?.toLowerCase() ??
+              (op == Op.add ? 'a_plus_d' : 'a_minus_d'),
           'ms_from_step_start': t.stepMs,
         }),
       );
@@ -222,7 +224,8 @@ List<SpecEvent> eventsFor(
       out.add(
         SpecEvent('choice_selected', {
           'step_id': stepId,
-          'option_id': optionId,
+          // the schema's ids are lower case; the template has opt_A, opt_D
+          'option_id': optionId.toLowerCase(),
           'ms_from_step_start': t.stepMs,
         }),
       );
@@ -593,7 +596,7 @@ LessonInput? _chosen(
     pack,
     p,
     stepId,
-  ).where((o) => o.id == id).firstOrNull;
+  ).where((o) => o.id.toLowerCase() == '$id'.toLowerCase()).firstOrNull;
   if (option != null) return option.input(stepId);
   if (stepId != 'choose_operation') return null;
   return OpChosen(id == 'a_plus_d' ? Op.add : Op.subtract);
