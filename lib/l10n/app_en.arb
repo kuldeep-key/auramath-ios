@@ -684,5 +684,7 @@
   "kidTodayStory": "A story problem",
   "@kidTodayStory": {"description": "DRAFT, for Julia (LES-14): today's case, at the child's level."},
   "kidTodayQuick": "Quick sums",
-  "@kidTodayQuick": {"description": "DRAFT, for Julia (LES-14, LES-16): five quick sums at the child's level. Figma 4.2's Taking away is part of these."}
+  "@kidTodayQuick": {"description": "DRAFT, for Julia (LES-14, LES-16): five quick sums at the child's level. Figma 4.2's Taking away is part of these."},
+  "kidWelcomeChooseToday": "Choose today's work",
+  "@kidWelcomeChooseToday": {"description": "DRAFT, for Julia (SES-07, Figma 25.3): WelcomeBack's second choice, after carrying on the last case; opens Choose today (LES-14)."}
 }

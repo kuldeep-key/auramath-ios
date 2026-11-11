@@ -90,4 +90,35 @@ void main() {
     await tapAndSettle(tester, find.byIcon(Icons.home_outlined));
     expect(find.text('went to ${Paths.home}'), findsOneWidget);
   });
+
+  testWidgets('@SES-07 the last case first, then choose today\'s work', (
+    tester,
+  ) async {
+    await shots(
+      tester,
+      'child_home_welcome_back_choose',
+      const WelcomeBackScreen(name: 'Mira', chooseToday: true),
+    );
+    await show(
+      tester,
+      const WelcomeBackScreen(name: 'Mira', chooseToday: true),
+    );
+    final carry = tester.getTopLeft(find.byKey(const Key('carryOn')));
+    final choose = tester.getTopLeft(find.byKey(const Key('chooseToday')));
+    expect(carry.dy, lessThan(choose.dy));
+    await tapAndSettle(tester, find.text("Choose today's work"));
+    expect(find.text('went to ${Paths.chooseToday}'), findsOneWidget);
+  });
+
+  testWidgets('@SES-07 back on a later day with no case: Keep going', (
+    tester,
+  ) async {
+    await show(
+      tester,
+      const WelcomeBackScreen(name: 'Mira', caseWaiting: false),
+    );
+    expect(find.text('Ready for a new case?'), findsOneWidget);
+    await tapAndSettle(tester, find.text('Keep going'));
+    expect(find.text('went to ${Paths.lessonNext}'), findsOneWidget);
+  });
 }

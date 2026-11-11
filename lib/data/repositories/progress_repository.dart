@@ -62,7 +62,10 @@ class ProgressRepository {
     required this._sessions,
     required this._family,
     required this._account,
-  });
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now;
+
+  final DateTime Function() _now;
 
   final Pack _pack;
 
@@ -130,13 +133,32 @@ class ProgressRepository {
 
   bool _welcomed = false;
 
-  /// True once per app launch, on the first Home, when a case was left
+  /// Whether the WelcomeBack just due has a case waiting (carry on first),
+  /// or the child is back on a later day with none (SES-07).
+  bool caseWaiting = false;
+
+  /// True once per app launch, on the first Home, when the child is back
+  /// on a later day than their last lesson (SES-07), or a case was left
   /// unfinished: WelcomeBack greets the child instead of Home.
   Future<bool> welcomeBackDue() async {
     if (_welcomed) return false;
     _welcomed = true;
     final next = await _sessions.whereNext(_pack);
-    return next?.resumeSessionId != null || next?.carryFrom != null;
+    caseWaiting = next?.resumeSessionId != null || next?.carryFrom != null;
+    return caseWaiting || await _laterDay();
+  }
+
+  /// The child's last lesson was on an earlier day than today (local).
+  Future<bool> _laterDay() async {
+    final events = await _events();
+    if (events.isEmpty) return false;
+    final last = DateTime.fromMillisecondsSinceEpoch(events.last.at);
+    final now = _now();
+    return DateTime(
+      last.year,
+      last.month,
+      last.day,
+    ).isBefore(DateTime(now.year, now.month, now.day));
   }
 
   String? _name;

@@ -1868,4 +1868,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidTodayQuick => 'Quick sums';
+
+  @override
+  String get kidWelcomeChooseToday => 'Choose today\'s work';
 }

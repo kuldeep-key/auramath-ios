@@ -41,14 +41,18 @@ List<LessonEvent> _left(String s, String problem) => [
   _e(s, 'problem_shown', {'problem_id': problem}),
 ];
 
-ProgressRepository _repo(Deps deps, List<LessonEvent> events) =>
-    ProgressRepository(
-      pack: deps.pack,
-      events: () async => events,
-      sessions: deps.sessions,
-      family: deps.family,
-      account: deps.account,
-    );
+ProgressRepository _repo(
+  Deps deps,
+  List<LessonEvent> events, {
+  DateTime Function()? now,
+}) => ProgressRepository(
+  pack: deps.pack,
+  events: () async => events,
+  sessions: deps.sessions,
+  family: deps.family,
+  account: deps.account,
+  now: now,
+);
 
 void main() {
   late Deps deps;
@@ -173,6 +177,25 @@ void main() {
     final fresh = await testDeps(stored: pairedChildPhone);
     expect(await _repo(fresh.$1, []).welcomeBackDue(), isFalse);
   });
+
+  test(
+    '@SES-07 back on a later day: WelcomeBack, with no case waiting',
+    () async {
+      final lastLesson = DateTime(2026, 11, 10, 17).millisecondsSinceEpoch;
+      final events = _solved('s1', 'lemon', at: lastLesson);
+      final nextDay = _repo(deps, events, now: () => DateTime(2026, 11, 11, 8));
+      expect(await nextDay.welcomeBackDue(), isTrue);
+      expect(nextDay.caseWaiting, isFalse);
+      expect(await nextDay.welcomeBackDue(), isFalse, reason: 'once a launch');
+      // later the same day: Home
+      final sameDay = _repo(
+        deps,
+        events,
+        now: () => DateTime(2026, 11, 10, 19),
+      );
+      expect(await sameDay.welcomeBackDue(), isFalse);
+    },
+  );
 
   test('the child name, kept for when the server can\'t be reached', () async {
     final repo = _repo(deps, []);

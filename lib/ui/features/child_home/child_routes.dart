@@ -77,7 +77,13 @@ List<RouteBase> childRoutes(Deps deps) {
       pageBuilder: (_, s) => MotionPage(
         key: s.pageKey,
         arrive: Arrive.fade,
-        child: named((name) => WelcomeBackScreen(name: name)),
+        child: named(
+          (name) => WelcomeBackScreen(
+            name: name,
+            caseWaiting: progress.caseWaiting,
+            chooseToday: deps.flags.on('quick_sums'),
+          ),
+        ),
       ),
     ),
     GoRoute(

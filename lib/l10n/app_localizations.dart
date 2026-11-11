@@ -3297,6 +3297,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Quick sums'**
   String get kidTodayQuick;
+
+  /// DRAFT, for Julia (SES-07, Figma 25.3): WelcomeBack's second choice, after carrying on the last case; opens Choose today (LES-14).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose today\'s work'**
+  String get kidWelcomeChooseToday;
 }
 
 class _AppLocalizationsDelegate
