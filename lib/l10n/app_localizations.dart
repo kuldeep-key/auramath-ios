@@ -3225,6 +3225,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Now try a new one'**
   String get exampleNewOne;
+
+  /// DRAFT, for Julia (TUT-10): the too-hard sheet's second way out (E1), after Something easier. The case is kept to offer back another day (problem_left).
+  ///
+  /// In en, this message translates to:
+  /// **'Leave it for now'**
+  String get lessonLeaveForNow;
 }
 
 class _AppLocalizationsDelegate

@@ -660,5 +660,7 @@
   "lessonSentenceBoth": "both",
   "@lessonSentenceBoth": {"description": "DRAFT (TUT-09): the word under the ? in the easier sentence for the total."},
   "exampleNewOne": "Now try a new one",
-  "@exampleNewOne": {"description": "DRAFT, for Julia (TUT-05): the last button of Show me how. It opens a new problem of the same kind, so it can't say 'Back to the trees' (design review finding 23; Apoorv to confirm the label)."}
+  "@exampleNewOne": {"description": "DRAFT, for Julia (TUT-05): the last button of Show me how. It opens a new problem of the same kind, so it can't say 'Back to the trees' (design review finding 23; Apoorv to confirm the label)."},
+  "lessonLeaveForNow": "Leave it for now",
+  "@lessonLeaveForNow": {"description": "DRAFT, for Julia (TUT-10): the too-hard sheet's second way out (E1), after Something easier. The case is kept to offer back another day (problem_left)."}
 }

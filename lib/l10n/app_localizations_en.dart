@@ -1831,4 +1831,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exampleNewOne => 'Now try a new one';
+
+  @override
+  String get lessonLeaveForNow => 'Leave it for now';
 }

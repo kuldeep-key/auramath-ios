@@ -120,7 +120,14 @@ class LessonFlow extends StatelessWidget {
                               vm: vm,
                               onHome: vm.askBreak,
                             ),
-                            _ => BoardView(vm: vm, onHome: vm.askBreak),
+                            _ => BoardView(
+                              vm: vm,
+                              onHome: vm.askBreak,
+                              onLeave: () async {
+                                await vm.leaveProblem();
+                                onFinished(LessonViewModel.newProblem);
+                              },
+                            ),
                           },
                   ),
                   if (!vm.online)

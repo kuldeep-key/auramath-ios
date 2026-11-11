@@ -21,10 +21,19 @@ import 'tutor_prompts.dart';
 
 /// Drawing it out, choosing the sum, and working it out. Figma: M1, D1–D6.
 class BoardView extends StatefulWidget {
-  const BoardView({super.key, required this.vm, required this.onHome});
+  const BoardView({
+    super.key,
+    required this.vm,
+    required this.onHome,
+    this.onLeave,
+  });
 
   final LessonViewModel vm;
   final VoidCallback onHome;
+
+  /// "Leave it for now" on the too-hard sheet (TUT-10): the case is kept
+  /// for another day and the lesson moves on.
+  final VoidCallback? onLeave;
 
   @override
   State<BoardView> createState() => _BoardViewState();
@@ -354,21 +363,33 @@ class _BoardViewState extends State<BoardView> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              AuraButton(
-                label: l.helpMe,
-                color: AuraButtonColor.white,
-                onPressed: () {
-                  vm.dismissStillThere();
-                  _help();
-                },
-              ),
-              const SizedBox(height: 8),
+              // too hard (TUT-10, E1): something easier or leave it for now;
+              // the quiet child (TUT-07, 16.3): Help me or something easier
+              if (!vm.tooHard) ...[
+                AuraButton(
+                  label: l.helpMe,
+                  color: AuraButtonColor.white,
+                  onPressed: () {
+                    vm.dismissStillThere();
+                    _help();
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
               AuraButton(
                 label: l.anEasierOne,
                 color: AuraButtonColor.white,
                 onPressed: () => vm.send(EasierTaken(noProgress: vm.tooHard)),
               ),
               const SizedBox(height: 8),
+              if (vm.tooHard && widget.onLeave != null) ...[
+                AuraButton(
+                  label: l.lessonLeaveForNow,
+                  color: AuraButtonColor.white,
+                  onPressed: widget.onLeave,
+                ),
+                const SizedBox(height: 8),
+              ],
               AuraButton(
                 label: l.stillThinking,
                 color: AuraButtonColor.blue,

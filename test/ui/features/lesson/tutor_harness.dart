@@ -65,6 +65,7 @@ Future<TutorLesson> pumpLesson(
   double textScale = 1,
   Size size = const Size(390, 844),
   String? childId,
+  int Function()? nowMs,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -82,6 +83,7 @@ Future<TutorLesson> pumpLesson(
     openSession: sessions.open,
     sitting: Sitting(capMs: 30 * 60 * 1000),
     tickEvery: null,
+    nowMs: nowMs,
   )..childId = childId;
   addTearDown(vm.dispose);
   await tester.runAsync(vm.start);
