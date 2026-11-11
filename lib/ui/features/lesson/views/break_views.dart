@@ -204,7 +204,7 @@ class _Moment extends StatelessWidget {
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: _FitOrScroll(
             children: [
               Align(
                 alignment: Alignment.centerRight,
@@ -226,6 +226,24 @@ class _Moment extends StatelessWidget {
   }
 }
 
+/// A moment's column with its [Spacer]s: it fills the screen, and with
+/// large text on a short phone (NFR-04) scrolls instead of clipping.
+class _FitOrScroll extends StatelessWidget {
+  const _FitOrScroll({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) => SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: box.maxHeight),
+        child: IntrinsicHeight(child: Column(children: children)),
+      ),
+    ),
+  );
+}
+
 /// "That's today's time!" at the sitting's cap. Figma TU (650:118), plus the
 /// "finish this one" choice SES-01 asks for, which the design doesn't have
 /// yet. No clock or countdown anywhere (SES-02).
@@ -244,7 +262,7 @@ class TimeUpView extends StatelessWidget {
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: _FitOrScroll(
             children: [
               Align(
                 alignment: Alignment.centerRight,

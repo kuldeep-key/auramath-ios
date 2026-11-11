@@ -78,66 +78,70 @@ class _BoardViewState extends State<BoardView> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              LessonHeader(
-                big: vm.voice.resting.value,
-                line: vm.coachText,
-                onSpeak: vm.sayAgain,
-                speaking: vm.voice.speaking,
-                onHome: widget.onHome,
-              ),
-              const SizedBox(height: 12),
-              _arrive(
-                duration: 650,
-                builder: (t, child) => Opacity(
-                  opacity: 0.3 + 0.7 * t.clamp(0.0, 1.0),
-                  child: Transform.translate(
-                    offset: Offset(
-                      0,
-                      220 * (1 - AuraCurves.sheet.transform(t)),
+          child: _RoomForBoard(
+            keypad:
+                s.step == LessonStep.findB || s.step == LessonStep.findTotal,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                LessonHeader(
+                  big: vm.voice.resting.value,
+                  line: vm.coachText,
+                  onSpeak: vm.sayAgain,
+                  speaking: vm.voice.speaking,
+                  onHome: widget.onHome,
+                ),
+                const SizedBox(height: 12),
+                _arrive(
+                  duration: 650,
+                  builder: (t, child) => Opacity(
+                    opacity: 0.3 + 0.7 * t.clamp(0.0, 1.0),
+                    child: Transform.translate(
+                      offset: Offset(
+                        0,
+                        220 * (1 - AuraCurves.sheet.transform(t)),
+                      ),
+                      child: Transform.scale(
+                        scale: 1.18 - 0.18 * AuraCurves.sheet.transform(t),
+                        child: child,
+                      ),
                     ),
-                    child: Transform.scale(
-                      scale: 1.18 - 0.18 * AuraCurves.sheet.transform(t),
-                      child: child,
+                  ),
+                  child: QuestionStrip(
+                    chips: [
+                      StripChip(label: '${p.a.pic} ${p.aValue}', lit: true),
+                      StripChip(
+                        label: '${p.diff} ${rel.toLowerCase()}',
+                        lit: s.gapPlaced,
+                      ),
+                    ],
+                    onSeeQuestion: vm.readQuestion,
+                  ),
+                ),
+                if (vm.questions case final qs when qs.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  QuestionChips(questions: qs, onAsk: vm.ask),
+                ],
+                const SizedBox(height: 12),
+                Expanded(
+                  child: _arrive(
+                    duration: 500,
+                    delay: 300,
+                    builder: (t, child) => Opacity(opacity: t, child: child),
+                    child: BarBoard(
+                      problem: p,
+                      state: s,
+                      onInput: vm.send,
+                      glowPiece: vm.glowPiece,
+                      showHand: vm.showHand,
+                      wobbles: vm.wobbles,
                     ),
                   ),
                 ),
-                child: QuestionStrip(
-                  chips: [
-                    StripChip(label: '${p.a.pic} ${p.aValue}', lit: true),
-                    StripChip(
-                      label: '${p.diff} ${rel.toLowerCase()}',
-                      lit: s.gapPlaced,
-                    ),
-                  ],
-                  onSeeQuestion: vm.readQuestion,
-                ),
-              ),
-              if (vm.questions case final qs when qs.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                QuestionChips(questions: qs, onAsk: vm.ask),
+                const SizedBox(height: 12),
+                _bottom(l, p, s),
               ],
-              const SizedBox(height: 12),
-              Expanded(
-                child: _arrive(
-                  duration: 500,
-                  delay: 300,
-                  builder: (t, child) => Opacity(opacity: t, child: child),
-                  child: BarBoard(
-                    problem: p,
-                    state: s,
-                    onInput: vm.send,
-                    glowPiece: vm.glowPiece,
-                    showHand: vm.showHand,
-                    wobbles: vm.wobbles,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _bottom(l, p, s),
-            ],
+            ),
           ),
         ),
         if (vm.thinking)
@@ -414,6 +418,31 @@ class _BoardViewState extends State<BoardView> {
   );
 }
 
+/// Large text on a short phone (NFR-04): the header, the strip and the
+/// keypad grow, and the board would be squeezed to nothing. Then the screen
+/// scrolls instead, with room kept for the board. At normal text, or with
+/// room enough, the board fills what's left as before.
+class _RoomForBoard extends StatelessWidget {
+  const _RoomForBoard({required this.keypad, required this.child});
+
+  final bool keypad;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final scale = MediaQuery.textScalerOf(context).scale(100) / 100;
+      if (scale <= 1.05) return child;
+      // what the board needs with large text: measured at 1.3x on an SE
+      final tall = keypad ? 900.0 : 760.0;
+      if (box.maxHeight >= tall) return child;
+      return SingleChildScrollView(
+        child: SizedBox(height: tall, child: child),
+      );
+    },
+  );
+}
+
 /// The box a typed answer goes in; it wobbles on a wrong answer.
 class _AnswerBox extends StatelessWidget {
   const _AnswerBox({required this.text, required this.wobbles});
@@ -427,7 +456,12 @@ class _AnswerBox extends StatelessWidget {
     tween: Tween(begin: 1, end: 0),
     duration: const Duration(milliseconds: 500),
     builder: (context, t, child) => Transform.translate(
-      offset: Offset(wobbles == 0 ? 0 : 8 * t * math.sin(t * math.pi * 6), 0),
+      offset: Offset(
+        wobbles == 0 || calmMotion(context)
+            ? 0
+            : 8 * t * math.sin(t * math.pi * 6),
+        0,
+      ),
       child: child,
     ),
     child: Container(

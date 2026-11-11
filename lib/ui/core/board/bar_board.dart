@@ -389,21 +389,26 @@ class _BarBoardState extends State<BarBoard> {
                 width: bw + 28,
                 bottom: base - capH,
                 height: capH,
-                child: Column(
-                  children: [
-                    // Figma's caption: the emoji at 26 / 28.6
-                    Text(
-                      item.pic,
-                      style: const TextStyle(fontSize: 26, height: 1.1),
-                    ),
-                    Text(
-                      item.name,
-                      textAlign: TextAlign.center,
-                      style: AuraText.barName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                // large text (NFR-04, 1.3x): the caption shrinks into its box
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.topCenter,
+                  child: Column(
+                    children: [
+                      // Figma's caption: the emoji at 26 / 28.6
+                      Text(
+                        item.pic,
+                        style: const TextStyle(fontSize: 26, height: 1.1),
+                      ),
+                      Text(
+                        item.name,
+                        textAlign: TextAlign.center,
+                        style: AuraText.barName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             // the total

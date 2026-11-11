@@ -201,72 +201,83 @@ class _Bars extends StatelessWidget {
               ),
             );
 
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
+      // large text (NFR-04): the drawing shrinks to fit rather than clip
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.bottomCenter,
+        child: SizedBox(
+          width: box.maxWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  label('$a m'),
-                  if (!gapOnB && step >= 1) gap(),
-                  SizedBox(
-                    width: barWidth,
-                    height: a * unit,
-                    child: const Bar(color: AuraColors.yellow),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      label('$a m'),
+                      if (!gapOnB && step >= 1) gap(),
+                      SizedBox(
+                        width: barWidth,
+                        height: a * unit,
+                        child: const Bar(color: AuraColors.yellow),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: gapBetween),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (step == 1) label('? m'),
+                      if (gapOnB && step >= 1) gap(),
+                      barB,
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(width: gapBetween),
-              Column(
-                mainAxisSize: MainAxisSize.min,
+              Container(
+                height: 4,
+                width: barWidth * 2 + gapBetween + 40,
+                color: AuraColors.line,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (step == 1) label('? m'),
-                  if (gapOnB && step >= 1) gap(),
-                  barB,
+                  SizedBox(
+                    width: barWidth,
+                    child: Text(
+                      'A',
+                      style: AuraText.barName,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(width: gapBetween),
+                  SizedBox(
+                    width: barWidth,
+                    child: Text(
+                      'B',
+                      style: AuraText.barName,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ],
               ),
-            ],
-          ),
-          Container(
-            height: 4,
-            width: barWidth * 2 + gapBetween + 40,
-            color: AuraColors.line,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+              const SizedBox(height: 8),
               SizedBox(
-                width: barWidth,
-                child: Text(
-                  'A',
-                  style: AuraText.barName,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(width: gapBetween),
-              SizedBox(
-                width: barWidth,
-                child: Text(
-                  'B',
-                  style: AuraText.barName,
-                  textAlign: TextAlign.center,
-                ),
+                width: barWidth * 2 + gapBetween,
+                // the brace's pill holds a Bold 20 label
+                height: 50,
+                child: step == 3
+                    ? Pop(child: Brace(label: '${a + b} m'))
+                    : null,
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: barWidth * 2 + gapBetween,
-            // the brace's pill holds a Bold 20 label
-            height: 50,
-            child: step == 3 ? Pop(child: Brace(label: '${a + b} m')) : null,
-          ),
-        ],
+        ),
       );
     },
   );

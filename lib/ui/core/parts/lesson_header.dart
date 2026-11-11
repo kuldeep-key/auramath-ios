@@ -62,8 +62,15 @@ class LessonHeader extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 8),
+      // a long line in large text (NFR-04) scrolls in the bubble rather
+      // than pushing the board off the screen
       Expanded(
-        child: SpeechBubble(text: line, big: big),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: big ? 200 : 128),
+          child: SingleChildScrollView(
+            child: SpeechBubble(text: line, big: big),
+          ),
+        ),
       ),
       const SizedBox(width: 8),
       _SquareButton(

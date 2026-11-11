@@ -130,23 +130,26 @@ class AuraSheetBody extends StatelessWidget {
       color: AuraColors.white,
       borderRadius: BorderRadius.circular(28),
     ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Center(
-          child: Container(
-            width: 40,
-            height: 5,
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: AuraColors.line,
-              borderRadius: BorderRadius.circular(3),
+    // large text on a short phone (NFR-04): the sheet scrolls, never clips
+    child: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 5,
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: AuraColors.line,
+                borderRadius: BorderRadius.circular(3),
+              ),
             ),
           ),
-        ),
-        ...children,
-      ],
+          ...children,
+        ],
+      ),
     ),
   );
 }
