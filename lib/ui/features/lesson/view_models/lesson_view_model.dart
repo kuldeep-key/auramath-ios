@@ -163,7 +163,17 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
 
   /// The server opened this lesson's session (and sent its problem); until
   /// then nothing is drawn.
-  bool get ready => _sessionId != null && _p != null;
+  bool get ready => _sessionId != null && _p != null && !_carrying;
+
+  /// A carried-on case whose board isn't rebuilt yet: no input until it is.
+  bool _carrying = false;
+
+  /// [_state] rebuilt from a session's [events] through the engine, with
+  /// the side lesson it was on.
+  void _replayed(List<SpecEvent> events) {
+    _state = replay(_pack, _problem, inputsFrom(_pack, _problem, events));
+    sideLesson = _state.sideLesson;
+  }
 
   /// The session couldn't be opened: no connection, or the server said no.
   /// The lesson waits on a "need the internet" screen with Try again.
@@ -247,6 +257,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
       notifyListeners();
       return;
     }
+    _carrying = carryFrom != null && carryFrom != _sessionId;
     notifyListeners();
     _warmVoice(); // the problem is known now, from the pack or the server
     final events = [
@@ -483,7 +494,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     _warmVoice();
     final sessionId = _sessionId!;
     final (:events, :lastSeq) = await _sessions.resume(sessionId);
-    _state = replay(_pack, _problem, inputsFrom(_pack, _problem, events));
+    _replayed(events);
     _seq = lastSeq + 2;
     await _sessions.record(sessionId, lastSeq + 1, const [
       SpecEvent('session_resumed', {}),
@@ -635,7 +646,8 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
         _p == null ||
         !online ||
         endedByServer ||
-        _calledItADay) {
+        _calledItADay ||
+        _carrying) {
       return;
     }
     if (_held != null) {

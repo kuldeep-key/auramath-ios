@@ -165,19 +165,20 @@ mixin _LessonGaps on ChangeNotifier {
     final from = carryFrom;
     final vm = _vm;
     final sessionId = vm._sessionId;
-    if (from == null || sessionId == null || from == sessionId) return;
-    carryFrom = null;
-    await vm._sessions.carry(sessionId, from);
-    final (:events, lastSeq: _) = await vm._sessions.resume(sessionId);
-    vm._state = replay(
-      vm._pack,
-      vm._problem,
-      inputsFrom(vm._pack, vm._problem, events),
-    );
-    // the question was read last time: no reading time on this one
-    if (vm._state.step != LessonStep.question) vm._startedAt = vm._now();
-    vm._coach('cmp.welcomeBack', const {});
-    notifyListeners();
+    try {
+      if (from == null || sessionId == null || from == sessionId) return;
+      carryFrom = null;
+      await vm._sessions.carry(sessionId, from);
+      final (:events, lastSeq: _) = await vm._sessions.resume(sessionId);
+      vm._replayed(events);
+      // the question was read last time: no reading time on this one
+      if (vm._state.step != LessonStep.question) vm._startedAt = vm._now();
+      vm._coach('cmp.welcomeBack', const {});
+    } finally {
+      // the board is the old one now: the child's moves count again
+      vm._carrying = false;
+      notifyListeners();
+    }
   }
 
   /// The child's answer to a prompt over the lesson (DAT-03): `still_there`,

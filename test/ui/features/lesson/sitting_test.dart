@@ -88,6 +88,33 @@ void main() {
     return later;
   }
 
+  test('a case carried on in a side lesson reopens that side lesson, and '
+      'the board takes no move until it is rebuilt', () async {
+    await vm.send(const SideLessonChosen(SideLesson.readRelation));
+    expect(vm.state.step, LessonStep.sideLesson);
+    await spend(30 * minute);
+    await vm.callItADay();
+    final next = (await vm.sessions.whereNext(pack))!;
+    final later = LessonViewModel(
+      pack: pack,
+      problemId: next.problemId,
+      sessions: vm.sessions,
+      voice: FakeVoice(),
+      sitting: Sitting(capMs: 30 * minute),
+      nowMs: () => now,
+      openSession: vm.sessions.open,
+      tickEvery: null,
+    )..carryFrom = next.carryFrom;
+    addTearDown(later.dispose);
+    final readies = <bool>[];
+    later.addListener(() => readies.add(later.ready));
+    await later.start();
+    expect(later.state.step, LessonStep.sideLesson);
+    expect(later.sideLesson, SideLesson.readRelation);
+    // ready once, at the end: no move lands on the fresh board first
+    expect(readies.indexOf(true), readies.length - 1);
+  });
+
   test('@SES-01 the next lesson carries the case on at the same step, in '
       "the server's continuation of the ended session", () async {
     await vm.send(const BarADrawn());
