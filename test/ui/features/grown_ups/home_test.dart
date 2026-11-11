@@ -1,8 +1,10 @@
+import 'package:auramath/data/repositories/recent_notes_repository.dart';
 import 'package:auramath/data/repositories/report_email_repository.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/grown_ups/views/email_frequency_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/forgot_passcode_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/grown_up_home_screen.dart';
+import 'package:auramath/ui/features/grown_ups/views/recent_notes_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -116,6 +118,58 @@ void main() {
     });
   });
 
+  group('Recent notes (PAR-12)', () {
+    Widget screen(Gu g) => RecentNotesScreen(
+      childId: 'child-1',
+      family: g.deps.family,
+      notes: RecentNotesRepository(g.deps.client, g.repo),
+    );
+
+    testWidgets('the last-five route: at every size, newest first', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('GET /api/children/child-1/notes/recent', {
+        'notes': [
+          for (var i = 0; i < 7; i++)
+            {
+              'sessionId': 's$i',
+              'endedAt': DateTime(2026, 11, 10 - i).millisecondsSinceEpoch,
+              'sentences': [
+                {'text': 'Note $i.'},
+              ],
+            },
+        ],
+      });
+      await shotAllSizes(tester, 'grown_ups_recent_notes', screen(g));
+      expect(find.text("Aarav's notes"), findsOneWidget);
+      expect(find.text('Note 0.'), findsOneWidget);
+      expect(find.text('Note 4.'), findsOneWidget);
+      expect(find.text('Note 5.'), findsNothing); // five at most
+    });
+
+    testWidgets('no last-five route yet: built from progress and summaries', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Practised comparing two bars. Did the second one alone.'),
+        findsOneWidget,
+      );
+      expect(g.calls, contains('GET /api/sessions/s1/summary'));
+    });
+
+    testWidgets('none yet says so', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.on('GET /api/children/child-1/notes/recent', <Object>[]);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('No notes yet'), findsOneWidget);
+    });
+  });
+
   group('PHome', () {
     Widget screen(Gu g) => GrownUpHomeScreen(
       account: g.deps.account,
@@ -142,6 +196,35 @@ void main() {
       expect(find.textContaining('went to'), findsNothing);
       expect(find.textContaining('progress'), findsNothing);
       expect(find.text('Plan'), findsNothing);
+    });
+
+    testWidgets('no Recent notes while recent_notes_in_app is off', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.text('Recent notes'), findsNothing);
+    });
+
+    testWidgets('flag on: each child links to their recent notes (PAR-12)', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      await shotAllSizes(
+        tester,
+        'grown_ups_home_notes',
+        GrownUpHomeScreen(
+          account: g.deps.account,
+          family: g.deps.family,
+          repo: g.repo,
+          recentNotes: true,
+        ),
+      );
+      expect(find.text('Recent notes'), findsNWidgets(2));
+      await tester.tap(find.text('Recent notes').first);
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${Paths.notes('child-1')}'), findsOneWidget);
     });
 
     testWidgets('Back to the child chooses them and goes home', (tester) async {

@@ -1079,6 +1079,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guNoNote => 'No note for this session.';
 
   @override
+  String get guNotesLink => 'Recent notes';
+
+  @override
+  String guNotesTitle(String name) {
+    return '$name\'s notes';
+  }
+
+  @override
+  String guNotesNone(String name) {
+    return 'No notes yet. One comes after each of $name\'s sessions.';
+  }
+
+  @override
   String get guNoteError => 'Couldn\'t load the note.';
 
   @override

@@ -1942,6 +1942,24 @@ abstract class AppLocalizations {
   /// **'No note for this session.'**
   String get guNoNote;
 
+  /// No description provided for @guNotesLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent notes'**
+  String get guNotesLink;
+
+  /// No description provided for @guNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s notes'**
+  String guNotesTitle(String name);
+
+  /// No description provided for @guNotesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet. One comes after each of {name}\'s sessions.'**
+  String guNotesNone(String name);
+
   /// No description provided for @guNoteError.
   ///
   /// In en, this message translates to:

@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../../../data/repositories/grown_up_repository.dart';
+import '../../../data/repositories/recent_notes_repository.dart';
 import '../../../data/repositories/report_email_repository.dart';
 import '../../../data/repositories/setup_repository.dart';
 import '../../../deps.dart';
@@ -22,6 +23,7 @@ import 'views/new_code_screen.dart';
 import 'views/notify_screen.dart';
 import 'views/passcode_screen.dart';
 import 'views/plan_screen.dart';
+import 'views/recent_notes_screen.dart';
 import 'views/remove_phone_screen.dart';
 import 'views/report_screen.dart';
 import 'views/rights_screen.dart';
@@ -54,8 +56,12 @@ List<RouteBase> grownUpRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.grownUps,
-      builder: (_, _) =>
-          GrownUpHomeScreen(account: deps.account, family: family, repo: repo),
+      builder: (_, _) => GrownUpHomeScreen(
+        account: deps.account,
+        family: family,
+        repo: repo,
+        recentNotes: deps.flags.on('recent_notes_in_app'),
+      ),
     ),
     GoRoute(
       path: Paths.settings,
@@ -167,6 +173,14 @@ List<RouteBase> grownUpRoutes(Deps deps) {
       path: '/grown-ups/children/:childId/book',
       builder: (_, s) =>
           BookScreen(childId: child(s), family: family, repo: repo),
+    ),
+    GoRoute(
+      path: '/grown-ups/children/:childId/notes',
+      builder: (_, s) => RecentNotesScreen(
+        childId: child(s),
+        family: family,
+        notes: RecentNotesRepository(deps.client, repo),
+      ),
     ),
     GoRoute(
       path: '/grown-ups/children/:childId/plan',

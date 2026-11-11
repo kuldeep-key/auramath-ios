@@ -15,17 +15,23 @@ import 'parts.dart';
 /// Progress goes to the grown-up by email (D-39), so the book, month and
 /// plan screens aren't linked from here. Once consent is withdrawn, a card
 /// says lessons are paused and links to Rights (no Figma frame yet).
+/// With `recent_notes_in_app` on, each child links to their last five
+/// notes (PAR-12).
 class GrownUpHomeScreen extends StatelessWidget {
   const GrownUpHomeScreen({
     super.key,
     required this.account,
     required this.family,
     required this.repo,
+    this.recentNotes = false,
   });
 
   final AccountRepository account;
   final FamilyRepository family;
   final GrownUpRepository repo;
+
+  /// Flag `recent_notes_in_app` (off by default).
+  final bool recentNotes;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +107,11 @@ class GrownUpHomeScreen extends StatelessWidget {
                   ),
                 ),
               for (final c in children) ...[
-                _ChildCard(child: c, lessons: () => repo.lessons(c.id)),
+                _ChildCard(
+                  child: c,
+                  lessons: () => repo.lessons(c.id),
+                  onNotes: recentNotes ? () => push(Paths.notes(c.id)) : null,
+                ),
                 const SizedBox(height: 12),
               ],
               const SizedBox(height: 4),
@@ -132,10 +142,13 @@ class GrownUpHomeScreen extends StatelessWidget {
 
 /// A child: avatar, name, this week's sessions.
 class _ChildCard extends StatefulWidget {
-  const _ChildCard({required this.child, required this.lessons});
+  const _ChildCard({required this.child, required this.lessons, this.onNotes});
 
   final Child child;
   final Future<List<Lesson>> Function() lessons;
+
+  /// Recent notes (PAR-12), when the flag is on.
+  final VoidCallback? onNotes;
 
   @override
   State<_ChildCard> createState() => _ChildCardState();
@@ -172,6 +185,8 @@ class _ChildCardState extends State<_ChildCard> {
                     style: AuraText.cardLine,
                   ),
                 ),
+                if (widget.onNotes != null)
+                  AuraLink(label: l.guNotesLink, onPressed: widget.onNotes),
               ],
             ),
           ),

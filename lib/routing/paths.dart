@@ -121,6 +121,9 @@ abstract final class Paths {
   static String editChild(String childId) =>
       '/grown-ups/children/$childId/edit';
   static String book(String childId) => '/grown-ups/children/$childId/book';
+
+  /// The last five session notes (PAR-12, flag `recent_notes_in_app`).
+  static String notes(String childId) => '/grown-ups/children/$childId/notes';
   static String plan(String childId) => '/grown-ups/children/$childId/plan';
   static String report(String childId) =>
       '/grown-ups/children/$childId/report'; // R0 667:44
