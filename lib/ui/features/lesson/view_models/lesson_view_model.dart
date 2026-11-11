@@ -508,6 +508,7 @@ class LessonViewModel extends ChangeNotifier {
   }
 
   Future<void> send(LessonInput input) async {
+    input = _withExample(input);
     final sessionId = _sessionId;
     // no session yet, no case yet (the starting sums, a left case on
     // offer), paused for the connection, or over: the board isn't live
@@ -605,6 +606,15 @@ class LessonViewModel extends ChangeNotifier {
     // something easier: the easier problem gets its own session
     if (_sessionId == null) await start();
   }
+
+  /// "Show me how" names the template's worked example it draws (CON-05).
+  LessonInput _withExample(LessonInput input) =>
+      input is ShowMeHowTaken && input.storyId == null && _p != null
+      ? ShowMeHowTaken(
+          afterWrong: input.afterWrong,
+          storyId: exampleFor(_pack, _problem)?.storyId,
+        )
+      : input;
 
   /// The engine's result for one input, shown: its state, its decisions,
   /// and the line for a step just entered.

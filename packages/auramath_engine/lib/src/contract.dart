@@ -282,11 +282,11 @@ List<SpecEvent> eventsFor(
           'model_used': false,
         }),
       );
-    case ShowMeHowTaken(:final afterWrong):
+    case ShowMeHowTaken(:final afterWrong, :final storyId):
       helpOpened(afterWrong: afterWrong);
       out.add(
-        const SpecEvent('worked_example_shown', {
-          'example_story_id': 'building-a-b',
+        SpecEvent('worked_example_shown', {
+          'example_story_id': storyId ?? 'building-a-b',
         }),
       );
     case EasierTaken(:final noProgress, :final afterWrong):
@@ -414,7 +414,9 @@ List<LessonInput> inputsFrom(
         },
       'undo_used' => const Undo(),
       'hint_shown' => const HintTaken(),
-      'worked_example_shown' => const ShowMeHowTaken(),
+      'worked_example_shown' => ShowMeHowTaken(
+        storyId: j['example_story_id'] as String?,
+      ),
       'easier_chosen' => EasierTaken(noProgress: j['trigger'] == 'no_progress'),
       'idle_prompt_shown' => QuietFor(j['after_ms']! as int),
       _ => null,

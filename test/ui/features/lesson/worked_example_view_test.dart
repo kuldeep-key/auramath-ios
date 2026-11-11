@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
 import 'package:auramath/ui/features/lesson/view_models/sitting.dart';
 import 'package:auramath/ui/features/lesson/views/worked_example_view.dart';
@@ -15,7 +17,12 @@ void main() {
     final vm = await tester.runAsync(() async {
       final (sessions, _, _) = await memorySessions();
       final vm = LessonViewModel(
-        pack: samplePack(),
+        // Julia's template, with its worked example (CON-05)
+        pack: samplePack().copyWith(
+          template: ComparisonTemplate.fromYaml(
+            File('assets/spec/comparison-two-step.yaml').readAsStringSync(),
+          ),
+        ),
         problemId: 'lemon', // the fig tree is shorter
         sessionId: 's1',
         sessions: sessions,
@@ -48,12 +55,20 @@ void main() {
     expect(find.text('? m'), findsOneWidget);
     await tester.tap(find.text('Next'));
     await tester.pump();
-    expect(find.text('6 take away 2 is 4.'), findsOneWidget);
+    // the template's 6 m and 4 m (CON-05), not numbers in the code
+    expect(find.text('6 take away 4 is 2.'), findsOneWidget);
     await tester.tap(find.text('Next'));
     await tester.pump();
-    expect(find.text('10 m'), findsOneWidget);
+    expect(find.text('8 m'), findsOneWidget);
     await tester.tap(find.text('Now you try'));
     expect(vm.showingExample, isFalse);
+    final shown = await tester.runAsync(() => vm.sessions.resume(vm.sessionId));
+    expect(
+      shown!.events
+          .singleWhere((e) => e.name == 'worked_example_shown')
+          .payload['example_story_id'],
+      'building-a-b',
+    );
     vm.dispose();
   });
 }

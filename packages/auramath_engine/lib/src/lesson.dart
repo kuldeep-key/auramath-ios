@@ -116,8 +116,11 @@ final class HintTaken extends LessonInput {
 }
 
 final class ShowMeHowTaken extends LessonInput {
-  const ShowMeHowTaken({this.afterWrong = false});
+  const ShowMeHowTaken({this.afterWrong = false, this.storyId});
   final bool afterWrong;
+
+  /// The worked example's story (template `worked_examples`, CON-05).
+  final String? storyId;
 }
 
 final class EasierTaken extends LessonInput {

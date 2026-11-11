@@ -397,6 +397,15 @@ bool _carries(int x, int y) {
   return false;
 }
 
+/// The worked example "show me how" draws for [p] (CON-05): the template's
+/// one with [p]'s relation, else its first. Null when the pack has none.
+WorkedExample? exampleFor(Pack pack, ComparisonProblem p) {
+  final all = pack.template?.workedExamples ?? const <WorkedExample>[];
+  final relation = p.big == BigSide.a ? 'taller' : 'shorter';
+  return all.where((e) => e.relation == relation).firstOrNull ??
+      all.firstOrNull;
+}
+
 /// Julia's tutor rules that the engine runs on, from the spec pack's
 /// `tutor/policy.yaml`.
 class Policy {
