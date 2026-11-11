@@ -100,7 +100,7 @@ Future<void> shotAllSizes(
     await tester.pumpAndSettle();
     await _save(tester, '$name@$label');
     if (label == shotSizes.keys.first) {
-      await _accessible(tester, child: isChildShot(name));
+      await expectAccessible(tester, child: isChildShot(name));
     }
   }
   tester.view.reset();
@@ -137,7 +137,7 @@ const childTapTargetGuideline = MinimumTapTargetGuideline(
 /// Apple's 44 pt and Android's 48 dp touch targets (56 pt on a [child]'s
 /// screen, NFR-02), a label on everything tappable, and readable text
 /// contrast (WCAG 2.2 AA), at the Figma size.
-Future<void> _accessible(WidgetTester tester, {bool child = false}) async {
+Future<void> expectAccessible(WidgetTester tester, {bool child = false}) async {
   final semantics = tester.ensureSemantics();
   if (child) await expectLater(tester, meetsGuideline(childTapTargetGuideline));
   await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));

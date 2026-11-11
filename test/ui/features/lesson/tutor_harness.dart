@@ -66,6 +66,7 @@ Future<TutorLesson> pumpLesson(
   Size size = const Size(390, 844),
   String? childId,
   int Function()? nowMs,
+  ThemeData? theme,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -90,6 +91,7 @@ Future<TutorLesson> pumpLesson(
   late final TutorLesson lesson;
   await tester.pumpWidget(
     MaterialApp(
+      theme: theme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) => MediaQuery(
