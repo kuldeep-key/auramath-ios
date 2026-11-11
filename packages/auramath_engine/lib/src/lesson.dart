@@ -27,7 +27,33 @@ enum Target { gapSlot, totalSlot, barA, barB }
 
 enum Op { add, subtract }
 
-enum SideLesson { takeAcrossTen, addWithCarry }
+/// A detour on a missing skill (TUT-08). The two arithmetic ones work the
+/// child's own sum on place-value blocks; the others, for a mistake on a
+/// drawing or reading step that comes back (skill map `side_lesson:
+/// on_repeat`), walk the smaller worked example (Building A and B), as the
+/// skill map gives for relation_reversed.
+enum SideLesson {
+  takeAcrossTen,
+  addWithCarry,
+  readRelation,
+  readDifference,
+  chooseOperation,
+  readQuestion;
+
+  /// Worked on the child's own sum, in hundreds, tens and ones.
+  bool get arithmetic => this == takeAcrossTen || this == addWithCarry;
+}
+
+/// Skill map `error_types` whose side lesson comes on a repeat, and the
+/// side lesson each gets (TUT-08; DRAFT for Julia: the skill map names
+/// content only for relation_reversed, so the others reuse it).
+const repeatSideLessons = {
+  'relation_reversed': SideLesson.readRelation,
+  'difference_as_amount': SideLesson.readDifference,
+  'keyword_strategy': SideLesson.chooseOperation,
+  'operation_reversed': SideLesson.chooseOperation,
+  'answered_wrong_question': SideLesson.readQuestion,
+};
 
 enum SolvedBy { draw, know, partway }
 

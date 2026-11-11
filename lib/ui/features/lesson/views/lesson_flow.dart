@@ -116,6 +116,11 @@ class LessonFlow extends StatelessWidget {
                               vm: vm,
                               onHome: vm.askBreak,
                             ),
+                            // a detour on reading the story (TUT-08): the
+                            // smaller worked example, then back
+                            LessonStep.sideLesson
+                                when vm.sideLesson?.arithmetic == false =>
+                              WorkedExampleView(vm: vm, onHome: vm.askBreak),
                             LessonStep.sideLesson => SideLessonView(
                               vm: vm,
                               onHome: vm.askBreak,

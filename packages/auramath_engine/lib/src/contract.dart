@@ -41,14 +41,24 @@ const errorSkill = <String, String?>{
   'transposition': null,
 };
 
-const _sideSkill = {
+/// The skill each side lesson teaches (skill map ids).
+const sideSkill = {
   SideLesson.takeAcrossTen: 'arith.sub-3d-regroup',
   SideLesson.addWithCarry: 'arith.add-3d-regroup',
+  SideLesson.readRelation: 'cmp.read-relation',
+  SideLesson.readDifference: 'cmp.read-difference',
+  SideLesson.chooseOperation: 'cmp.choose-operation',
+  SideLesson.readQuestion: 'prob.read-question',
 };
+const _sideSkill = sideSkill;
 
 const _sideError = {
   SideLesson.takeAcrossTen: 'sub_smaller_from_larger',
   SideLesson.addWithCarry: 'carry_dropped',
+  SideLesson.readRelation: 'relation_reversed',
+  SideLesson.readDifference: 'difference_as_amount',
+  SideLesson.chooseOperation: 'operation_reversed',
+  SideLesson.readQuestion: 'answered_wrong_question',
 };
 
 SpecEvent problemShown(ComparisonProblem p) => SpecEvent('problem_shown', {
@@ -468,12 +478,13 @@ List<LessonInput> inputsFrom(
       'side_lesson_ended' => SideLessonDone(completed: j['completed'] != false),
       // opened by the server's choice; one the rules opened is already open
       'side_lesson_started' when s.step != LessonStep.sideLesson =>
-        switch (j['skill_id']) {
-          'arith.add-3d-regroup' => const SideLessonChosen(
-            SideLesson.addWithCarry,
-          ),
-          _ => const SideLessonChosen(SideLesson.takeAcrossTen),
-        },
+        SideLessonChosen(
+          sideSkill.entries
+                  .where((e) => e.value == j['skill_id'])
+                  .firstOrNull
+                  ?.key ??
+              SideLesson.takeAcrossTen,
+        ),
       'undo_used' => const Undo(),
       // closed after show me how; a solved one is closed by its own input
       'problem_completed' when s.step != LessonStep.solved =>

@@ -611,8 +611,47 @@ class LessonViewModel extends ChangeNotifier {
     } else if (endAt != null) {
       await _endFinished(sessionId, endAt);
     }
+    if (_sessionId == sessionId) await _repeatDetour(events);
     // something easier: the easier problem gets its own session
     if (_sessionId == null) await start();
+  }
+
+  /// A mistake that came back across problems, or the same operation
+  /// wrong twice this sitting, opens its side lesson (TUT-08, policy
+  /// `side_lessons.trigger.on_repeat`), within `max_per_session`. Past
+  /// it, the step's own help carries on (`over_limit_on_step`), and the
+  /// server queues the skill for review from the log.
+  Future<void> _repeatDetour(List<SpecEvent> events) async {
+    final repeats = _sitting.repeats;
+    SideLesson? due;
+    for (final e in events) {
+      if (e.name == 'side_lesson_started') {
+        final kind = sideSkill.entries
+            .where((k) => k.value == e.payload['skill_id'])
+            .firstOrNull
+            ?.key;
+        if (kind != null) repeats.ran(kind);
+      }
+      if (e.name != 'step_committed' && e.name != 'i_know_it_answered' ||
+          e.payload['correct'] != false ||
+          e.payload['error_type'] == 'transposition') {
+        continue;
+      }
+      final op = switch (e.payload['step_id']) {
+        'find_unknown' => _problem.big == BigSide.a ? Op.subtract : Op.add,
+        'find_total' => Op.add,
+        _ => null,
+      };
+      due ??= repeats.charge(
+        _problem.id,
+        e.payload['error_type'] as String?,
+        op: e.name == 'step_committed' ? op : null,
+      );
+    }
+    // the server is deciding this step's help, or a side lesson is open
+    if (due == null || _held != null || !_onBoard) return;
+    if (_state.sideLessons >= _pack.maxSideLessons) return;
+    await send(SideLessonChosen(due));
   }
 
   /// The engine's result for one input, shown: its state, its decisions,

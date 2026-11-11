@@ -29,6 +29,9 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
   int _step = 0;
 
   bool get _shorter => widget.vm.problem.big == BigSide.a;
+
+  /// Shown as a side lesson (TUT-08), not from Help me.
+  bool get _detour => widget.vm.state.step == LessonStep.sideLesson;
   int get _b => _shorter ? _a - _d : _a + _d;
 
   String _line(AppLocalizations l) => switch (_step) {
@@ -98,11 +101,18 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
               const SizedBox(width: 12),
               Expanded(
                 child: AuraButton(
-                  label: _step < 3 ? l.next : l.exampleNewOne,
+                  label: _step < 3
+                      ? l.next
+                      : _detour
+                      ? l.backToProblem
+                      : l.exampleNewOne,
                   color: AuraButtonColor.blue,
-                  // TUT-05: a new problem of the same kind, not theirs again
+                  // TUT-05: a new problem of the same kind, not theirs
+                  // again; as a detour (TUT-08), back to the same step
                   onPressed: _step < 3
                       ? () => _go(_step + 1)
+                      : _detour
+                      ? () => widget.vm.send(const SideLessonDone())
                       : widget.vm.exampleDone,
                 ),
               ),
