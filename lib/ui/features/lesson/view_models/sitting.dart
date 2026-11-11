@@ -19,6 +19,9 @@ class Sitting {
 
   /// Mistakes that come back across this sitting's problems (TUT-08).
   final repeats = RepeatTriggers();
+
+  /// The Sound screen was shown this sitting (NFR-06, journey 20): once.
+  bool soundAsked = false;
   int capMs;
   final KeyStore? store;
   final int Function() _now;

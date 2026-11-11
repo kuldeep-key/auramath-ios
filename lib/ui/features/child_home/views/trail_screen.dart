@@ -11,6 +11,7 @@ import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'play_icon_button.dart';
 import 'play_moment.dart';
+import '../../../core/parts/speak_button.dart';
 
 /// The winding path: the two stops behind (done), where the child is, and
 /// only the next stop through the mist, so the child never sees how much
@@ -35,7 +36,14 @@ class TrailScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              _Column(PlayHeader(title: l.kidMyTrail)),
+              _Column(
+                Row(
+                  children: [
+                    Expanded(child: PlayHeader(title: l.kidMyTrail)),
+                    SpeakButton(text: l.kidMyTrail),
+                  ],
+                ),
+              ),
               Expanded(
                 child: ClipRect(
                   child: Center(

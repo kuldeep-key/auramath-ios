@@ -1848,4 +1848,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lessonDetourPaused =>
       'Your case is waiting. Your drawing is kept.';
+
+  @override
+  String get kidReadToMe => 'Read it to me';
 }

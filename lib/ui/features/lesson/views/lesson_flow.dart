@@ -74,6 +74,15 @@ class LessonFlow extends StatelessWidget {
                 onGoHome: onHome,
               );
       }
+      if (vm.offerSound) {
+        // read-aloud is off: sound on, or I'll read it myself (NFR-06)
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!context.mounted || !vm.offerSound) return;
+          vm.soundOffered();
+          final choice = await context.push<String>(Paths.sound);
+          await vm.soundAnswered(choice);
+        });
+      }
       if (vm.askVoiceResting) {
         // once, between frames: "My voice is resting", then big words
         WidgetsBinding.instance.addPostFrameCallback((_) {

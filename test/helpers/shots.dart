@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:auramath/l10n/app_localizations.dart';
+import 'package:auramath/ui/core/parts/speak_button.dart';
 import 'package:auramath/ui/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -42,6 +43,9 @@ Future<void> loadAppFonts() async {
   }
 }
 
+/// What the child screens' speakers read in [shotApp] (NFR-06).
+final spokenInShots = <String>[];
+
 /// Wraps [screen] the way the app does (theme, strings, text clamp), at
 /// `/` of a router so it can navigate. Every other path shows its own
 /// address, so a test can check where a tap went:
@@ -51,8 +55,13 @@ Widget shotApp(Widget screen) => MaterialApp.router(
   localizationsDelegates: AppLocalizations.localizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   debugShowCheckedModeBanner: false,
-  builder: (context, child) =>
-      MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: child!),
+  builder: (context, child) => ReadAloud(
+    say: (text) => spokenInShots.add(text),
+    child: MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.3,
+      child: child!,
+    ),
+  ),
   routerConfig: GoRouter(
     routes: [GoRoute(path: '/', builder: (_, _) => screen)],
     errorBuilder: (_, state) => Scaffold(body: Text('went to ${state.uri}')),

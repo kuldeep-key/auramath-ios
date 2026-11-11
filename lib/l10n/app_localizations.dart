@@ -3249,6 +3249,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your case is waiting. Your drawing is kept.'**
   String get lessonDetourPaused;
+
+  /// DRAFT, for Julia (NFR-06): the speaker button's label on every child screen, for screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Read it to me'**
+  String get kidReadToMe;
 }
 
 class _AppLocalizationsDelegate

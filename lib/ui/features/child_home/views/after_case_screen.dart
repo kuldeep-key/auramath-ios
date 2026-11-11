@@ -50,6 +50,7 @@ class _AfterCaseScreenState extends State<AfterCaseScreen> {
     return switch (_steps[_at]) {
       _Step.sent => AuraPage(
         play: true,
+        say: '${l.kidMySash}. ${l.kidInYourSash}',
         top: Padding(
           padding: const EdgeInsets.only(top: 10),
           child: Align(
@@ -124,6 +125,7 @@ class _CaseClosed extends StatelessWidget {
         TrailStop.of(next) == TrailStop.trickyWords;
     return AuraPage(
       play: true,
+      say: '${trickier ? l.kidTrickierOne : l.readyForNewCase} ${next.text}',
       top: Padding(
         padding: const EdgeInsets.only(top: 12),
         child: Ribbon(text: trickier ? l.kidTrickierOne : l.readyForNewCase),

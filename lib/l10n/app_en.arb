@@ -668,5 +668,7 @@
   "lessonItHighlighted": "'It' and the {name} are in the same colour.",
   "@lessonItHighlighted": {"description": "DRAFT, for Julia (TUT-16): what a screen reader says for the H1-4b highlight, since colour is not the only signal.", "placeholders": {"name": {"type": "String"}}},
   "lessonDetourPaused": "Your case is waiting. Your drawing is kept.",
-  "@lessonDetourPaused": {"description": "DRAFT, for Julia and Design (TUT-18): the detour pause, a strip at the top of a side lesson saying the case is paused with its board kept. No Figma frame yet."}
+  "@lessonDetourPaused": {"description": "DRAFT, for Julia and Design (TUT-18): the detour pause, a strip at the top of a side lesson saying the case is paused with its board kept. No Figma frame yet."},
+  "kidReadToMe": "Read it to me",
+  "@kidReadToMe": {"description": "DRAFT, for Julia (NFR-06): the speaker button's label on every child screen, for screen readers."}
 }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../motion/play_backdrop.dart';
 import '../theme/tokens.dart';
+import 'speak_button.dart';
 
 /// The frame every screen outside the lesson board sits in.
 ///
@@ -13,6 +14,8 @@ import '../theme/tokens.dart';
 ///   (small phones, large text) it scrolls and [bottom] stays put.
 /// - [bottom] (the main buttons) rises above the keyboard.
 /// - [play] is the child's blue background; otherwise the grown-ups' white.
+/// - [say] is what the child's speaker reads (NFR-06): with it, a speaker
+///   sits at the top right, beside [top].
 class AuraPage extends StatelessWidget {
   const AuraPage({
     super.key,
@@ -21,9 +24,11 @@ class AuraPage extends StatelessWidget {
     this.bottom,
     this.play = false,
     this.maxWidth = 560,
+    this.say,
   });
 
   final Widget? top;
+  final String? say;
   final Widget body;
   final Widget? bottom;
   final bool play;
@@ -43,6 +48,24 @@ class AuraPage extends StatelessWidget {
         : ColoredBox(color: AuraColors.white, child: _frame()),
   );
 
+  Widget? _top() {
+    final text = say;
+    if (text == null) return top;
+    final speak = Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: SpeakButton(text: text),
+    );
+    return top == null
+        ? Align(alignment: Alignment.centerRight, child: speak)
+        : Row(
+            children: [
+              Expanded(child: top!),
+              const SizedBox(width: 8),
+              speak,
+            ],
+          );
+  }
+
   Widget _frame() => SafeArea(
     child: Center(
       child: ConstrainedBox(
@@ -52,7 +75,7 @@ class AuraPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ?top,
+              ?_top(),
               Expanded(
                 child: CustomScrollView(
                   slivers: [

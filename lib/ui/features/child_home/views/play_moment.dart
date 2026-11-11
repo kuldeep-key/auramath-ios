@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/parts/aura_page.dart';
+import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 
 /// The child's blue screens that say one thing: art, a ribbon and a line,
@@ -13,6 +14,7 @@ class PlayMoment extends StatelessWidget {
     required this.bottom,
     this.top,
     this.gap = 18,
+    this.say,
   });
 
   final List<Widget> content;
@@ -20,9 +22,24 @@ class PlayMoment extends StatelessWidget {
   final Widget? top;
   final double gap;
 
+  /// What the speaker reads; by default the ribbon and the lines (NFR-06).
+  final String? say;
+
+  /// The words [content] shows: its ribbons, lines and titles, in order.
+  static String spoken(List<Widget> content) => [
+    for (final w in content)
+      switch (w) {
+        Ribbon(:final text) || PlayLine(:final text) => text,
+        Text(:final data?) => data,
+        Semantics(child: Text(:final data?)) => data,
+        _ => '',
+      },
+  ].where((t) => t.isNotEmpty).join(' ');
+
   @override
   Widget build(BuildContext context) => AuraPage(
     play: true,
+    say: say ?? spoken(content),
     top: top,
     body: Column(
       mainAxisAlignment: MainAxisAlignment.center,

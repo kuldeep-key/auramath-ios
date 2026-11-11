@@ -9,6 +9,7 @@ import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'help_sheet.dart';
+import '../../../core/parts/speak_button.dart';
 
 /// "Take a break?" when Home is tapped mid-lesson. Figma M1-pause (666:70),
 /// plus "leave this one" (SES-06), which the design doesn't have yet.
@@ -205,6 +206,10 @@ class _Moment extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: SpeakButton(text: '$title $body'),
+              ),
               const Spacer(),
               Burst(child: Text(emoji, style: const TextStyle(fontSize: 96))),
               const SizedBox(height: 24),
@@ -241,6 +246,10 @@ class TimeUpView extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: SpeakButton(text: '${l.timeUpTitle} ${l.timeUpBody}'),
+              ),
               const Spacer(),
               const Burst(child: Text('🌙', style: TextStyle(fontSize: 96))),
               const SizedBox(height: 24),
@@ -346,6 +355,7 @@ class NeedInternetView extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     return AuraPage(
       play: true,
+      say: '${l.lessonNeedInternet} ${detail ?? l.lessonNeedInternetBody}',
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

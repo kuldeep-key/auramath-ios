@@ -908,6 +908,41 @@ class LessonViewModel extends ChangeNotifier {
   /// own phone, or a grown-up's phone handed over.
   String launchSource = 'child_opened';
 
+  /// The flag `read_aloud`: with it on and read-aloud off for this child,
+  /// the Sound screen asks once a sitting (NFR-06, journey 20).
+  bool readAloudFlag = false;
+
+  /// Read-aloud is off: offer to turn the sound on, or read it myself.
+  bool get offerSound =>
+      readAloudFlag &&
+      !readAloud &&
+      !_sitting.soundAsked &&
+      ready &&
+      _state.step == LessonStep.question;
+
+  /// The Sound screen is showing.
+  void soundOffered() {
+    _sitting.soundAsked = true;
+    notifyListeners();
+  }
+
+  /// The child's answer on the Sound screen (`sound_on`, `read_myself`;
+  /// null when closed some other way): logged as `prompt_answered`;
+  /// sound on reads aloud for the rest of the sitting's lesson.
+  Future<void> soundAnswered(String? choice) async {
+    if (choice == 'sound_on') {
+      readAloud = true;
+      autoReadQuestion();
+    }
+    notifyListeners();
+    await _record([
+      SpecEvent('prompt_answered', {
+        'prompt': 'sound_on',
+        'choice': choice ?? 'dismissed',
+      }),
+    ]);
+  }
+
   /// The question as it first shows: spoken if read-aloud is on.
   void autoReadQuestion() {
     if (readAloud && readQuestionAloud) _speak(_problem.say, 'question');

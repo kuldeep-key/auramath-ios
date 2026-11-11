@@ -10,6 +10,7 @@ import '../../../core/theme/tokens.dart';
 import '../../child_home/views/badge_disc.dart' show badgeArt;
 import '../view_models/lesson_view_model.dart';
 import 'self_rating.dart';
+import '../../../core/parts/speak_button.dart';
 
 /// Case cracked, then the one badge that says what the child did.
 /// Figma: Y2, Y3.
@@ -44,6 +45,15 @@ class _SolvedViewState extends State<SolvedView> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: SpeakButton(
+                      text: _showBadge
+                          ? '${badge?.name ?? ''}. ${badge?.says ?? ''}'
+                          : '${l.caseCracked} '
+                                '${widget.vm.praise ?? l.youSolvedIt}',
+                    ),
+                  ),
                   const Spacer(),
                   if (!_showBadge) ...[
                     Ribbon(text: l.caseCracked),

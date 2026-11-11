@@ -38,6 +38,7 @@ class HomeScreen extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     return AuraPage(
       play: true,
+      say: l.readyForNewCase,
       top: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Row(

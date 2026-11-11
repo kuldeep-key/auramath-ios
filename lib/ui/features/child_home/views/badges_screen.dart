@@ -32,6 +32,9 @@ class BadgesScreen extends StatelessWidget {
     ];
     return AuraPage(
       play: true,
+      say: earned.isEmpty
+          ? '${l.kidMyBadges}. ${l.kidNoBadgesYet}'
+          : l.kidMyBadges,
       top: PlayHeader(title: l.kidMyBadges),
       body: Column(
         spacing: 12,
