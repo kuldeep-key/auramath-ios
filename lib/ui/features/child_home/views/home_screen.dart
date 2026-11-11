@@ -19,6 +19,7 @@ class HomeScreen extends StatelessWidget {
     required this.grownUps,
     this.trail = true,
     this.badges = true,
+    this.moment,
   });
 
   /// The child's name; null shows the portrait alone.
@@ -32,6 +33,10 @@ class HomeScreen extends StatelessWidget {
   /// `mastery_badges`).
   final bool trail;
   final bool badges;
+
+  /// What to celebrate on arriving (REW-01's session badge), in place of
+  /// some of the big portrait.
+  final Widget? moment;
 
   @override
   Widget build(BuildContext context) {
@@ -61,9 +66,10 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 32,
+        spacing: moment == null ? 32 : 16,
         children: [
-          const Float(child: Portrait(size: 210)),
+          Float(child: Portrait(size: moment == null ? 210 : 120)),
+          ?moment,
           Ribbon(text: l.readyForNewCase),
         ],
       ),

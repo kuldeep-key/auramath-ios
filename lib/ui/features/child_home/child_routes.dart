@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../data/repositories/account_repository.dart';
 import '../../../data/repositories/partner_intro_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
+import '../../../data/repositories/rewards_repository.dart';
 import '../../../data/models/lesson_event.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
@@ -11,6 +12,7 @@ import 'views/after_case_screen.dart';
 import 'views/badge_screen.dart';
 import 'views/badges_screen.dart';
 import 'views/check_screen.dart';
+import 'views/home_moments.dart';
 import 'views/home_screen.dart';
 import 'views/meet_partner_screen.dart';
 import 'views/loaded.dart';
@@ -38,6 +40,8 @@ List<RouteBase> childRoutes(Deps deps) {
     account: deps.account,
   );
 
+  final moments = HomeMomentsSource(rewards: RewardsRepository(deps.client));
+
   Widget named(Widget Function(String? name) screen) => FutureBuilder(
     initialData: progress.cachedName,
     future: progress.childName(),
@@ -53,15 +57,21 @@ List<RouteBase> childRoutes(Deps deps) {
         key: s.pageKey,
         arrive: Arrive.fade,
         child: named(
-          (name) => ListenableBuilder(
-            listenable: deps.flags,
-            builder: (_, _) => HomeScreen(
-              name: name,
-              grownUps: deps.account.role == Role.device
-                  ? Paths.signIn
-                  : Paths.kids,
-              trail: deps.flags.on('trail'),
-              badges: deps.flags.on('mastery_badges'),
+          (name) => _WithMoment(
+            // REW-01: the badge of the session that just stopped, whatever
+            // way it stopped; not behind mastery_badges
+            load: () => moments.next(lastStop: deps.sessions.lastStop.value),
+            builder: (moment) => ListenableBuilder(
+              listenable: deps.flags,
+              builder: (_, _) => HomeScreen(
+                name: name,
+                grownUps: deps.account.role == Role.device
+                    ? Paths.signIn
+                    : Paths.kids,
+                trail: deps.flags.on('trail'),
+                badges: deps.flags.on('mastery_badges'),
+                moment: moment,
+              ),
             ),
           ),
         ),
@@ -170,4 +180,31 @@ List<RouteBase> childRoutes(Deps deps) {
       ),
     ),
   ];
+}
+
+/// Asks [load] once for this Home, then builds it with the card, or
+/// with none while there is nothing to show.
+class _WithMoment extends StatefulWidget {
+  const _WithMoment({required this.load, required this.builder});
+
+  final Future<HomeMoments> Function() load;
+  final Widget Function(Widget? moment) builder;
+
+  @override
+  State<_WithMoment> createState() => _WithMomentState();
+}
+
+class _WithMomentState extends State<_WithMoment> {
+  late final _moments = widget.load();
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder(
+    future: _moments,
+    builder: (_, snap) {
+      final m = snap.data;
+      return widget.builder(
+        m == null || m.badge == null ? null : HomeMomentCard(moments: m),
+      );
+    },
+  );
 }

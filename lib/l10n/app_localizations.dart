@@ -2374,6 +2374,36 @@ abstract class AppLocalizations {
   /// **'Next to earn'**
   String get kidNextToEarn;
 
+  /// No description provided for @kidSessionBadgeEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'Your badge for this session'**
+  String get kidSessionBadgeEarned;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when a case was solved, until the server names it.
+  ///
+  /// In en, this message translates to:
+  /// **'Case cracked'**
+  String get kidSessionBadgeFinished;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when time ran out.
+  ///
+  /// In en, this message translates to:
+  /// **'Detective at work'**
+  String get kidSessionBadgeTimeUp;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when the case was left for another day.
+  ///
+  /// In en, this message translates to:
+  /// **'Tried a tricky case'**
+  String get kidSessionBadgeLeft;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when the session paused (phone locked, app away).
+  ///
+  /// In en, this message translates to:
+  /// **'Good start on a case'**
+  String get kidSessionBadgePaused;
+
   /// No description provided for @kidNoBadgesYet.
   ///
   /// In en, this message translates to:
