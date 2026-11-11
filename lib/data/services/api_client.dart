@@ -50,14 +50,27 @@ class ApiClient {
     String path,
     Object body, {
     Duration? timeout,
+  }) async => (await _bytes('POST', path, body: body, timeout: timeout)).bytes;
+
+  /// A GET whose answer is bytes (a lesson's drawing, PAR-09), with the
+  /// answer's headers.
+  Future<({Uint8List bytes, Map<String, String> headers})> getBytes(
+    String path,
+  ) => _bytes('GET', path);
+
+  Future<({Uint8List bytes, Map<String, String> headers})> _bytes(
+    String method,
+    String path, {
+    Object? body,
+    Duration? timeout,
   }) async {
-    final request = http.Request('POST', Uri.parse('$baseUrl$path'));
+    final request = http.Request(method, Uri.parse('$baseUrl$path'));
     final token = bearer();
     request.headers.addAll({
-      'Content-Type': 'application/json',
+      if (body != null) 'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     });
-    request.body = jsonEncode(body);
+    if (body != null) request.body = jsonEncode(body);
 
     final http.Response response;
     try {
@@ -68,7 +81,7 @@ class ApiClient {
       throw ApiException("Can't reach the server ($e)");
     }
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return response.bodyBytes;
+      return (bytes: response.bodyBytes, headers: response.headers);
     }
     if (response.statusCode == 401) onUnauthorized?.call();
     String message = 'HTTP ${response.statusCode}';

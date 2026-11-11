@@ -28,6 +28,9 @@ class FakeServer {
   void on(String route, Object? json, {int status = 200}) =>
       routes[route] = (_) => (status, json);
 
+  /// Answers [route] with these bytes and headers instead of JSON (a PNG).
+  final Map<String, http.Response> raw = {};
+
   late final http.Client client = MockClient((req) async {
     final key = '${req.method} ${req.url.path}';
     final body = req.body.isEmpty
@@ -35,6 +38,7 @@ class FakeServer {
         : jsonDecode(req.body) as Map<String, Object?>;
     calls.add((key, body));
     urls.add(req.url);
+    if (raw[key] case final r?) return r;
     final handler = routes[key];
     final (status, json) = handler == null
         ? (404, {'error': 'no route $key'})

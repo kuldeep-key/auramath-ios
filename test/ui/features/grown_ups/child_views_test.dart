@@ -3,10 +3,18 @@ import 'package:auramath/ui/features/grown_ups/views/book_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/month_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/plan_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/report_screen.dart';
+import 'dart:convert';
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../helpers/shots.dart';
 import 'gu_fakes.dart';
+
+/// A 1x1 PNG, the shape of the server's drawing.
+const onePixelPng =
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 
 void main() {
   group('Book', () {
@@ -21,6 +29,41 @@ void main() {
       );
       expect(find.text("Aarav's book"), findsOneWidget);
       expect(find.textContaining('· 12 min'), findsOneWidget);
+      expect(
+        find.text('Practised comparing two bars. Did the second one alone.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets("PAR-09: the lesson's drawing under its note, named by its "
+        'caption; none when nothing was placed', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.raw['GET /api/sessions/s1/drawing.png'] = http.Response.bytes(
+        base64Decode(onePixelPng),
+        200,
+        headers: {
+          'content-type': 'image/png',
+          'x-caption': Uri.encodeComponent('The gap, ringed: 79 cm'),
+        },
+      );
+      await shotAllSizes(
+        tester,
+        'grown_ups_book_drawing',
+        BookScreen(childId: 'child-1', family: g.deps.family, repo: g.repo),
+      );
+      expect(find.byKey(const Key('sessionDrawing')), findsOneWidget);
+      expect(find.text('The gap, ringed: 79 cm'), findsOneWidget);
+      expect(g.calls, contains('GET /api/sessions/s1/drawing.png'));
+
+      g.server.raw.clear(); // the fake's 404: nothing was placed
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(
+        shotApp(
+          BookScreen(childId: 'child-1', family: g.deps.family, repo: g.repo),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('sessionDrawing')), findsNothing);
       expect(
         find.text('Practised comparing two bars. Did the second one alone.'),
         findsOneWidget,

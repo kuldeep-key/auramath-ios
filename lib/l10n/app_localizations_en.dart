@@ -2021,6 +2021,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'That didn\'t save. Check the internet and tap again.';
 
   @override
+  String get guDrawingLabel => 'The child\'s drawing from this lesson';
+
+  @override
   String get kidQuickDone => 'Quick sums done!';
 
   @override

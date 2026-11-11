@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
@@ -7,6 +8,9 @@ import 'package:path_provider/path_provider.dart';
 import '../services/api.dart';
 import '../services/api_client.dart';
 import '../services/key_store.dart';
+
+/// A lesson's drawing (PAR-09): the PNG, and what it shows in words.
+typedef SessionDrawing = ({Uint8List png, String? caption});
 
 /// A grown-up in the family (`GET /api/parent/members`). The first
 /// parent (the owner) has no member [id].
@@ -358,6 +362,26 @@ class GrownUpRepository {
       ];
     } on ApiException catch (e) {
       if (e.status == 404) return const [];
+      rethrow;
+    }
+  }
+
+  /// PAR-09: the child's board from this lesson with the key move ringed
+  /// (`GET /api/sessions/{id}/drawing.png`), the picture the report email
+  /// carries, and its caption (`X-Caption`). Null when nothing was placed
+  /// on the board (its 404).
+  Future<SessionDrawing?> drawing(String sessionId) async {
+    try {
+      final r = await _client.getBytes('/api/sessions/$sessionId/drawing.png');
+      final caption = r.headers['x-caption'];
+      return (
+        png: r.bytes,
+        caption: caption == null || caption.isEmpty
+            ? null
+            : Uri.decodeComponent(caption),
+      );
+    } on ApiException catch (e) {
+      if (e.status == 404) return null;
       rethrow;
     }
   }

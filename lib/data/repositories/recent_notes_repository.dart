@@ -65,6 +65,10 @@ class RecentNotesRepository {
 
   static const limit = 5;
 
+  /// A note's lesson drawing (PAR-09), if anything was placed.
+  Future<SessionDrawing?> drawing(String sessionId) =>
+      _grownUps.drawing(sessionId);
+
   Future<List<SessionNote>> recent(String childId) async {
     try {
       final j = await _client.get(

@@ -3544,6 +3544,12 @@ abstract class AppLocalizations {
   /// **'That didn\'t save. Check the internet and tap again.'**
   String get kidPickAvatarFailed;
 
+  /// DRAFT, for Julia (PAR-09): what a screen reader says for the lesson's drawing when the server sends no caption.
+  ///
+  /// In en, this message translates to:
+  /// **'The child\'s drawing from this lesson'**
+  String get guDrawingLabel;
+
   /// DRAFT, for Julia (LES-16): after the run of five. No score or count.
   ///
   /// In en, this message translates to:

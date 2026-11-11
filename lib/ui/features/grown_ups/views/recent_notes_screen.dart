@@ -8,6 +8,7 @@ import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
 import 'parts.dart';
+import 'session_drawing.dart';
 
 /// A child's last five session notes (PAR-12), the same words the report
 /// email carries, newest first. Shown only while `recent_notes_in_app` is
@@ -60,6 +61,10 @@ class RecentNotesScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                     ],
                     Text(n.sentences.join(' '), style: AuraText.note),
+                    SessionDrawingView(
+                      key: ValueKey(n.sessionId),
+                      load: () => notes.drawing(n.sessionId),
+                    ),
                   ],
                 ),
               ),

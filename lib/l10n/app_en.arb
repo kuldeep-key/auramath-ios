@@ -753,6 +753,8 @@
   "@kidPickAvatarSave": {"description": "DRAFT, for Julia (ACC-12): saves the avatar the child picked."},
   "kidPickAvatarFailed": "That didn't save. Check the internet and tap again.",
   "@kidPickAvatarFailed": {"description": "DRAFT, for Julia (ACC-12): the avatar couldn't be saved (offline, or the server said no)."},
+  "guDrawingLabel": "The child's drawing from this lesson",
+  "@guDrawingLabel": {"description": "DRAFT, for Julia (PAR-09): what a screen reader says for the lesson's drawing when the server sends no caption."},
   "kidQuickDone": "Quick sums done!",
   "@kidQuickDone": {"description": "DRAFT, for Julia (LES-16): after the run of five. No score or count."},
   "kidQuickStory": "A story problem",
