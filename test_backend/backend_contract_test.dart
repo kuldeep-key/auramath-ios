@@ -14,6 +14,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:auramath/data/models/lesson_event.dart';
+import 'package:auramath/data/repositories/family_repository.dart';
 import 'package:auramath/data/repositories/grown_up_repository.dart';
 import 'package:auramath/data/repositories/recent_notes_repository.dart';
 import 'package:auramath/data/repositories/report_email_repository.dart';
@@ -209,7 +210,8 @@ void main() {
   test('the app and the backend, end to end over HTTP', () async {
     final pack = samplePack();
     final dbA = await OutboxDb.open(inMemoryDatabasePath);
-    final a = phone(dbA, await pairDevice('Phone A'), 'dv_phonea0001');
+    final tokenA = await pairDevice('Phone A');
+    final a = phone(dbA, tokenA, 'dv_phonea0001');
 
     // 1. a lesson: open, the starting check, a problem, a full case
     final first = lesson(pack, a.repo);
@@ -328,6 +330,29 @@ void main() {
     expect(await email.frequency(), ReportFrequency.weekly);
     await email.setFrequency(ReportFrequency.each);
     expect(await email.frequency(), ReportFrequency.each);
+    // 7. the R1 leftovers' contracts (FL-41, FL-44, FL-45, FL-48, SES-07):
+    // the moments after a lesson, logged after its end; the child's own
+    // phone sets the avatar; the lesson's drawing for the grown-up
+    for (final e in const [
+      SpecEvent('badge_shared', {'badge_id': 'tree', 'shared': true}),
+      SpecEvent('streak_moment_shown', {'consecutive_days_band': '2'}),
+      SpecEvent('avatar_chosen', {'avatar_id': 'key'}),
+    ]) {
+      await a.repo.recordAfterLesson(childId, e);
+    }
+    await a.repo.syncNow();
+    expect(await dbA.unsent(), isEmpty, reason: 'the moments reached it');
+    expectContract(await dbA.forSession(s3));
+    await FamilyRepository(client(tokenA)).setAvatar(childId, 'key');
+    final avatar = (await FamilyRepository(
+      parent,
+    ).children()).singleWhere((c) => c.id == childId).avatar;
+    expect(avatar, 'key');
+    final drawing = await GrownUpRepository(
+      parent,
+      MemoryKeyStore(),
+    ).drawing(s1);
+    expect(drawing?.png, isNotEmpty, reason: 'the first case was drawn');
     // the server's own view: the continuation is linked, ended and noted
     final rows = {
       for (final r
@@ -371,6 +396,10 @@ void main() {
           'help': (judged['decision'] as Map?)?['help'],
         },
         'firstProblemVariant': first.problem.variant,
+        'todaySuggestion': '${a.repo.lastSuggestion}',
+        'welcomeBackFirst': '${a.repo.welcomeBack(s1)}',
+        'drawingCaption': drawing?.caption,
+        'avatar': avatar,
       }),
     );
     expect(rejected, isEmpty);
