@@ -110,4 +110,17 @@ void main() {
       expect(log().map((e) => e.name), isNot(contains('read_aloud_played')));
     },
   );
+
+  test('muting stops the line and reads nothing more on its own; '
+      'sound on reads again', () async {
+    final (vm, voice, _) = await makeVm();
+    vm.sound(false);
+    expect(voice.stops, 1);
+    vm.autoReadQuestion();
+    vm.autoSay('Drag a bar up here.');
+    expect(voice.said, isEmpty);
+    vm.sound(true);
+    vm.autoReadQuestion();
+    expect(voice.said, hasLength(1));
+  });
 }

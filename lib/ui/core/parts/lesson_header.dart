@@ -7,11 +7,16 @@ import 'speech_bubble.dart';
 
 /// Speak button, the coach's line, and home. Figma: Prototype parts ›
 /// Lesson header.
+///
+/// The speak button is the lesson's sound switch: a tap mutes it, and a
+/// tap while muted turns the sound back on and reads the line.
 class LessonHeader extends StatelessWidget {
   const LessonHeader({
     super.key,
     required this.line,
     required this.onSpeak,
+    required this.muted,
+    required this.onSound,
     required this.onHome,
     this.big = false,
     this.speaking,
@@ -19,6 +24,12 @@ class LessonHeader extends StatelessWidget {
 
   final String line;
   final VoidCallback onSpeak;
+
+  /// Nothing is read aloud: the button shows the muted speaker.
+  final bool muted;
+
+  /// The sound turned on (true) or muted (false).
+  final ValueChanged<bool> onSound;
   final VoidCallback onHome;
 
   /// Big words while the voice is resting.
@@ -54,11 +65,16 @@ class LessonHeader extends StatelessWidget {
               )
             : button!,
         child: _SquareButton(
-          icon: Icons.volume_up_rounded,
-          fill: AuraColors.blue,
-          fg: AuraColors.white,
-          label: 'Say it again',
-          onTap: onSpeak,
+          icon: muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+          fill: muted ? AuraColors.white : AuraColors.blue,
+          fg: muted ? AuraColors.navy : AuraColors.white,
+          label: muted ? 'Sound on' : 'Mute',
+          onTap: muted
+              ? () {
+                  onSound(true);
+                  onSpeak();
+                }
+              : () => onSound(false),
         ),
       ),
       const SizedBox(width: 8),

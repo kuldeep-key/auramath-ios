@@ -40,6 +40,8 @@ class _QuestionViewState extends State<QuestionView> {
             line: l.todaysCase,
             onSpeak: widget.vm.readQuestion,
             speaking: widget.vm.voice.speaking,
+            muted: !widget.vm.readAloud,
+            onSound: widget.vm.sound,
             onHome: widget.onHome,
           ),
           const SizedBox(height: 16),
