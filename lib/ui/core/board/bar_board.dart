@@ -89,8 +89,7 @@ class _BarBoardState extends State<BarBoard> {
       _bursts++;
       AuraHaptics.snap();
     }
-    bool found(LessonState s) => s.step.index > LessonStep.findB.index;
-    if (!found(was) && found(now) ||
+    if (!was.bFound && now.bFound ||
         was.step != LessonStep.solved && now.step == LessonStep.solved) {
       _cheers++;
     }
@@ -228,14 +227,14 @@ class _BarBoardState extends State<BarBoard> {
 
         final bigA = p.big == BigSide.a;
         final hA = (bigA ? 0.85 : 0.48) * maxH;
-        final sized = s.step.index > LessonStep.sizeB.index;
+        final sized = s.bSized;
         final hBFinal = (hA * p.bValue / p.aValue).clamp(0.15 * maxH, maxH);
         final hB = sized
             ? hBFinal
             : (hA + _dragDy * -1).clamp(0.1 * maxH, maxH).toDouble();
         final lo = hA < hB ? hA : hB, hi = hA < hB ? hB : hA;
         final shortX = hA < hB ? xA : xB;
-        final bFound = s.step.index > LessonStep.findB.index;
+        final bFound = s.bFound;
         final solved = s.step == LessonStep.solved;
 
         Widget at(

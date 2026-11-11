@@ -248,10 +248,11 @@ List<SpecEvent> eventsFor(
       out.add(
         SpecEvent('undo_used', {
           'step_id': stepId,
-          'object': switch (before.step) {
-            LessonStep.sizeB || LessonStep.placeGap => 'bar_b',
-            LessonStep.placeTotal => 'difference',
-            _ => p.ask == Ask.total ? 'total' : 'difference',
+          // what the undo took back: the step it went back to
+          'object': switch (after.step) {
+            LessonStep.placeB || LessonStep.sizeB => 'bar_b',
+            LessonStep.placeGap => 'difference',
+            _ => 'total',
           },
         }),
       );

@@ -250,6 +250,8 @@ class LessonState {
     this.returnFlow = KnowFlow.none,
     this.quietLevel = 0,
     this.knowMisses = 0,
+    this.bSized = false,
+    this.bFound = false,
   });
 
   final LessonStep step;
@@ -283,6 +285,12 @@ class LessonState {
   /// `answer_sheet`: a second wrong answer at any one stage draws it).
   final int knowMisses;
 
+  /// Bar B is sized against bar A (the board draws it at its height).
+  final bool bSized;
+
+  /// B's value is found (the board writes it in bar B).
+  final bool bFound;
+
   LessonState copyWith({
     LessonStep? step,
     bool? barA,
@@ -301,6 +309,8 @@ class LessonState {
     KnowFlow? returnFlow,
     int? quietLevel,
     int? knowMisses,
+    bool? bSized,
+    bool? bFound,
   }) => LessonState(
     step: step ?? this.step,
     barA: barA ?? this.barA,
@@ -319,6 +329,8 @@ class LessonState {
     returnFlow: returnFlow ?? this.returnFlow,
     quietLevel: quietLevel ?? this.quietLevel,
     knowMisses: knowMisses ?? this.knowMisses,
+    bSized: bSized ?? this.bSized,
+    bFound: bFound ?? this.bFound,
   );
 
   List<Object?> get _fields => [
@@ -339,6 +351,8 @@ class LessonState {
     returnFlow,
     quietLevel,
     knowMisses,
+    bSized,
+    bFound,
   ];
 
   @override
@@ -372,7 +386,7 @@ StepResult step(
 ) {
   if (input is QuietFor) return _quiet(pack, p, s, input.ms);
   final r = _boardSteps.contains(s.step) ? _help(pack, p, s, input) : null;
-  final moved = r ?? _move(p, s, input, pack.maxSideLessons);
+  final moved = r ?? _move(pack, p, s, input);
   final accepted = !identical(moved.state, s) || moved.decisions.isNotEmpty;
   if (!accepted || moved.state.quietLevel == 0) return moved;
   return (
@@ -442,16 +456,28 @@ StepResult _quiet(Pack pack, ComparisonProblem p, LessonState s, int ms) {
 }
 
 StepResult _move(
+  Pack pack,
   ComparisonProblem p,
   LessonState s,
   LessonInput input,
-  int maxSide,
 ) {
+  final maxSide = pack.maxSideLessons;
   final slots = lineSlots(p);
+  // the step after [from] in the template's order; solved after the last
+  LessonStep after(LessonStep from) => nextStep(pack, p, from);
   StepResult to(LessonState next, [List<Decision> d = const []]) =>
       (state: next, decisions: d);
   StepResult right(LessonState next, [List<Decision> d = const []]) =>
       to(next.copyWith(wrongRow: 0), d);
+  // a right move: on to the next step in order, or solved after the last
+  StepResult advance(LessonState next, [List<Decision> d = const []]) {
+    final upNext = after(s.step);
+    return right(next.copyWith(step: upNext), [
+      ...d,
+      if (upNext == LessonStep.solved) _solved(p, next, SolvedBy.draw),
+    ]);
+  }
+
   StepResult wrongMove(String lineId) {
     final next = s.copyWith(wrong: s.wrong + 1, wrongRow: s.wrongRow + 1);
     return to(next, [
@@ -465,51 +491,40 @@ StepResult _move(
 
   switch ((s.step, input)) {
     case (LessonStep.question, Started()):
-      return to(s.copyWith(step: LessonStep.drawA));
+      return to(s.copyWith(step: after(LessonStep.question)));
 
     case (LessonStep.drawA, BarADrawn()):
-      return right(s.copyWith(step: LessonStep.placeB, barA: true));
+      return advance(s.copyWith(barA: true));
 
     case (LessonStep.placeB, BarBPlaced()):
-      return right(s.copyWith(step: LessonStep.sizeB, barB: true));
+      return advance(s.copyWith(barB: true));
 
     case (LessonStep.sizeB, BarBSized(:final rel)):
       if (rel == Relation.same) return to(s, [Coach('cmp.sizeB', slots)]);
       final ok = rel == (bigA ? Relation.shorter : Relation.taller);
       if (!ok) return wrongMove('cmp.sizeBWrong');
-      return right(s.copyWith(step: LessonStep.placeGap));
+      return advance(s.copyWith(bSized: true));
 
     case (LessonStep.placeGap, PieceDropped(piece: Piece.gap, :final target)):
       if (target != Target.gapSlot) return wrongMove('cmp.gapWrong');
-      return right(
-        s.copyWith(
-          step: p.ask == Ask.total
-              ? LessonStep.placeTotal
-              : LessonStep.chooseOp,
-          gapPlaced: true,
-        ),
-      );
+      return advance(s.copyWith(gapPlaced: true));
 
     case (
       LessonStep.placeTotal,
       PieceDropped(piece: Piece.total, :final target),
     ):
       if (target != Target.totalSlot) return wrongMove('cmp.totalWrong');
-      return right(s.copyWith(step: LessonStep.chooseOp, totalPlaced: true));
+      return advance(s.copyWith(totalPlaced: true));
 
     case (LessonStep.chooseOp, OpChosen(:final op)):
       if (op != (bigA ? Op.subtract : Op.add)) return wrongMove('cmp.opWrong');
-      return right(s.copyWith(step: LessonStep.findB, op: op));
+      return advance(s.copyWith(op: op));
 
     case (LessonStep.findB, NumberEntered(:final value)):
-      return _findB(p, s, value, slots, right, wrongMove, maxSide);
+      return _findB(p, s, value, slots, advance, wrongMove, maxSide);
 
     case (LessonStep.findTotal, NumberEntered(:final value)):
-      if (value == p.total) {
-        return right(s.copyWith(step: LessonStep.solved), [
-          _solved(p, s, SolvedBy.draw),
-        ]);
-      }
+      if (value == p.total) return advance(s);
       if (value == dropCarry(p.aValue, p.bValue) && _canSide(s, maxSide)) {
         return to(
           _sideLesson(s, LessonStep.findTotal, SideLesson.addWithCarry),
@@ -567,7 +582,7 @@ StepResult _move(
       return _totalAfterUnknown(p, s, value, maxSide);
 
     case (_, Undo()):
-      return _undo(p, s);
+      return _undo(pack, p, s);
 
     default:
       return to(s);
@@ -579,20 +594,13 @@ StepResult _findB(
   LessonState s,
   int value,
   Map<String, String> slots,
-  StepResult Function(LessonState, [List<Decision>]) right,
+  StepResult Function(LessonState, [List<Decision>]) advance,
   StepResult Function(String) wrongMove,
   int maxSide,
 ) {
   if (value == p.bValue) {
-    final v = {...slots, 'v': '$value'};
-    if (p.ask == Ask.b) {
-      return right(s.copyWith(step: LessonStep.solved), [
-        Coach('cmp.right', v),
-        _solved(p, s, SolvedBy.draw),
-      ]);
-    }
-    return right(s.copyWith(step: LessonStep.findTotal), [
-      Coach('cmp.right', v),
+    return advance(s.copyWith(bFound: true), [
+      Coach('cmp.right', {...slots, 'v': '$value'}),
     ]);
   }
 
@@ -643,25 +651,74 @@ StepResult _findB(
   }
 }
 
-StepResult _undo(ComparisonProblem p, LessonState s) {
-  final LessonState? back = switch (s.step) {
-    LessonStep.sizeB => s.copyWith(step: LessonStep.placeB, barB: false),
-    LessonStep.placeGap => s.copyWith(step: LessonStep.sizeB),
-    LessonStep.placeTotal => s.copyWith(
-      step: LessonStep.placeGap,
-      gapPlaced: false,
-    ),
-    LessonStep.chooseOp when p.ask == Ask.total => s.copyWith(
-      step: LessonStep.placeTotal,
-      totalPlaced: false,
-    ),
-    LessonStep.chooseOp => s.copyWith(
-      step: LessonStep.placeGap,
-      gapPlaced: false,
-    ),
-    _ => null,
+StepResult _undo(Pack pack, ComparisonProblem p, LessonState s) {
+  final back = undoneStep(pack, p, s);
+  return (
+    state: back == null
+        ? s
+        : switch (back) {
+            LessonStep.placeB => s.copyWith(step: back, barB: false),
+            LessonStep.sizeB => s.copyWith(step: back, bSized: false),
+            LessonStep.placeGap => s.copyWith(step: back, gapPlaced: false),
+            _ => s.copyWith(step: back, totalPlaced: false),
+          },
+    decisions: const [],
+  );
+}
+
+/// The placement an Undo now takes back: the step before this one, when it
+/// put something on the board (bar B, its size, the gap or the total).
+LessonStep? undoneStep(Pack pack, ComparisonProblem p, LessonState s) {
+  const undoable = {
+    LessonStep.sizeB,
+    LessonStep.placeGap,
+    LessonStep.placeTotal,
+    LessonStep.chooseOp,
   };
-  return (state: back ?? s, decisions: const []);
+  const placements = {
+    LessonStep.placeB,
+    LessonStep.sizeB,
+    LessonStep.placeGap,
+    LessonStep.placeTotal,
+  };
+  if (!undoable.contains(s.step)) return null;
+  final steps = lessonSteps(pack, p);
+  final i = steps.indexOf(s.step);
+  final back = i > 0 ? steps[i - 1] : null;
+  return placements.contains(back) ? back : null;
+}
+
+/// The steps problem [p] runs, in its template's order (LES-03): the
+/// pack's template's `steps` for the problem's level, else the engine's own
+/// order. A problem that asks only for b never places or finds the total.
+List<LessonStep> lessonSteps(Pack pack, ComparisonProblem p) {
+  final t = pack.template;
+  final ids = t == null || t.steps.isEmpty
+      ? knownSteps
+      : t.stepsFor(p.level, optionalOn: pack.optionalSteps);
+  return [
+    for (final id in ids)
+      if (p.ask == Ask.total || (id != 'place_total' && id != 'find_total'))
+        ...switch (id) {
+          'draw_known_bar' => const [LessonStep.drawA],
+          'size_second_bar' => const [LessonStep.placeB, LessonStep.sizeB],
+          'place_difference' => const [LessonStep.placeGap],
+          'place_total' => const [LessonStep.placeTotal],
+          'choose_operation' => const [LessonStep.chooseOp],
+          'find_unknown' => const [LessonStep.findB],
+          'find_total' => const [LessonStep.findTotal],
+          _ => const <LessonStep>[],
+        },
+  ];
+}
+
+/// The step after [from] for problem [p]; [LessonStep.solved] after the
+/// last one.
+LessonStep nextStep(Pack pack, ComparisonProblem p, LessonStep from) {
+  final steps = lessonSteps(pack, p);
+  if (from == LessonStep.question) return steps.first;
+  final i = steps.indexOf(from);
+  return i >= 0 && i + 1 < steps.length ? steps[i + 1] : LessonStep.solved;
 }
 
 Solved _solved(ComparisonProblem p, LessonState s, SolvedBy by) {

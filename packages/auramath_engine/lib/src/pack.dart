@@ -1,4 +1,5 @@
 import 'problem.dart';
+import 'template.dart';
 
 /// Quiet-child thresholds, in milliseconds since the child's last move.
 class Timers {
@@ -46,6 +47,8 @@ class Pack {
     this.practiceSums = 3,
     this.questionButtons = const {},
     this.policyLines = const {},
+    this.template,
+    this.optionalSteps = const {},
   });
 
   factory Pack.fromJson(Map<String, Object?> j) => Pack(
@@ -72,6 +75,8 @@ class Pack {
     int? practiceSums,
     Map<String, List<String>>? questionButtons,
     Map<String, String>? policyLines,
+    ComparisonTemplate? template,
+    Set<String>? optionalSteps,
   }) => Pack(
     version: version,
     timers: timers ?? this.timers,
@@ -84,6 +89,8 @@ class Pack {
     practiceSums: practiceSums ?? this.practiceSums,
     questionButtons: questionButtons ?? this.questionButtons,
     policyLines: policyLines ?? this.policyLines,
+    template: template ?? this.template,
+    optionalSteps: optionalSteps ?? this.optionalSteps,
   );
 
   final String version;
@@ -108,6 +115,15 @@ class Pack {
   /// Policy `lines.pack`, by line id (`line.q.what-now`). Kept apart from
   /// [lines], so the voice isn't warmed with all of them.
   final Map<String, String> policyLines;
+
+  /// Julia's comparison template (served, else bundled): the step order
+  /// (LES-03), the choice options (LES-12) and the worked examples (CON-05).
+  /// Null: the engine's own order and options.
+  final ComparisonTemplate? template;
+
+  /// The template's optional steps turned on (by flag): `name_quantities`,
+  /// `number_sentence`.
+  final Set<String> optionalSteps;
   final List<String> hintLineIds;
   final Map<String, BadgeInfo> badges;
   final Map<String, String> lines;
