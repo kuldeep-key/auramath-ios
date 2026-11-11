@@ -2024,6 +2024,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guDrawingLabel => 'The child\'s drawing from this lesson';
 
   @override
+  String get kidPickAvatarAskGrownUp =>
+      'Ask a grown-up to set your detective for you.';
+
+  @override
   String get kidQuickDone => 'Quick sums done!';
 
   @override

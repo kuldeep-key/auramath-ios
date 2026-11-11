@@ -3550,6 +3550,12 @@ abstract class AppLocalizations {
   /// **'The child\'s drawing from this lesson'**
   String get guDrawingLabel;
 
+  /// DRAFT, for Julia (ACC-12): this phone may not set the child's avatar (a sibling who has never had a lesson on this shared phone); a grown-up sets it in Edit child.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a grown-up to set your detective for you.'**
+  String get kidPickAvatarAskGrownUp;
+
   /// DRAFT, for Julia (LES-16): after the run of five. No score or count.
   ///
   /// In en, this message translates to:

@@ -109,6 +109,23 @@ void main() {
     expect(find.text('Mira'), findsOneWidget);
   });
 
+  testWidgets('ACC-12: a phone the server won\'t let set it (403) asks for '
+      'a grown-up', (tester) async {
+    await boot(
+      tester,
+      Paths.avatar,
+      serve: (s) => s.on('PUT /api/children/child-1/avatar', {
+        'error': 'another child from this phone',
+      }, status: 403),
+    );
+    await tester.tap(find.bySemanticsLabel('Compass'));
+    await settle(tester);
+    await tester.tap(find.byKey(const Key('avatarSave')));
+    await settle(tester);
+    expect(find.textContaining('Ask a grown-up'), findsOneWidget);
+    expect(find.textContaining("didn't save"), findsNothing);
+  });
+
   testWidgets("ACC-12: a save that fails says so and stays", (tester) async {
     await boot(tester, Paths.avatar); // no route: the fake answers 404
     await tester.tap(find.bySemanticsLabel('Compass'));

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../data/services/api.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
@@ -36,6 +37,10 @@ class _PickAvatarScreenState extends State<PickAvatarScreen> {
   bool _saving = false;
   bool _failed = false;
 
+  /// The server says this phone may not set it (BE-20's 403: a sibling who
+  /// has never had a lesson on this shared phone): a grown-up sets it.
+  bool _askGrownUp = false;
+
   Future<void> _save() async {
     final picked = _picked;
     if (picked == null) return;
@@ -46,6 +51,10 @@ class _PickAvatarScreenState extends State<PickAvatarScreen> {
     try {
       await widget.onSave(picked);
       if (mounted) context.go(Paths.home);
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => e.status == 403 ? _askGrownUp = true : _failed = true);
+      }
     } on Exception {
       if (mounted) setState(() => _failed = true);
     } finally {
@@ -80,13 +89,16 @@ class _PickAvatarScreenState extends State<PickAvatarScreen> {
             onPick: (id) => setState(() => _picked = id),
           ),
         ),
-        if (_failed) PlayLine(l.kidPickAvatarFailed),
+        if (_askGrownUp)
+          PlayLine(l.kidPickAvatarAskGrownUp)
+        else if (_failed)
+          PlayLine(l.kidPickAvatarFailed),
       ],
       bottom: ButtonStack([
         AuraButton(
           key: const Key('avatarSave'),
           label: l.kidPickAvatarSave,
-          onPressed: _picked == null || _saving ? null : _save,
+          onPressed: _picked == null || _saving || _askGrownUp ? null : _save,
         ),
       ]),
     );
