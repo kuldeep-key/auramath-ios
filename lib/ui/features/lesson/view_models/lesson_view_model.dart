@@ -224,6 +224,8 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
           notifyListeners();
           return;
         }
+        // a skill due for review warms up first (FL-46, TUT-08)
+        if (await _warmUp(sessionId)) return;
         if (_askEasier) _sessions.askEasier(sessionId);
         _p = await next(sessionId, level: _askLevel);
         _askLevel = null;
@@ -314,6 +316,78 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     return false;
   }
 
+  /// FL-46 (TUT-08): the arithmetic level of a skill's warm-up sums: the
+  /// level the starting check gives that skill.
+  static const warmUpLevels = {
+    'arith.add-3d-regroup': 'A9',
+    'arith.sub-3d-regroup': 'A10',
+    'arith.addsub-2d-regroup': 'A6',
+  };
+
+  /// The review skill the warm-up sums practise (`reviewDue`), while they
+  /// run in [startingSums]; null for the starting check's own.
+  String? _warmUpSkill;
+  bool _warmedUp = false;
+
+  /// True while a warm-up is on (FL-46): the session opened with a skill
+  /// due for review (`reviewDue`: past the side-lesson limit last time, or
+  /// a one-off mistake two weeks on), so before the first case a few sums
+  /// of that skill (policy `practice_if_unsure`), in the starting check's
+  /// calm screen, logged as a side lesson on it: `side_lesson_started`,
+  /// `quick_sum_answered {context: side_lesson}`, then `side_lesson_ended
+  /// {completed: true}`, which takes it off the server's review queue. A
+  /// skill with no sums (reading the story) gets no warm-up: the first
+  /// case is its review. Once per lesson.
+  Future<bool> _warmUp(String sessionId) async {
+    final id = childId;
+    if (_warmedUp || id == null) return false;
+    if (_warmUpSkill case final skill?) {
+      if (inStartingCheck) {
+        notifyListeners();
+        return true;
+      }
+      _warmedUp = true;
+      _warmUpSkill = null;
+      startingSums = const [];
+      await _record([
+        SpecEvent('side_lesson_ended', {'skill_id': skill, 'completed': true}),
+      ]);
+      return false;
+    }
+    final due = _sessions
+        .reviewDue(sessionId)
+        .where((r) => warmUpLevels.containsKey(r['skill']))
+        .firstOrNull;
+    if (due == null) {
+      _warmedUp = true;
+      return false;
+    }
+    final skill = due['skill']! as String;
+    List<Sum> sums = const [];
+    try {
+      sums = await _sessions.practiceSums(id, level: warmUpLevels[skill]!);
+    } on ApiException catch (e) {
+      if (e.offline) rethrow;
+      _sessions.failed(sessionId, 'warm-up sums not fetched: $e');
+    }
+    if (sums.isEmpty) {
+      _warmedUp = true;
+      return false;
+    }
+    _warmUpSkill = skill;
+    startingSums = sums.take(_pack.practiceSums).toList();
+    startingAt = 0;
+    _itemAt = _now();
+    notifyListeners();
+    await _record([
+      SpecEvent('side_lesson_started', {
+        'skill_id': skill,
+        'error_type': due['errorType'] as String? ?? 'review',
+      }),
+    ]);
+    return true;
+  }
+
   /// One starting sum typed: logged as `placement_answered`, with its time
   /// (never shown). After the last one the lesson starts.
   Future<void> answerStarting(int value) async {
@@ -326,12 +400,22 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     // saved without waiting on the network, so the next sum is heard at
     // once; the last one is waited for before the case starts
     final saving = _record([
-      SpecEvent('placement_answered', {
-        'item_id': 'start-${at + 1}',
-        'value': value,
-        'correct': correct,
-        'ms_from_item_start': now - _itemAt,
-      }),
+      if (_warmUpSkill != null)
+        SpecEvent('quick_sum_answered', {
+          'context': 'side_lesson',
+          'item_id': 'warm-up-${at + 1}',
+          'level': item.level,
+          'value': value,
+          'correct': correct,
+          'ms_from_item_start': now - _itemAt,
+        })
+      else
+        SpecEvent('placement_answered', {
+          'item_id': 'start-${at + 1}',
+          'value': value,
+          'correct': correct,
+          'ms_from_item_start': now - _itemAt,
+        }),
     ]);
     _itemAt = now;
     if (inStartingCheck) return unawaited(saving);
