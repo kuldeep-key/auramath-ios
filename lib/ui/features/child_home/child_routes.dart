@@ -71,6 +71,10 @@ List<RouteBase> childRoutes(Deps deps) {
             load: () => moments.next(
               lastStop: deps.sessions.lastStop.value,
               childId: deps.account.childId,
+              replied: (id) => switch (deps.sessions.badgeFor(id)) {
+                final b? => (id: b.badgeId, name: b.name, says: null),
+                null => null,
+              },
               streakOn: deps.flags.on('streak_moment'),
             ),
             builder: (moment) => ListenableBuilder(

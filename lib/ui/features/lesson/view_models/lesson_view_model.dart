@@ -140,6 +140,10 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// The level to ask for with the next problem ("something easier").
   String? _askLevel;
 
+  /// The next problem is "something easier" (CON-06): asked with `easier`,
+  /// one level below [_askLevel], and served as variant easier.
+  bool _askEasier = false;
+
   /// Null until the server opened the session.
   String? _sessionId;
   LessonState _state = initialState();
@@ -203,7 +207,10 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   Future<void> start() async {
     startError = null;
     try {
-      final sessionId = _sessionId ??= await _openSession();
+      // a case carried on after time's up goes on in the server's
+      // continuation of its session (SES-01); else a new session
+      final sessionId = _sessionId ??=
+          await _continueAfterTimeUp() ?? await _openSession();
       final next = _nextProblem;
       if (_p == null && next != null) {
         // a new child's four starting sums come first (SKL-07)
@@ -215,8 +222,10 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
           notifyListeners();
           return;
         }
+        if (_askEasier) _sessions.askEasier(sessionId);
         _p = await next(sessionId, level: _askLevel);
         _askLevel = null;
+        _askEasier = false;
       } else if (next != null &&
           carryFrom == null &&
           _sessions.checkDue(sessionId)) {
@@ -329,8 +338,9 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
 
   Future<void> _record(List<SpecEvent> events) async {
     final sessionId = _sessionId;
-    // nothing happened yet to record, or the server closed the log
-    if (sessionId == null || endedByServer) return;
+    // nothing happened yet to record, or the server closed the log, or
+    // time was up and the child stopped: the next lesson carries it on
+    if (sessionId == null || endedByServer || _calledItADay) return;
     final first = _seq;
     _seq += events.length;
     await _sessions.record(sessionId, first, events);
@@ -445,7 +455,12 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
         'active_ms': _sitting.activeMs,
       }),
     ]);
+    // nothing more goes into the ended session: the server would open its
+    // continuation for it (SES-01), which the next lesson opens instead
+    _calledItADay = true;
   }
+
+  bool _calledItADay = false;
 
   /// The phone locked or the app went to the background (SES-03).
   Future<void> paused() async {
@@ -525,7 +540,13 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     final sessionId = _sessionId;
     // no session yet, no case yet (the starting sums, a left case on
     // offer), paused for the connection, or over: the board isn't live
-    if (sessionId == null || _p == null || !online || endedByServer) return;
+    if (sessionId == null ||
+        _p == null ||
+        !online ||
+        endedByServer ||
+        _calledItADay) {
+      return;
+    }
     if (_held != null) {
       // the child moved on before the decision: the rules' help shows
       if (input is QuietFor) return;
@@ -1262,7 +1283,10 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// one a level easier than this one, from the server.
   void goTo(String problemId, {bool sameLevel = false}) {
     if (_nextProblem != null) {
-      _askLevel = sameLevel ? _problem.level : easierLevel(_problem.level);
+      // something easier: the server goes one level below this one (at the
+      // lowest, its smallest numbers) and says so (variant easier)
+      _askLevel = _problem.level;
+      _askEasier = !sameLevel;
       _p = null;
     } else {
       _p = _pack.problems[problemId]!;

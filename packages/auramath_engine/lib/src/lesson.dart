@@ -939,11 +939,21 @@ LessonStep? undoneStep(Pack pack, ComparisonProblem p, LessonState s) {
 }
 
 /// The steps problem [p] runs, in its template's order (LES-03): the
-/// pack's template's `steps` for the problem's level, else the engine's own
-/// order. A problem that asks only for b never places or finds the total.
+/// server's steps served with it, else the pack's template's `steps` for
+/// the problem's level, else the engine's own order. Optional steps run
+/// only where the pack turns them on; a step this engine can't run is left
+/// out. A problem that asks only for b never places or finds the total.
 List<LessonStep> lessonSteps(Pack pack, ComparisonProblem p) {
   final t = pack.template;
-  final ids = t == null || t.steps.isEmpty
+  final served = p.steps;
+  final ids = served != null && served.isNotEmpty
+      ? [
+          for (final st in served)
+            if (knownSteps.contains(st.id) &&
+                (!st.optional || pack.optionalSteps.contains(st.id)))
+              st.id,
+        ]
+      : t == null || t.steps.isEmpty
       ? [
           for (final id in knownSteps)
             if (!optionalSteps.contains(id) || pack.optionalSteps.contains(id))
@@ -968,10 +978,11 @@ List<LessonStep> lessonSteps(Pack pack, ComparisonProblem p) {
   ];
 }
 
-/// The options a choice step offers for [p] (LES-12), from the pack's
-/// template: each with its label in [p]'s numbers ("186 − 107"), whether
-/// it's right for [p]'s relation, and, on choose_operation, the sum it
-/// sets up. Without a template, the engine's own two sums.
+/// The options a choice step offers for [p] (LES-12): the server's,
+/// served with [p], in their order and with their own right one; else the
+/// pack's template's: each with its label in [p]'s numbers ("186 − 107"),
+/// whether it's right for [p]'s relation, and, on choose_operation, the
+/// sum it sets up. Without either, the engine's own two sums.
 List<ChoiceOption> choiceOptions(
   Pack pack,
   ComparisonProblem p,
@@ -980,7 +991,7 @@ List<ChoiceOption> choiceOptions(
   final relation = p.big == BigSide.a ? 'taller' : 'shorter';
   final rightOp = p.big == BigSide.a ? Op.subtract : Op.add;
   final wrongOp = rightOp == Op.add ? Op.subtract : Op.add;
-  final options =
+  final fromTemplate =
       pack.template?.stepById(stepId)?.options ??
       (stepId == 'choose_operation'
           ? const [
@@ -998,6 +1009,22 @@ List<ChoiceOption> choiceOptions(
               ),
             ]
           : const <StepOption>[]);
+  final served = p.servedStep(stepId)?.options ?? const <ServedOption>[];
+  final options = served.isEmpty
+      ? fromTemplate
+      : [
+          for (final o in served)
+            StepOption(
+              id: o.id,
+              text: o.text,
+              correctFor: o.correct ? [relation] : const [],
+              // what a wrong pick is charged as: the template's, by id
+              errorType: fromTemplate
+                  .where((t) => t.id == o.id)
+                  .firstOrNull
+                  ?.errorType,
+            ),
+        ];
   // the adding-up option for Julia's J14 (LES-06), proposed to Apoorv and
   // Julia and not in the template yet: offered where the pack turns it on
   final withAddingUp = [

@@ -30,6 +30,40 @@ class Item {
   final String pic;
 }
 
+/// One option of a choice step as the server serves it with a problem
+/// (`problem.steps[].options`, LES-12): its text already in the problem's
+/// words or the template's symbols, and whether it is right here.
+class ServedOption {
+  const ServedOption({
+    required this.id,
+    required this.text,
+    required this.correct,
+  });
+
+  final String id;
+  final String text;
+  final bool correct;
+}
+
+/// One step as the server serves it with a problem (`problem.steps[]`,
+/// LES-03), in the order the lesson runs them for the problem's level.
+class ServedStep {
+  const ServedStep({
+    required this.id,
+    this.optional = false,
+    this.hintStartRung,
+    this.options = const [],
+  });
+
+  /// The spec step id: `draw_known_bar`, `choose_operation`, ...
+  final String id;
+
+  /// Runs only where the app turns it on (a flag).
+  final bool optional;
+  final String? hintStartRung;
+  final List<ServedOption> options;
+}
+
 /// Which problem comes after this one, by how it went.
 class NextProblems {
   const NextProblems({
@@ -70,6 +104,7 @@ class ComparisonProblem {
     required this.variant,
     this.level,
     this.quantity = 'height',
+    this.steps,
   });
 
   factory ComparisonProblem.fromJson(Map<String, Object?> j) {
@@ -122,6 +157,14 @@ class ComparisonProblem {
   /// `height` or `mass` (CON-11): a mass story's bars lie across (LES-04).
   final String quantity;
   bool get isMass => quantity == 'mass';
+
+  /// The server's steps for this problem, in order, with their options
+  /// (LES-03, LES-12); null for a problem the server didn't serve them
+  /// with: then the pack's template, else the engine's own order.
+  final List<ServedStep>? steps;
+
+  ServedStep? servedStep(String id) =>
+      steps?.where((s) => s.id == id).firstOrNull;
 
   int get bValue => big == BigSide.a ? aValue - diff : aValue + diff;
   int get total => aValue + bValue;

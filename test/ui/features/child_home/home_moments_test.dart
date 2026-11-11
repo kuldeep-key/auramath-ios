@@ -56,6 +56,22 @@ void main() {
       expect((await m.next(lastStop: null, childId: 'c1')).badge, isNull);
     });
 
+    test('the badge in the events reply wins, with no rewards read', () async {
+      final (m, server) = await source();
+      server.on('GET /api/children/c1/rewards', {
+        'sessionBadges': <Object>[],
+        'draft': true,
+      });
+      final b = (await m.next(
+        lastStop: (sessionId: 's1', reason: 'finished'),
+        childId: 'c1',
+        replied: (id) => id == 's1'
+            ? (id: 'session.solved.lemon', name: 'Lemon Case', says: null)
+            : null,
+      )).badge;
+      expect(b!.served!.name, 'Lemon Case');
+    });
+
     test('no server badge yet: still a badge, never zero', () async {
       final (m, _) = await source();
       for (final reason in ['finished', 'time_up', 'left', 'paused']) {

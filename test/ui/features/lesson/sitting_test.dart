@@ -72,12 +72,7 @@ void main() {
     ));
   });
 
-  test('@SES-01 the next session reopens the same problem at the same step, '
-      'in a session of its own', () async {
-    await vm.send(const BarADrawn());
-    await vm.send(const BarBPlaced());
-    await spend(30 * minute);
-    await vm.callItADay();
+  Future<LessonViewModel> carryOn() async {
     final next = (await vm.sessions.whereNext(pack))!;
     final later = LessonViewModel(
       pack: pack,
@@ -90,25 +85,78 @@ void main() {
       tickEvery: null,
     )..carryFrom = next.carryFrom;
     await later.start();
-    expect(later.sessionId, 's2');
+    return later;
+  }
+
+  test('@SES-01 the next lesson carries the case on at the same step, in '
+      "the server's continuation of the ended session", () async {
+    await vm.send(const BarADrawn());
+    await vm.send(const BarBPlaced());
+    await spend(30 * minute);
+    await vm.callItADay();
+    final s1 = await db.forSession('s1');
+    final opened = [...api.sessions];
+    final later = await carryOn();
+    // the server opened it for the work posted after the time_up end
+    expect(api.continuations, {'s1': 'c-s1'});
+    expect(later.sessionId, 'c-s1');
+    expect(api.sessions, opened, reason: 'no new session is opened');
     expect(later.state.step, LessonStep.sizeB);
     expect(later.state.barA, isTrue);
-    // the new session starts clean: its own start, then the work goes on
-    final s2 = await db.forSession('s2');
-    expect(s2.map((e) => e.name).take(2), ['session_started', 'problem_shown']);
-    expect(s2.map((e) => e.name), isNot(contains('object_placed')));
+    // its events follow on from the ended one's: resumed, then its own start
+    final c = await db.forSession('c-s1');
+    expect(c.map((e) => e.name).take(3), [
+      'session_resumed',
+      'session_started',
+      'problem_shown',
+    ]);
+    expect(c.first.seq, s1.last.seq + 1);
+    expect(
+      [for (final e in c) e.seq],
+      [for (var i = 0; i < c.length; i++) s1.last.seq + 1 + i],
+    );
     // nothing more is written to the ended one
-    final s1 = (await db.forSession('s1')).length;
     await later.send(const BarBSized(Relation.shorter));
-    expect((await db.forSession('s1')).length, s1);
+    expect((await db.forSession('s1')).length, s1.length);
     expect(later.state.step, LessonStep.placeGap);
-    // and a resume of the new session still has the whole board
-    expect((await vm.sessions.whereNext(pack))?.resumeSessionId, 's2');
-    final (:events, lastSeq: _) = await vm.sessions.resume('s2');
+    // problems and decisions go to the continuation, never the ended one
+    expect(api.decisions.map((d) => d.$1), everyElement('c-s1'));
+    // and a resume of it still has the whole board
+    expect((await vm.sessions.whereNext(pack))?.resumeSessionId, 'c-s1');
+    final (:events, lastSeq: _) = await vm.sessions.resume('c-s1');
     expect(
       replay(pack, later.problem, inputsFrom(pack, later.problem, events)),
       later.state,
     );
+    later.dispose();
+  });
+
+  test(
+    '@SES-01 nothing more goes into a session after Call it a day',
+    () async {
+      await vm.send(const BarADrawn());
+      await spend(30 * minute);
+      await vm.callItADay();
+      final n = (await db.forSession('s1')).length;
+      await vm.paused();
+      await vm.send(const BarBPlaced());
+      expect((await db.forSession('s1')).length, n);
+      expect(api.continuations, isEmpty);
+    },
+  );
+
+  test('@SES-01 a server without continuations: a new session carries the '
+      'case on, as before', () async {
+    api.continues = false;
+    await vm.send(const BarADrawn());
+    await vm.send(const BarBPlaced());
+    await spend(30 * minute);
+    await vm.callItADay();
+    final later = await carryOn();
+    expect(later.sessionId, api.sessions.last);
+    expect(later.sessionId, isNot('s1'));
+    expect(api.continuations, isEmpty);
+    expect(later.state.step, LessonStep.sizeB);
     later.dispose();
   });
 

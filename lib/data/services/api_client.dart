@@ -184,6 +184,11 @@ class HttpApi implements Api {
       retestDueAt: retest?['dueAt'] as int?,
       startingCheckDue: json['startingCheckDue'] == true,
       leftProblem: json['leftProblem'] as Map<String, Object?>?,
+      reviewDue: [
+        for (final r in json['reviewDue'] as List? ?? const [])
+          if (r is Map) r.cast<String, Object?>(),
+      ],
+      sittingId: json['sittingId'] as String?,
     );
   }
 
@@ -191,13 +196,20 @@ class HttpApi implements Api {
   Future<Map<String, Object?>> nextProblem(
     String sessionId, {
     String? level,
+    bool easier = false,
+    String? templateId,
   }) async {
     final json =
         await _client.post('/api/sessions/$sessionId/problems/next', {
               'level': ?level,
+              if (easier) 'easier': true,
+              'templateId': ?templateId,
             })
             as Map<String, Object?>;
-    return json['problem']! as Map<String, Object?>;
+    final problem = json['problem']! as Map<String, Object?>;
+    // SKL-05: the selector rule that chose it, kept with it for the record
+    final selector = json['selector'];
+    return selector is Map ? {...problem, 'selector': selector} : problem;
   }
 
   @override
@@ -242,33 +254,42 @@ class HttpApi implements Api {
             as Map<String, Object?>;
     final session = json['session'] as Map<String, Object?>?;
     if (session == null) return null;
-    // The record serves stored events in camelCase and without their
-    // session id; only spec events (with an event id) can be replayed.
-    final events = [
-      for (final e in (json['events']! as List).cast<Map<String, Object?>>())
-        if (e['eventId'] != null)
-          LessonEvent(
-            eventId: e['eventId']! as String,
-            sessionId: session['id']! as String,
-            seq: e['seq']! as int,
-            at: e['at']! as int,
-            name: e['name']! as String,
-            childRef: e['childRef']! as String,
-            deviceId: e['deviceId']! as String,
-            appVersion: e['appVersion']! as String,
-            payload: e['payload']! as Map<String, Object?>,
-          ),
-    ];
+    final events = _specEvents(session['id']! as String, json['events']);
     if (events.isEmpty) return null;
     final offer = json['resume'] as Map<String, Object?>?;
     final on = offer?['startedOn'] as Map<String, Object?>?;
+    final closed = offer?['closed'] as Map<String, Object?>?;
     return (
       events: events,
       sameDevice: offer?['sameDevice'] == true,
       startedOn: on?['label'] as String?,
-      closed: offer?['closed'] != null,
+      closed: closed != null,
+      closedReason: closed?['reason'] as String?,
+      carried: [
+        for (final c in offer?['carried'] as List? ?? const [])
+          if (c is Map && c['sessionId'] is String)
+            _specEvents(c['sessionId'] as String, c['events']),
+      ],
     );
   }
+
+  /// The record serves stored events in camelCase and without their
+  /// session id; only spec events (with an event id) can be replayed.
+  static List<LessonEvent> _specEvents(String sessionId, Object? raw) => [
+    for (final e in (raw as List? ?? const []).cast<Map<String, Object?>>())
+      if (e['eventId'] != null)
+        LessonEvent(
+          eventId: e['eventId']! as String,
+          sessionId: sessionId,
+          seq: e['seq']! as int,
+          at: e['at']! as int,
+          name: e['name']! as String,
+          childRef: e['childRef']! as String,
+          deviceId: e['deviceId']! as String,
+          appVersion: e['appVersion']! as String,
+          payload: e['payload']! as Map<String, Object?>,
+        ),
+  ];
 
   @override
   Future<EventsReply> sendEvents(
@@ -284,21 +305,36 @@ class HttpApi implements Api {
               as Map<String, Object?>;
     } on ApiException catch (e) {
       // the lesson's log is full: nothing more is stored for it
-      if (e.status == 413) return (rejected: const <String>[], ended: 'full');
+      if (e.status == 413) {
+        return (
+          rejected: const <String>[],
+          ended: 'full',
+          continuedIn: null,
+          badge: null,
+        );
+      }
       // consent withdrawn (the events route's only 403): nothing more may
       // be stored, so lessons are paused, not offline
       if (e.status == 403) {
-        return (rejected: const <String>[], ended: 'consent');
+        return (
+          rejected: const <String>[],
+          ended: 'consent',
+          continuedIn: null,
+          badge: null,
+        );
       }
       rethrow;
     }
     final ended = json['sessionEnded'] as Map<String, Object?>?;
+    final continued = json['continuedIn'] as Map<String, Object?>?;
     return (
       rejected: [
         for (final r in (json['rejected'] as List? ?? []).cast<Map>())
           '${r['name']}: ${r['reasons']}',
       ],
       ended: ended == null ? null : '${ended['reason']}',
+      continuedIn: continued?['sessionId'] as String?,
+      badge: badgeFromJson(json['badge']),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:auramath/data/models/lesson_event.dart';
 import 'package:auramath/data/repositories/session_repository.dart';
 import 'package:auramath/data/services/api.dart';
 import 'package:auramath/data/services/fake_api.dart';
@@ -388,6 +389,8 @@ void main() {
         sameDevice: false,
         startedOn: 'Phone A',
         closed: false,
+        closedReason: null,
+        carried: const [],
       );
       expect(await repo.whereNext(pack), (
         problemId: 'lemon',
@@ -421,6 +424,8 @@ void main() {
         sameDevice: true,
         startedOn: 'Phone A',
         closed: false,
+        closedReason: null,
+        carried: const [],
       );
       expect((await repo.whereNext(pack))?.startedOn, isNull);
       repo.dispose();
@@ -455,6 +460,8 @@ void main() {
         sameDevice: true,
         startedOn: null,
         closed: true,
+        closedReason: 'idle',
+        carried: const [],
       );
       final next = await repo.whereNext(pack);
       expect(next, (
@@ -502,10 +509,183 @@ void main() {
         sameDevice: true,
         startedOn: null,
         closed: true,
+        closedReason: 'idle',
+        carried: const [],
       );
       expect((await repo.whereNext(pack))?.carryFrom, isNull);
       repo.dispose();
       await db.close();
     });
+  });
+
+  group('@SES-01 time up, carried on in the server\'s continuation', () {
+    final pack = samplePack();
+    final lemon = pack.problems['lemon']!;
+
+    Future<(SessionRepository, FakeApi)> make() async {
+      final db = await memoryOutbox();
+      final api = FakeApi();
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      addTearDown(() async {
+        repo.dispose();
+        await db.close();
+      });
+      return (repo, api);
+    }
+
+    /// The ended session's log as the server serves it: the board, then
+    /// `session_ended {time_up}`.
+    List<LessonEvent> timeUpBoard(String id) {
+      final spec = [
+        ...lessonEvents(pack, lemon, const [
+          Started(),
+          BarADrawn(),
+          BarBPlaced(),
+        ]),
+        const SpecEvent('session_ended', {'reason': 'time_up'}),
+      ];
+      return [
+        for (final (i, e) in spec.indexed)
+          ev(id, i, e.name).withPayload(e.payload),
+      ];
+    }
+
+    test(
+      'another phone rebuilds the whole board of an open continuation',
+      () async {
+        final (repo, api) = await make();
+        final before = timeUpBoard('s-ended');
+        final n = before.length;
+        api.openCase = (
+          events: [
+            ev('c-open', n, 'session_resumed').withPayload(const {}),
+            ev(
+              'c-open',
+              n + 1,
+              'problem_shown',
+            ).withPayload(problemShown(lemon).payload),
+          ],
+          sameDevice: false,
+          startedOn: 'Phone A',
+          closed: false,
+          closedReason: null,
+          carried: [before],
+        );
+        final next = (await repo.whereNext(pack))!;
+        expect(next.resumeSessionId, 'c-open');
+        expect(next.startedOn, 'Phone A');
+        final (:events, :lastSeq) = await repo.resume('c-open');
+        expect(lastSeq, n + 1);
+        final state = replay(pack, lemon, inputsFrom(pack, lemon, events));
+        expect(state.step, LessonStep.sizeB);
+        expect(state.barA, isTrue);
+      },
+    );
+
+    test("another phone carries a time_up board on in the ended session's "
+        'continuation', () async {
+      final (repo, api) = await make();
+      final board = timeUpBoard('s-ended');
+      api
+        ..openCase = (
+          events: board,
+          sameDevice: false,
+          startedOn: 'Phone A',
+          closed: true,
+          closedReason: 'time_up',
+          carried: const [],
+        )
+        ..timeUpAt['s-ended'] = board.last.seq;
+      final next = (await repo.whereNext(pack))!;
+      expect(next.carryFrom, 's-ended');
+      final to = await repo.continueAfterTimeUp('s-ended');
+      expect(to, 'c-s-ended');
+      expect(repo.firstSeq(to!), board.last.seq + 2);
+      // posted to the ended session, stored by the server in the new one
+      expect(api.batches.single.$1, 's-ended');
+      expect(api.batches.single.$2.single.name, 'session_resumed');
+      expect(api.batches.single.$2.single.seq, board.last.seq + 1);
+      // later calls for either go to the continuation
+      expect(repo.live('s-ended'), to);
+      await repo.decide('s-ended', const {'point': 'after_step'});
+      expect(api.decisions.single.$1, to);
+    });
+
+    test('a session not ended at time up gets none', () async {
+      final (repo, _) = await make();
+      await repo.open();
+      await repo.record('s1', 0, const [step]);
+      expect(await repo.continueAfterTimeUp('s1'), isNull);
+    });
+
+    test('a batch the server moved is linked to its continuation', () async {
+      final (repo, api) = await make();
+      final id = await repo.open();
+      await repo.record(id, 0, [
+        problemShown(lemon),
+        const SpecEvent('session_ended', {'reason': 'time_up'}),
+      ]);
+      await repo.record(id, 2, const [step]);
+      expect(api.continuations, {id: 'c-$id'});
+      expect(repo.live(id), 'c-$id');
+    });
+  });
+
+  test('@REW-01 the badge the server names as a session ends is kept for '
+      'Home', () async {
+    final db = await memoryOutbox();
+    final api = FakeApi()
+      ..badge = (
+        badgeId: 'b1',
+        kind: 'session',
+        name: 'Case cracked',
+        forWhat: 'solved',
+        draftName: true,
+      );
+    final repo = SessionRepository(
+      db: db,
+      api: api,
+      identity: testIdentity,
+      nowMs: () => 5,
+    );
+    final id = await repo.open();
+    await repo.record(id, 0, const [step]);
+    expect(repo.badgeFor(id), isNull);
+    await repo.record(id, 1, const [
+      SpecEvent('session_ended', {'reason': 'finished'}),
+    ]);
+    expect(repo.badgeFor(id)?.name, 'Case cracked');
+    expect(repo.badgeFor(id)?.forWhat, 'solved');
+    repo.dispose();
+    await db.close();
+  });
+
+  test('@TUT-08 a session keeps its reviewDue and sittingId', () async {
+    final db = await memoryOutbox();
+    final api = FakeApi()
+      ..sittingId = 'sit-1'
+      ..reviewDue = const [
+        {
+          'skill': 'arith.sub-3d-regroup',
+          'errorType': 'sub_smaller_from_larger',
+          'reason': 'over_limit',
+        },
+      ];
+    final repo = SessionRepository(
+      db: db,
+      api: api,
+      identity: testIdentity,
+      nowMs: () => 5,
+    );
+    final id = await repo.open();
+    expect(repo.sittingOf(id), 'sit-1');
+    expect(repo.reviewDue(id).single['skill'], 'arith.sub-3d-regroup');
+    repo.dispose();
+    await db.close();
   });
 }

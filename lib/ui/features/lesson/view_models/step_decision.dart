@@ -33,7 +33,7 @@ Map<String, Object?> afterStepDecision({
   // swapped digits are only a recheck: nothing else is allowed (LES-09)
   final carryOn = correct || c['error_type'] == 'transposition';
   final shown = problemShown(problem).payload;
-  final numbers = shown['numbers']! as Map<String, Object?>;
+  final numbers = shown['numbers'] as Map<String, Object?>? ?? const {};
   return {
     'point': 'after_step',
     'allowed': carryOn

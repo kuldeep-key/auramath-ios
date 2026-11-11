@@ -63,6 +63,18 @@ mixin _LessonGaps on ChangeNotifier {
   /// lesson carries on: set by the route before [LessonViewModel.start].
   String? carryFrom;
 
+  /// SES-01: a case whose session the app ended at time's up goes on in
+  /// the continuation the server opens for that session (`continuedIn`,
+  /// `resumedFrom`), its seqs following on; null for any other case, which
+  /// gets a new session.
+  Future<String?> _continueAfterTimeUp() async {
+    final from = carryFrom;
+    if (from == null) return null;
+    final to = await _vm._sessions.continueAfterTimeUp(from);
+    if (to != null) _vm._seq = _vm._sessions.firstSeq(to);
+    return to;
+  }
+
   /// After the new session's `problem_shown`: links it to the ended one
   /// and rebuilds the board from that session's events, through the
   /// engine, so the child carries on at the same step (SES-01, SES-04).

@@ -15,6 +15,31 @@ class ApiException implements Exception {
   String toString() => 'ApiException(${status ?? 'offline'}): $message';
 }
 
+/// A badge the server awarded (REW-01, D-47 draft names): `kind` session
+/// or skill_mastered, `forWhat` (`solved`, `worked_on`, `opened`) for a
+/// session's.
+typedef ServerBadge = ({
+  String badgeId,
+  String kind,
+  String name,
+  String? forWhat,
+  bool draftName,
+});
+
+/// A badge as the server sends it, or null when it isn't one.
+ServerBadge? badgeFromJson(Object? j) {
+  if (j is! Map || j['badgeId'] is! String || j['name'] is! String) {
+    return null;
+  }
+  return (
+    badgeId: j['badgeId'] as String,
+    kind: j['kind'] as String? ?? 'session',
+    name: j['name'] as String,
+    forWhat: j['for'] as String?,
+    draftName: j['draftName'] == true,
+  );
+}
+
 /// The server's answer to a batch of events.
 typedef EventsReply = ({
   /// Each refused event as "name: reasons". Those aren't stored; the rest
@@ -24,6 +49,14 @@ typedef EventsReply = ({
   /// Why the server ended the session, if it has: `paused` (offline 10+
   /// min), `idle` (30 min), or `full` (the log's 10,000 events, its 413).
   String? ended,
+
+  /// SES-01: the batch came after the session's `session_ended {time_up}`,
+  /// so the server stored it in this continuation session (`continuedIn`,
+  /// resumedFrom the posted one): the rest of the lesson goes there.
+  String? continuedIn,
+
+  /// REW-01: the lesson's badge, in the answer to the batch that ends it.
+  ServerBadge? badge,
 });
 
 /// The child's unfinished lesson on the server.
@@ -34,6 +67,14 @@ typedef OpenCase = ({
 
   /// The server already ended it (`resume.closed`): a new session starts.
   bool closed,
+
+  /// Why it ended (`resume.closed.reason`): `paused`, `idle`, or `time_up`
+  /// (the app ended it at the cap, SES-01: it carries on in a continuation).
+  String? closedReason,
+
+  /// SES-01 (`resume.carried`): the time_up sessions this one carries on,
+  /// oldest first, each its events, so the whole board is rebuilt.
+  List<List<LessonEvent>> carried,
 });
 
 /// A session the server just opened.
@@ -55,6 +96,15 @@ typedef StartedSession = ({
   /// A problem the child left last time, to offer back: `{id, problemId,
   /// problem, stepId, leftAt, ...}`, `problem` as it was shown.
   Map<String, Object?>? leftProblem,
+
+  /// TUT-08: skills to warm up on, each `{skill, errorType, reason}`
+  /// (`over_limit`, `one_off`); a finished side lesson for the skill
+  /// (`side_lesson_ended {skill_id, completed: true}`) clears it.
+  List<Map<String, Object?>> reviewDue,
+
+  /// The sitting this lesson belongs to (the id of its first session),
+  /// informational (PAR-01: one note per sitting).
+  String? sittingId,
 });
 
 /// The lesson's calls to the backend. Throws [ApiException] on any failure.
@@ -65,9 +115,17 @@ abstract interface class Api {
   Future<StartedSession> startSession({String? childId, required bool isDemo});
 
   /// `POST /api/sessions/{id}/problems/next`: the next problem at the
-  /// child's level (the server's memory), or at [level] ("something
-  /// easier", a spaced check). 409 once the lesson has ended.
-  Future<Map<String, Object?>> nextProblem(String sessionId, {String? level});
+  /// child's level (the server's memory), or at [level] (a spaced check,
+  /// the starting check's placement); [easier] one level below that
+  /// ("something easier", CON-06: served with `variant: easier`, which
+  /// `problem_shown` echoes). [templateId] another question type
+  /// (CON-07, behind its flag). 409 once the lesson has ended.
+  Future<Map<String, Object?>> nextProblem(
+    String sessionId, {
+    String? level,
+    bool easier = false,
+    String? templateId,
+  });
 
   /// `GET /api/sessions/resumable`: the child's unfinished lesson on the
   /// server, if any, with its events and where it was started (DEV-05).

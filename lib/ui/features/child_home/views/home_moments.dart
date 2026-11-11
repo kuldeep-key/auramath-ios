@@ -24,21 +24,24 @@ class HomeMomentsSource {
   final Set<String> _shownSessions = {};
   DateTime? _streakShownOn;
 
+  /// [replied]: the badge the server named in its answer to the batch
+  /// that ended the session (REW-01), when it did: shown as it is, with no
+  /// rewards read.
   Future<HomeMoments> next({
     required ({String sessionId, String reason})? lastStop,
     String? childId,
     bool streakOn = false,
     DateTime? now,
+    ServedBadge? Function(String sessionId)? replied,
   }) async {
     SessionBadge? badge;
     if (lastStop != null && _shownSessions.add(lastStop.sessionId)) {
       badge = (
         sessionId: lastStop.sessionId,
         reason: lastStop.reason,
-        served: await rewards.sessionBadge(
-          lastStop.sessionId,
-          childId: childId,
-        ),
+        served:
+            replied?.call(lastStop.sessionId) ??
+            await rewards.sessionBadge(lastStop.sessionId, childId: childId),
       );
     }
     // REW-05 (flag streak_moment): the server counts the days, in the
