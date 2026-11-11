@@ -53,11 +53,7 @@ class DataScreen extends StatelessWidget {
                 l.setupDataHelpers,
                 l.setupDataHelpersDetail,
               ),
-              (
-                Icons.school_outlined,
-                l.setupDataJulia,
-                l.setupDataJuliaDetail,
-              ),
+              (Icons.school_outlined, l.setupDataJulia, l.setupDataJuliaDetail),
               (
                 Icons.delete_outline_rounded,
                 l.setupDataDelete,

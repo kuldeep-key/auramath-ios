@@ -1186,11 +1186,23 @@ abstract class AppLocalizations {
   /// **'{name}\'s plan'**
   String guChildPlan(String name);
 
-  /// No description provided for @guNotifyLink.
+  /// No description provided for @guEmailRow.
   ///
   /// In en, this message translates to:
-  /// **'Email after each session'**
-  String get guNotifyLink;
+  /// **'Report email'**
+  String get guEmailRow;
+
+  /// No description provided for @guEmailUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get guEmailUnknown;
+
+  /// No description provided for @guEmailUnsubscribeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Every email also has a link to stop them.'**
+  String get guEmailUnsubscribeNote;
 
   /// No description provided for @guRightsLink.
   ///

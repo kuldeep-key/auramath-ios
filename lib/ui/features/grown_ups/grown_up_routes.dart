@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../../../data/repositories/grown_up_repository.dart';
+import '../../../data/repositories/report_email_repository.dart';
 import '../../../data/repositories/setup_repository.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
@@ -32,6 +33,7 @@ import 'views/settings_screen.dart';
 List<RouteBase> grownUpRoutes(Deps deps) {
   final repo = GrownUpRepository(deps.client, deps.store);
   final family = deps.family;
+  final email = ReportEmailRepository(deps.client);
   String child(GoRouterState s) => s.pathParameters['childId']!;
   return [
     GoRoute(
@@ -56,7 +58,8 @@ List<RouteBase> grownUpRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.settings,
-      builder: (_, _) => SettingsScreen(family: family, repo: repo),
+      builder: (_, _) =>
+          SettingsScreen(family: family, repo: repo, email: email),
     ),
     GoRoute(
       path: Paths.family,

@@ -649,7 +649,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get guNotifyLink => 'Email after each session';
+  String get guEmailRow => 'Report email';
+
+  @override
+  String get guEmailUnknown => 'Not set';
+
+  @override
+  String get guEmailUnsubscribeNote =>
+      'Every email also has a link to stop them.';
 
   @override
   String get guRightsLink => 'Your data and rights';

@@ -57,6 +57,7 @@ class Gu {
     final started = now - 13 * 60000;
     server
       ..on('POST /api/auth/logout', null, status: 204)
+      ..on('GET /api/family/settings/reports', {'frequency': 'each_session'})
       ..on('GET /api/children', {
         'children': [
           {'id': 'child-1', 'displayName': 'Aarav', 'schoolYear': 'year_2'},

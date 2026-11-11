@@ -222,7 +222,9 @@
   "guFamilyAndPhones": "Family and phones",
   "guChildPlan": "{name}'s plan",
   "@guChildPlan": {"placeholders": {"name": {"type": "String"}}},
-  "guNotifyLink": "Email after each session",
+  "guEmailRow": "Report email",
+  "guEmailUnknown": "Not set",
+  "guEmailUnsubscribeNote": "Every email also has a link to stop them.",
   "guRightsLink": "Your data and rights",
   "guSignOut": "Sign out",
 

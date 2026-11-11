@@ -1,3 +1,4 @@
+import 'package:auramath/data/repositories/report_email_repository.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/grown_ups/views/forgot_passcode_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/grown_up_home_screen.dart';
@@ -211,7 +212,11 @@ void main() {
   });
 
   group('Settings', () {
-    Widget screen(Gu g) => SettingsScreen(family: g.deps.family, repo: g.repo);
+    Widget screen(Gu g) => SettingsScreen(
+      family: g.deps.family,
+      repo: g.repo,
+      email: ReportEmailRepository(g.deps.client),
+    );
 
     testWidgets('at every size, without Membership, plan or pad choice', (
       tester,
@@ -240,6 +245,40 @@ void main() {
       final prefs = await tester.runAsync(g.repo.loadPrefs);
       expect(prefs!.minutes, 20);
       expect(prefs.readAloud, isFalse);
+    });
+
+    testWidgets('report email on: one tap turns it off (PAR-05)', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server
+        ..on('GET /api/family/settings/reports', {'frequency': 'weekly'})
+        ..on('PUT /api/family/settings/reports', null, status: 204);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Report email'));
+      expect(find.text('Every email also has a link to stop them.'), findsOne);
+      g.server.on('GET /api/family/settings/reports', {'frequency': 'off'});
+      await tester.tap(find.text('Report email'));
+      await tester.pumpAndSettle();
+      expect(g.bodyOf('PUT /api/family/settings/reports'), {
+        'frequency': 'off',
+      });
+      expect(find.text('Off'), findsWidgets);
+    });
+
+    testWidgets('report email off: turning it on asks first (Notify)', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('GET /api/family/settings/reports', {'frequency': 'off'});
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Report email'));
+      await tester.tap(find.text('Report email'));
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${Paths.notify}'), findsOneWidget);
+      expect(g.calls, isNot(contains('PUT /api/family/settings/reports')));
     });
 
     testWidgets('Sign out opens its confirmation', (tester) async {
