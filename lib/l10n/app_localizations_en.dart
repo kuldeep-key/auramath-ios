@@ -2004,6 +2004,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Look at the ones first. Do you need to regroup?';
 
   @override
+  String get kidQuickSideDone =>
+      'That\'s regrouping! Now have one more go at your sum.';
+
+  @override
+  String get kidQuickSideBack => 'Back to my sums';
+
+  @override
   String get kidQuickDone => 'Quick sums done!';
 
   @override

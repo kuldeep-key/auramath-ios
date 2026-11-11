@@ -3514,6 +3514,18 @@ abstract class AppLocalizations {
   /// **'Look at the ones first. Do you need to regroup?'**
   String get kidQuickRegroup;
 
+  /// DRAFT, for Julia (LES-16, no Figma frame): the regrouping side lesson after a Quick sums slip, once the blocks are worked. The answer isn't given: the child types it on the one more try.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s regrouping! Now have one more go at your sum.'**
+  String get kidQuickSideDone;
+
+  /// DRAFT, for Julia (LES-16): the button that ends Quick sums' regrouping side lesson.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my sums'**
+  String get kidQuickSideBack;
+
   /// DRAFT, for Julia (LES-16): after the run of five. No score or count.
   ///
   /// In en, this message translates to:

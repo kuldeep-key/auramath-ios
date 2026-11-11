@@ -43,14 +43,18 @@ void main() {
     await vm.answer(37); // 56 - 19
     expect(vm.at, 1);
     await vm.answer(62); // 47 + 25 = 72: carry dropped
-    expect(vm.stage, QuickStage.secondTry);
+    expect(vm.stage, QuickStage.sideLesson, reason: 'the side lesson first');
+    expect(vm.side, (left: 47, right: 25, subtract: false));
     expect(vm.regroupSlip, isTrue);
     expect(vm.wobbles, 1);
+    await vm.backFromSide();
+    expect(vm.stage, QuickStage.secondTry);
     await vm.answer(70); // wrong again: on to the next
     expect(vm.at, 2);
     expect(vm.stage, QuickStage.sum);
     await vm.answer(53); // 80 - 33 = 47: smaller from larger
     expect(vm.regroupSlip, isTrue);
+    await vm.backFromSide();
     await vm.answer(47);
     await vm.answer(25);
     await vm.answer(54);
@@ -67,7 +71,96 @@ void main() {
     expect(answers.map((a) => a['attempt']), [1, 1, 2, 1, 2, 1, 1]);
     expect(answers.first['ms_from_item_start'], greaterThan(0));
     expect(events.last.name, 'session_ended');
+    // LES-16: each regrouping slip opened the side lesson, by the lesson's
+    // skills and error types (TUT-08)
+    expect(
+      [
+        for (final e in events)
+          if (e.name.startsWith('side_lesson_')) [e.name, ...e.payload.values],
+      ],
+      [
+        ['side_lesson_started', 'arith.add-3d-regroup', 'carry_dropped'],
+        ['side_lesson_ended', 'arith.add-3d-regroup', true],
+        [
+          'side_lesson_started',
+          'arith.sub-3d-regroup',
+          'sub_smaller_from_larger',
+        ],
+        ['side_lesson_ended', 'arith.sub-3d-regroup', true],
+      ],
+    );
     vm.dispose();
+  });
+
+  test('LES-16: past max_per_session a slip only says where to look; '
+      'leaving mid side lesson ends it unfinished', () async {
+    final (vm, db) = await started();
+    await vm.answer(37);
+    await vm.answer(62); // a slip: side lesson 1
+    await vm.backFromSide();
+    await vm.answer(72);
+    await vm.answer(53); // a slip: side lesson 2
+    await vm.backFromSide();
+    await vm.answer(47);
+    await vm.answer(15); // 18 + 7 = 25: carry dropped, past the limit
+    expect(vm.stage, QuickStage.secondTry);
+    expect(vm.regroupSlip, isTrue);
+    vm.dispose();
+
+    final (vm2, db2) = await started();
+    await vm2.answer(37);
+    await vm2.answer(62);
+    expect(vm2.stage, QuickStage.sideLesson);
+    await vm2.leave();
+    final events = await db2.forSession('s2');
+    expectContract(events);
+    expect(events.map((e) => e.name).skip(events.length - 2), [
+      'side_lesson_ended',
+      'session_ended',
+    ]);
+    expect(events[events.length - 2].payload['completed'], isFalse);
+    vm2.dispose();
+  });
+
+  testWidgets('LES-16: the side lesson works the slipped sum on blocks, then '
+      'back for one more go', (tester) async {
+    final vm = (await tester.runAsync(() async => (await started()).$1))!;
+    addTearDown(vm.dispose);
+    await tester.runAsync(() async {
+      await vm.answer(37);
+      await vm.answer(62);
+    });
+    await shotAllSizes(
+      tester,
+      'lesson_quick_sums_side',
+      QuickSumsScreen(vm: vm, onHome: () {}, onStory: () {}),
+    );
+    await tester.pumpWidget(
+      shotApp(QuickSumsScreen(vm: vm, onHome: () {}, onStory: () {})),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('quickSide')), findsOneWidget);
+    expect(find.text('47 + 25'), findsOneWidget);
+    // work the blocks: each step's button or tap until "Back to my sums"
+    for (
+      var i = 0;
+      i < 8 && find.text('Back to my sums').evaluate().isEmpty;
+      i++
+    ) {
+      final doIt = find.text('Do it');
+      await tester.tap(
+        doIt.evaluate().isNotEmpty ? doIt : find.text('Ones').first,
+      );
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('72'), findsNothing, reason: 'the answer is not given');
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Back to my sums'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    });
+    await tester.pumpAndSettle();
+    expect(vm.stage, QuickStage.secondTry);
+    expect(find.text('47 + 25 ='), findsOneWidget);
   });
 
   test('regrouping slips are told apart from other wrong answers', () {

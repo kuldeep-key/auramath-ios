@@ -6,7 +6,9 @@ import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/keypad.dart';
 import '../../../core/parts/lesson_header.dart';
 import '../../../core/theme/tokens.dart';
+import '../../lesson/view_models/place_value.dart';
 import '../../lesson/views/break_views.dart';
+import '../../lesson/views/place_value_board.dart';
 import '../view_models/quick_sums_view_model.dart';
 
 /// Quick sums (LES-16): one sum at a time, typed on the keypad. No score,
@@ -68,6 +70,7 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
                 child: CircularProgressIndicator(),
               ),
               QuickStage.done => _done(l),
+              QuickStage.sideLesson => _side(l),
               _ => _sum(l),
             },
           ),
@@ -135,6 +138,80 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
             vm.answer(int.parse(v));
           },
         ),
+      ],
+    );
+  }
+
+  /// The regrouping side lesson on the slipped sum's blocks (LES-16), as
+  /// the lesson's T1 works it; then back for the sum's one more try. DRAFT
+  /// layout: no Figma frame.
+  PlaceValue? _blocks;
+
+  Widget _side(AppLocalizations l) {
+    final parts = vm.side!;
+    final sum = _blocks ??= PlaceValue(
+      left: parts.left,
+      right: parts.right,
+      subtract: parts.subtract,
+    );
+    final lines = placeValueLines(l, sum, done: () => l.kidQuickSideDone);
+    final tapStep = const {
+      PlaceStep.breakTen,
+      PlaceStep.breakHundred,
+      PlaceStep.makeTen,
+      PlaceStep.makeHundred,
+    }.contains(sum.step);
+    return Column(
+      key: const Key('quickSide'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        LessonHeader(
+          line: lines.last,
+          onSpeak: () => widget.onSay?.call(lines.join(' ')),
+          onHome: _home,
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 14,
+              children: [
+                Text(
+                  '${parts.left} ${parts.subtract ? '−' : '+'} ${parts.right}',
+                  textAlign: TextAlign.center,
+                  style: AuraText.title.copyWith(fontSize: 30),
+                ),
+                PlaceValueBoard(sum: sum, onAct: () => setState(sum.act)),
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    lines.join('\n'),
+                    textAlign: TextAlign.center,
+                    style: AuraText.chip.copyWith(fontSize: 22),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (sum.step == PlaceStep.done)
+          AuraButton(
+            key: const Key('quickSideBack'),
+            label: l.kidQuickSideBack,
+            color: AuraButtonColor.blue,
+            onPressed: () {
+              _blocks = null;
+              vm.backFromSide();
+            },
+          )
+        else if (!tapStep)
+          AuraButton(
+            label: l.lessonDoIt,
+            color: AuraButtonColor.blue,
+            onPressed: () => setState(sum.act),
+          ),
       ],
     );
   }
