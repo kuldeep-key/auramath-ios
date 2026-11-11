@@ -1840,4 +1840,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonUndo => 'Undo';
+
+  @override
+  String get kidQuickLine => 'Quick sums! Type the answer.';
+
+  @override
+  String get kidQuickOneMore => 'Check it and have one more go.';
+
+  @override
+  String get kidQuickRegroup =>
+      'Look at the ones first. Do you need to regroup?';
+
+  @override
+  String get kidQuickDone => 'Quick sums done!';
+
+  @override
+  String get kidQuickStory => 'A story problem';
+
+  @override
+  String get kidQuickHome => 'Back home';
 }

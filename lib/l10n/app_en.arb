@@ -666,5 +666,17 @@
   "lessonQuestionBack": "Back to my work",
   "@lessonQuestionBack": {"description": "DRAFT, for Julia and design (no Figma frame), LES-02: closes the whole question and returns to the same place."},
   "lessonUndo": "Undo",
-  "@lessonUndo": {"description": "DRAFT, for Julia (LES-15): what a screen reader says on the board's undo key. An undo before a step is checked costs nothing."}
+  "@lessonUndo": {"description": "DRAFT, for Julia (LES-15): what a screen reader says on the board's undo key. An undo before a step is checked costs nothing."},
+  "kidQuickLine": "Quick sums! Type the answer.",
+  "@kidQuickLine": {"description": "DRAFT, for Julia (LES-16, no Figma frame): the line over each Quick sum."},
+  "kidQuickOneMore": "Check it and have one more go.",
+  "@kidQuickOneMore": {"description": "DRAFT, for Julia (LES-16): after a first wrong Quick sum; it gets one more try. Avoids the forbidden 'try again'."},
+  "kidQuickRegroup": "Look at the ones first. Do you need to regroup?",
+  "@kidQuickRegroup": {"description": "DRAFT, for Julia (LES-16): a first wrong Quick sum that was a regrouping slip (a dropped carry, or the smaller digit taken from the larger)."},
+  "kidQuickDone": "Quick sums done!",
+  "@kidQuickDone": {"description": "DRAFT, for Julia (LES-16): after the run of five. No score or count."},
+  "kidQuickStory": "A story problem",
+  "@kidQuickStory": {"description": "DRAFT, for Julia (LES-16): after Quick sums, on to today's story problem."},
+  "kidQuickHome": "Back home",
+  "@kidQuickHome": {"description": "DRAFT, for Julia (LES-16): after Quick sums, back to Home."}
 }

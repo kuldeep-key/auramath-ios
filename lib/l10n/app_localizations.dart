@@ -3243,6 +3243,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get lessonUndo;
+
+  /// DRAFT, for Julia (LES-16, no Figma frame): the line over each Quick sum.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick sums! Type the answer.'**
+  String get kidQuickLine;
+
+  /// DRAFT, for Julia (LES-16): after a first wrong Quick sum; it gets one more try. Avoids the forbidden 'try again'.
+  ///
+  /// In en, this message translates to:
+  /// **'Check it and have one more go.'**
+  String get kidQuickOneMore;
+
+  /// DRAFT, for Julia (LES-16): a first wrong Quick sum that was a regrouping slip (a dropped carry, or the smaller digit taken from the larger).
+  ///
+  /// In en, this message translates to:
+  /// **'Look at the ones first. Do you need to regroup?'**
+  String get kidQuickRegroup;
+
+  /// DRAFT, for Julia (LES-16): after the run of five. No score or count.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick sums done!'**
+  String get kidQuickDone;
+
+  /// DRAFT, for Julia (LES-16): after Quick sums, on to today's story problem.
+  ///
+  /// In en, this message translates to:
+  /// **'A story problem'**
+  String get kidQuickStory;
+
+  /// DRAFT, for Julia (LES-16): after Quick sums, back to Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Back home'**
+  String get kidQuickHome;
 }
 
 class _AppLocalizationsDelegate

@@ -186,6 +186,10 @@ class SessionRepository {
       ),
   ];
 
+  /// A set of Quick sums at the child's arithmetic level (LES-16), from
+  /// the server's generator (CON-10), as `(text, answer, level)`.
+  Future<List<Sum>> quickSums(String childId) => _sums(childId, 'quick_sums');
+
   /// True while [sessionId]'s starting check is still to do.
   bool startingCheckDue(String sessionId) =>
       _startingChecks.contains(sessionId);
