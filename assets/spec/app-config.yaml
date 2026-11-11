@@ -6,8 +6,40 @@ session:
   clock_pauses_while_offline: true      # SES-04 (v4): the 30-minute cap does not run while the lesson is paused for connection
   offline_pause_ends_session_after_minutes: 10   # SES-04 (v4): board saved; resumes at the same step next time
   daily_limit_minutes: null     # PAR-05 (v4): set by the parent; none by default. A session's cap is the smaller of cap_minutes and the time left today
+  sitting_gap_minutes: 30       # DRAFT (product decision pending: "what a session is"). The app opens a backend session per
+                                # problem; lessons less than this apart are one sitting, and the parent note (PAR-01) goes once
+                                # per sitting, this long after its last session ends. 0: a note per session, as before
 streak:                         # REW-05 (v4)
   missed_days_covered: 1        # missed days in a row covered automatically; after a longer gap the moment just doesn't show
+rewards:                        # D-47 OPEN (Julia, key-product): the recommended default, "on as the PRD describes", built
+  status: draft                 # behind flags session_badges, trail, streak_moment, mastery_badges (off; on in dev). Every
+  names_for_julia: true         # child-facing name below is KEY'S DRAFT for Julia to validate (CON-09); change them here
+  session_badge:                # REW-01: one per session, never zero, naming something the child did (TUT-12's plain words)
+    solved: "{problem_name}"    # a problem solved: the story's problem_name, e.g. "Tree Word Problem"
+    worked_on: "{problem_name} Explorer"   # worked on a problem, none solved
+    opened: "Case Opener"       # came to the lesson, nothing on the board yet
+  trail:                        # REW-04: one stop per level of each question type, in skill-map order; DRAFT names for Julia
+    cmp.comparison:
+      L1: "Sprout Meadow"
+      L2: "Orchard Path"
+      L3: "Big Tree Bridge"
+      L4: "Lemon Grove"
+      L5: "Shorter Puzzle Peak"
+    td.total-and-difference:    # shown only while flags.total_and_difference is on (CON-07)
+      L1: "Market Stall"
+      L2: "Toy Shop"
+      L3: "Big Bazaar"
+  level_badges:                 # REW-06: the badge for passing a level's move-up gate; DRAFT names for Julia, plain words
+    cmp.comparison:
+      L1: "Taller and shorter, up to 20"
+      L2: "Taller and shorter, up to 100"
+      L3: "Two steps, up to 1000"
+      L4: "Two steps with regrouping, up to 1000"
+      L5: "The tricky 'shorter' word"
+    td.total-and-difference:
+      L1: "Total and difference, up to 20"
+      L2: "Total and difference, up to 100"
+      L3: "Total and difference, up to 1000"
 setup:                          # ACC-04, D-36 (v4): Julia's 6 to 10, not narrowed; a content value
   ages: [6, 7, 8, 9, 10]
   school_years: [kindergarten, year_1, year_2, year_3, year_4, year_5]   # NSW; a 10-year-old may be in Year 5
@@ -50,6 +82,7 @@ flags:                          # PLAT-06. Remote flags; defaults shown
   trail: false                  # REW-04, D-47 (v4)
   streak_moment: false          # REW-05, D-47 (v4)
   mastery_badges: false         # REW-06, D-47 (v4)
+  session_badges: false         # REW-01, D-47 (v4): the server's one badge per session (rewards.session_badge)
   weekly_summary: false         # PAR-11, D-39 (v4)
   recent_notes_in_app: false    # PAR-12, D-39 (v4)
   report_delivery: false        # REW-01, PAR-01: Y4 'Sent to your grown-up' shows only when on (M3)
@@ -62,3 +95,7 @@ flags_by_env:                   # PLAT-06: an environment's own defaults over th
     self_rating: true           # AI-08, D-47 open: draft default, dev only; never under self_rating_min_age
     read_again_prompt: true     # AI-09: the read-again prompt after two fast wrong answers
     seen_before_bridge: true    # AI-10, D-47 open: draft default, dev only
+    session_badges: true        # REW-01, D-47 open: draft default, dev only
+    trail: true                 # REW-04, D-47 open: draft default, dev only
+    streak_moment: true         # REW-05, D-47 open: draft default, dev only
+    mastery_badges: true        # REW-06, D-47 open: draft default, dev only

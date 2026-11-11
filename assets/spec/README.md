@@ -1,5 +1,12 @@
-Julia's teaching values, copied from the spec pack v0.4.0 (2 Nov, PRD v4)
-in auramath-backend/spec, branch integrate/r1-ai (eaad558, 10 Nov):
+Julia's teaching values, as the backend serves them: spec pack v0.4.1
+(PRD v4.1, 2 Nov; its files still say version 0.4.0, the pack's own
+number) plus the backend's DRAFT defaults on top, copied from
+auramath-backend/spec, branch integrate/r1-ai (446de96, 11 Nov). AUR-31
+asked for v0.4.1: this is it. policy.yaml and app-config.yaml differ from
+the pack's own copy only by those defaults (the age word list, the case
+partner's script, sitting_gap_minutes, rewards names, the score_drop side
+lesson trigger, and the dev flags); skill-map.yaml and the template are
+the pack's, byte for byte.
 
 - policy.yaml              spec/tutor/policy.yaml                     0.4.0
 - app-config.yaml          spec/content/app-config.yaml               0.4.0

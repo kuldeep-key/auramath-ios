@@ -37,6 +37,7 @@ side_lessons:                   # TUT-08. The single rule for when a side lesson
       skill_score_below: 40                 # SR-4
       arithmetic_ledger_below: 40           # SR-5
       same_operation_wrong_in_session: 2    # SR-5
+      score_drop_points: 15                 # TUT-08 (M3) DEFAULT, Key's reading: the question type's score fell this far from its best at the level
     over_limit: queue_for_review            # past max_per_session, the skill returns as warm-up practice
     over_limit_on_step: next_hint_rung      # v4: past the limit, the current step carries on with its normal hint ladder
     one_off_review_days: 14                 # SR-4: one-off errors come back in about two weeks
