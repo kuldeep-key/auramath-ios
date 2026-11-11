@@ -220,7 +220,11 @@ void main() {
       await vm.send(i);
     }
     expect(vm.helpAttention, Attention.shake);
-    expect(vm.coachText, 'Read it again. Is the fig tree taller or shorter?');
+    // Julia's library line for the rung (TUT-11), not the pack's own
+    expect(
+      vm.coachText,
+      'Is the fig tree taller or shorter than the lemon tree?',
+    );
     vm.dispose();
   });
 

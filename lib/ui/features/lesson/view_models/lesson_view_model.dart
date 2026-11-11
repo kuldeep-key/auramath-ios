@@ -7,6 +7,7 @@ import '../../../../data/repositories/session_repository.dart';
 import '../../../../data/services/api.dart';
 import '../../../../data/services/voice.dart';
 import '../../../core/parts/standing_button.dart';
+import 'line_library.dart';
 import 'sitting.dart';
 import 'step_decision.dart';
 
@@ -1218,14 +1219,17 @@ class LessonViewModel extends ChangeNotifier {
     autoSay(coachText);
   }
 
-  /// A line's text for this problem: the pack's own, else Julia's policy
-  /// library. Every Coach carries the problem's own slots; hints and
-  /// fallbacks don't, so they are added here.
-  String _lineText(String lineId, Map<String, String> slots) {
-    final all = {...lineSlots(_problem), ...policySlots(_problem), ...slots};
-    final line = _pack.lines[lineId] ?? _pack.policyLines[lineId] ?? '';
-    return fillLine(line, all);
-  }
+  /// Every line's words: Julia's library first (TUT-11).
+  late final LineLibrary lines = LineLibrary(_pack);
+
+  /// A line's text for this problem, from the library ([lines]).
+  String _lineText(String lineId, Map<String, String> slots) =>
+      lines.line(lineId, _problem, slots);
+
+  /// Julia's library line [id] for this problem, or null when the library
+  /// doesn't hold it (the screen keeps its own words).
+  String? libraryLine(String id) =>
+      _p != null && lines.fromLibrary(id) ? _lineText(id, const {}) : null;
 
   /// Help me offers a hint on this step: false on a step with no rung on
   /// the policy ladder (TUT-04), where it offers show me how and easier.

@@ -89,6 +89,8 @@ class Pack {
     this.hintLadder = const [],
     this.hintStart = const {},
     this.quietLines = const QuietLines(),
+    this.libraryIds = const {},
+    this.policyMassLines = const {},
   });
 
   factory Pack.fromJson(Map<String, Object?> j) => Pack(
@@ -100,6 +102,8 @@ class Pack {
         e.key: BadgeInfo.fromJson(e.value as Map<String, Object?>),
     },
     lines: (j['lines'] as Map<String, Object?>).cast<String, String>(),
+    libraryIds: (j['library'] as Map<String, Object?>? ?? const {})
+        .cast<String, String>(),
     problems: {
       for (final p in j['problems'] as List)
         (p as Map<String, Object?>)['id'] as String: ComparisonProblem.fromJson(
@@ -118,6 +122,7 @@ class Pack {
     List<HintRung>? hintLadder,
     Map<String, String>? hintStart,
     QuietLines? quietLines,
+    Map<String, String>? policyMassLines,
   }) => Pack(
     version: version,
     timers: timers ?? this.timers,
@@ -133,6 +138,8 @@ class Pack {
     hintLadder: hintLadder ?? this.hintLadder,
     hintStart: hintStart ?? this.hintStart,
     quietLines: quietLines ?? this.quietLines,
+    libraryIds: libraryIds,
+    policyMassLines: policyMassLines ?? this.policyMassLines,
   );
 
   final String version;
@@ -160,6 +167,15 @@ class Pack {
   /// Policy `lines.pack`, by line id (`line.q.what-now`). Kept apart from
   /// [lines], so the voice isn't warmed with all of them.
   final Map<String, String> policyLines;
+
+  /// Policy `lines.pack[].variants.mass`: a line's words for a weight
+  /// story ("heavier", not "taller"), by line id.
+  final Map<String, String> policyMassLines;
+
+  /// The pack's `library`: the policy line each pack line stands for
+  /// (TUT-11). Such a line shows the library's words; the pack's own text
+  /// is only its fallback for a policy without that id.
+  final Map<String, String> libraryIds;
 
   /// A pack's own flat hint list, used only when there is no policy
   /// [hintLadder] (older packs and the golden vectors).

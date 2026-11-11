@@ -5,6 +5,16 @@
     "tree": {"name": "Tree Detective", "says": "Cracked a tree case by drawing it."},
     "asker": {"name": "Brave Asker", "says": "Asked for help and kept going."}
   },
+  "library": {
+    "cmp.sizeBWrong": "line.hint.taller-or-shorter",
+    "cmp.gapWrong": "line.hint.D-tall-or-relation",
+    "cmp.opWrong": "line.hint.longer-or-shorter-bar",
+    "cmp.recheck": "line.check.again",
+    "cmp.partRight": "line.check.adding",
+    "cmp.drawIt": "line.hint.which-taller",
+    "cmp.twoBars": "line.hint.two-bars",
+    "cmp.takeYourTime": "line.quiet.draw-story"
+  },
   "lines": {
     "cmp.drawA": "Drag a bar up here.",
     "cmp.welcomeBack": "Welcome back. Here is your drawing.",

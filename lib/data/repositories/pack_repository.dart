@@ -38,5 +38,6 @@ class PackRepository {
     hintLadder: policy.hintLadder,
     hintStart: template?.hintStart,
     quietLines: policy.quietLines,
+    policyMassLines: policy.massLines,
   );
 }

@@ -262,6 +262,7 @@ class Policy {
     this.abandonAfterWrongPractice = 3,
     this.hintLadder = const [],
     this.quietLines = const QuietLines(),
+    this.massLines = const {},
   });
 
   factory Policy.fromYaml(String text) {
@@ -277,6 +278,11 @@ class Policy {
     final words = story?['age_word_list'];
     final ladder = y['hint_ladder'] as YamlMap?;
     return Policy(
+      massLines: {
+        for (final l in pack.cast<YamlMap>())
+          if ((l['variants'] as YamlMap?)?['mass'] case final String mass)
+            l['id'] as String: mass,
+      },
       quietLines: QuietLines(
         glow: q['glow_line'] as String? ?? 'cmp.takeYourTime',
         demo: q['demo_line'] as String?,
@@ -330,6 +336,9 @@ class Policy {
       practiceSums: side['practice_if_unsure'] as int? ?? 3,
     );
   }
+
+  /// `lines.pack[].variants.mass`, by line id.
+  final Map<String, String> massLines;
 
   /// `quiet.glow_line`, `demo_line`, `still_there_line` (TUT-07).
   final QuietLines quietLines;
