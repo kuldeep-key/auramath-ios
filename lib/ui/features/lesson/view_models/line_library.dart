@@ -38,6 +38,32 @@ class LineLibrary {
         ...?slots,
       });
 
+  /// Every version of the line, its own first (TUT-14). A weight story
+  /// keeps its one mass line: the drafted versions use height words.
+  List<String> versions(String id, {bool mass = false}) {
+    final first = raw(id, mass: mass);
+    if (mass && _pack.policyMassLines.containsKey(libraryId(id))) {
+      return [first];
+    }
+    final more =
+        _pack.lineVersions[libraryId(id)] ?? _pack.lineVersions[id] ?? const [];
+    return [first, ...more.where((v) => v != first)];
+  }
+
+  /// The version last shown of each line, by library id.
+  final _last = <String, int>{};
+
+  /// The line for [p], in its next version: the versions take turns, so
+  /// the same one is never shown twice in a row (TUT-14).
+  String next(String id, ComparisonProblem p, [Map<String, String>? slots]) {
+    final mass = isMass(p);
+    final all = versions(id, mass: mass);
+    final key = libraryId(id);
+    final at = _last[key] == null ? 0 : (_last[key]! + 1) % all.length;
+    _last[key] = at;
+    return fillSlots(all[at], {...lineSlots(p), ...policySlots(p), ...?slots});
+  }
+
   /// A weight story: its lines use the policy's mass variants.
   static bool isMass(ComparisonProblem p) => const {'g', 'kg'}.contains(p.unit);
 }

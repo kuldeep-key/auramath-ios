@@ -1215,7 +1215,8 @@ class LessonViewModel extends ChangeNotifier {
   }
 
   void _coach(String lineId, Map<String, String> slots) {
-    coachText = _lineText(lineId, slots);
+    // the line's next version: never the same one twice in a row (TUT-14)
+    coachText = lines.next(lineId, _problem, slots);
     autoSay(coachText);
   }
 

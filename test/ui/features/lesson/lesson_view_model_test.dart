@@ -220,11 +220,8 @@ void main() {
       await vm.send(i);
     }
     expect(vm.helpAttention, Attention.shake);
-    // Julia's library line for the rung (TUT-11), not the pack's own
-    expect(
-      vm.coachText,
-      'Is the fig tree taller or shorter than the lemon tree?',
-    );
+    // the second wrong move: the rung's line in its next version (TUT-14)
+    expect(vm.coachText, 'Read it again. Is the fig tree taller or shorter?');
     vm.dispose();
   });
 

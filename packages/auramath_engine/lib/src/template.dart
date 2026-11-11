@@ -263,6 +263,7 @@ class Policy {
     this.hintLadder = const [],
     this.quietLines = const QuietLines(),
     this.massLines = const {},
+    this.versions = const {},
   });
 
   factory Policy.fromYaml(String text) {
@@ -278,6 +279,11 @@ class Policy {
     final words = story?['age_word_list'];
     final ladder = y['hint_ladder'] as YamlMap?;
     return Policy(
+      versions: {
+        for (final l in pack.cast<YamlMap>())
+          if (l['versions'] case final List v)
+            l['id'] as String: [for (final t in v) '$t'],
+      },
       massLines: {
         for (final l in pack.cast<YamlMap>())
           if ((l['variants'] as YamlMap?)?['mass'] case final String mass)
@@ -336,6 +342,10 @@ class Policy {
       practiceSums: side['practice_if_unsure'] as int? ?? 3,
     );
   }
+
+  /// `lines.pack[].versions` (TUT-14), when Julia's library holds more
+  /// than one version of a line; none do in v0.4.0.
+  final Map<String, List<String>> versions;
 
   /// `lines.pack[].variants.mass`, by line id.
   final Map<String, String> massLines;

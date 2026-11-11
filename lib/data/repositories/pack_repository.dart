@@ -39,5 +39,10 @@ class PackRepository {
     hintStart: template?.hintStart,
     quietLines: policy.quietLines,
     policyMassLines: policy.massLines,
+    lineVersions: {
+      ...pack.lineVersions,
+      for (final MapEntry(:key, :value) in policy.versions.entries)
+        key: [...value, ...?pack.lineVersions[key]],
+    },
   );
 }

@@ -91,6 +91,7 @@ class Pack {
     this.quietLines = const QuietLines(),
     this.libraryIds = const {},
     this.policyMassLines = const {},
+    this.lineVersions = const {},
   });
 
   factory Pack.fromJson(Map<String, Object?> j) => Pack(
@@ -104,6 +105,11 @@ class Pack {
     lines: (j['lines'] as Map<String, Object?>).cast<String, String>(),
     libraryIds: (j['library'] as Map<String, Object?>? ?? const {})
         .cast<String, String>(),
+    lineVersions: {
+      for (final MapEntry(:key, :value)
+          in (j['versions'] as Map<String, Object?>? ?? const {}).entries)
+        if (value is List) key: [for (final v in value) '$v'],
+    },
     problems: {
       for (final p in j['problems'] as List)
         (p as Map<String, Object?>)['id'] as String: ComparisonProblem.fromJson(
@@ -123,6 +129,7 @@ class Pack {
     Map<String, String>? hintStart,
     QuietLines? quietLines,
     Map<String, String>? policyMassLines,
+    Map<String, List<String>>? lineVersions,
   }) => Pack(
     version: version,
     timers: timers ?? this.timers,
@@ -140,6 +147,7 @@ class Pack {
     quietLines: quietLines ?? this.quietLines,
     libraryIds: libraryIds,
     policyMassLines: policyMassLines ?? this.policyMassLines,
+    lineVersions: lineVersions ?? this.lineVersions,
   );
 
   /// The content bundle's `praise` lines (TUT-12) over the policy's own.
@@ -181,6 +189,11 @@ class Pack {
   /// (TUT-11). Such a line shows the library's words; the pack's own text
   /// is only its fallback for a policy without that id.
   final Map<String, String> libraryIds;
+
+  /// More versions of a line, by its library id (or pack id when the
+  /// library hasn't it), after its own text (TUT-14): the pack's drafted
+  /// `versions`, then any the policy gives as `lines.pack[].versions`.
+  final Map<String, List<String>> lineVersions;
 
   /// A pack's own flat hint list, used only when there is no policy
   /// [hintLadder] (older packs and the golden vectors).
