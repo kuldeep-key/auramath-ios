@@ -121,6 +121,13 @@ final class ShowMeHowTaken extends LessonInput {
   final bool afterWrong;
 }
 
+/// "Now try a new one" at the end of show me how (TUT-05): the problem is
+/// closed, scored as solved with help, and a new one of the same kind
+/// follows.
+final class ExampleDone extends LessonInput {
+  const ExampleDone();
+}
+
 final class EasierTaken extends LessonInput {
   const EasierTaken({this.noProgress = false, this.afterWrong = false});
   final bool afterWrong;
@@ -196,6 +203,13 @@ final class ShowHint extends Decision {
 /// Every hint is used: offer the worked example.
 final class SuggestShowMeHow extends Decision {
   const SuggestShowMeHow();
+}
+
+/// Show me how ran to its end (TUT-05): this problem is closed with help,
+/// and [problemId] (the same pattern, new numbers) follows.
+final class NextVariant extends Decision {
+  const NextVariant(this.problemId);
+  final String problemId;
 }
 
 final class SwitchProblem extends Decision {
@@ -428,6 +442,16 @@ StepResult? _help(
       );
     case EasierTaken():
       return (state: s, decisions: [SwitchProblem(p.next.easier)]);
+    case ExampleDone():
+      // scoring outcome_rules.show_me_how: with_hints, then a new variant
+      return (
+        state: s.copyWith(
+          step: LessonStep.solved,
+          knowFlow: KnowFlow.none,
+          hintsUsed: s.hintsUsed == 0 ? 1 : s.hintsUsed,
+        ),
+        decisions: [NextVariant(p.next.helped)],
+      );
     default:
       return null;
   }

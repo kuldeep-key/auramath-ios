@@ -285,6 +285,21 @@ List<SpecEvent> eventsFor(
           'trigger': noProgress ? 'no_progress' : 'child',
         }),
       );
+    case ExampleDone():
+      // closed after show me how: solved with help (TUT-05; scoring
+      // outcome_rules.show_me_how -> with_hints). No badge: not solved.
+      out.add(
+        SpecEvent('problem_completed', {
+          'problem_id': p.id,
+          'outcome': 'with_hints',
+          'working_ms': t.problemMs - t.readingMs,
+          'reading_ms': t.readingMs,
+          'wrong_count': after.wrong,
+          'hints_used': after.hintsUsed,
+          'drew_model': before.barA,
+          'via_i_know_it': false,
+        }),
+      );
     case QuietFor(:final ms):
       final level = switch (decisions) {
         _ when decisions.any((d) => d is AskStillThere) => 'still_there',
@@ -401,6 +416,9 @@ List<LessonInput> inputsFrom(
           _ => const SideLessonChosen(SideLesson.takeAcrossTen),
         },
       'undo_used' => const Undo(),
+      // closed after show me how; a solved one is closed by its own input
+      'problem_completed' when s.step != LessonStep.solved =>
+        const ExampleDone(),
       'hint_shown' => const HintTaken(),
       'worked_example_shown' => const ShowMeHowTaken(),
       'easier_chosen' => EasierTaken(noProgress: j['trigger'] == 'no_progress'),

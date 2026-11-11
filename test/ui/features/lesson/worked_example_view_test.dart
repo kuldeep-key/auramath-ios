@@ -9,9 +9,8 @@ import '../../../helpers/shots.dart';
 import 'fakes.dart';
 
 void main() {
-  testWidgets('Show me how walks a smaller problem, then back to theirs', (
-    tester,
-  ) async {
+  testWidgets('Show me how walks a smaller problem, then a new one of the '
+      'same kind (TUT-05)', (tester) async {
     final vm = await tester.runAsync(() async {
       final (sessions, _, _) = await memorySessions();
       final vm = LessonViewModel(
@@ -52,8 +51,13 @@ void main() {
     await tester.tap(find.text('Next'));
     await tester.pump();
     expect(find.text('10 m'), findsOneWidget);
-    await tester.tap(find.text('Now you try'));
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Now try a new one'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    });
     expect(vm.showingExample, isFalse);
+    // the pack's chain: the same pattern, new numbers (Figma 8.6)
+    expect(vm.problem.id, 'mango');
     vm.dispose();
   });
 }

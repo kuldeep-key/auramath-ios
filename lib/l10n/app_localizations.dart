@@ -3219,6 +3219,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'both'**
   String get lessonSentenceBoth;
+
+  /// DRAFT, for Julia (TUT-05): the last button of Show me how. It opens a new problem of the same kind, so it can't say 'Back to the trees' (design review finding 23; Apoorv to confirm the label).
+  ///
+  /// In en, this message translates to:
+  /// **'Now try a new one'**
+  String get exampleNewOne;
 }
 
 class _AppLocalizationsDelegate

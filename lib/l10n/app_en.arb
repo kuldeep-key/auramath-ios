@@ -658,5 +658,7 @@
   "lessonSentenceGap": "gap",
   "@lessonSentenceGap": {"description": "DRAFT (TUT-09): the word under the difference in the easier number sentence."},
   "lessonSentenceBoth": "both",
-  "@lessonSentenceBoth": {"description": "DRAFT (TUT-09): the word under the ? in the easier sentence for the total."}
+  "@lessonSentenceBoth": {"description": "DRAFT (TUT-09): the word under the ? in the easier sentence for the total."},
+  "exampleNewOne": "Now try a new one",
+  "@exampleNewOne": {"description": "DRAFT, for Julia (TUT-05): the last button of Show me how. It opens a new problem of the same kind, so it can't say 'Back to the trees' (design review finding 23; Apoorv to confirm the label)."}
 }

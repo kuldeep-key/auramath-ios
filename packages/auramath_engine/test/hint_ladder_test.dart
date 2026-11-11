@@ -43,6 +43,8 @@ List<String?> rungs(List<Decision> d) => [
 const _toSizeB = [Started(), BarADrawn(), BarBPlaced()];
 
 void main() {
+  showMeHowTests();
+
   test("the template's start rungs are the policy's first rung per step", () {
     expect(template.hintStart, {
       'draw_known_bar': 'H1-1',
@@ -125,5 +127,25 @@ void main() {
     final back = replay(laddered, lemon, inputsFrom(laddered, lemon, r.events));
     expect(back, r.state);
     expect(back.stepHints, 2);
+  });
+}
+
+/// TUT-05: show me how, to its end, closes the problem.
+void showMeHowTests() {
+  test('show me how to its end closes the problem with help and opens the '
+      'same pattern with new numbers', () {
+    final r = run([
+      const Started(),
+      const ShowMeHowTaken(),
+      const ExampleDone(),
+    ]);
+    expect(r.state.step, LessonStep.solved);
+    expect(r.decisions.last, isA<NextVariant>());
+    expect((r.decisions.last as NextVariant).problemId, 'mango');
+    final done = r.events.singleWhere((e) => e.name == 'problem_completed');
+    expect(done.payload['outcome'], 'with_hints');
+    expect(r.events.where((e) => e.name == 'badge_awarded'), isEmpty);
+    final back = replay(laddered, lemon, inputsFrom(laddered, lemon, r.events));
+    expect(back, r.state);
   });
 }

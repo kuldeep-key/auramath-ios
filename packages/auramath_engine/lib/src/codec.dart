@@ -43,6 +43,7 @@ Map<String, Object?> inputToJson(LessonInput i) => switch (i) {
     if (afterWrong) 'afterWrong': true,
   },
   QuietFor(:final ms) => {'type': 'quietFor', 'ms': ms},
+  ExampleDone() => {'type': 'exampleDone'},
 };
 
 LessonInput inputFromJson(Map<String, Object?> j) {
@@ -73,6 +74,7 @@ LessonInput inputFromJson(Map<String, Object?> j) {
       afterWrong: j['afterWrong'] == true,
     ),
     'quietFor' => QuietFor(n('ms')),
+    'exampleDone' => const ExampleDone(),
     final t => throw FormatException('unknown input type: $t'),
   };
 }
@@ -96,6 +98,10 @@ Map<String, Object?> decisionToJson(Decision d) => switch (d) {
     'rungId': ?rung?.id,
   },
   SuggestShowMeHow() => {'type': 'suggestShowMeHow'},
+  NextVariant(:final problemId) => {
+    'type': 'nextVariant',
+    'problemId': problemId,
+  },
   SwitchProblem(:final problemId) => {
     'type': 'switchProblem',
     'problemId': problemId,

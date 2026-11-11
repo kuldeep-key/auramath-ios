@@ -363,6 +363,13 @@ class LessonViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// "Now try a new one" after show me how (TUT-05): this problem closes,
+  /// scored as solved with help, and a new one of the same kind opens.
+  Future<void> exampleDone() async {
+    showingExample = false;
+    await send(const ExampleDone());
+  }
+
   /// Rebuilds the lesson from its saved events: replayed through the engine,
   /// never from a snapshot.
   Future<void> restore() async {
@@ -1067,9 +1074,9 @@ class LessonViewModel extends ChangeNotifier {
 
   /// Starts the next problem the engine chose; with the server's problems,
   /// one a level easier than this one, from the server.
-  void goTo(String problemId) {
+  void goTo(String problemId, {bool sameLevel = false}) {
     if (_nextProblem != null) {
-      _askLevel = easierLevel(_problem.level);
+      _askLevel = sameLevel ? _problem.level : easierLevel(_problem.level);
       _p = null;
     } else {
       _p = _pack.problems[problemId]!;
@@ -1158,6 +1165,8 @@ class LessonViewModel extends ChangeNotifier {
           _coach('cmp.showMeHow', const {});
         case SwitchProblem(:final problemId):
           goTo(problemId);
+        case NextVariant(:final problemId):
+          goTo(problemId, sameLevel: true);
         case Solved(:final badgeId, nextProblemId: final next):
           knowPrompt = null;
           this.badgeId = badgeId;

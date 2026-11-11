@@ -296,6 +296,25 @@ void main() {
       vm.dispose();
     });
 
+    test('show me how to its end asks the same level again, in a new '
+        'session (TUT-05)', () async {
+      final (vm, asked) = await makeVm(
+        problems: [
+          served(),
+          served(id: 'g_variant', a: 152, d: 68),
+        ],
+      );
+      await vm.start();
+      final first = vm.sessionId;
+      await vm.send(const Started());
+      await vm.send(const ShowMeHowTaken());
+      await vm.exampleDone();
+      expect(vm.problem.id, 'g_variant');
+      expect(vm.sessionId, isNot(first));
+      expect(asked.last, (vm.sessionId, 'L4'));
+      vm.dispose();
+    });
+
     test('a solved case asks the server for the next one', () async {
       final (vm, asked) = await makeVm(
         problems: [

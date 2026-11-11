@@ -12,8 +12,8 @@ import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
 
 /// "Show me how": a smaller problem of the same shape, drawn step by step
-/// (Figma H2 667:2, H2-1 666:146, H2-2 666:183, H2-3 666:220), then back to
-/// the child's own problem. B is shorter or taller as in that problem.
+/// (Figma H2 667:2, H2-1 666:146, H2-2 666:183, H2-3 666:220), then a new
+/// problem of the same kind (TUT-05, Figma 8.6). B is shorter or taller as in that problem.
 class WorkedExampleView extends StatefulWidget {
   const WorkedExampleView({super.key, required this.vm, required this.onHome});
 
@@ -98,11 +98,12 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
               const SizedBox(width: 12),
               Expanded(
                 child: AuraButton(
-                  label: _step < 3 ? l.next : l.exampleNowYouTry,
+                  label: _step < 3 ? l.next : l.exampleNewOne,
                   color: AuraButtonColor.blue,
+                  // TUT-05: a new problem of the same kind, not theirs again
                   onPressed: _step < 3
                       ? () => _go(_step + 1)
-                      : widget.vm.closeExample,
+                      : widget.vm.exampleDone,
                 ),
               ),
             ],
