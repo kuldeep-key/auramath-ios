@@ -70,6 +70,15 @@ flutter test                                  # unit, widget and screenshot test
   ```
 
   `setup_to_lesson` covers the grown-up's setup through a lesson the server records. `pair_to_lesson` covers a child's phone pairing with a code through a lesson. Start fresh before each run.
+- The contract test (`test_backend/backend_contract_test.dart`) drives the app's data layer over HTTP against a running backend. CI runs it on every pull request (`.github/workflows/contract.yml`, BE-22) through the backend's `scripts/contract/run.sh`, which starts the backend on Postgres and runs the test. Locally, from the backend's checkout:
+
+  ```bash
+  APP_DIR=../auramath-ios DATABASE_URL=postgres://tutor:tutor@localhost:5432/<empty db> scripts/contract/run.sh
+  ```
+
+### CI
+
+`.github/workflows/contract.yml` needs the repository secret `CONTRACT_REPO_TOKEN`: a fine-grained token with Contents: read-only on `kuldeep-key/auramath-backend` (`GITHUB_TOKEN` cannot read another private repository). Without it the job prints a notice and is skipped. It tests against the backend's `deploy/ai-layer-dev`; another branch: the `backend_ref` input when run by hand, or the repository variable `CONTRACT_BACKEND_REF`.
 
 ## Project layout
 

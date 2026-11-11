@@ -1,0 +1,116 @@
+# BE-22: test_backend/backend_contract_test.dart against the backend, on every
+# pull request.
+#
+# The app's real data layer over HTTP against auramath-backend, started on
+# Postgres by the backend's scripts/contract/run.sh (the same script the
+# backend's CI runs). A change here that breaks what the app sends or reads
+# fails this job.
+#
+# Secret CONTRACT_REPO_TOKEN (Settings > Secrets and variables > Actions):
+# a fine-grained token with Contents: read-only on
+# kuldeep-key/auramath-backend. GITHUB_TOKEN cannot read another private
+# repository. Without the secret the job prints a notice and is skipped, so
+# it is neither red nor a silent pass: the "contract" job shows as skipped.
+#
+# The backend's branch: deploy/ai-layer-dev, or the run's backend_ref input
+# (Run workflow), or the repository variable CONTRACT_BACKEND_REF. That
+# branch must have scripts/contract/run.sh (BE-22).
+name: contract
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      backend_ref:
+        description: auramath-backend branch, tag or commit to test against
+        required: false
+        default: ""
+
+concurrency:
+  group: contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  token:
+    name: contract token present
+    runs-on: ubuntu-latest
+    outputs:
+      present: ${{ steps.check.outputs.present }}
+    steps:
+      - id: check
+        env:
+          TOKEN: ${{ secrets.CONTRACT_REPO_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::notice title=contract test skipped::CONTRACT_REPO_TOKEN is not set, so auramath-backend cannot be checked out. Add it (Contents: read-only on kuldeep-key/auramath-backend) to run the contract test."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  contract:
+    name: backend contract test (auramath-backend)
+    needs: token
+    if: needs.token.outputs.present == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine  # the backend's Cloud SQL is POSTGRES_16
+        env:
+          POSTGRES_USER: tutor
+          POSTGRES_PASSWORD: tutor
+          POSTGRES_DB: tutor
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tutor"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://tutor:tutor@localhost:5432/tutor
+      BACKEND_REF: ${{ inputs.backend_ref || vars.CONTRACT_BACKEND_REF || 'deploy/ai-layer-dev' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: app
+      - name: auramath-backend at ${{ env.BACKEND_REF }}
+        uses: actions/checkout@v4
+        with:
+          repository: kuldeep-key/auramath-backend
+          ref: ${{ env.BACKEND_REF }}
+          token: ${{ secrets.CONTRACT_REPO_TOKEN }}
+          path: backend
+          persist-credentials: false
+      - name: the backend has scripts/contract/run.sh
+        run: |
+          if [ ! -x backend/scripts/contract/run.sh ]; then
+            echo "::error title=no contract script::auramath-backend@$BACKEND_REF has no scripts/contract/run.sh (BE-22). Merge it there, or set CONTRACT_BACKEND_REF to a branch that has it."
+            exit 1
+          fi
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.6"  # README: Flutter 3.44
+          channel: stable
+          cache: true
+      - name: the contract test (backend/scripts/contract/run.sh)
+        env:
+          APP_DIR: app
+          CONTRACT_LOG: ${{ runner.temp }}/contract-backend.log
+        run: backend/scripts/contract/run.sh
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: contract-backend-log
+          path: ${{ runner.temp }}/contract-backend.log
+          if-no-files-found: ignore
