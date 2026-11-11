@@ -41,9 +41,9 @@ class _BoardViewState extends State<BoardView> {
 
   late int _wobbles = vm.wobbles;
 
-  /// The sum button tapped last, which wobbles if it was the wrong one,
-  /// and the wrong moves before that tap.
-  Op? _lastOp;
+  /// The option tapped last, which wobbles if it was the wrong one, and
+  /// the wrong moves before that tap.
+  String? _lastOption;
   int _wobblesAtTap = 0;
 
   LessonViewModel get vm => widget.vm;
@@ -176,28 +176,48 @@ class _BoardViewState extends State<BoardView> {
 
   Widget _bottom(AppLocalizations l, ComparisonProblem p, LessonState s) {
     switch (s.step) {
-      case LessonStep.chooseOp:
+      case LessonStep.chooseOp || LessonStep.nameQuantities:
+        // the template's options (LES-12): D4's sums, or naming the height
+        final stepId = specStepId(s.step)!;
+        final options = choiceOptions(vm.pack, p, stepId);
         return Column(
           children: [
-            Row(
+            if (s.step == LessonStep.nameQuantities)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  p.isMass
+                      ? l.lessonNameHowHeavy(p.a.name.toLowerCase())
+                      : l.lessonNameHowTall(p.a.name.toLowerCase()),
+                  style: AuraText.title,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                for (final (op, sign) in [(Op.subtract, '−'), (Op.add, '+')])
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Wobbly(
-                        count: _lastOp == op ? vm.wobbles - _wobblesAtTap : 0,
-                        child: AuraButton(
-                          label: '${p.aValue} $sign ${p.diff}',
-                          color: AuraButtonColor.white,
-                          onPressed: () {
-                            setState(() {
-                              _lastOp = op;
-                              _wobblesAtTap = vm.wobbles;
-                            });
-                            vm.send(OpChosen(op));
-                          },
-                        ),
+                for (final o in options)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: options.length > 2 ? 100 : 150,
+                    ),
+                    child: Wobbly(
+                      count: _lastOption == o.id
+                          ? vm.wobbles - _wobblesAtTap
+                          : 0,
+                      child: AuraButton(
+                        key: Key('option-${o.id}'),
+                        label: o.label,
+                        color: AuraButtonColor.white,
+                        onPressed: () {
+                          setState(() {
+                            _lastOption = o.id;
+                            _wobblesAtTap = vm.wobbles;
+                          });
+                          vm.send(o.input(stepId));
+                        },
                       ),
                     ),
                   ),

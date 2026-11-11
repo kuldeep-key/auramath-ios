@@ -124,4 +124,10 @@ mixin _LessonGaps on ChangeNotifier {
     wordOpen = null;
     notifyListeners();
   }
+
+  /// Turns on the template's optional steps by flag (LES-03): today
+  /// `name_quantities` (LES-12) and `number_sentence` (LES-06). Set
+  /// before the lesson starts or resumes, so a replay runs the same steps.
+  void enableSteps(Set<String> steps) =>
+      _vm._pack = _vm._pack.copyWith(optionalSteps: steps);
 }

@@ -19,6 +19,7 @@ typedef Timing = ({int stepMs, int problemMs, int readingMs});
 
 /// The spec's id for a step; null for screens that aren't drawing steps.
 String? specStepId(LessonStep s) => switch (s) {
+  LessonStep.nameQuantities => 'name_quantities',
   LessonStep.drawA => 'draw_known_bar',
   LessonStep.placeB || LessonStep.sizeB => 'size_second_bar',
   LessonStep.placeGap => 'place_difference',
@@ -169,11 +170,11 @@ List<SpecEvent> eventsFor(
         {if (piece == Piece.gap) 'value': p.diff},
       );
       if (moved) committed(true);
-    case OpChosen(:final op):
+    case OpChosen(:final op, :final optionId, :final errorType):
       out.add(
         SpecEvent('choice_selected', {
           'step_id': stepId,
-          'option_id': op == Op.add ? 'a_plus_d' : 'a_minus_d',
+          'option_id': optionId ?? (op == Op.add ? 'a_plus_d' : 'a_minus_d'),
           'ms_from_step_start': t.stepMs,
         }),
       );
@@ -181,8 +182,18 @@ List<SpecEvent> eventsFor(
         moved,
         moved
             ? null
-            : (op == Op.add ? 'operation_reversed' : 'keyword_strategy'),
+            : errorType ??
+                  (op == Op.add ? 'operation_reversed' : 'keyword_strategy'),
       );
+    case ChoiceMade(:final optionId, :final right, :final errorType):
+      out.add(
+        SpecEvent('choice_selected', {
+          'step_id': stepId,
+          'option_id': optionId,
+          'ms_from_step_start': t.stepMs,
+        }),
+      );
+      committed(right, right ? null : errorType);
     case NumberEntered(:final value):
       out.add(
         SpecEvent('value_entered', {
@@ -392,9 +403,17 @@ List<LessonInput> inputsFrom(
           },
         ),
       },
-      'choice_selected' => OpChosen(
-        j['option_id'] == 'a_plus_d' ? Op.add : Op.subtract,
-      ),
+      'choice_selected' => switch (j['step_id']) {
+        'choose_operation' ||
+        null => _chosen(pack, p, 'choose_operation', j['option_id']),
+        'name_quantities' => _chosen(
+          pack,
+          p,
+          'name_quantities',
+          j['option_id'],
+        ),
+        _ => null, // Choose today's, before the case (LES-14)
+      },
       'value_entered' => NumberEntered(j['value']! as int),
       'i_know_it_answered' => switch (j['stage']) {
         'total_after_unknown' => KnowTotalChecked(j['value']! as int),
@@ -439,6 +458,27 @@ String _targetId(Target target) => switch (target) {
 /// the difference taken as an amount.
 String? _placedError(Piece piece, Target target) =>
     piece == Piece.gap && target == Target.barB ? 'difference_as_amount' : null;
+
+/// The input a logged choice was: the template's option by its id; an
+/// old log's sum by its sign.
+LessonInput? _chosen(
+  Pack pack,
+  ComparisonProblem p,
+  String stepId,
+  Object? id,
+) {
+  if (stepId == 'choose_operation' && pack.template?.stepById(stepId) == null) {
+    return OpChosen(id == 'a_plus_d' ? Op.add : Op.subtract);
+  }
+  final option = choiceOptions(
+    pack,
+    p,
+    stepId,
+  ).where((o) => o.id == id).firstOrNull;
+  if (option != null) return option.input(stepId);
+  if (stepId != 'choose_operation') return null;
+  return OpChosen(id == 'a_plus_d' ? Op.add : Op.subtract);
+}
 
 /// Template `error_rules` / `answer_sheet_rules` for a wrong unknown. On the
 /// answer sheet nothing is drawn, so A + D reads as "thought it was taller".

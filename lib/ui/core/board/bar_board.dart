@@ -285,7 +285,8 @@ class _BarBoardState extends State<BarBoard> {
               ),
             ),
             // bar A, or its slot
-            if (!s.barA)
+            // naming the heights comes before any drawing (LES-12)
+            if (!s.barA && _step != LessonStep.nameQuantities)
               at(xA, base, bw, 0.7 * maxH, _slot(_Zone.slotA, p.a.name))
             else ...[
               at(

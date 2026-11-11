@@ -75,7 +75,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     _voice.resting.addListener(_voiceResting);
   }
 
-  final Pack _pack;
+  Pack _pack;
   final Sitting _sitting;
   final SessionRepository _sessions;
   final Voice _voice;

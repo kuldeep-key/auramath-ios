@@ -3339,6 +3339,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it'**
   String get kidWordGotIt;
+
+  /// DRAFT, for Julia and Apoorv (LES-12, name_quantities, M3; screen TBD): asks which number is the first thing's height, before drawing. The options come from the template.
+  ///
+  /// In en, this message translates to:
+  /// **'How tall is the {a}?'**
+  String lessonNameHowTall(String a);
+
+  /// DRAFT, for Julia and Apoorv (LES-12, CON-11): the weight story's name_quantities question.
+  ///
+  /// In en, this message translates to:
+  /// **'How heavy is the {a}?'**
+  String lessonNameHowHeavy(String a);
 }
 
 class _AppLocalizationsDelegate

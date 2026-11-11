@@ -3,6 +3,7 @@ enum BigSide { a, b }
 /// The spec step ids this engine can run, in the order it runs them when a
 /// problem has no template to read them from (LES-03).
 const knownSteps = [
+  'name_quantities',
   'draw_known_bar',
   'size_second_bar',
   'place_difference',
@@ -11,6 +12,9 @@ const knownSteps = [
   'find_unknown',
   'find_total',
 ];
+
+/// The steps the template marks optional: they run only where turned on.
+const optionalSteps = {'name_quantities', 'number_sentence'};
 
 /// What the question asks for: both together, or the second item alone.
 enum Ask { total, b }

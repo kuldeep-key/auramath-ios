@@ -1,11 +1,13 @@
 import 'mistakes.dart';
 import 'pack.dart';
 import 'problem.dart';
+import 'template.dart';
 
 /// Where the child is in a comparison lesson. The UI maps each step to its
 /// Figma screen.
 enum LessonStep {
   question,
+  nameQuantities,
   drawA,
   placeB,
   sizeB,
@@ -61,8 +63,25 @@ final class PieceDropped extends LessonInput {
 }
 
 final class OpChosen extends LessonInput {
-  const OpChosen(this.op);
+  const OpChosen(this.op, {this.optionId, this.errorType});
   final Op op;
+
+  /// The template option tapped (`a_minus_d`), and what it's charged as
+  /// when wrong (LES-12); null: the engine's own two sums.
+  final String? optionId;
+  final String? errorType;
+}
+
+/// An option tapped on a choice step that isn't the sum (LES-12): today
+/// `name_quantities`, "which number is the {a}'s height?".
+final class ChoiceMade extends LessonInput {
+  const ChoiceMade(this.optionId, {required this.right, this.errorType});
+
+  final String optionId;
+
+  /// The template's `correct_for` holds this problem's relation.
+  final bool right;
+  final String? errorType;
 }
 
 final class NumberEntered extends LessonInput {
@@ -550,6 +569,10 @@ StepResult _move(
     ):
       return place(target, Target.totalSlot, 'cmp.totalWrong');
 
+    case (LessonStep.nameQuantities, ChoiceMade(:final right)):
+      if (!right) return wrongMove('cmp.nameWrong');
+      return advance(s);
+
     case (LessonStep.chooseOp, OpChosen(:final op)):
       if (op != (bigA ? Op.subtract : Op.add)) return wrongMove('cmp.opWrong');
       return advance(s.copyWith(op: op));
@@ -733,12 +756,17 @@ LessonStep? undoneStep(Pack pack, ComparisonProblem p, LessonState s) {
 List<LessonStep> lessonSteps(Pack pack, ComparisonProblem p) {
   final t = pack.template;
   final ids = t == null || t.steps.isEmpty
-      ? knownSteps
+      ? [
+          for (final id in knownSteps)
+            if (!optionalSteps.contains(id) || pack.optionalSteps.contains(id))
+              id,
+        ]
       : t.stepsFor(p.level, optionalOn: pack.optionalSteps);
   return [
     for (final id in ids)
       if (p.ask == Ask.total || (id != 'place_total' && id != 'find_total'))
         ...switch (id) {
+          'name_quantities' => const [LessonStep.nameQuantities],
           'draw_known_bar' => const [LessonStep.drawA],
           'size_second_bar' => const [LessonStep.placeB, LessonStep.sizeB],
           'place_difference' => const [LessonStep.placeGap],
@@ -749,6 +777,82 @@ List<LessonStep> lessonSteps(Pack pack, ComparisonProblem p) {
           _ => const <LessonStep>[],
         },
   ];
+}
+
+/// The options a choice step offers for [p] (LES-12), from the pack's
+/// template: each with its label in [p]'s numbers ("186 − 107"), whether
+/// it's right for [p]'s relation, and, on choose_operation, the sum it
+/// sets up. Without a template, the engine's own two sums.
+List<ChoiceOption> choiceOptions(
+  Pack pack,
+  ComparisonProblem p,
+  String stepId,
+) {
+  final relation = p.big == BigSide.a ? 'taller' : 'shorter';
+  final rightOp = p.big == BigSide.a ? Op.subtract : Op.add;
+  final wrongOp = rightOp == Op.add ? Op.subtract : Op.add;
+  final options =
+      pack.template?.stepById(stepId)?.options ??
+      (stepId == 'choose_operation'
+          ? const [
+              StepOption(
+                id: 'a_minus_d',
+                text: 'A - D',
+                correctFor: ['taller'],
+                errorType: 'keyword_strategy',
+              ),
+              StepOption(
+                id: 'a_plus_d',
+                text: 'A + D',
+                correctFor: ['shorter'],
+                errorType: 'operation_reversed',
+              ),
+            ]
+          : const <StepOption>[]);
+  String label(String text) => text
+      .replaceAll('{A}', '${p.aValue}')
+      .replaceAll('{D}', '${p.diff}')
+      .replaceAll('{unit}', p.unit)
+      .replaceAll('{a}', p.a.name.toLowerCase())
+      .replaceAll('{b}', p.b.name.toLowerCase())
+      .replaceAllMapped(RegExp(r'\bA\b'), (_) => '${p.aValue}')
+      .replaceAllMapped(RegExp(r'\bD\b'), (_) => '${p.diff}')
+      .replaceAll('box', '?')
+      .replaceAll(' - ', ' − ');
+  return [
+    for (final o in options)
+      ChoiceOption(
+        id: o.id,
+        label: label(o.text),
+        right: o.correctFor.contains(relation),
+        errorType: o.errorType,
+        op: o.correctFor.contains(relation) ? rightOp : wrongOp,
+      ),
+  ];
+}
+
+/// One option of a choice step, for one problem (LES-12).
+class ChoiceOption {
+  const ChoiceOption({
+    required this.id,
+    required this.label,
+    required this.right,
+    required this.op,
+    this.errorType,
+  });
+
+  final String id;
+  final String label;
+  final bool right;
+
+  /// On choose_operation: the sum it sets up for finding B.
+  final Op op;
+  final String? errorType;
+
+  /// The input tapping it sends.
+  LessonInput input(String stepId) => stepId == 'choose_operation'
+      ? OpChosen(op, optionId: id, errorType: errorType)
+      : ChoiceMade(id, right: right, errorType: errorType);
 }
 
 /// The step after [from] for problem [p]; [LessonStep.solved] after the
@@ -781,6 +885,7 @@ Map<String, String> lineSlots(ComparisonProblem p) => {
 };
 
 const _boardSteps = {
+  LessonStep.nameQuantities,
   LessonStep.drawA,
   LessonStep.placeB,
   LessonStep.sizeB,

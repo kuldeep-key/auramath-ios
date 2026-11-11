@@ -698,5 +698,9 @@
   "kidWordLess": "Less means it weighs less. The lighter one gets the shorter bar.",
   "@kidWordLess": {"description": "DRAFT, for Julia (LES-10, CON-11): under the drawing for 'less' in a weight story."},
   "kidWordGotIt": "Got it",
-  "@kidWordGotIt": {"description": "DRAFT, for Julia (LES-10): closes a word's meaning."}
+  "@kidWordGotIt": {"description": "DRAFT, for Julia (LES-10): closes a word's meaning."},
+  "lessonNameHowTall": "How tall is the {a}?",
+  "@lessonNameHowTall": {"description": "DRAFT, for Julia and Apoorv (LES-12, name_quantities, M3; screen TBD): asks which number is the first thing's height, before drawing. The options come from the template.", "placeholders": {"a": {"type": "String"}}},
+  "lessonNameHowHeavy": "How heavy is the {a}?",
+  "@lessonNameHowHeavy": {"description": "DRAFT, for Julia and Apoorv (LES-12, CON-11): the weight story's name_quantities question.", "placeholders": {"a": {"type": "String"}}}
 }

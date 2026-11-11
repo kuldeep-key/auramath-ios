@@ -1895,4 +1895,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidWordGotIt => 'Got it';
+
+  @override
+  String lessonNameHowTall(String a) {
+    return 'How tall is the $a?';
+  }
+
+  @override
+  String lessonNameHowHeavy(String a) {
+    return 'How heavy is the $a?';
+  }
 }

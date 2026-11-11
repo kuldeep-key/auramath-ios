@@ -169,6 +169,11 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..biggerPad = prefs.biggerPad
       ..carryFrom = widget.carryFrom
       ..chosenToday = widget.chosenMs;
+    // the template's optional steps, each behind its flag (LES-03)
+    _vm.enableSteps({
+      for (final step in const ['name_quantities', 'number_sentence'])
+        if (flags.on(step)) step,
+    });
     widget.deps.sitting.useMinutes(prefs.minutes);
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
   }
