@@ -523,6 +523,7 @@ class SessionRepository {
     _sittings.clear();
     _suggestions.clear();
     lastSuggestion = null;
+    lastStop.value = null;
     _afterLesson.clear();
     _welcomeBacks.clear();
     greeted = false;

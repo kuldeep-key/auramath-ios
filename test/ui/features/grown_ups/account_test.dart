@@ -1,7 +1,7 @@
-import 'package:auramath/data/repositories/partner_intro_repository.dart';
 import 'dart:io';
 
 import 'package:auramath/data/repositories/account_repository.dart';
+import 'package:auramath/data/repositories/partner_intro_repository.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/grown_ups/views/add_child_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/consent_screens.dart';
