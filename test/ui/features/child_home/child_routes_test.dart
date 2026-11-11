@@ -14,6 +14,7 @@ void main() {
     String at, {
     Map<String, String> stored = pairedChildPhone,
     List<SpecEvent> saved = const [],
+    void Function(FakeServer server)? serve,
   }) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -26,6 +27,7 @@ void main() {
         {'id': 'child-1', 'displayName': 'Mira'},
       ],
     });
+    serve?.call(server);
     if (saved.isNotEmpty) {
       await tester.runAsync(() => deps.sessions.record('s1', 0, saved));
     }
@@ -34,6 +36,38 @@ void main() {
     await settle(tester);
     return deps;
   }
+
+  testWidgets('My badges adds the level badges the server served (REW-06)', (
+    tester,
+  ) async {
+    await boot(
+      tester,
+      Paths.badges,
+      serve: (server) => server.on('GET /api/children/child-1/badges', {
+        'badges': [
+          {
+            'id': 'level-cmp-l4',
+            'kind': 'level',
+            'name': 'Taller and shorter, up to 1000',
+          },
+          // another kind is not a level badge
+          {'id': 'tree', 'kind': 'session', 'name': 'Tree'},
+        ],
+      }),
+    );
+    expect(find.text('Taller and shorter, up to 1000'), findsOneWidget);
+    await tester.tap(find.text('Taller and shorter, up to 1000'));
+    await settle(tester);
+    expect(find.text('Taller and shorter, up to 1000'), findsWidgets);
+    expect(find.text('My badges'), findsNothing); // its own screen
+  });
+
+  testWidgets('no level badges served: only what this phone earned', (
+    tester,
+  ) async {
+    await boot(tester, Paths.badges);
+    expect(find.text('Crack a case to earn your first badge!'), findsOneWidget);
+  });
 
   testWidgets('Home shows the child named by the server', (tester) async {
     await boot(tester, Paths.home);

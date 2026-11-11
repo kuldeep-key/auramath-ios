@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../data/repositories/progress_repository.dart';
+import '../../../../data/repositories/rewards_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/motion/motion.dart';
@@ -17,19 +18,40 @@ import '../../../core/parts/speak_button.dart';
 /// only the next stop through the mist, so the child never sees how much
 /// is left. Figma: K2 My trail (651:68).
 ///
+/// With a [served] trail (REW-04, flag `trail`) the stops, their names and
+/// where the child is come from the server, the same on every phone;
+/// without one, from what this phone knows ([here]).
+///
 /// The scene is full-bleed (the hills reach the screen edges), so this
 /// screen lays out its own frame instead of `AuraPage`; header and footer
 /// keep its 16 pt margins and 560 pt column.
 class TrailScreen extends StatelessWidget {
-  const TrailScreen({super.key, required this.here});
+  const TrailScreen({super.key, required this.here, this.served});
 
   final TrailStop here;
+
+  /// The server's trail, when it serves one.
+  final ServedTrail? served;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final stops = TrailStop.values;
-    final i = here.index;
+    final served = this.served;
+    final List<({String title, String art})> stops = served == null
+        ? [for (final s in TrailStop.values) (title: s.label(l), art: s.art)]
+        : [
+            for (final s in served.stops)
+              (
+                title: s.name,
+                art:
+                    TrailStop.values
+                        .where((t) => t.skillId == s.skillId)
+                        .firstOrNull
+                        ?.art ??
+                    '🔍',
+              ),
+          ];
+    final i = served?.here ?? here.index;
     return Scaffold(
       backgroundColor: AuraColors.blueLip,
       body: PlayBackdrop(
@@ -70,7 +92,12 @@ class TrailScreen extends StatelessWidget {
                               (3, i + 1),
                             ])
                               if (at >= 0 && at < stops.length)
-                                ..._stop(l, slot, stops[at]),
+                                ..._stop(
+                                  l,
+                                  slot,
+                                  stops[at].title,
+                                  stops[at].art,
+                                ),
                           ],
                         ),
                       ),
@@ -95,7 +122,7 @@ class TrailScreen extends StatelessWidget {
   }
 
   /// Slots 0 and 1 are done, 2 is here, 3 is next.
-  List<Widget> _stop(AppLocalizations l, int slot, TrailStop stop) {
+  List<Widget> _stop(AppLocalizations l, int slot, String title, String art) {
     final (x, y) = _slots[slot];
     final right = x < 150;
     final kind = switch (slot) {
@@ -105,7 +132,7 @@ class TrailScreen extends StatelessWidget {
     };
     final label = _Label(
       kind: kind,
-      title: stop.label(l),
+      title: title,
       note: switch (kind) {
         _Kind.done => l.kidDone,
         _Kind.here => l.kidYouAreHere,
@@ -126,7 +153,7 @@ class TrailScreen extends StatelessWidget {
                     child: Portrait(size: 60),
                   ),
                 )
-              : _Stop(art: stop.art, done: kind == _Kind.done),
+              : _Stop(art: art, done: kind == _Kind.done),
         ),
       ),
       Positioned(

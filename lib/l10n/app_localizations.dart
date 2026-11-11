@@ -1066,6 +1066,12 @@ abstract class AppLocalizations {
   /// **'This account has no email address to send a link to.'**
   String get guForgotNoEmail;
 
+  /// No description provided for @guForgotOr.
+  ///
+  /// In en, this message translates to:
+  /// **'Or sign in again here with Apple or Google, then choose a new passcode.'**
+  String get guForgotOr;
+
   /// No description provided for @guHomeHi.
   ///
   /// In en, this message translates to:
@@ -1180,11 +1186,71 @@ abstract class AppLocalizations {
   /// **'{name}\'s plan'**
   String guChildPlan(String name);
 
-  /// No description provided for @guNotifyLink.
+  /// No description provided for @guEmailRow.
   ///
   /// In en, this message translates to:
-  /// **'Email after each session'**
-  String get guNotifyLink;
+  /// **'Report email'**
+  String get guEmailRow;
+
+  /// No description provided for @guEmailUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get guEmailUnknown;
+
+  /// No description provided for @guEmailUnsubscribeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Every email also has a link to stop them.'**
+  String get guEmailUnsubscribeNote;
+
+  /// No description provided for @guEmailHowOften.
+  ///
+  /// In en, this message translates to:
+  /// **'How often'**
+  String get guEmailHowOften;
+
+  /// No description provided for @guEmailHowOftenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How often should we email?'**
+  String get guEmailHowOftenTitle;
+
+  /// No description provided for @guEmailEach.
+  ///
+  /// In en, this message translates to:
+  /// **'After each session'**
+  String get guEmailEach;
+
+  /// No description provided for @guEmailEachDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'One short note when a session ends'**
+  String get guEmailEachDetail;
+
+  /// No description provided for @guEmailWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a week'**
+  String get guEmailWeekly;
+
+  /// No description provided for @guEmailWeeklyDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'One note on Monday about the week before'**
+  String get guEmailWeeklyDetail;
+
+  /// No description provided for @guEmailOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get guEmailOff;
+
+  /// No description provided for @guEmailOffDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'No emails about lessons'**
+  String get guEmailOffDetail;
 
   /// No description provided for @guRightsLink.
   ///
@@ -1876,6 +1942,24 @@ abstract class AppLocalizations {
   /// **'No note for this session.'**
   String get guNoNote;
 
+  /// No description provided for @guNotesLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent notes'**
+  String get guNotesLink;
+
+  /// No description provided for @guNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s notes'**
+  String guNotesTitle(String name);
+
+  /// No description provided for @guNotesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet. One comes after each of {name}\'s sessions.'**
+  String guNotesNone(String name);
+
   /// No description provided for @guNoteError.
   ///
   /// In en, this message translates to:
@@ -2110,6 +2194,18 @@ abstract class AppLocalizations {
   /// **'School year'**
   String get guEditYear;
 
+  /// No description provided for @guEditAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Detective'**
+  String get guEditAvatar;
+
+  /// No description provided for @guEditAvatarHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Let {name} pick one.'**
+  String guEditAvatarHint(String name);
+
   /// No description provided for @guEditSave.
   ///
   /// In en, this message translates to:
@@ -2277,6 +2373,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next to earn'**
   String get kidNextToEarn;
+
+  /// No description provided for @kidSessionBadgeEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'Your badge for this session'**
+  String get kidSessionBadgeEarned;
+
+  /// DRAFT (REW-05, D-47) for Design and Julia: the kind streak moment. No number, no loss message, nothing sold.
+  ///
+  /// In en, this message translates to:
+  /// **'Back on the case again! Detectives keep at it.'**
+  String get kidStreakMoment;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when a case was solved, until the server names it.
+  ///
+  /// In en, this message translates to:
+  /// **'Case cracked'**
+  String get kidSessionBadgeFinished;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when time ran out.
+  ///
+  /// In en, this message translates to:
+  /// **'Detective at work'**
+  String get kidSessionBadgeTimeUp;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when the case was left for another day.
+  ///
+  /// In en, this message translates to:
+  /// **'Tried a tricky case'**
+  String get kidSessionBadgeLeft;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when the session paused (phone locked, app away).
+  ///
+  /// In en, this message translates to:
+  /// **'Good start on a case'**
+  String get kidSessionBadgePaused;
 
   /// No description provided for @kidNoBadgesYet.
   ///
@@ -2757,6 +2889,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your child never types personal details.'**
   String get setupDataFirstNameDetail;
+
+  /// DRAFT (ACC-10) for Legal and Julia: the processors, under D-15/D-50. Not final wording.
+  ///
+  /// In en, this message translates to:
+  /// **'Who helps us'**
+  String get setupDataHelpers;
+
+  /// DRAFT (ACC-10) for Legal and Julia. Names the model provider, the voice service and email, as ACC-10 asks. The email service is not chosen yet (BE-02).
+  ///
+  /// In en, this message translates to:
+  /// **'Google Cloud in Sydney runs Auramath, its AI model (Gemini) and its voice. An email service sends your sign-in emails and notes. They work only for us, and none of them gets a name.'**
+  String get setupDataHelpersDetail;
+
+  /// DRAFT (ACC-10) for Legal and Julia: her weekly summary during the home week.
+  ///
+  /// In en, this message translates to:
+  /// **'Julia sees how families are doing'**
+  String get setupDataJulia;
+
+  /// DRAFT (ACC-10) for Legal and Julia. Confirm what the summary holds and whether it names the child.
+  ///
+  /// In en, this message translates to:
+  /// **'During the home week, Julia, our teacher, gets a weekly summary of her families\' lessons.'**
+  String get setupDataJuliaDetail;
 
   /// No description provided for @setupDataDelete.
   ///

@@ -572,6 +572,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This account has no email address to send a link to.';
 
   @override
+  String get guForgotOr =>
+      'Or sign in again here with Apple or Google, then choose a new passcode.';
+
+  @override
   String get guHomeHi => 'Hi there';
 
   @override
@@ -645,7 +649,38 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get guNotifyLink => 'Email after each session';
+  String get guEmailRow => 'Report email';
+
+  @override
+  String get guEmailUnknown => 'Not set';
+
+  @override
+  String get guEmailUnsubscribeNote =>
+      'Every email also has a link to stop them.';
+
+  @override
+  String get guEmailHowOften => 'How often';
+
+  @override
+  String get guEmailHowOftenTitle => 'How often should we email?';
+
+  @override
+  String get guEmailEach => 'After each session';
+
+  @override
+  String get guEmailEachDetail => 'One short note when a session ends';
+
+  @override
+  String get guEmailWeekly => 'Once a week';
+
+  @override
+  String get guEmailWeeklyDetail => 'One note on Monday about the week before';
+
+  @override
+  String get guEmailOff => 'Off';
+
+  @override
+  String get guEmailOffDetail => 'No emails about lessons';
 
   @override
   String get guRightsLink => 'Your data and rights';
@@ -1044,6 +1079,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guNoNote => 'No note for this session.';
 
   @override
+  String get guNotesLink => 'Recent notes';
+
+  @override
+  String guNotesTitle(String name) {
+    return '$name\'s notes';
+  }
+
+  @override
+  String guNotesNone(String name) {
+    return 'No notes yet. One comes after each of $name\'s sessions.';
+  }
+
+  @override
   String get guNoteError => 'Couldn\'t load the note.';
 
   @override
@@ -1197,6 +1245,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guEditYear => 'School year';
 
   @override
+  String get guEditAvatar => 'Detective';
+
+  @override
+  String guEditAvatarHint(String name) {
+    return 'Let $name pick one.';
+  }
+
+  @override
   String get guEditSave => 'Save';
 
   @override
@@ -1287,6 +1343,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidNextToEarn => 'Next to earn';
+
+  @override
+  String get kidSessionBadgeEarned => 'Your badge for this session';
+
+  @override
+  String get kidStreakMoment =>
+      'Back on the case again! Detectives keep at it.';
+
+  @override
+  String get kidSessionBadgeFinished => 'Case cracked';
+
+  @override
+  String get kidSessionBadgeTimeUp => 'Detective at work';
+
+  @override
+  String get kidSessionBadgeLeft => 'Tried a tricky case';
+
+  @override
+  String get kidSessionBadgePaused => 'Good start on a case';
 
   @override
   String get kidNoBadgesYet => 'Crack a case to earn your first badge!';
@@ -1553,6 +1628,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setupDataFirstNameDetail =>
       'Your child never types personal details.';
+
+  @override
+  String get setupDataHelpers => 'Who helps us';
+
+  @override
+  String get setupDataHelpersDetail =>
+      'Google Cloud in Sydney runs Auramath, its AI model (Gemini) and its voice. An email service sends your sign-in emails and notes. They work only for us, and none of them gets a name.';
+
+  @override
+  String get setupDataJulia => 'Julia sees how families are doing';
+
+  @override
+  String get setupDataJuliaDetail =>
+      'During the home week, Julia, our teacher, gets a weekly summary of her families\' lessons.';
 
   @override
   String get setupDataDelete => 'Delete it any time';

@@ -8,13 +8,16 @@ import '../../../../routing/paths.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
+import '../../../core/parts/avatar.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'play_message.dart';
 
 /// The shared phone's picker: a child taps their picture, a grown-up taps
 /// Grown-ups (the router asks for the passcode). Figma: A1 · Who's
-/// learning? (644:38).
+/// learning? (644:38). A family with one child has nothing to pick: the
+/// phone goes straight to that child's Home (DEV-01), and Home's own
+/// Grown-ups button is the way back.
 class KidsScreen extends StatefulWidget {
   const KidsScreen({super.key, required this.account, required this.family});
 
@@ -26,7 +29,13 @@ class KidsScreen extends StatefulWidget {
 }
 
 class _KidsScreenState extends State<KidsScreen> {
-  late Future<List<Child>> _children = widget.family.children();
+  late Future<List<Child>> _children = _load();
+
+  Future<List<Child>> _load() async {
+    final children = await widget.family.children();
+    if (children.length == 1) await _pick(children.single);
+    return children;
+  }
 
   Future<void> _pick(Child c) async {
     await widget.account.chooseChild(c.id);
@@ -51,7 +60,8 @@ class _KidsScreenState extends State<KidsScreen> {
             FutureBuilder(
               future: _children,
               builder: (context, snap) {
-                if (snap.connectionState != ConnectionState.done) {
+                if (snap.connectionState != ConnectionState.done ||
+                    snap.data?.length == 1) {
                   return const Center(
                     child: CircularProgressIndicator(color: AuraColors.white),
                   );
@@ -62,7 +72,7 @@ class _KidsScreenState extends State<KidsScreen> {
                     retryLabel: l.pairTryAgain,
                     light: true,
                     onRetry: () => setState(() {
-                      _children = widget.family.children();
+                      _children = _load();
                     }),
                   );
                 }
@@ -165,7 +175,7 @@ class _ChildTile extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Portrait(size: 96),
+                AvatarDisc(avatar: child.avatar, size: 96),
                 const SizedBox(height: 8),
                 Text(
                   child.name,

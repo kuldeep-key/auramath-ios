@@ -75,6 +75,11 @@ class SessionRepository {
   /// log). The lesson on it shows "we'll keep this for next time".
   final ended = ValueNotifier<String?>(null);
 
+  /// The last session this phone stopped, and how: `session_ended`'s
+  /// reason (`finished`, `time_up`, `left`, ...) or `paused`. Home shows
+  /// its badge (REW-01: one per session, however it ended).
+  final lastStop = ValueNotifier<({String sessionId, String reason})?>(null);
+
   /// Why the server ended [ended]: `consent` when the family withdrew it,
   /// so the lesson says lessons are paused.
   String? endedWhy;
@@ -257,6 +262,16 @@ class SessionRepository {
           payload: e.payload,
         ),
       );
+    }
+    for (final e in events) {
+      if (e.name == 'session_ended' || e.name == 'session_paused') {
+        lastStop.value = (
+          sessionId: sessionId,
+          reason: e.name == 'session_paused'
+              ? 'paused'
+              : '${e.payload['reason'] ?? 'finished'}',
+        );
+      }
     }
     await syncNow();
   }
@@ -461,6 +476,7 @@ class SessionRepository {
     _retry?.cancel();
     online.dispose();
     ended.dispose();
+    lastStop.dispose();
   }
 
   static List<(String, List<LessonEvent>)> _bySession(List<LessonEvent> batch) {

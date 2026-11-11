@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auramath/data/repositories/grown_up_repository.dart';
 import 'package:auramath/data/services/key_store.dart';
 import 'package:auramath/deps.dart';
@@ -9,8 +11,17 @@ import '../../../helpers/app_harness.dart';
 /// children, one grown-up and an open invitation, one joined phone, and
 /// one lesson this week for the first child.
 class Gu {
-  Gu._(this.deps, this.server, this.store)
-    : repo = GrownUpRepository(deps.client, store);
+  Gu._(this.deps, this.server, this.store, this.documents, this.cache)
+    : repo = GrownUpRepository(
+        deps.client,
+        store,
+        documents: () async => documents,
+        cache: () async => cache,
+      );
+
+  /// The phone's documents and cache folders (DEV-06 sweeps them).
+  final Directory documents;
+  final Directory cache;
 
   final Deps deps;
   final FakeServer server;
@@ -21,7 +32,18 @@ class Gu {
     final (deps, server) =
         await tester.runAsync(() => testDeps(stored: parentPhone)) ??
         (throw StateError('no deps'));
-    return Gu._(deps, server, MemoryKeyStore())..seed();
+    final (documents, cache) = (await tester.runAsync(
+      () async => (
+        await Directory.systemTemp.createTemp('gu-docs'),
+        await Directory.systemTemp.createTemp('gu-cache'),
+      ),
+    ))!;
+    addTearDown(() async {
+      for (final d in [documents, cache]) {
+        if (d.existsSync()) d.deleteSync(recursive: true);
+      }
+    });
+    return Gu._(deps, server, MemoryKeyStore(), documents, cache)..seed();
   }
 
   /// The calls made, as `METHOD /path`.
@@ -35,6 +57,7 @@ class Gu {
     final started = now - 13 * 60000;
     server
       ..on('POST /api/auth/logout', null, status: 204)
+      ..on('GET /api/family/settings/reports', {'frequency': 'each_session'})
       ..on('GET /api/children', {
         'children': [
           {'id': 'child-1', 'displayName': 'Aarav', 'schoolYear': 'year_2'},

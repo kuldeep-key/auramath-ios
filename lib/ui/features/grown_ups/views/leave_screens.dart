@@ -10,15 +10,18 @@ import 'parts.dart';
 
 /// SignOut (659:105). A paired child phone stays paired, but no child's
 /// lessons stay on the phone (DEV-06): unsent work is sent first, and while
-/// it can't be, the grown-up stays signed in and is told why.
+/// it can't be, the grown-up stays signed in and is told why. Saved
+/// exports and cached clips go too.
 class SignOutScreen extends StatelessWidget {
   const SignOutScreen({
     super.key,
     required this.account,
+    required this.repo,
     required this.sessions,
   });
 
   final AccountRepository account;
+  final GrownUpRepository repo;
   final SessionRepository sessions;
 
   @override
@@ -31,6 +34,7 @@ class SignOutScreen extends StatelessWidget {
       fallback: Paths.settings,
       onConfirm: () async {
         await sessions.sendAllThenForget();
+        await repo.forgetSavedData();
         await account.chooseChild(null);
         await account.signOut();
         if (context.mounted) context.go(Paths.open);
@@ -65,6 +69,7 @@ class DeleteAccountScreen extends StatelessWidget {
         await repo.erase();
         // the chosen child and their lessons went with the family
         await sessions.forget();
+        await repo.forgetSavedData();
         await account.chooseChild(null);
         await account.signOut();
         if (context.mounted) context.go(Paths.open);

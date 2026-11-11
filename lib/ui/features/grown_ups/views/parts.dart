@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
+import '../../../core/parts/avatar.dart';
 import '../../../core/theme/tokens.dart';
 
 // The grown-up area's own small parts, from Figma's parent components:
@@ -380,13 +381,24 @@ class Spinner extends StatelessWidget {
 /// A child's round badge: their initial on the avatar's yellow. Figma
 /// draws sample portraits; a child chosen from the server has none yet.
 class ChildAvatar extends StatelessWidget {
-  const ChildAvatar({super.key, required this.name, this.size = 56});
+  const ChildAvatar({
+    super.key,
+    required this.name,
+    this.avatar,
+    this.size = 56,
+  });
 
   final String name;
+
+  /// The avatar the child chose (ACC-12); the initial until there is one.
+  final String? avatar;
   final double size;
 
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(
+  Widget build(BuildContext context) =>
+      AvatarDisc(avatar: avatar, size: size, fallback: _initial());
+
+  Widget _initial() => ExcludeSemantics(
     child: Container(
       width: size,
       height: size,

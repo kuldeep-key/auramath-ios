@@ -3,19 +3,28 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../data/repositories/family_repository.dart';
 import '../../../../data/repositories/grown_up_repository.dart';
+import '../../../../data/repositories/report_email_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
 import 'parts.dart';
+import 'report_email_card.dart';
 
-/// Settings (652:75): this phone's lesson settings, then the links.
-/// Membership is not built this term, so its row is left out.
+/// Settings (652:75): this phone's lesson settings, the family's report
+/// email (PAR-05), then the links. Membership is not built this term, so
+/// its row is left out.
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key, required this.family, required this.repo});
+  const SettingsScreen({
+    super.key,
+    required this.family,
+    required this.repo,
+    required this.email,
+  });
 
   final FamilyRepository family;
   final GrownUpRepository repo;
+  final ReportEmailRepository email;
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +52,8 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => context.push(Paths.family),
               ),
               const SizedBox(height: 12),
-              NavRow(
-                icon: Icons.mail_outline_rounded,
-                label: l.guNotifyLink,
-                onTap: () => context.push(Paths.notify),
-              ),
-              const SizedBox(height: 12),
+              ReportEmailCard(email: email),
+              const SizedBox(height: 14),
               NavRow(
                 icon: Icons.shield_outlined,
                 label: l.guRightsLink,

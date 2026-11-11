@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../data/repositories/account_repository.dart';
 import '../../../../data/repositories/grown_up_repository.dart';
@@ -7,11 +8,14 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
+import '../../../core/theme/tokens.dart';
+import '../../setup/views/sign_in_methods.dart';
 import 'parts.dart';
 
 /// ForgotPass (653:132): email a sign-in link to the account's address,
-/// then "check your email". Signing in again from that link is what lets
-/// GPass choose a new passcode (see [GrownUpRepository.passcodeResetReady]).
+/// then "check your email"; or sign in again here with Apple or Google
+/// (ACC-11). A fresh sign-in either way is what lets GPass choose a new
+/// passcode (see [GrownUpRepository.passcodeResetReady]).
 class ForgotPasscodeScreen extends StatefulWidget {
   const ForgotPasscodeScreen({
     super.key,
@@ -60,6 +64,35 @@ class _ForgotPasscodeScreenState extends State<ForgotPasscodeScreen> {
     }
   }
 
+  /// Apple or Google, now: marks the reset with the old credential, signs
+  /// in, and back to GPass, which then asks for the new passcode. A closed
+  /// sheet or a failure leaves things as they were.
+  Future<void> _again(Future<bool> Function() signIn) async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    var signedIn = false;
+    try {
+      await widget.repo.startPasscodeReset(widget.account.bearer);
+      signedIn = await signIn();
+      if (signedIn && mounted) context.go(Paths.grownUpsPass);
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e);
+    } finally {
+      // the emailed link may still be on its way: keep its marker
+      if (!signedIn && !_sent) await widget.repo.endPasscodeReset();
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<bool> _apple(AppLocalizations l) async {
+    if (!(await widget.account.authConfig()).apple) {
+      throw ApiException(l.setupAppleOff, status: 501);
+    }
+    return widget.account.signInWithApple();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -80,6 +113,18 @@ class _ForgotPasscodeScreenState extends State<ForgotPasscodeScreen> {
                     : _sent
                     ? l.guForgotSentBody(masked)
                     : l.guForgotBody(masked),
+              ),
+              const SizedBox(height: 20),
+              Text(l.guForgotOr, style: AuraText.body),
+              const SizedBox(height: 12),
+              AppleButton(
+                onPressed: _busy ? null : () => _again(() => _apple(l)),
+              ),
+              const SizedBox(height: 12),
+              GoogleButton(
+                onPressed: _busy
+                    ? null
+                    : () => _again(widget.account.signInWithGoogle),
               ),
               if (_error != null) ErrorNote(_error!),
             ],

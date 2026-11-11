@@ -8,7 +8,9 @@ import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import 'setup_parts.dart';
 
-/// Data (643:203): the notice the grown-up agrees to (ACC-03). The consent
+/// Data (643:203): the notice the grown-up agrees to (ACC-03), naming the
+/// services that process it and Julia's weekly summary (ACC-10, DRAFT
+/// wording for Legal and Julia). The consent
 /// itself is recorded once they have signed in. Figma's "Learn more" is
 /// left out until there is a full notice to link to.
 class DataScreen extends StatelessWidget {
@@ -44,6 +46,14 @@ class DataScreen extends StatelessWidget {
                 l.setupDataFirstName,
                 l.setupDataFirstNameDetail,
               ),
+              // DRAFT (ACC-10): the processors and Julia's weekly
+              // summary, for Legal and Julia to word
+              (
+                Icons.handshake_outlined,
+                l.setupDataHelpers,
+                l.setupDataHelpersDetail,
+              ),
+              (Icons.school_outlined, l.setupDataJulia, l.setupDataJuliaDetail),
               (
                 Icons.delete_outline_rounded,
                 l.setupDataDelete,

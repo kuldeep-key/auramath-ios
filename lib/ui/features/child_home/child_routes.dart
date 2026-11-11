@@ -1,9 +1,11 @@
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/repositories/account_repository.dart';
 import '../../../data/repositories/partner_intro_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
+import '../../../data/repositories/rewards_repository.dart';
 import '../../../data/models/lesson_event.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
@@ -12,6 +14,7 @@ import 'views/badge_screen.dart';
 import 'views/badges_screen.dart';
 import 'views/check_screen.dart';
 import 'views/choose_today_screen.dart';
+import 'views/home_moments.dart';
 import 'views/home_screen.dart';
 import 'views/meet_partner_screen.dart';
 import 'views/loaded.dart';
@@ -39,6 +42,13 @@ List<RouteBase> childRoutes(Deps deps) {
     account: deps.account,
   );
 
+  final rewards = RewardsRepository(deps.client);
+
+  /// REW-06: the level badges last served, by id, for the badge's own screen.
+  final levelBadges = <String, BadgeInfo>{};
+  BadgeInfo? badgeInfo(String? id) => deps.pack.badges[id] ?? levelBadges[id];
+  final moments = HomeMomentsSource(rewards: rewards);
+
   Widget named(Widget Function(String? name) screen) => FutureBuilder(
     initialData: progress.cachedName,
     future: progress.childName(),
@@ -54,19 +64,30 @@ List<RouteBase> childRoutes(Deps deps) {
         key: s.pageKey,
         arrive: Arrive.fade,
         child: named(
-          (name) => ListenableBuilder(
-            listenable: deps.flags,
-            builder: (_, _) => HomeScreen(
-              name: name,
-              grownUps: deps.account.role == Role.device
-                  ? Paths.signIn
-                  : Paths.kids,
-              trail: deps.flags.on('trail'),
-              badges: deps.flags.on('mastery_badges'),
-              // Choose today first, with Quick sums on (LES-14)
-              play: deps.flags.on('quick_sums')
-                  ? Paths.chooseToday
-                  : Paths.lessonNext,
+          (name) => _WithMoment(
+            // REW-01: the badge of the session that just stopped, whatever
+            // way it stopped, not behind mastery_badges; REW-05's streak
+            // moment behind streak_moment
+            load: () => moments.next(
+              lastStop: deps.sessions.lastStop.value,
+              childId: deps.account.childId,
+              streakOn: deps.flags.on('streak_moment'),
+            ),
+            builder: (moment) => ListenableBuilder(
+              listenable: deps.flags,
+              builder: (_, _) => HomeScreen(
+                name: name,
+                grownUps: deps.account.role == Role.device
+                    ? Paths.signIn
+                    : Paths.kids,
+                trail: deps.flags.on('trail'),
+                badges: deps.flags.on('mastery_badges'),
+                moment: moment,
+                // Choose today first, with Quick sums on (LES-14)
+                play: deps.flags.on('quick_sums')
+                    ? Paths.chooseToday
+                    : Paths.lessonNext,
+              ),
             ),
           ),
         ),
@@ -105,15 +126,36 @@ List<RouteBase> childRoutes(Deps deps) {
     GoRoute(
       path: Paths.badges,
       builder: (_, _) => Loaded(
-        load: progress.earnedBadges,
-        builder: (earned) =>
-            BadgesScreen(earned: earned, badges: deps.pack.badges),
+        // the case badges earned on this phone, then (REW-06, behind
+        // mastery_badges like the screen) the level badges the server
+        // says were earned; only earned ones are ever served
+        load: () async {
+          final earned = await progress.earnedBadges();
+          final id = deps.account.childId;
+          final levels = id == null
+              ? const <ServedBadge>[]
+              : await rewards.levelBadges(id);
+          levelBadges
+            ..clear()
+            ..addAll({
+              for (final b in levels)
+                b.id: BadgeInfo(name: b.name, says: b.says ?? b.name),
+            });
+          return [
+            ...earned,
+            for (final b in levels)
+              if (!earned.contains(b.id)) b.id,
+          ];
+        },
+        builder: (earned) => BadgesScreen(
+          earned: earned,
+          badges: {...deps.pack.badges, ...levelBadges},
+        ),
       ),
     ),
     GoRoute(
       path: '/badges/:badgeId',
-      redirect: (_, state) =>
-          deps.pack.badges.containsKey(state.pathParameters['badgeId'])
+      redirect: (_, state) => badgeInfo(state.pathParameters['badgeId']) != null
           ? null
           : Paths.badges,
       pageBuilder: (_, state) {
@@ -121,16 +163,25 @@ List<RouteBase> childRoutes(Deps deps) {
         return MotionPage(
           key: state.pageKey,
           arrive: Arrive.zoom,
-          child: BadgeScreen(id: id, badge: deps.pack.badges[id]!),
+          child: BadgeScreen(id: id, badge: badgeInfo(id)!),
         );
       },
     ),
     GoRoute(
       path: Paths.trail,
       builder: (_, _) => Loaded(
-        load: progress.trail,
-        builder: (t) =>
-            t.atTop ? const TrailTopScreen() : TrailScreen(here: t.here),
+        // REW-04: the server's trail (every phone the same), else this
+        // phone's
+        load: () async {
+          final id = deps.account.childId;
+          return (
+            local: await progress.trail(),
+            served: id == null ? null : await rewards.trail(id),
+          );
+        },
+        builder: (t) => (t.served?.atTop ?? t.local.atTop)
+            ? const TrailTopScreen()
+            : TrailScreen(here: t.local.here, served: t.served),
       ),
     ),
     GoRoute(path: Paths.trailTop, builder: (_, _) => const TrailTopScreen()),
@@ -190,4 +241,33 @@ List<RouteBase> childRoutes(Deps deps) {
       ),
     ),
   ];
+}
+
+/// Asks [load] once for this Home, then builds it with the card, or
+/// with none while there is nothing to show.
+class _WithMoment extends StatefulWidget {
+  const _WithMoment({required this.load, required this.builder});
+
+  final Future<HomeMoments> Function() load;
+  final Widget Function(Widget? moment) builder;
+
+  @override
+  State<_WithMoment> createState() => _WithMomentState();
+}
+
+class _WithMomentState extends State<_WithMoment> {
+  late final _moments = widget.load();
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder(
+    future: _moments,
+    builder: (_, snap) {
+      final m = snap.data;
+      return widget.builder(
+        m == null || (m.badge == null && !m.streak)
+            ? null
+            : HomeMomentCard(moments: m),
+      );
+    },
+  );
 }

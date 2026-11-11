@@ -78,7 +78,7 @@ class FamilyRepository {
   }
 
   /// Parent only (ACC-14): only the fields in [changes] change
-  /// (`displayName`, `age`, `schoolYear`). 400 for a name or answer the
+  /// (`displayName`, `age`, `schoolYear`, `avatar`). 400 for a name or answer the
   /// server refuses, 409 when another child already has the name.
   Future<Child> editChild(String id, Map<String, Object?> changes) async =>
       Child.fromJson(

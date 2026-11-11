@@ -8,7 +8,9 @@ import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/aura_text_field.dart';
+import '../../../core/parts/avatar.dart';
 import '../../../core/parts/choice_tile.dart';
+import '../../../core/theme/tokens.dart';
 import '../../setup/views/age_screen.dart' show AgeChip, setupAges;
 import '../../setup/views/year_screen.dart'
     show setupYears, yearLabel, yearValue;
@@ -17,8 +19,9 @@ import 'parts.dart';
 /// The server's longest display name (parent.py).
 const maxChildName = 40;
 
-/// A child's details (ACC-14; no Figma frame yet): first name, age and
-/// school year, from the lists setup uses (`/api/setup/options`). Only
+/// A child's details (ACC-14; no Figma frame yet): first name, their
+/// detective avatar (ACC-12, the DRAFT set), age and school year, from the
+/// lists setup uses (`/api/setup/options`). Only
 /// what changed is sent. The server checks the name (and, before legal
 /// review, that it's a made-up one) and says why it refuses.
 class EditChildScreen extends StatelessWidget {
@@ -61,6 +64,7 @@ class _EditChildState extends State<_EditChild> {
   late final _name = TextEditingController(text: widget.child.name);
   late int? _age = widget.child.age;
   late String? _year = widget.child.schoolYear;
+  late String? _avatar = widget.child.avatar;
   bool _busy = false;
   String? _nameError;
   Object? _error;
@@ -89,6 +93,7 @@ class _EditChildState extends State<_EditChild> {
       if (name != child.name) 'displayName': name,
       if (_age != child.age) 'age': _age,
       if (_year != child.schoolYear) 'schoolYear': _year,
+      if (_avatar != child.avatar) 'avatar': _avatar,
     };
     if (changes.isEmpty) {
       popOr(context, back);
@@ -165,6 +170,13 @@ class _EditChildState extends State<_EditChild> {
             ),
             const SizedBox(height: 12),
           ],
+          SectionLabel(l.guEditAvatar),
+          Text(l.guEditAvatarHint(widget.child.name), style: AuraText.caption),
+          const SizedBox(height: 10),
+          AvatarPicker(
+            selected: _avatar,
+            onPick: (id) => setState(() => _avatar = id),
+          ),
         ],
       ),
       bottom: AuraButton(

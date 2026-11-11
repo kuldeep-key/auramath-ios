@@ -205,6 +205,10 @@ void main() {
       final draft = aarav();
       await show(tester, DataScreen(draft: draft));
       expect(find.text("Aarav's details stay safe"), findsOneWidget);
+      // ACC-10: the processors and Julia's summary, before consent
+      expect(find.textContaining('Gemini'), findsOneWidget);
+      expect(find.textContaining('email service'), findsOneWidget);
+      expect(find.textContaining('weekly summary'), findsOneWidget);
       await tapAndWait(tester, find.text('I agree'));
       expect(draft.agreed, isTrue);
       expect(find.text('went to /setup/save'), findsOneWidget);

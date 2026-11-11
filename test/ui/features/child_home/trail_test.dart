@@ -1,4 +1,5 @@
 import 'package:auramath/data/repositories/progress_repository.dart';
+import 'package:auramath/data/repositories/rewards_repository.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/child_home/views/check_screen.dart';
 import 'package:auramath/ui/features/child_home/views/trail_screen.dart';
@@ -31,6 +32,57 @@ void main() {
     await show(tester, const TrailScreen(here: TrailStop.totalAndDifference));
     expect(find.text('Next stop'), findsNothing);
     expect(find.text('Adding to 1000'), findsNothing);
+  });
+
+  group('REW-04: the trail the server serves', () {
+    final served = RewardsRepository.trailFrom({
+      'stops': [
+        for (final (i, n) in [
+          'Cave',
+          'Bridge',
+          'Lighthouse',
+          'Tower',
+          'Peak',
+        ].indexed)
+          {'id': 'stop-$i', 'name': n, 'skillId': 'cmp.compare-bars'},
+      ],
+      'here': 'stop-2',
+    })!;
+
+    testWidgets('fits every size', (tester) async {
+      await shots(
+        tester,
+        'child_home_trail_served',
+        TrailScreen(here: TrailStop.trees, served: served),
+      );
+    });
+
+    testWidgets('names and place from the server, the next in mist', (
+      tester,
+    ) async {
+      await show(tester, TrailScreen(here: TrailStop.addBig, served: served));
+      expect(find.text('Cave'), findsOneWidget);
+      expect(find.text('Bridge'), findsOneWidget);
+      expect(find.text('Lighthouse'), findsOneWidget);
+      expect(find.text('You are here'), findsOneWidget);
+      expect(find.text('Tower'), findsOneWidget);
+      expect(find.text('Peak'), findsNothing);
+      expect(find.text('Tree cases'), findsNothing);
+    });
+
+    test('read loosely: an index, or nothing usable', () {
+      final t = RewardsRepository.trailFrom({
+        'stops': [
+          {'id': 'a', 'name': 'A'},
+          {'id': 'b', 'name': 'B'},
+        ],
+        'here': 9,
+        'at_top': true,
+      })!;
+      expect((t.here, t.atTop), (1, true));
+      expect(RewardsRepository.trailFrom({'stops': <Object>[]}), isNull);
+      expect(RewardsRepository.trailFrom(null), isNull);
+    });
   });
 
   testWidgets('K2 Keep going opens the next case; home goes home', (

@@ -20,6 +20,7 @@ class HomeScreen extends StatelessWidget {
     this.trail = true,
     this.badges = true,
     this.play = Paths.lessonNext,
+    this.moment,
   });
 
   /// The child's name; null shows the portrait alone.
@@ -36,6 +37,10 @@ class HomeScreen extends StatelessWidget {
 
   /// Where Keep going leads: the next case, or Choose today (LES-14).
   final String play;
+
+  /// What to celebrate on arriving (REW-01's session badge), in place of
+  /// some of the big portrait.
+  final Widget? moment;
 
   @override
   Widget build(BuildContext context) {
@@ -66,9 +71,10 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 32,
+        spacing: moment == null ? 32 : 16,
         children: [
-          const Float(child: Portrait(size: 210)),
+          Float(child: Portrait(size: moment == null ? 210 : 120)),
+          ?moment,
           Ribbon(text: l.readyForNewCase),
         ],
       ),

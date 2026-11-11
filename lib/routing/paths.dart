@@ -84,6 +84,9 @@ abstract final class Paths {
   static const forgotPasscode = '/grown-ups/forgot'; // ForgotPass 653:132
   static const grownUps = '/grown-ups'; // PHome 658:84
   static const settings = '/grown-ups/settings'; // 652:75
+
+  /// How often the report email goes (PAR-06; no Figma frame yet).
+  static const emailFrequency = '/grown-ups/settings/email';
   static const family = '/grown-ups/family'; // 652:213
   static const invite = '/grown-ups/family/invite'; // 652:251
   static const newCode = '/grown-ups/family/new-code'; // NewCode 653:89
@@ -120,6 +123,9 @@ abstract final class Paths {
   static String editChild(String childId) =>
       '/grown-ups/children/$childId/edit';
   static String book(String childId) => '/grown-ups/children/$childId/book';
+
+  /// The last five session notes (PAR-12, flag `recent_notes_in_app`).
+  static String notes(String childId) => '/grown-ups/children/$childId/notes';
   static String plan(String childId) => '/grown-ups/children/$childId/plan';
   static String report(String childId) =>
       '/grown-ups/children/$childId/report'; // R0 667:44

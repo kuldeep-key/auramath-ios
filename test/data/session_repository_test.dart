@@ -40,6 +40,29 @@ void main() {
     await db.close();
   });
 
+  test('the last stopped session and how, for its badge (REW-01)', () async {
+    final db = await memoryOutbox();
+    final repo = SessionRepository(
+      db: db,
+      api: FakeApi(),
+      identity: testIdentity,
+      nowMs: () => 5,
+    );
+    await repo.open();
+    await repo.record('s1', 1, const [step]);
+    expect(repo.lastStop.value, isNull);
+    await repo.record('s1', 2, const [
+      SpecEvent('session_paused', {'reason': 'lock'}),
+    ]);
+    expect(repo.lastStop.value, (sessionId: 's1', reason: 'paused'));
+    await repo.record('s1', 3, const [
+      SpecEvent('session_ended', {'reason': 'time_up'}),
+    ]);
+    expect(repo.lastStop.value, (sessionId: 's1', reason: 'time_up'));
+    repo.dispose();
+    await db.close();
+  });
+
   test('a refused event is reported and the outbox moves on', () async {
     final db = await memoryOutbox();
     final api = FakeApi()..refuse.add('step_entered');
