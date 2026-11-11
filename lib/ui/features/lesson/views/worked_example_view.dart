@@ -66,6 +66,8 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
             line: line,
             onSpeak: () => widget.vm.say(line),
             speaking: widget.vm.voice.speaking,
+            muted: !widget.vm.readAloud,
+            onSound: widget.vm.sound,
             onHome: widget.onHome,
           ),
           const SizedBox(height: 12),
