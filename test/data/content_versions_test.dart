@@ -23,10 +23,7 @@ void main() {
       'scoring.yaml': '{"version":"0.4.0"}',
       'policy.yaml': '{"version":"0.4.0","lines":{"version":"0.4.2"}}',
     };
-    final v = contentVersions(
-      served: (n) => served[n],
-      bundled: bundled(),
-    );
+    final v = contentVersions(served: (n) => served[n], bundled: bundled());
     expect(v['arithmetic'], '0.3.1');
     expect(v['scoring'], '0.4.0');
     expect(v['policy'], '0.4.0');

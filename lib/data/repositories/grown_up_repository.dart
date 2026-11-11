@@ -263,10 +263,22 @@ class LessonPrefs {
 /// The grown-up area's own calls: the family, phones, reports, the plan,
 /// the two rights, and this phone's lesson settings.
 class GrownUpRepository {
-  GrownUpRepository(this._client, this._store);
+  GrownUpRepository(
+    this._client,
+    this._store, {
+    Future<Directory> Function()? documents,
+    Future<Directory> Function()? cache,
+  }) : _documents = documents ?? getApplicationDocumentsDirectory,
+       _cache = cache ?? getTemporaryDirectory;
 
   final ApiClient _client;
   final KeyStore _store;
+
+  /// Where a saved export goes (the Files app can see it).
+  final Future<Directory> Function() _documents;
+
+  /// Where the voice clips are kept ([FileClipPlayer]).
+  final Future<Directory> Function() _cache;
 
   Future<Map<String, Object?>> _get(String path) async =>
       await _client.get(path) as Map<String, Object?>;
@@ -368,9 +380,43 @@ class GrownUpRepository {
   /// file. The download needs the parent token, so it can't be a link.
   Future<File> saveExport(String id) async {
     final json = await _client.get('/api/parent/export-jobs/$id/download');
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/auramath-export-$id.json');
+    final dir = await _documents();
+    final file = File('${dir.path}/$_exportPrefix$id.json');
     return file.writeAsString(jsonEncode(json));
+  }
+
+  static const _exportPrefix = 'auramath-export-';
+
+  /// DEV-06: what this phone kept of the family outside the outbox, gone on
+  /// sign-out and erase: every saved export, the cached voice clips of the
+  /// lessons, and the forgot-passcode marker. A file that can't be deleted
+  /// doesn't stop the rest. Returns how many files went.
+  Future<int> forgetSavedData() async {
+    var gone = 0;
+    Future<void> sweep(Directory dir, bool Function(String name) match) async {
+      if (!await dir.exists()) return;
+      await for (final f in dir.list()) {
+        final name = f.uri.pathSegments.last;
+        if (f is! File || !match(name)) continue;
+        try {
+          await f.delete();
+          gone++;
+        } on FileSystemException {
+          // gone already, or locked: the next sign-out tries again
+        }
+      }
+    }
+
+    await sweep(
+      await _documents(),
+      (n) => n.startsWith(_exportPrefix) && n.endsWith('.json'),
+    );
+    await sweep(
+      await _cache(),
+      (n) => n.startsWith('voice-') && n.endsWith('.mp3'),
+    );
+    await endPasscodeReset();
+    return gone;
   }
 
   /// Erases the whole family, children, lessons and phones (ACC-09).

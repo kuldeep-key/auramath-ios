@@ -108,8 +108,11 @@ List<RouteBase> grownUpRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.signOut,
-      builder: (_, _) =>
-          SignOutScreen(account: deps.account, sessions: deps.sessions),
+      builder: (_, _) => SignOutScreen(
+        account: deps.account,
+        repo: repo,
+        sessions: deps.sessions,
+      ),
     ),
     GoRoute(
       path: '/grown-ups/family/phones/:deviceId/remove',
