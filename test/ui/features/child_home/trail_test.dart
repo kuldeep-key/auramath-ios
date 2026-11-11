@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auramath/data/repositories/progress_repository.dart';
 import 'package:auramath/data/repositories/rewards_repository.dart';
 import 'package:auramath/routing/paths.dart';
@@ -9,6 +11,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers.dart';
 
 void main() {
+  test('FL-51: every stop\'s art is an asset, not code', () {
+    for (final stop in TrailStop.values) {
+      expect(stop.art, startsWith('assets/images/trail_stop_'));
+      expect(File(stop.art).existsSync(), isTrue, reason: stop.art);
+    }
+  });
+
   testWidgets('K2 fits every size', (tester) async {
     await shots(
       tester,

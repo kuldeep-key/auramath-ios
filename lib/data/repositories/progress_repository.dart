@@ -14,16 +14,21 @@ import 'session_repository.dart';
 /// its "shorter" wording (level L5, SKL-10), then question type 2. The
 /// test checks every id is still in the map.
 enum TrailStop {
-  addBig('arith.add-3d-regroup', '➕'),
-  takeAwayBig('arith.sub-3d-regroup', '➖'),
-  trees('cmp.compare-bars', '🌳'),
-  trickyWords('cmp.inconsistent-wording', '🔀'),
-  totalAndDifference('td.total-and-difference', '🍔');
+  addBig('arith.add-3d-regroup', 'add_big'),
+  takeAwayBig('arith.sub-3d-regroup', 'take_away_big'),
+  trees('cmp.compare-bars', 'trees'),
+  trickyWords('cmp.inconsistent-wording', 'tricky_words'),
+  totalAndDifference('td.total-and-difference', 'total_and_difference');
 
-  const TrailStop(this.skillId, this.art);
+  const TrailStop(this.skillId, this._art);
 
   final String skillId;
-  final String art;
+  final String _art;
+
+  /// The stop's picture (REW-04): an asset, so Design's art replaces the
+  /// file, not code. DRAFT art for Design (FL-51), drawn flat in the app's
+  /// palette by `tool/trail_stop_art.py`.
+  String get art => 'assets/images/trail_stop_$_art.png';
 
   /// The stop a problem practises. Level L5 is the "shorter" wording that
   /// needs adding (SKL-10, `cmp.inconsistent-wording`); the rest of the

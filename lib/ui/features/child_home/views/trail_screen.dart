@@ -48,7 +48,7 @@ class TrailScreen extends StatelessWidget {
                         .where((t) => t.skillId == s.skillId)
                         .firstOrNull
                         ?.art ??
-                    '🔍',
+                    TrailStop.trees.art,
               ),
           ];
     final i = served?.here ?? here.index;
@@ -292,7 +292,13 @@ class _Stop extends StatelessWidget {
                   ]
                 : null,
           ),
-          child: Art(art, size: 28),
+          // the stop's DRAFT art, from assets (FL-51)
+          child: Image.asset(
+            art,
+            width: 34,
+            height: 34,
+            excludeFromSemantics: true,
+          ),
         ),
         if (done)
           Positioned(
