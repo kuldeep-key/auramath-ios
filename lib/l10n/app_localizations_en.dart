@@ -1837,4 +1837,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonQuestionBack => 'Back to my work';
+
+  @override
+  String get lessonUndo => 'Undo';
 }

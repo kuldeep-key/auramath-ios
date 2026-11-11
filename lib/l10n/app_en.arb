@@ -664,5 +664,7 @@
   "lessonSeeQuestion": "See the question",
   "@lessonSeeQuestion": {"description": "What a screen reader says on the eye button that opens the whole question (LES-02). Figma: Prototype parts › Question strip."},
   "lessonQuestionBack": "Back to my work",
-  "@lessonQuestionBack": {"description": "DRAFT, for Julia and design (no Figma frame), LES-02: closes the whole question and returns to the same place."}
+  "@lessonQuestionBack": {"description": "DRAFT, for Julia and design (no Figma frame), LES-02: closes the whole question and returns to the same place."},
+  "lessonUndo": "Undo",
+  "@lessonUndo": {"description": "DRAFT, for Julia (LES-15): what a screen reader says on the board's undo key. An undo before a step is checked costs nothing."}
 }

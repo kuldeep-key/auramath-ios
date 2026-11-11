@@ -3237,6 +3237,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to my work'**
   String get lessonQuestionBack;
+
+  /// DRAFT, for Julia (LES-15): what a screen reader says on the board's undo key. An undo before a step is checked costs nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get lessonUndo;
 }
 
 class _AppLocalizationsDelegate

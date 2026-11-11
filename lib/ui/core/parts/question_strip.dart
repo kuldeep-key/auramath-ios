@@ -56,8 +56,9 @@ class QuestionStrip extends StatelessWidget {
             onTap: onSeeQuestion,
             child: PressScale(
               child: Container(
-                width: 44,
-                height: 44,
+                // a child's target: 56 pt (NFR-02)
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: AuraColors.blue,
                   borderRadius: BorderRadius.circular(12),

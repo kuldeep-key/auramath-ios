@@ -86,7 +86,9 @@ Future<void> shotAllSizes(
     await _precacheAssets(tester);
     await tester.pumpAndSettle();
     await _save(tester, '$name@$label');
-    if (label == shotSizes.keys.first) await _accessible(tester);
+    if (label == shotSizes.keys.first) {
+      await _accessible(tester, child: isChildShot(name));
+    }
   }
   tester.view.reset();
 }
@@ -109,10 +111,22 @@ Future<void> _precacheAssets(WidgetTester tester) async {
   );
 }
 
-/// Apple's 44 pt and Android's 48 dp touch targets, a label on everything
-/// tappable, and readable text contrast (WCAG 2.2 AA), at the Figma size.
-Future<void> _accessible(WidgetTester tester) async {
+/// A child's screen: the lesson's and the child's home (NFR-02).
+bool isChildShot(String name) =>
+    name.startsWith('lesson_') || name.startsWith('child_home_');
+
+/// NFR-02: every target on a child's screen is 56 pt or more.
+const childTapTargetGuideline = MinimumTapTargetGuideline(
+  size: Size(56, 56),
+  link: 'spec requirements.yaml NFR-02',
+);
+
+/// Apple's 44 pt and Android's 48 dp touch targets (56 pt on a [child]'s
+/// screen, NFR-02), a label on everything tappable, and readable text
+/// contrast (WCAG 2.2 AA), at the Figma size.
+Future<void> _accessible(WidgetTester tester, {bool child = false}) async {
   final semantics = tester.ensureSemantics();
+  if (child) await expectLater(tester, meetsGuideline(childTapTargetGuideline));
   await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
   await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
   await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));

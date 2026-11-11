@@ -175,16 +175,25 @@ class _BarBoardState extends State<BarBoard> {
 
   /// A drop target that also accepts the tap alternative; [child] is told
   /// when a piece is over it.
-  Widget _zone(_Zone zone, Widget Function(bool hot) child) =>
-      DragTarget<BoardPiece>(
-        onAcceptWithDetails: (d) => _drop(d.data, zone),
-        builder: (context, candidates, _) => GestureDetector(
+  /// A bar takes a tap only while a gap or total can be put on it: then
+  /// it's a target with its name, else just a drawing.
+  Widget _zone(_Zone zone, Widget Function(bool hot) child, {String? label}) {
+    final bar = zone == _Zone.barA || zone == _Zone.barB;
+    final taps =
+        !bar || _stepPiece == BoardPiece.gap || _stepPiece == BoardPiece.total;
+    return DragTarget<BoardPiece>(
+      onAcceptWithDetails: (d) => _drop(d.data, zone),
+      builder: (context, candidates, _) => Semantics(
+        label: taps ? label : null,
+        child: GestureDetector(
           key: Key(zone.name),
           behavior: HitTestBehavior.opaque,
-          onTap: () => _tapZone(zone),
+          onTap: taps ? () => _tapZone(zone) : null,
           child: child(candidates.isNotEmpty),
         ),
-      );
+      ),
+    );
+  }
 
   /// A dashed slot that pulses while its piece is on the way.
   Widget _slot(_Zone zone, String label) => _zone(
@@ -194,6 +203,7 @@ class _BarBoardState extends State<BarBoard> {
       waiting: _armed != null || _dragging || _hinting,
       hot: hot,
     ),
+    label: label,
   );
 
   void _endSizing(double maxH) {
@@ -222,7 +232,7 @@ class _BarBoardState extends State<BarBoard> {
       builder: (context, c) {
         final w = c.maxWidth, h = c.maxHeight;
         final trayH = showTray ? 76.0 : 0.0;
-        final totH = p.ask == Ask.total ? 58.0 : 0.0;
+        final totH = p.ask == Ask.total ? 62.0 : 0.0;
         const capH = 56.0, topH = 40.0;
         final base = trayH + totH + capH;
         final maxH = (h - base - topH).clamp(60.0, double.infinity);
@@ -287,6 +297,7 @@ class _BarBoardState extends State<BarBoard> {
                   _Zone.barA,
                   (_) =>
                       _grown(_cheered(0, const Bar(color: AuraColors.yellow))),
+                  label: p.a.name,
                 ),
               ),
               at(
@@ -343,6 +354,7 @@ class _BarBoardState extends State<BarBoard> {
                       ),
                     ),
                   ),
+                  label: p.b.name,
                 ),
               ),
               if (_step == LessonStep.sizeB)
@@ -375,7 +387,7 @@ class _BarBoardState extends State<BarBoard> {
                 shortX,
                 base + lo,
                 bw,
-                (hi - lo).clamp(30.0, maxH),
+                (hi - lo).clamp(56.0, maxH),
                 _slot(_Zone.gapSlot, '${l.pieceGap}?'),
               ),
             if (s.gapPlaced)
@@ -395,10 +407,13 @@ class _BarBoardState extends State<BarBoard> {
                 height: capH,
                 child: Column(
                   children: [
-                    // Figma's caption: the emoji at 26 / 28.6
-                    Text(
-                      item.pic,
-                      style: const TextStyle(fontSize: 26, height: 1.1),
+                    // Figma's caption: the emoji at 26 / 28.6; a picture
+                    // of the name under it, so not read out
+                    ExcludeSemantics(
+                      child: Text(
+                        item.pic,
+                        style: const TextStyle(fontSize: 26, height: 1.1),
+                      ),
                     ),
                     Text(
                       item.name,
@@ -415,8 +430,8 @@ class _BarBoardState extends State<BarBoard> {
               Positioned(
                 left: xA,
                 width: xB + bw - xA,
-                bottom: trayH + 8,
-                height: 44,
+                bottom: trayH + 4,
+                height: 56,
                 child: _slot(_Zone.totalSlot, '${l.pieceTotal}?'),
               ),
             if (s.totalPlaced)
@@ -478,25 +493,30 @@ class _BarBoardState extends State<BarBoard> {
                       if (s.barB)
                         Positioned(
                           right: 10,
-                          child: GestureDetector(
-                            key: const Key('undo'),
-                            onTap: () => widget.onInput(const Undo()),
-                            child: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: AuraColors.white,
-                                borderRadius: BorderRadius.circular(
-                                  AuraRadii.small,
+                          child: Semantics(
+                            button: true,
+                            label: l.lessonUndo,
+                            child: GestureDetector(
+                              key: const Key('undo'),
+                              onTap: () => widget.onInput(const Undo()),
+                              child: Container(
+                                // a child's target: 56 pt (NFR-02)
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: AuraColors.white,
+                                  borderRadius: BorderRadius.circular(
+                                    AuraRadii.small,
+                                  ),
+                                  border: Border.all(
+                                    color: AuraColors.navy,
+                                    width: 3,
+                                  ),
                                 ),
-                                border: Border.all(
+                                child: const Icon(
+                                  Icons.undo_rounded,
                                   color: AuraColors.navy,
-                                  width: 3,
                                 ),
-                              ),
-                              child: const Icon(
-                                Icons.undo_rounded,
-                                color: AuraColors.navy,
                               ),
                             ),
                           ),

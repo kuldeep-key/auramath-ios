@@ -204,6 +204,8 @@ class _BoardViewState extends State<BoardView> {
               ],
             ),
             TextButton.icon(
+              // a child's target: 56 pt (NFR-02)
+              style: TextButton.styleFrom(minimumSize: const Size(56, 56)),
               onPressed: _help,
               icon: const Icon(Icons.support_rounded),
               label: Text(l.helpMe, style: AuraText.link),
@@ -234,6 +236,10 @@ class _BoardViewState extends State<BoardView> {
                 _AnswerBox(text: _typed, wobbles: vm.wobbles),
                 const SizedBox(width: 8),
                 IconButton.outlined(
+                  constraints: const BoxConstraints.tightFor(
+                    width: 56,
+                    height: 56,
+                  ),
                   onPressed: _help,
                   icon: const Icon(Icons.support_rounded),
                   tooltip: l.helpMe,
