@@ -280,8 +280,8 @@ class SessionRepository {
 
   /// The server's next problem for [sessionId], saved on the phone (a
   /// resume rebuilds it) and added to [pack] for the lesson's screens.
-  /// [level] asks one at that level ("something easier", the starting
-  /// check's placement); else the first problem of a session with a spaced
+  /// [level] asks one at that level (the starting check's placement, or
+  /// the same level again); else the first problem of a session with a spaced
   /// check or re-test due is that check, at its level, shown with `variant:
   /// check` so the server counts it as the check (SKL-06).
   Future<ComparisonProblem> nextProblem(
@@ -289,11 +289,12 @@ class SessionRepository {
     String sessionId, {
     String? level,
   }) async {
-    final check = level == null && _checks.containsKey(sessionId);
-    final checkLevel = _checks[sessionId];
-    // "something easier" (CON-06): the server goes one level below [level]
-    // and serves it with variant easier, which problem_shown echoes
+    // "something easier" (CON-06): asked with no level, the server goes one
+    // below the child's own and serves it with variant easier, which
+    // problem_shown echoes
     final easier = _easier.remove(sessionId);
+    final check = level == null && !easier && _checks.containsKey(sessionId);
+    final checkLevel = easier ? null : _checks[sessionId];
     final j = {
       ...await _api.nextProblem(
         live(sessionId),

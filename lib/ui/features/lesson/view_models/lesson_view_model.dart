@@ -140,8 +140,9 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// The level to ask for with the next problem ("something easier").
   String? _askLevel;
 
-  /// The next problem is "something easier" (CON-06): asked with `easier`,
-  /// one level below [_askLevel], and served as variant easier.
+  /// The next problem is "something easier" (CON-06): asked with `easier`
+  /// and no level, so the server goes one below the child's own and serves
+  /// it as variant easier.
   bool _askEasier = false;
 
   /// Null until the server opened the session.
@@ -1381,9 +1382,10 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// one a level easier than this one, from the server.
   void goTo(String problemId, {bool sameLevel = false}) {
     if (_nextProblem != null) {
-      // something easier: the server goes one level below this one (at the
-      // lowest, its smallest numbers) and says so (variant easier)
-      _askLevel = _problem.level;
+      // something easier: no level, so the server goes one below the
+      // child's own (at the lowest, its smallest numbers) and says so
+      // (variant easier). With a level it serves that level as it is.
+      _askLevel = sameLevel ? _problem.level : null;
       _askEasier = !sameLevel;
       _p = null;
     } else {
