@@ -36,6 +36,9 @@ class HomeMomentsSource {
     ServedBadge? Function(String sessionId)? replied,
     void Function(StreakMoment moment)? onStreak,
   }) async {
+    // one rewards read for this visit, whatever needs it (FL-49)
+    Future<Rewards>? read;
+    Future<Rewards> served(String id) => read ??= rewards.read(id);
     SessionBadge? badge;
     if (lastStop != null && _shownSessions.add(lastStop.sessionId)) {
       badge = (
@@ -43,7 +46,9 @@ class HomeMomentsSource {
         reason: lastStop.reason,
         served:
             replied?.call(lastStop.sessionId) ??
-            await rewards.sessionBadge(lastStop.sessionId, childId: childId),
+            (childId == null
+                ? null
+                : (await served(childId)).sessionBadge(lastStop.sessionId)),
       );
     }
     // REW-05 (flag streak_moment): the server counts the days, in the
@@ -52,7 +57,7 @@ class HomeMomentsSource {
     final today = DateUtils.dateOnly(now ?? DateTime.now());
     var streak = false;
     if (streakOn && childId != null && _streakShownOn != today) {
-      final moment = await rewards.streak(childId);
+      final moment = (await served(childId)).streak;
       streak = moment != null;
       if (moment != null) {
         _streakShownOn = today;

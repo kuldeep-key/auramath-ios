@@ -57,20 +57,17 @@ class RewardsRepository {
     }
   }
 
+  /// The whole rewards answer, read once, for a screen that needs more
+  /// than one part of it (Home's badge and streak, FL-49).
+  Future<Rewards> read(String childId) async =>
+      Rewards(await _rewards(childId));
+
   /// REW-01: the one badge this session earned, whatever way it ended:
   /// the entry of `sessionBadges` for [sessionId]. Null until the server
   /// has the session's log (the phone then shows its own draft name).
   Future<ServedBadge?> sessionBadge(String sessionId, {String? childId}) async {
     if (childId == null) return null;
-    final list = (await _rewards(childId))?['sessionBadges'];
-    return badgeFrom(
-      list is List
-          ? list
-                .whereType<Map>()
-                .where((b) => b['sessionId'] == sessionId)
-                .firstOrNull
-          : null,
-    );
+    return (await read(childId)).sessionBadge(sessionId);
   }
 
   /// REW-04: the comparison question type's stops. Null with none.
@@ -85,7 +82,7 @@ class RewardsRepository {
 
   /// REW-05: today's moment, with its band; null when it doesn't show.
   Future<StreakMoment?> streak(String childId) async =>
-      streakFrom((await _rewards(childId))?['streak']);
+      (await read(childId)).streak;
 
   /// The server's `streak` when today's moment shows; null when it doesn't.
   static StreakMoment? streakFrom(Object? j) {
@@ -154,4 +151,28 @@ class RewardsRepository {
       atTop: atTop,
     );
   }
+}
+
+/// One `GET /api/children/{childId}/rewards` answer, read by part; empty
+/// when nothing was served.
+class Rewards {
+  const Rewards(this._j);
+
+  final Map<Object?, Object?>? _j;
+
+  /// REW-01: the entry of `sessionBadges` for [sessionId].
+  ServedBadge? sessionBadge(String sessionId) {
+    final list = _j?['sessionBadges'];
+    return RewardsRepository.badgeFrom(
+      list is List
+          ? list
+                .whereType<Map>()
+                .where((b) => b['sessionId'] == sessionId)
+                .firstOrNull
+          : null,
+    );
+  }
+
+  /// REW-05: today's moment, or null.
+  StreakMoment? get streak => RewardsRepository.streakFrom(_j?['streak']);
 }

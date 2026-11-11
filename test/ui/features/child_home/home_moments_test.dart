@@ -56,6 +56,32 @@ void main() {
       expect((await m.next(lastStop: null, childId: 'c1')).badge, isNull);
     });
 
+    test('FL-49: the badge and the streak from one rewards read', () async {
+      final (deps, server) = await testDeps();
+      final m = HomeMomentsSource(rewards: RewardsRepository(deps.client));
+      server.on('GET /api/children/c1/rewards', {
+        'sessionBadges': [
+          {
+            'badgeId': 'session.opened',
+            'name': 'Case Opener',
+            'sessionId': 's1',
+          },
+        ],
+        'streak': {'show': true, 'band': '2'},
+      });
+      final moments = await m.next(
+        lastStop: (sessionId: 's1', reason: 'left'),
+        childId: 'c1',
+        streakOn: true,
+      );
+      expect(moments.badge!.served!.name, 'Case Opener');
+      expect(moments.streak, isTrue);
+      expect(
+        server.calls.where((c) => c.$1.endsWith('/rewards')),
+        hasLength(1),
+      );
+    });
+
     test('the badge in the events reply wins, with no rewards read', () async {
       final (m, server) = await source();
       server.on('GET /api/children/c1/rewards', {
