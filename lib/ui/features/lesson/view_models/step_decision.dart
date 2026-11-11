@@ -133,6 +133,22 @@ AiChoice? aiChoice(Map<String, Object?> reply) {
           : null,
     );
   }
+  // TUT-08 (BE-19): a side lesson the server's rules open because the
+  // skill's score dropped (`trigger: score_drop`), whoever decided: the
+  // phone's rules can't see the score, so they never open it themselves
+  if (_trigger(reply, d, help) == 'score_drop' &&
+      (reply['action'] == 'side_lesson' ||
+          (help is Map && help['action'] == 'side_lesson'))) {
+    return (
+      help: 'side_lesson',
+      next: 'continue',
+      sideSkill: switch (help) {
+        {'side_lesson_skill': final String skill} => skill,
+        _ => reply['skill'] as String?,
+      },
+      seenBefore: null,
+    );
+  }
   if (reply['source'] != 'evaluator' || reply['fallbackUsed'] == true) {
     return null;
   }
@@ -163,6 +179,14 @@ AiChoice? aiChoice(Map<String, Object?> reply) {
         : null,
   );
 }
+
+/// What opened a decision's side lesson (`trigger`), on the reply, its
+/// record or its help: `score_drop` (BE-19), or null.
+String? _trigger(Map<String, Object?> reply, Object? d, Object? help) => [
+  reply['trigger'],
+  if (d is Map) d['trigger'],
+  if (help is Map) help['trigger'],
+].whereType<String>().firstOrNull;
 
 /// `solved_at` as epoch ms: the server sends an ISO time or a number.
 int? _ms(Object? at) => switch (at) {

@@ -762,7 +762,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     // paused for the connection or ended: the engine takes no input now
     if (help == null ||
         help == rules ||
-        !_canShow(help, held) ||
+        !_canShow(help, held, ai) ||
         !online ||
         endedByServer) {
       _present(held);
@@ -813,14 +813,17 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   }
 
   /// Whether this app can show [help] for the held step.
-  bool _canShow(String help, _Held held) => switch (help) {
+  bool _canShow(String help, _Held held, AiChoice? ai) => switch (help) {
+    // a sum's side lesson works the step's own sum; one on reading the
+    // story (a score-triggered detour, TUT-08) opens from any board step
     'side_lesson' =>
       held.r.state.step != LessonStep.sideLesson &&
           held.r.state.sideLessons < _pack.maxSideLessons &&
-          const {
-            LessonStep.findB,
-            LessonStep.findTotal,
-          }.contains(held.r.state.step),
+          (!_sideFor(ai?.sideSkill).arithmetic ||
+              const {
+                LessonStep.findB,
+                LessonStep.findTotal,
+              }.contains(held.r.state.step)),
     'read_again' => readAgainPrompt,
     'seen_before' => seenBeforeBridge,
     _ => helpActions.contains(help),
@@ -828,14 +831,11 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
 
   /// The side lesson for the server's skill; with none named, the one the
   /// step's sum needs.
-  SideLesson _sideFor(String? skill) => switch (skill) {
-    'arith.add-3d-regroup' => SideLesson.addWithCarry,
-    'arith.sub-3d-regroup' => SideLesson.takeAcrossTen,
-    _ =>
-      _state.step == LessonStep.findB && _problem.big == BigSide.a
+  SideLesson _sideFor(String? skill) =>
+      sideSkill.entries.where((e) => e.value == skill).firstOrNull?.key ??
+      (_state.step == LessonStep.findB && _problem.big == BigSide.a
           ? SideLesson.takeAcrossTen
-          : SideLesson.addWithCarry,
-  };
+          : SideLesson.addWithCarry);
 
   /// A decision's `next.action`, shown with what the lesson already has.
   /// The child chooses: nothing switches the case on its own.

@@ -135,6 +135,69 @@ void main() {
     expectContract(api.received);
   });
 
+  test('TUT-08 (BE-19): a side lesson the server\'s rules open on a score '
+      'drop shows, though not the evaluator\'s', () {
+    api.decideWith = (_) async => {
+      'action': 'side_lesson',
+      'source': 'rules',
+      'fallbackUsed': false,
+      'trigger': 'score_drop',
+      'decision': {
+        'help': {
+          'action': 'side_lesson',
+          'rung': null,
+          'side_lesson_skill': 'arith.sub-3d-regroup',
+        },
+        'next': {'action': 'continue'},
+        'fallback_used': false,
+      },
+    };
+    lesson((vm, time) {
+      vm.send(const NumberEntered(300)); // the rules: only a line
+      time.flushMicrotasks();
+      expect(vm.state.step, LessonStep.sideLesson);
+      expect(vm.sideLesson, SideLesson.takeAcrossTen);
+      expect(
+        api.received.lastWhere((e) => e.name == 'side_lesson_started').payload,
+        {'skill_id': 'arith.sub-3d-regroup', 'error_type': isA<String>()},
+      );
+    });
+    expectContract(api.received);
+  });
+
+  test('TUT-08: a score-drop detour on reading the story opens its worked '
+      'example from any board step; a plain rules side lesson is not acted '
+      'on', () {
+    expect(
+      aiChoice({
+        'action': 'side_lesson',
+        'source': 'rules',
+        'decision': {
+          'help': {
+            'action': 'side_lesson',
+            'side_lesson_skill': 'cmp.read-relation',
+            'trigger': 'score_drop',
+          },
+        },
+      })?.sideSkill,
+      'cmp.read-relation',
+    );
+    expect(aiChoice({'action': 'side_lesson', 'source': 'rules'}), isNull);
+    api.decideWith = (_) async => {
+      'action': 'side_lesson',
+      'source': 'rules',
+      'trigger': 'score_drop',
+      'skill': 'cmp.read-relation',
+    };
+    lesson((vm, time) {
+      vm.send(const NumberEntered(300));
+      time.flushMicrotasks();
+      expect(vm.state.step, LessonStep.sideLesson);
+      expect(vm.sideLesson, SideLesson.readRelation);
+    });
+    expectContract(api.received);
+  });
+
   test('every help action maps to something on screen', () {
     final seen = <String, Object?>{};
     for (final help in helpActions) {
