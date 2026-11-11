@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import 'fixtures.dart';
 
-/// Julia's files, as the app bundles them (copied from spec pack v0.3.0).
+/// Julia's files, as the app bundles them (copied from spec pack v0.4.0).
 final template = ComparisonTemplate.fromYaml(
   File('../../assets/spec/comparison-two-step.yaml').readAsStringSync(),
 );
@@ -41,6 +41,38 @@ bool regroupsAdd(int x, int y) {
 }
 
 void main() {
+  test('the bundled policy is v0.4.0, with the AI layer\'s drafts', () {
+    expect(policy.version, '0.4.0');
+    expect(policy.lines['line.intro.computer-helper'], contains('AI'));
+    expect(policy.ageWordList?.id, 'draft-2026-11-10');
+    expect(policy.ageWordList?.approved, isFalse);
+    expect(policy.ageWordList?.words, containsAll(['taller', 'bar', 'tree']));
+    expect(policy.forbiddenPhrases, containsAll(['great job', 'friend']));
+    expect(policy.abandonAfterWrongPractice, 3);
+  });
+
+  test("policy question_buttons and Julia's line library (TUT-13)", () {
+    expect(policy.questionButtons['*'], ['line.q.what-now']);
+    expect(policy.questionButtons['size_second_bar'], ['line.q.taller-means']);
+    expect(policy.lines['line.check.again'], 'Check your sum again.');
+    expect(policy.lines['line.q.what-now'], startsWith('What do I do now? | '));
+  });
+
+  test('app-config: the AI timings and the offline clock (NFR-05, SES-04)', () {
+    final c = AppConfig.fromYaml(
+      File('../../assets/spec/app-config.yaml').readAsStringSync(),
+    );
+    expect(c.cueAfterMs, 1000);
+    expect(c.fallbackAfterMs, 4000);
+    expect(c.clockPausesWhileOffline, isTrue);
+    // acted on only when switched on
+    expect(c.flags['ai_decisions'], isFalse);
+    expect(c.flags['self_rating_min_age'], 7);
+    // a pack without the v4 keys keeps the spec's numbers
+    final old = AppConfig.fromYaml('session: {cap_minutes: 30}');
+    expect((old.cueAfterMs, old.fallbackAfterMs), (1000, 4000));
+  });
+
   test('the template reads its five levels and its stories', () {
     expect(template.id, 'cmp.comparison');
     expect(template.version, '0.3.0');

@@ -1,6 +1,8 @@
 import 'package:auramath/deps.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/pairing/views/kids_screen.dart';
+import 'package:auramath/ui/core/parts/ribbon.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../helpers/app_harness.dart';
@@ -34,9 +36,52 @@ void main() {
     expect(find.text('went to ${Paths.home}'), findsOneWidget);
   });
 
-  testWidgets('Grown-ups goes to the grown-up area', (tester) async {
+  testWidgets('one child: no picker, straight to their home (DEV-01)', (
+    tester,
+  ) async {
     final (deps, server) = await setUp(tester);
     server.on(_children, familyJson(['Sam']));
+    await tester.pumpWidget(shotApp(screen(deps)));
+    await tester.pumpAndSettle();
+    expect(deps.account.childId, 'c0');
+    expect(find.text('went to ${Paths.home}'), findsOneWidget);
+  });
+
+  testWidgets('one child already chosen: the picker stays, so Grown-ups '
+      'can be reached from Home', (tester) async {
+    final (deps, server) = await setUp(tester);
+    server.on(_children, familyJson(['Sam']));
+    await tester.runAsync(() => deps.account.chooseChild('c0'));
+    await tester.pumpWidget(shotApp(screen(deps)));
+    await tester.pumpAndSettle();
+    expect(find.text('went to ${Paths.home}'), findsNothing);
+    await tester.tap(find.text('Grown-ups'));
+    await tester.pumpAndSettle();
+    expect(find.text('went to ${Paths.grownUps}'), findsOneWidget);
+  });
+
+  testWidgets('two children show their own chosen avatars (ACC-12)', (
+    tester,
+  ) async {
+    final (deps, server) = await setUp(tester);
+    server.on(_children, {
+      'children': [
+        {'id': 'c0', 'displayName': 'Sam', 'avatar': 'print'},
+        {'id': 'c1', 'displayName': 'Ari', 'avatar': 'key'},
+        {'id': 'c2', 'displayName': 'Jo', 'avatar': 'not-in-this-build'},
+      ],
+    });
+    await loadPortraits(tester);
+    await shotAllSizes(tester, 'pairing_kids_avatars', screen(deps));
+    expect(find.byIcon(Icons.fingerprint_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.key_rounded), findsOneWidget);
+    // one this build doesn't know: the detective picture
+    expect(find.byType(Portrait), findsOneWidget);
+  });
+
+  testWidgets('Grown-ups goes to the grown-up area', (tester) async {
+    final (deps, server) = await setUp(tester);
+    server.on(_children, familyJson(['Sam', 'Ari']));
     await tester.pumpWidget(shotApp(screen(deps)));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Grown-ups'));
@@ -60,7 +105,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text("That didn't work: database is down"), findsOneWidget);
 
-    server.on(_children, familyJson(['Sam']));
+    server.on(_children, familyJson(['Sam', 'Ari']));
     await tester.tap(find.text('Try again'));
     await tester.pumpAndSettle();
     expect(find.text('Sam'), findsOneWidget);

@@ -1,7 +1,7 @@
 # Tutor policy: when help appears, how it escalates, and the rules lines must follow.
 # All values are provisional content (PLAT-03). Changing them needs no app release.
-version: 0.3.0
-updated: 2026-10-09
+version: 0.4.0
+updated: 2026-11-02
 status: provisional
 
 quiet:                          # TUT-07, decision D-06. Order and lines follow Figma journey 16
@@ -37,8 +37,11 @@ side_lessons:                   # TUT-08. The single rule for when a side lesson
       skill_score_below: 40                 # SR-4
       arithmetic_ledger_below: 40           # SR-5
       same_operation_wrong_in_session: 2    # SR-5
+      score_drop_points: 15                 # TUT-08 (M3) DEFAULT, Key's reading: the question type's score fell this far from its best at the level
     over_limit: queue_for_review            # past max_per_session, the skill returns as warm-up practice
+    over_limit_on_step: next_hint_rung      # v4: past the limit, the current step carries on with its normal hint ladder
     one_off_review_days: 14                 # SR-4: one-off errors come back in about two weeks
+  abandon_after_wrong_practice: 3   # TUT-18 (v4): after this many wrong practice sums the side lesson ends kindly and the child returns to the same step with the first hint
   regrouping_layout: >           # TUT-08, following Julia's slide 8 (9 Oct). Figma 11.2 T1 to change (design-map)
     The column of the child's own sum where the slip happened (the ones of 186 - 107), in a hundreds,
     tens and ones chart with the ones drawn as dots, in Julia's four steps: (1) ask, don't tell: "Can we
@@ -55,7 +58,7 @@ side_lessons:                   # TUT-08. The single rule for when a side lesson
                                  # Logged as quick_sum_answered with context side_lesson.
   sources: [ASK-J15, ASK-J16, SR-4, SR-5, VIF-S8-1009]
 
-answer_sheet:                   # LES-05. What a wrong answer on the I-know-it answer sheet leads to. Code decides (D-26)
+answer_sheet:                   # LES-05. What a wrong answer on the I-know-it answer sheet leads to. Fixed routing: the evaluator names the mistake type, these rules route it (v4)
   order: >                      # Julia, Figma journey 12 (9 Oct): "Before drawing, try to determine where the error is."
     1. A wrong total that equals the unknown: ask_question_again. If the next total is also wrong, the fig tree
        is known to be right, so the total_after_unknown rules apply (step 4).
@@ -89,7 +92,7 @@ answer_sheet:                   # LES-05. What a wrong answer on the I-know-it a
   charge: >
     Each wrong answer is recorded (SKL-08) with its stage and error type, and scored as a wrong answer.
     Credit for knowing the steps (a wrong total, then a fig tree that shows the right method with a slip)
-    comes with arithmetic scored apart from the drawing (SKL-03, M2+).
+    comes with arithmetic scored apart from the drawing (SKL-03, M3).
   sources: [VIF-S9-1009, FIGMA-C-1009, ASK-J47, FLOW-12-15]
 
 help_menu:                      # TUT-03, Figma H0 ("How can I help? Pick one.")
@@ -133,19 +136,56 @@ question_buttons:               # TUT-13 (D-01): tap-to-ask buttons per step; an
     choose_operation: [line.q.add-or-take]
   rule: An answer explains a word or points back to the drawing; it never says which bar is longer or what the answer is.
 
-story_generation:               # CON-08 (D-26): AI proposes story pieces offline; code renders the sentence
-  model_outputs: [object_a, object_b, kind, plural, unit, quantity, comparison_word]   # kind = the shared noun, e.g. tree, building
-  checks: [age_word_list, plausible_numbers_for_objects, safe_content, no_brands, names_from_fixed_list_only, no_duplicates]
-  age_word_list: TBD            # drafted by Key from Julia's materials and NSW Stage 1-2 texts; Julia sees it in CON-09
-  in_session_model_calls: none
-  this_term: AI writes height stories only. Weights this term are Julia's bowl and mug with new numbers (CON-11, frames_by_quantity.mass); AI weight stories and other quantities next term
+story_generation:               # CON-08 (v4, D-34): the generator writes problems live within the template's limits
+  model_outputs: [object_a, object_b, kind, plural, unit, quantity, comparison_word, A, D, relation]   # structured fields only
+  expected_values: computed_by_code   # the unknown and the total are computed by the CON-01 verifier from A, D and relation; any value the model supplies is checked against them
+  checks: [numbers_in_level_range, regrouping_as_level_requires, expected_values_consistent, age_word_list, safe_content, no_brands, names_from_fixed_list_only, no_duplicates]
+  on_fail: regenerate_once_then_code_generator
+  age_word_list:                # CON-08. DRAFT for Julia (CON-09): words a hint the generator writes may use, ages 6 to 10
+    id: draft-2026-11-10
+    status: draft
+    approved: false             # Julia validates it (CON-09); with flags.real_families on an unapproved list is refused (CON-04)
+    note: >
+      Key's draft from Julia's hint lines, the NSW Stage 1 and 2 maths vocabulary and the template's own
+      words: function words, comparison and bar-model words, adding and taking away. The kind's object
+      names and unit are allowed on top (services/problem_gen.py). Hints are served only while every word
+      is on the list; add or strike words here.
+    words: [a, an, the, and, or, but, so, if, then, than, that, this, these, those, it, its, is, are, was, were, be, been, am, do, does, did, has, have, had, can, could, will, would, should, may, might, must, not, "no", "yes", there, here, i, you, we, they, he, she, me, us, them, my, your, our, their, his, her, one, ones, both, each, every, all, some, any, more, most, less, least, other, another, same, what, which, who, where, when, why, how, much, many, tall, taller, tallest, short, shorter, shortest, long, longer, longest, big, bigger, small, smaller, high, higher, low, lower, heavy, heavier, heaviest, light, lighter, lightest, height, weight, size, length, far, near, close, equal, different, difference, gap, between, add, added, adding, plus, take, taking, away, subtract, minus, total, altogether, together, sum, sums, number, numbers, count, counting, answer, find, found, work, out, check, again, first, next, last, before, after, part, parts, whole, half, double, tens, hundreds, ten, hundred, column, columns, carry, regroup, trade, swap, bar, bars, model, draw, drew, drawing, picture, line, lines, box, boxes, label, end, ends, start, top, bottom, side, left, right, up, down, across, over, under, above, below, beside, middle, inside, outside, story, question, problem, case, word, words, read, look, see, show, shows, tell, tells, say, says, mean, means, know, think, try, put, make, made, use, move, moves, stack, go, goes, get, gets, give, gives, need, needs, want, help, keep, takes, finds, ask, asks, grow, grows, reach, reaches, stand, stands, weigh, weighs, measure, measured, tree, trees, plant, plants, thing, things, cm, centimetres, metre, metres, gram, grams, kilogram, kilograms, now, still, yet, already, just, only, also, too, very, at, by, for, in, of, to, with, from, "on", "off", into, onto, about, around, good, nearly, new, pick, choose, two, three, four, five, six, seven, eight, nine, grown, hand, let's, watch, solve, solved, solving, cases, maths, math, colour, colours, way, tried, something, sentence, write, type, tap, drag]
+  word_list_sent_as: word_list_id   # the server sends a word-list id and short_lines on/off to the generator, never the child's age (PRV-01)
+  short_lines_for_ages: [6, 7]  # TUT-14 (v4): Julia, 26 Oct, shorter words for 6-year-olds
 
-model:                          # TUT-01, TUT-11. NEXT TERM: no model is called in a child's session this term (D-26)
-  role: reword_approved_line_only   # next term, behind evals
-  timeout_ms: 700               # next term; legacy NFR-02; re-measure from Australia (legacy NFR-03)
-  on_timeout: use_library_line_silently
-  never_sends: [child_name, child_id, family_id, free_text]
-  sources: [LEG-TUT-01, LEG-TUT-09, LEG-NFR-02, LEG-ONB-04]
+model:                          # TUT-01, AI-01 to AI-06 (v4, D-34). Values provisional; Vishal confirms with D-50
+  roles: [evaluate_step, evaluate_problem, choose_help, choose_next, generate_problem, phrase_line_within_pattern]
+  timeout_ms: 4000              # fallback point (NFR-05); see content/app-config.yaml ai
+  on_timeout: rules_default
+  on_invalid_or_out_of_bounds: rules_default_and_flag
+  confidence: recorded_only     # recorded on every decision; a threshold may be set once calibrated on the golden set
+  never_sends: [child_name, date_of_birth, age, school, family_contact, account_id, device_id, any_stable_id, free_text, audio]   # PRV-01
+  sends: [session_token, problem, step, child_action, phone_verdict, timings, help_used, detours_so_far, backgrounded, read_aloud_used, learning_state]   # AI-03
+  decision_bounds:              # AI-04: what the evaluator may and may not change at each point
+    answer_sheet_routing: fixed_by_policy      # answer_sheet below; the evaluator only names the mistake type
+    level_up: only_when_move_up_gate_met       # scoring.yaml move_up
+    level_down: only_by_level_change_rule      # scoring.yaml selector.level_change (D-31)
+    side_lessons: within_side_lessons_limits   # side_lessons below
+    hint_rungs: within_hint_ladder             # hint_ladder below
+    never: [show_answer, show_red, skip_a_step_the_template_requires]
+  sources: [STAND-1028, HARD-1028, PM-1102]
+
+case_partner_intro:             # AI-07 (P0, R1), flags.case_partner_intro. DRAFT script for Julia: every line approved: false
+  status: draft                 # Key's wording until Julia approves it (CON-04, CON-09)
+  when: first_lesson            # the first lesson, with the grown-up present (Gherkin ai_and_online.feature, AI-07)
+  grown_up_present: true        # the app asks the grown-up to sit with the child for this scene
+  script:                       # in order; each id is a line in lines.pack
+    - line.intro.hello
+    - line.intro.computer-helper
+    - line.intro.team-rules
+    - line.intro.can-slip
+    - line.intro.grown-up-sees
+    - line.intro.help-you-think
+  reminder: line.intro.reminder   # "it repeats this at natural breaks"
+  reminder_at: [session_start_after_first, side_lesson_ended]   # draft: the natural breaks, for Julia and Apoorv
+  never: [calls_itself_a_friend, claims_feelings, guilt_to_keep_playing]   # enforced by lines.forbidden_phrases
+  sources: [MARKET-1027, KUSH-1027]
 
 lines:
   rules:
@@ -162,6 +202,23 @@ lines:
     - "not quite"
     - "wrong"
     - "correct"
+    # AI-07 (P0): the case partner never calls itself a friend, never claims feelings and never uses
+    # guilt to keep the child playing. The three the PRD names, then close variants (drafted, Julia sees them)
+    - "friend"
+    - "friends"
+    - "best friend"
+    - "buddy"
+    - "i missed you"
+    - "missed you"
+    - "miss you"
+    - "i love"
+    - "love you"
+    - "i feel sad"
+    - "makes me sad"
+    - "i'll be sad"
+    - "i'll be lonely"
+    - "don't leave me"
+    - "don't go"
   # Lines sourced to ASK-J42 and ASK-J47 are Julia's own words (2 Oct slides). Lines sourced to FLOW-*
   # are as written on the Figma screens. Lines marked drafted are ours. All need Julia's approval.
   pack:                         # approved: false until Julia approves the pack (CON-04)
@@ -192,6 +249,15 @@ lines:
     - {id: line.q.taller-means,               text: "What does taller mean? | Taller means it reaches higher. Show the taller {kind} with a longer bar.", source: ASK-J47, approved: false, drafted: true, variants: {mass: "What does more mean? | More means it is heavier. Show the heavier one with a longer bar."}}
     - {id: line.q.what-is-gap,                text: "What is the gap? | The gap is how much more one bar is than the other.", source: PM-1008, approved: false, drafted: true}
     - {id: line.q.add-or-take,                text: "Add or take away? | Look at your bars. Is the bar you need longer or shorter?", source: PM-1008, approved: false, drafted: true}
+    # AI-07: the case partner's first-meeting script (case_partner_intro). DRAFT for Julia: our wording, warm and
+    # plain for ages 6 to 10; each line needs her approval (CON-04) before a real family hears it
+    - {id: line.intro.hello,                  text: "Hi! I'm your case partner. We solve maths cases together.", source: KUSH-1027, approved: false, drafted: true, note: "DRAFT for Julia (AI-07)"}
+    - {id: line.intro.computer-helper,        text: "I'm a computer helper, an AI. I'm not a person.",             source: KUSH-1027, approved: false, drafted: true, note: "DRAFT for Julia (AI-07): says it is a computer helper and an AI"}
+    - {id: line.intro.team-rules,             text: "Teachers wrote the rules I follow.",                         source: KUSH-1027, approved: false, drafted: true, note: "DRAFT for Julia (AI-07): 'Julia's team wrote its rules'; name Julia here if she wants"}
+    - {id: line.intro.can-slip,               text: "I can make mistakes too. If I seem mixed up, tell your grown-up.", source: KUSH-1027, approved: false, drafted: true, note: "DRAFT for Julia (AI-07): says it can make mistakes"}
+    - {id: line.intro.grown-up-sees,          text: "Your grown-up can see your work.",                           source: KUSH-1027, approved: false, drafted: true, note: "DRAFT for Julia (AI-07)"}
+    - {id: line.intro.help-you-think,         text: "I'm here to help you think. You do the solving!",             source: KUSH-1027, approved: false, drafted: true, note: "DRAFT for Julia (AI-07)"}
+    - {id: line.intro.reminder,               text: "Remember, I'm a computer helper. Your grown-up can see your work.", source: KUSH-1027, approved: false, drafted: true, note: "DRAFT for Julia (AI-07): said again at natural breaks"}
   # Lines drawn on Figma screens that are not in the pack yet. Each needs a pack line (and Julia's
   # approval) or a design change before it can be built (TUT-11). Listed for Apoorv; not loaded by the app.
   figma_lines_to_reconcile:

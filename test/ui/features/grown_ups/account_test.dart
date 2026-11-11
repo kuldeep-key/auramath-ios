@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:auramath/data/repositories/account_repository.dart';
+import 'package:auramath/data/repositories/partner_intro_repository.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/grown_ups/views/add_child_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/consent_screens.dart';
@@ -103,7 +106,7 @@ void main() {
       await tester.tap(find.text('Yes please'));
       await tester.pumpAndSettle();
       expect(g.bodyOf('PUT /api/family/settings/reports'), {
-        'frequency': 'each_session',
+        'frequency': 'each',
       });
       expect(find.text('went to ${Paths.grownUps}'), findsOneWidget);
     });
@@ -127,16 +130,42 @@ void main() {
       await tester.runAsync(() async {
         await g.deps.account.chooseChild('child-1');
         await sessions.record('s1', 1, const [_step]);
+        File(
+          '${g.documents.path}/auramath-export-j1.json',
+        ).writeAsStringSync('{}');
+        File('${g.documents.path}/notes.txt').writeAsStringSync('not ours');
+        File('${g.cache.path}/voice-ab.mp3').writeAsBytesSync([1]);
+        await g.repo.startPasscodeReset('old');
+        await PartnerIntroRepository(g.store).markMet('child-1');
       });
       await shotAllSizes(
         tester,
         'grown_ups_sign_out',
-        SignOutScreen(account: g.deps.account, sessions: sessions),
+        SignOutScreen(
+          account: g.deps.account,
+          repo: g.repo,
+          sessions: sessions,
+        ),
       );
       await _tapReal(tester, find.text('Sign out'));
       expect(g.deps.account.role, Role.none);
       expect(g.deps.account.childId, isNull);
       expect(await tester.runAsync(g.deps.outbox.all), isEmpty);
+      // DEV-06: the saved export and the clips are gone, nothing else
+      expect(
+        [
+          for (final d in [g.documents, g.cache])
+            for (final f in d.listSync()) f.uri.pathSegments.last,
+        ],
+        ['notes.txt'],
+      );
+      expect(g.store.values['passcodeReset'], isNull);
+      expect(
+        await tester.runAsync(
+          () => PartnerIntroRepository(g.store).met('child-1'),
+        ),
+        isFalse,
+      );
       expect(find.text('went to ${Paths.open}'), findsOneWidget);
     });
 
@@ -148,7 +177,13 @@ void main() {
         await sessions.record('s1', 1, const [_step]);
       });
       await tester.pumpWidget(
-        shotApp(SignOutScreen(account: g.deps.account, sessions: sessions)),
+        shotApp(
+          SignOutScreen(
+            account: g.deps.account,
+            repo: g.repo,
+            sessions: sessions,
+          ),
+        ),
       );
       await _tapReal(tester, find.text('Sign out'));
       expect(
@@ -238,9 +273,12 @@ void main() {
     ) async {
       final g = await Gu.make(tester);
       g.server.on('POST /api/parent/erase', {'erased': {}});
-      await tester.runAsync(
-        () => g.deps.sessions.record('s1', 1, const [_step]),
-      );
+      await tester.runAsync(() async {
+        await g.deps.sessions.record('s1', 1, const [_step]);
+        File(
+          '${g.documents.path}/auramath-export-j1.json',
+        ).writeAsStringSync('{}');
+      });
       final delete = DeleteAccountScreen(
         account: g.deps.account,
         repo: g.repo,
@@ -252,6 +290,7 @@ void main() {
       expect(g.calls, contains('POST /api/parent/erase'));
       expect(g.deps.account.role, Role.none);
       expect(await tester.runAsync(g.deps.outbox.all), isEmpty);
+      expect(g.documents.listSync(), isEmpty); // DEV-06
       expect(find.text('went to ${Paths.open}'), findsOneWidget);
     });
 

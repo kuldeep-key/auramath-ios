@@ -46,6 +46,23 @@ void main() {
     );
   });
 
+  testWidgets('DAT-03: Y4 hands on the badge it sent, once; none without Y4', (
+    tester,
+  ) async {
+    final shared = <String>[];
+    await show(
+      tester,
+      AfterCaseScreen(
+        after: after(sentBadge: 'tree'),
+        onShared: shared.add,
+      ),
+    );
+    await tester.pump();
+    expect(shared, ['tree']);
+    await show(tester, AfterCaseScreen(after: after(), onShared: shared.add));
+    expect(shared, ['tree']);
+  });
+
   testWidgets('Y4, Streak and Up come first, in that order, then X1', (
     tester,
   ) async {

@@ -47,6 +47,9 @@ class Flags extends ChangeNotifier {
       a as int,
   ];
 
+  /// `self_rating_min_age` (AI-08): the youngest child offered the faces.
+  int get selfRatingMinAge => _values['self_rating_min_age'] as int? ?? 7;
+
   /// The flags this phone last saw, if any.
   Future<void> load() async {
     final saved = await _store.read('flags');

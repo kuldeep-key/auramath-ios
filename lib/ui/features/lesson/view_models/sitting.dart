@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../../../data/services/key_store.dart';
+import 'repeat_triggers.dart';
 
 /// The child's active lesson time today, across problems and launches, for
 /// the cap in app-config `session.cap_minutes` (SES-01). Never shown to the
@@ -15,6 +16,12 @@ class Sitting {
       _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch);
 
   final int maxCapMs;
+
+  /// Mistakes that come back across this sitting's problems (TUT-08).
+  final repeats = RepeatTriggers();
+
+  /// The Sound screen was shown this sitting (NFR-06, journey 20): once.
+  bool soundAsked = false;
   int capMs;
   final KeyStore? store;
   final int Function() _now;

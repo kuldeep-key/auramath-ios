@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:auramath/ui/core/parts/aura_button.dart';
 import 'package:auramath/ui/core/parts/keypad.dart';
 import 'package:auramath/ui/core/theme/app_theme.dart';
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -81,6 +82,34 @@ void main() {
       for (final MapEntry(:key, :value) in child.entries)
         // "No score." says there isn't one
         if (score.hasMatch(value.replaceAll('No score.', ''))) key: value,
+    }, isEmpty);
+  });
+
+  test('draft child copy avoids policy forbidden_phrases, and AI-07\'s: '
+      'no friend, no feelings, no guilt', () {
+    final policy = Policy.fromYaml(
+      File('assets/spec/policy.yaml').readAsStringSync(),
+    );
+    final forbidden = [
+      ...policy.forbiddenPhrases,
+      // AI-07 (spec ai_and_online.feature @AI-07)
+      'sad without',
+    ];
+    expect(forbidden, containsAll(['great job', 'try again', 'wrong']));
+    final arb =
+        jsonDecode(File('lib/l10n/app_en.arb').readAsStringSync())
+            as Map<String, Object?>;
+    final drafts = {
+      for (final MapEntry(:key, :value) in arb.entries)
+        if (!key.startsWith('@') &&
+            '${(arb['@$key'] as Map?)?['description']}'.startsWith('DRAFT'))
+          key: '$value'.toLowerCase(),
+    };
+    expect(drafts, isNotEmpty);
+    expect({
+      for (final MapEntry(:key, :value) in drafts.entries)
+        for (final f in forbidden)
+          if (value.contains(f)) key: f,
     }, isEmpty);
   });
 }

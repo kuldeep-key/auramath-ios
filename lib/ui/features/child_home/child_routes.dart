@@ -1,16 +1,24 @@
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/repositories/account_repository.dart';
+import '../../../data/repositories/partner_intro_repository.dart';
 import '../../../data/repositories/progress_repository.dart';
+import '../../../data/repositories/rewards_repository.dart';
 import '../../../data/models/lesson_event.dart';
+import '../../../data/services/api.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
 import 'views/after_case_screen.dart';
 import 'views/badge_screen.dart';
 import 'views/badges_screen.dart';
 import 'views/check_screen.dart';
+import 'views/choose_today_screen.dart';
+import 'views/home_moments.dart';
 import 'views/home_screen.dart';
+import 'views/meet_partner_screen.dart';
+import 'views/pick_avatar_screen.dart';
 import 'views/loaded.dart';
 import 'views/trail_screen.dart';
 import 'views/trail_top_screen.dart';
@@ -36,6 +44,13 @@ List<RouteBase> childRoutes(Deps deps) {
     account: deps.account,
   );
 
+  final rewards = RewardsRepository(deps.client);
+
+  /// REW-06: the level badges last served, by id, for the badge's own screen.
+  final levelBadges = <String, BadgeInfo>{};
+  BadgeInfo? badgeInfo(String? id) => deps.pack.badges[id] ?? levelBadges[id];
+  final moments = HomeMomentsSource(rewards: rewards);
+
   Widget named(Widget Function(String? name) screen) => FutureBuilder(
     initialData: progress.cachedName,
     future: progress.childName(),
@@ -51,15 +66,43 @@ List<RouteBase> childRoutes(Deps deps) {
         key: s.pageKey,
         arrive: Arrive.fade,
         child: named(
-          (name) => ListenableBuilder(
-            listenable: deps.flags,
-            builder: (_, _) => HomeScreen(
-              name: name,
-              grownUps: deps.account.role == Role.device
-                  ? Paths.signIn
-                  : Paths.kids,
-              trail: deps.flags.on('trail'),
-              badges: deps.flags.on('mastery_badges'),
+          (name) => _WithMoment(
+            // REW-01: the badge of the session that just stopped, whatever
+            // way it stopped, not behind mastery_badges; REW-05's streak
+            // moment behind streak_moment
+            load: () => moments.next(
+              lastStop: deps.sessions.lastStop.value,
+              childId: deps.account.childId,
+              replied: (id) => switch (deps.sessions.badgeFor(id)) {
+                final b? => (id: b.badgeId, name: b.name, says: null),
+                null => null,
+              },
+              streakOn: deps.flags.on('streak_moment'),
+              // DAT-03: logged after the child's last lesson
+              onStreak: (m) => deps.sessions.recordAfterLesson(
+                deps.account.childId,
+                SpecEvent('streak_moment_shown', {
+                  'consecutive_days_band': m.band,
+                  if (m.coveredMissedDay) 'covered_missed_day': true,
+                }),
+              ),
+            ),
+            builder: (moment) => ListenableBuilder(
+              listenable: deps.flags,
+              builder: (_, _) => HomeScreen(
+                name: name,
+                grownUps: deps.account.role == Role.device
+                    ? Paths.signIn
+                    : Paths.kids,
+                trail: deps.flags.on('trail'),
+                badges: deps.flags.on('mastery_badges'),
+                moment: moment,
+                avatar: progress.cachedAvatar,
+                // Choose today first, with Quick sums on (LES-14)
+                play: deps.flags.on('quick_sums')
+                    ? Paths.chooseToday
+                    : Paths.lessonNext,
+              ),
             ),
           ),
         ),
@@ -70,7 +113,13 @@ List<RouteBase> childRoutes(Deps deps) {
       pageBuilder: (_, s) => MotionPage(
         key: s.pageKey,
         arrive: Arrive.fade,
-        child: named((name) => WelcomeBackScreen(name: name)),
+        child: named(
+          (name) => WelcomeBackScreen(
+            name: name,
+            caseWaiting: progress.caseWaiting,
+            chooseToday: deps.flags.on('quick_sums'),
+          ),
+        ),
       ),
     ),
     GoRoute(
@@ -92,15 +141,36 @@ List<RouteBase> childRoutes(Deps deps) {
     GoRoute(
       path: Paths.badges,
       builder: (_, _) => Loaded(
-        load: progress.earnedBadges,
-        builder: (earned) =>
-            BadgesScreen(earned: earned, badges: deps.pack.badges),
+        // the case badges earned on this phone, then (REW-06, behind
+        // mastery_badges like the screen) the level badges the server
+        // says were earned; only earned ones are ever served
+        load: () async {
+          final earned = await progress.earnedBadges();
+          final id = deps.account.childId;
+          final levels = id == null
+              ? const <ServedBadge>[]
+              : await rewards.levelBadges(id);
+          levelBadges
+            ..clear()
+            ..addAll({
+              for (final b in levels)
+                b.id: BadgeInfo(name: b.name, says: b.says ?? b.name),
+            });
+          return [
+            ...earned,
+            for (final b in levels)
+              if (!earned.contains(b.id)) b.id,
+          ];
+        },
+        builder: (earned) => BadgesScreen(
+          earned: earned,
+          badges: {...deps.pack.badges, ...levelBadges},
+        ),
       ),
     ),
     GoRoute(
       path: '/badges/:badgeId',
-      redirect: (_, state) =>
-          deps.pack.badges.containsKey(state.pathParameters['badgeId'])
+      redirect: (_, state) => badgeInfo(state.pathParameters['badgeId']) != null
           ? null
           : Paths.badges,
       pageBuilder: (_, state) {
@@ -108,20 +178,82 @@ List<RouteBase> childRoutes(Deps deps) {
         return MotionPage(
           key: state.pageKey,
           arrive: Arrive.zoom,
-          child: BadgeScreen(id: id, badge: deps.pack.badges[id]!),
+          child: BadgeScreen(id: id, badge: badgeInfo(id)!),
         );
       },
     ),
     GoRoute(
       path: Paths.trail,
       builder: (_, _) => Loaded(
-        load: progress.trail,
-        builder: (t) =>
-            t.atTop ? const TrailTopScreen() : TrailScreen(here: t.here),
+        // REW-04: the server's trail (every phone the same), else this
+        // phone's
+        load: () async {
+          final id = deps.account.childId;
+          return (
+            local: await progress.trail(),
+            served: id == null ? null : await rewards.trail(id),
+          );
+        },
+        builder: (t) => (t.served?.atTop ?? t.local.atTop)
+            ? const TrailTopScreen()
+            : TrailScreen(here: t.local.here, served: t.served),
       ),
     ),
     GoRoute(path: Paths.trailTop, builder: (_, _) => const TrailTopScreen()),
+    GoRoute(
+      path: Paths.avatar,
+      pageBuilder: (_, s) => MotionPage(
+        key: s.pageKey,
+        arrive: Arrive.rise,
+        child: PickAvatarScreen(
+          current: progress.cachedAvatar,
+          // ACC-12: the child's own phone uses its device token's route
+          // (BE-20); a grown-up's phone edits the child as ever
+          onSave: (avatar) async {
+            final id = deps.account.childId;
+            if (id == null) return;
+            if (deps.account.role == Role.device) {
+              await deps.family.setAvatar(id, avatar);
+            } else {
+              await deps.family.editChild(id, {'avatar': avatar});
+            }
+            progress.avatarPicked(avatar);
+            // DAT-03, ACC-12
+            await deps.sessions.recordAfterLesson(
+              id,
+              SpecEvent('avatar_chosen', {'avatar_id': avatar}),
+            );
+          },
+        ),
+      ),
+    ),
     GoRoute(path: Paths.check, builder: (_, _) => const CheckScreen()),
+    GoRoute(
+      path: Paths.chooseToday,
+      redirect: (_, _) => deps.flags.on('quick_sums') ? null : Paths.lessonNext,
+      pageBuilder: (_, s) => MotionPage(
+        key: s.pageKey,
+        arrive: Arrive.fade,
+        // the selector's suggestion from the last session opened (LES-14)
+        child: ChooseTodayScreen(
+          suggestQuickSums: suggestsQuickSums(deps.sessions.lastSuggestion),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: Paths.meetPartner,
+      builder: (context, _) => MeetPartnerScreen(
+        served: PartnerIntroRepository.lines(deps.pack.policyLines, const []),
+        readAloud: deps.flags.on('read_aloud'),
+        onSay: deps.voice.say,
+        onStart: () async {
+          await PartnerIntroRepository(
+            deps.store,
+          ).markMet(deps.account.childId);
+          if (context.mounted) context.go(Paths.lessonNext);
+        },
+      ),
+    ),
     GoRoute(
       path: Paths.afterCase,
       redirect: (_, state) =>
@@ -149,9 +281,43 @@ List<RouteBase> childRoutes(Deps deps) {
               streak: deps.flags.on('three_in_a_row') && a.streak,
               opened: deps.flags.on('trail') ? a.opened : null,
             ),
+            // DAT-03: Y4 says the badge went to the grown-up
+            onShared: (badge) => deps.sessions.recordAfterLesson(
+              deps.account.childId,
+              SpecEvent('badge_shared', {'badge_id': badge, 'shared': true}),
+            ),
           ),
         ),
       ),
     ),
   ];
+}
+
+/// Asks [load] once for this Home, then builds it with the card, or
+/// with none while there is nothing to show.
+class _WithMoment extends StatefulWidget {
+  const _WithMoment({required this.load, required this.builder});
+
+  final Future<HomeMoments> Function() load;
+  final Widget Function(Widget? moment) builder;
+
+  @override
+  State<_WithMoment> createState() => _WithMomentState();
+}
+
+class _WithMomentState extends State<_WithMoment> {
+  late final _moments = widget.load();
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder(
+    future: _moments,
+    builder: (_, snap) {
+      final m = snap.data;
+      return widget.builder(
+        m == null || (m.badge == null && !m.streak)
+            ? null
+            : HomeMomentCard(moments: m),
+      );
+    },
+  );
 }

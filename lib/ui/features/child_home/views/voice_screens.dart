@@ -89,6 +89,7 @@ class _Notice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AuraPage(
+    say: '$title $body',
     body: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 18,

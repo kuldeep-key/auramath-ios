@@ -5,6 +5,7 @@ import '../deps.dart';
 import '../ui/features/child_home/child_routes.dart';
 import '../ui/features/grown_ups/grown_up_routes.dart';
 import '../ui/features/pairing/pairing_routes.dart';
+import '../ui/features/quick_sums/quick_sums_routes.dart';
 import '../ui/features/setup/setup_routes.dart';
 import 'lesson_route.dart';
 import 'redirect.dart';
@@ -37,6 +38,7 @@ GoRouter buildRouter(Deps deps, {String? initialLocation}) => GoRouter(
     ...childRoutes(deps),
     ...grownUpRoutes(deps),
     ...lessonRoutes(deps),
+    ...quickSumsRoutes(deps),
   ],
 );
 

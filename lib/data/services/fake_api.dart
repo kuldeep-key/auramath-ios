@@ -36,8 +36,24 @@ class FakeApi implements Api {
       retestDueAt: retestDueAt,
       startingCheckDue: startingCheckDue,
       leftProblem: leftProblem,
+      reviewDue: reviewDue,
+      sittingId: sittingId ?? id,
+      todaySuggestion: todaySuggestion,
+      welcomeBack: welcomeBack,
     );
   }
+
+  /// SES-07: back on a later day, as every session says.
+  WelcomeBack? welcomeBack;
+
+  /// LES-14: the selector's suggestion, as every session says.
+  TodaySuggestion? todaySuggestion;
+
+  /// TUT-08's review queue, as every session says.
+  List<Map<String, Object?>> reviewDue = const [];
+
+  /// The sitting every session belongs to; null: its own.
+  String? sittingId;
 
   String childRef = 'ch_test1234';
 
@@ -58,23 +74,31 @@ class FakeApi implements Api {
   final List<Map<String, Object?>> problems = [];
   final List<(String, String?)> asked = [];
 
+  /// The sessions whose ask said `easier: true`, in order.
+  final List<String> askedEasier = [];
+
   @override
   Future<Map<String, Object?>> nextProblem(
     String sessionId, {
     String? level,
+    bool easier = false,
+    String? templateId,
   }) async {
     if (failNext > 0) {
       failNext--;
       throw const ApiException('offline');
     }
     asked.add((sessionId, level));
+    if (easier) askedEasier.add(sessionId);
     if (problems.isEmpty) throw const ApiException('no problem', status: 409);
     return problems.removeAt(0);
   }
 
   /// Every decision asked for; the server's rules answer with the app's
-  /// own default, as dev does while the AI is off.
+  /// own default, as dev does while the AI is off, unless [decideWith]
+  /// answers instead (late, failing, or the evaluator's own choice).
   final List<(String, Map<String, Object?>)> decisions = [];
+  Future<Map<String, Object?>> Function(Map<String, Object?> body)? decideWith;
 
   @override
   Future<Map<String, Object?>> decide(
@@ -82,6 +106,7 @@ class FakeApi implements Api {
     Map<String, Object?> body,
   ) async {
     decisions.add((sessionId, body));
+    if (decideWith case final answer?) return answer(body);
     return {
       'action': body['rulesDefault'],
       'source': 'rules',
@@ -146,19 +171,47 @@ class FakeApi implements Api {
   /// Sessions the server has ended, and why.
   final Map<String, String> ended = {};
 
+  /// SES-01: sessions ended with `session_ended {time_up}`, at that seq;
+  /// a later seq posted there goes to a continuation, as the server does.
+  final Map<String, int> timeUpAt = {};
+
+  /// Each continuation opened (`c-<id>`), by the session it carries on.
+  final Map<String, String> continuations = {};
+
+  /// False: a server older than SES-01's continuations, which stores work
+  /// after a time_up end in the ended session.
+  bool continues = true;
+
+  /// The badge the batch that ends a session answers with (REW-01).
+  ServerBadge? badge;
+
+  /// How long each events upload takes: a slow connection.
+  Duration eventsDelay = Duration.zero;
+
   @override
   Future<EventsReply> sendEvents(
     String sessionId,
     List<LessonEvent> events,
   ) async {
+    if (eventsDelay > Duration.zero) await Future.delayed(eventsDelay);
     if (failNext > 0) {
       failNext--;
       throw const ApiException('offline');
     }
     batches.add((sessionId, events));
+    String? continued;
+    var ends = false;
     for (final e in events) {
-      if (!refuse.contains(e.name) && _seen.add((sessionId, e.seq))) {
+      final end = timeUpAt[sessionId];
+      final into = continues && end != null && e.seq > end
+          ? continued = continuations[sessionId] ??= 'c-$sessionId'
+          : sessionId;
+      if (!refuse.contains(e.name) && _seen.add((into, e.seq))) {
         received.add(e);
+        if (e.name == 'session_ended') {
+          ends = true;
+          if (e.payload['reason'] == 'time_up') timeUpAt[into] = e.seq;
+        }
       }
     }
     return (
@@ -167,6 +220,8 @@ class FakeApi implements Api {
           if (refuse.contains(e.name)) '${e.name}: refused',
       ],
       ended: ended[sessionId],
+      continuedIn: continued,
+      badge: ends ? badge : null,
     );
   }
 }

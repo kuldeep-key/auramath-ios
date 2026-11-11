@@ -10,6 +10,16 @@ import '../models/server_problem.dart';
 import '../services/api.dart';
 import '../services/outbox_db.dart';
 
+/// Where the child's next lesson goes: [problemId], resumed in
+/// [resumeSessionId], or carried on from the ended [carryFrom] in a new
+/// session; [startedOn] names the other phone a case was started on.
+typedef WhereNext = ({
+  String problemId,
+  String? resumeSessionId,
+  String? startedOn,
+  String? carryFrom,
+});
+
 /// A sum from the server's arithmetic generator: its text ("56 - 19 = ?"),
 /// answer and arithmetic level (`A6`).
 typedef Sum = ({String text, int answer, String level});
@@ -27,12 +37,19 @@ class SessionRepository {
     this.template,
     String Function()? newId,
     int Function()? nowMs,
+    this._deviceId,
   }) : _newId = newId ?? const Uuid().v4,
        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch);
 
   final OutboxDb _db;
   final Api _api;
   final Identity identity;
+
+  /// This phone as events name it now (AUR-34): pairing changes it from
+  /// the install's id to the paired device's, without a restart. Else
+  /// [identity]'s.
+  final String Function()? _deviceId;
+  String get deviceId => _deviceId?.call() ?? identity.deviceId;
   final String Function() _newId;
   final int Function() _now;
 
@@ -65,9 +82,67 @@ class SessionRepository {
   /// log). The lesson on it shows "we'll keep this for next time".
   final ended = ValueNotifier<String?>(null);
 
+  /// The last session this phone stopped, and how: `session_ended`'s
+  /// reason (`finished`, `time_up`, `left`, ...) or `paused`. Home shows
+  /// its badge (REW-01: one per session, however it ended).
+  final lastStop = ValueNotifier<({String sessionId, String reason})?>(null);
+
   /// Why the server ended [ended]: `consent` when the family withdrew it,
   /// so the lesson says lessons are paused.
   String? endedWhy;
+
+  /// REW-01: the badge the server named in the answer to the batch that
+  /// ended a session, by session. Home shows it (else the app's draft).
+  final Map<String, ServerBadge> _badges = {};
+  ServerBadge? badgeFor(String sessionId) => _badges[sessionId];
+
+  /// SES-01: the continuation the server stored a session's work in after
+  /// its `session_ended {time_up}` (`continuedIn`). Problems and decisions
+  /// for that work go there: the ended session refuses them.
+  final Map<String, String> _continuedIn = {};
+
+  /// Where [sessionId]'s work goes on now: its continuation, if any.
+  String live(String sessionId) {
+    var id = sessionId;
+    for (var i = 0; i < 5 && _continuedIn.containsKey(id); i++) {
+      id = _continuedIn[id]!;
+    }
+    return id;
+  }
+
+  /// The seq a session's first event takes: 0, or one past the ended
+  /// session's last for a continuation (its seqs follow on, SES-01).
+  final Map<String, int> _firstSeq = {};
+  int firstSeq(String sessionId) => _firstSeq[sessionId] ?? 0;
+
+  /// TUT-08: the skills [sessionId] opened with to warm up on (server
+  /// `reviewDue`, `{skill, errorType, reason}`); a finished side lesson
+  /// for one (`side_lesson_ended {skill_id, completed: true}`) clears it.
+  List<Map<String, Object?>> reviewDue(String sessionId) =>
+      _reviewDue[sessionId] ?? const [];
+  final Map<String, List<Map<String, Object?>>> _reviewDue = {};
+
+  /// The sitting [sessionId] belongs to (server `sittingId`, PAR-01):
+  /// informational, nothing is sent with it.
+  String? sittingOf(String sessionId) => _sittings[sessionId];
+  final Map<String, String> _sittings = {};
+
+  /// LES-14: the selector's suggestion for today with [sessionId]'s start
+  /// (`todaySuggestion`), if the server sent one.
+  TodaySuggestion? todaySuggestion(String sessionId) => _suggestions[sessionId];
+  final Map<String, TodaySuggestion> _suggestions = {};
+
+  /// The last suggestion any session opened with: Choose today from Home
+  /// or Welcome back, before a session is open, puts it first.
+  TodaySuggestion? lastSuggestion;
+
+  /// SES-07: the server's "back on a later day" with [sessionId]'s start.
+  WelcomeBack? welcomeBack(String sessionId) => _welcomeBacks[sessionId];
+  final Map<String, WelcomeBack> _welcomeBacks = {};
+
+  /// The child was greeted back this launch (Home's WelcomeBack, or the
+  /// lesson's from the server's `welcomeBack`): once is enough.
+  bool greeted = false;
 
   /// The `child_ref` each open session's events carry, from the server.
   final Map<String, String> _childRefs = {};
@@ -101,7 +176,71 @@ class SessionRepository {
     }
     if (s.startingCheckDue) _startingChecks.add(s.sessionId);
     if (s.leftProblem != null) _left[s.sessionId] = s.leftProblem!;
+    if (s.reviewDue.isNotEmpty) _reviewDue[s.sessionId] = s.reviewDue;
+    if (s.sittingId != null) _sittings[s.sessionId] = s.sittingId!;
+    if (s.welcomeBack case final w?) _welcomeBacks[s.sessionId] = w;
+    if (s.todaySuggestion case final t?) {
+      _suggestions[s.sessionId] = lastSuggestion = t;
+    }
     return s.sessionId;
+  }
+
+  /// SES-01: carries on the case of [fromId], a session this phone (or
+  /// another, through resumable) ended with `session_ended {time_up}`, in
+  /// the continuation the server opens for it: `session_resumed` is posted
+  /// to [fromId] after its end, the server stores it in a new session
+  /// linked to it (`resumedFrom`) and names that session (`continuedIn`).
+  /// Returns the continuation, whose events follow on from [fromId]'s seq
+  /// ([firstSeq]); null when [fromId] didn't end with time_up or the
+  /// server opened none (then a new session carries the case, as before).
+  /// Needs the connection, as [open] does; throws [ApiException].
+  Future<String?> continueAfterTimeUp(String fromId) async {
+    final all = await _db.forSession(fromId);
+    final end = all.where((e) => e.name == 'session_ended').lastOrNull;
+    if (end == null || end.payload['reason'] != 'time_up') return null;
+    // the time_up end must be on the server before anything after it
+    await syncNow();
+    if (!online.value) {
+      throw const ApiException("Can't reach the server");
+    }
+    final last = all.last;
+    final resumed = LessonEvent(
+      eventId: _newId(),
+      sessionId: fromId,
+      seq: last.seq + 1,
+      at: _now(),
+      name: 'session_resumed',
+      childRef: last.childRef,
+      deviceId: deviceId,
+      appVersion: identity.appVersion,
+      payload: const {},
+    );
+    final reply = await _api.sendEvents(fromId, [resumed]);
+    final to = reply.continuedIn;
+    if (to == null || to == fromId) {
+      // stored in the ended session (an older server): kept as it is there
+      await _db.insert(resumed);
+      await _db.markSent([resumed]);
+      return null;
+    }
+    final moved = LessonEvent(
+      eventId: resumed.eventId,
+      sessionId: to,
+      seq: resumed.seq,
+      at: resumed.at,
+      name: resumed.name,
+      childRef: resumed.childRef,
+      deviceId: resumed.deviceId,
+      appVersion: resumed.appVersion,
+      payload: resumed.payload,
+    );
+    await _db.insert(moved);
+    await _db.markSent([moved]);
+    await _db.saveCarried(to, fromId);
+    _continuedIn[fromId] = to;
+    _childRefs[to] = last.childRef;
+    _firstSeq[to] = resumed.seq + 1;
+    return to;
   }
 
   /// A spaced check or re-test due when the session opened: its first
@@ -129,10 +268,20 @@ class SessionRepository {
     return p;
   }
 
+  /// A case another phone was given, drawn here from its `problem_shown`
+  /// (ids and numbers) and [template], as a left case is (DEV-05, SES-01);
+  /// null when this phone's template can't draw it.
+  ComparisonProblem? _drawn(Pack pack, SpecEvent shown) {
+    final t = template;
+    final p = t == null ? null : problemFromShown(shown.payload, t);
+    if (p != null) _serve(pack, p);
+    return p;
+  }
+
   /// The server's next problem for [sessionId], saved on the phone (a
   /// resume rebuilds it) and added to [pack] for the lesson's screens.
-  /// [level] asks one at that level ("something easier", the starting
-  /// check's placement); else the first problem of a session with a spaced
+  /// [level] asks one at that level (the starting check's placement, or
+  /// the same level again); else the first problem of a session with a spaced
   /// check or re-test due is that check, at its level, shown with `variant:
   /// check` so the server counts it as the check (SKL-06).
   Future<ComparisonProblem> nextProblem(
@@ -140,10 +289,18 @@ class SessionRepository {
     String sessionId, {
     String? level,
   }) async {
-    final check = level == null && _checks.containsKey(sessionId);
-    final checkLevel = _checks[sessionId];
+    // "something easier" (CON-06): asked with no level, the server goes one
+    // below the child's own and serves it with variant easier, which
+    // problem_shown echoes
+    final easier = _easier.remove(sessionId);
+    final check = level == null && !easier && _checks.containsKey(sessionId);
+    final checkLevel = easier ? null : _checks[sessionId];
     final j = {
-      ...await _api.nextProblem(sessionId, level: level ?? checkLevel),
+      ...await _api.nextProblem(
+        live(sessionId),
+        level: level ?? checkLevel,
+        easier: easier,
+      ),
       if (check) 'variant': 'check',
     };
     // gone only once fetched: offline, Try again asks for the check again
@@ -153,6 +310,11 @@ class SessionRepository {
     _serve(pack, problem);
     return problem;
   }
+
+  /// [sessionId]'s next problem is "something easier" (CON-06): asked with
+  /// `easier: true`, once.
+  void askEasier(String sessionId) => _easier.add(sessionId);
+  final Set<String> _easier = {};
 
   /// Smaller sums to practise after a side lesson (TUT-08), as
   /// `(text, answer, level)`, at arithmetic [level] (the server needs one).
@@ -175,6 +337,10 @@ class SessionRepository {
         level: i['level']! as String,
       ),
   ];
+
+  /// A set of Quick sums at the child's arithmetic level (LES-16), from
+  /// the server's generator (CON-10), as `(text, answer, level)`.
+  Future<List<Sum>> quickSums(String childId) => _sums(childId, 'quick_sums');
 
   /// True while [sessionId]'s starting check is still to do.
   bool startingCheckDue(String sessionId) =>
@@ -201,7 +367,7 @@ class SessionRepository {
   Future<Map<String, Object?>> decide(
     String sessionId,
     Map<String, Object?> body,
-  ) => _api.decide(sessionId, body);
+  ) => _api.decide(live(sessionId), body);
 
   /// Adds the server's problems saved on this phone to [pack], so a case
   /// left part way resumes after the app restarts.
@@ -238,13 +404,85 @@ class SessionRepository {
           at: at,
           name: e.name,
           childRef: childRef,
-          deviceId: identity.deviceId,
+          deviceId: deviceId,
           appVersion: identity.appVersion,
           payload: e.payload,
         ),
       );
     }
+    for (final e in events) {
+      if (e.name == 'session_ended' || e.name == 'session_paused') {
+        lastStop.value = (
+          sessionId: sessionId,
+          reason: e.name == 'session_paused'
+              ? 'paused'
+              : '${e.payload['reason'] ?? 'finished'}',
+        );
+      }
+    }
+    if (events.any((e) => e.name == 'session_ended')) {
+      await _placeAfterLesson(sessionId);
+    }
     await syncNow();
+  }
+
+  /// DAT-03: an event outside a lesson for [childId] (Home's streak moment,
+  /// Y4's badge sent to the grown-up, an avatar picked). Every event needs
+  /// a session, so it goes after the end of the child's last lesson on
+  /// this phone. While that lesson hasn't ended yet, ended at time's up
+  /// (anything after that opens its continuation, SES-01), or there is
+  /// none, it waits in memory for the next of their lessons to end.
+  Future<void> recordAfterLesson(String? childId, SpecEvent event) async {
+    if (childId == null) return;
+    _afterLesson.add((
+      childRef: childRefFor(childId),
+      event: event,
+      at: _now(),
+    ));
+    final last = lastStop.value?.sessionId;
+    if (last != null && await _placeAfterLesson(last)) await syncNow();
+  }
+
+  final List<({String childRef, SpecEvent event, int at})> _afterLesson = [];
+
+  /// The seqs events after a lesson's end start from, past its last one:
+  /// a lesson can still log a little after its end (a read-aloud on the
+  /// solved screen), from seqs it holds already.
+  static const afterLessonGap = 1000;
+
+  /// Writes the waiting events of [sessionId]'s child after its end, if it
+  /// ended cleanly. True when any were written.
+  Future<bool> _placeAfterLesson(String sessionId) async {
+    if (_afterLesson.isEmpty) return false;
+    final all = await _db.forSession(sessionId);
+    final ends = all.where((e) => e.name == 'session_ended');
+    if (ends.isEmpty || ends.any((e) => e.payload['reason'] == 'time_up')) {
+      return false;
+    }
+    final childRef = all.last.childRef;
+    final mine = [
+      for (final w in _afterLesson)
+        if (w.childRef == childRef) w,
+    ];
+    if (mine.isEmpty) return false;
+    _afterLesson.removeWhere(mine.contains);
+    var seq = all.map((e) => e.seq).reduce(math.max) + afterLessonGap;
+    for (final w in mine) {
+      await _db.insert(
+        LessonEvent(
+          eventId: _newId(),
+          sessionId: sessionId,
+          seq: seq++,
+          at: w.at,
+          name: w.event.name,
+          childRef: childRef,
+          deviceId: deviceId,
+          appVersion: identity.appVersion,
+          payload: w.event.payload,
+        ),
+      );
+    }
+    return true;
   }
 
   /// Sends everything unconfirmed, one batch per session, oldest first.
@@ -278,6 +516,18 @@ class SessionRepository {
     _checks.clear();
     _startingChecks.clear();
     _left.clear();
+    _badges.clear();
+    _continuedIn.clear();
+    _firstSeq.clear();
+    _reviewDue.clear();
+    _sittings.clear();
+    _suggestions.clear();
+    lastSuggestion = null;
+    lastStop.value = null;
+    _afterLesson.clear();
+    _welcomeBacks.clear();
+    greeted = false;
+    _easier.clear();
     for (final (pack, id) in _served) {
       pack.problems.remove(id);
     }
@@ -302,6 +552,14 @@ class SessionRepository {
               debugPrint('events refused in $sessionId: ${reply.rejected}');
               onRejected?.call(sessionId, reply.rejected);
             }
+            if (reply.badge case final badge?) _badges[sessionId] = badge;
+            // SES-01: stored after a time_up end, in the server's
+            // continuation: this phone links them, so a resume rebuilds
+            // the board and later calls go there
+            if (reply.continuedIn case final to? when to != sessionId) {
+              _continuedIn[sessionId] = to;
+              await _db.saveCarried(to, sessionId);
+            }
             if (reply.ended != null) {
               await _db.markEnded(sessionId);
               endedWhy = reply.ended;
@@ -321,28 +579,64 @@ class SessionRepository {
 
   /// A session's events from its latest `problem_shown` on (what a resume
   /// replays), and the last seq saved, which the next event follows.
+  /// A session carrying on an ended one's case ([carry]) has that
+  /// session's board first, so the case is rebuilt as the child left it.
   Future<({List<SpecEvent> events, int lastSeq})> resume(
     String sessionId,
   ) async {
     final all = await _db.forSession(sessionId);
     final from = all.lastIndexWhere((e) => e.name == 'problem_shown');
-    return (
-      events: [for (final e in all.skip(math.max(from, 0))) e.spec],
-      lastSeq: all.isEmpty ? -1 : all.last.seq,
-    );
+    var events = [for (final e in all.skip(math.max(from, 0))) e.spec];
+    final carried = await _db.carriedFrom(sessionId);
+    // only for the session's first case: a later one is its own
+    if (carried != null &&
+        from >= 0 &&
+        all.indexWhere((e) => e.name == 'problem_shown') == from) {
+      final before = (await resume(carried)).events;
+      if (before.firstOrNull?.payload['problem_id'] ==
+          events.first.payload['problem_id']) {
+        events = [
+          ...before.where((e) => !e.name.startsWith('session_')),
+          ...events.skip(1),
+        ];
+      }
+    }
+    return (events: events, lastSeq: all.isEmpty ? -1 : all.last.seq);
   }
+
+  /// [sessionId] carries on [fromId]'s case: time was up there, or the
+  /// server ended it, so its work goes on in a new session (SES-01, SES-04).
+  Future<void> carry(String sessionId, String fromId) =>
+      _db.saveCarried(sessionId, fromId);
 
   /// Where Home's Keep going leads: back into the child's unfinished case
   /// (the server's, so it follows them across phones; else this phone's
   /// log), or on to the problem the engine chose. Null when nothing is
-  /// saved or the pack no longer has that problem.
-  Future<({String problemId, String? resumeSessionId, String? startedOn})?>
-  whereNext(Pack pack, {String? childId}) async {
+  /// saved or the pack no longer has that problem. A case whose session
+  /// ended (time up, or the server ended it) is [WhereNext.carryFrom]: it
+  /// carries on in a new session, its board rebuilt (SES-01, SES-04).
+  Future<WhereNext?> whereNext(Pack pack, {String? childId}) async {
     // set when the server's open case was started on another phone
     ({String sessionId, String label})? elsewhere;
     try {
       final open = await _api.resumable(childId: childId);
       if (open != null && open.events.isNotEmpty) {
+        // SES-01: the time_up sessions it carries on first, oldest first,
+        // each linked to the next, so the board is rebuilt whole here too
+        String? before;
+        for (final log in [...open.carried, open.events]) {
+          if (log.isEmpty) continue;
+          final id = log.first.sessionId;
+          for (final e in log) {
+            await _db.insert(e);
+          }
+          await _db.markSent(log);
+          if (before != null && before != id) {
+            await _db.saveCarried(id, before);
+          }
+          if (log != open.events) await _db.markEnded(id);
+          before = id;
+        }
         // the server's log becomes this phone's, already sent
         for (final e in open.events) {
           await _db.insert(e);
@@ -364,7 +658,7 @@ class SessionRepository {
     final (:events, lastSeq: _) = await resume(sessionId);
     final shown = events.firstOrNull;
     final problem = shown?.name == 'problem_shown'
-        ? pack.problems[shown!.payload['problem_id']]
+        ? pack.problems[shown!.payload['problem_id']] ?? _drawn(pack, shown)
         : null;
     if (problem == null) return null;
     // left for another day (SES-06): a new case now; the server offers the
@@ -372,7 +666,12 @@ class SessionRepository {
     if (events.any((e) => e.name == 'problem_left')) {
       final next = problem.next.fast;
       return pack.problems.containsKey(next)
-          ? (problemId: next, resumeSessionId: null, startedOn: null)
+          ? (
+              problemId: next,
+              resumeSessionId: null,
+              startedOn: null,
+              carryFrom: null,
+            )
           : null;
     }
     var state = initialState();
@@ -387,20 +686,34 @@ class SessionRepository {
         };
         if (next != null) {
           return pack.problems.containsKey(next)
-              ? (problemId: next, resumeSessionId: null, startedOn: null)
+              ? (
+                  problemId: next,
+                  resumeSessionId: null,
+                  startedOn: null,
+                  carryFrom: null,
+                )
               : null;
         }
       }
     }
-    // ponytail: a case the server ended starts again from its question in a
-    // new session; rebuild its board from the events if children mind.
-    if (await _db.isEnded(sessionId)) {
-      return (problemId: problem.id, resumeSessionId: null, startedOn: null);
+    // ended (time up, or by the server): a new session carries the case
+    // on, its board rebuilt from these events; nothing begun, it starts
+    // again from its question
+    if (await _db.isEnded(sessionId) ||
+        events.any((e) => e.name == 'session_ended')) {
+      final begun = inputsFrom(pack, problem, events).length > 1;
+      return (
+        problemId: problem.id,
+        resumeSessionId: null,
+        startedOn: null,
+        carryFrom: begun ? sessionId : null,
+      );
     }
     return (
       problemId: problem.id,
       resumeSessionId: sessionId,
       startedOn: elsewhere?.sessionId == sessionId ? elsewhere?.label : null,
+      carryFrom: null,
     );
   }
 
@@ -408,6 +721,7 @@ class SessionRepository {
     _retry?.cancel();
     online.dispose();
     ended.dispose();
+    lastStop.dispose();
   }
 
   static List<(String, List<LessonEvent>)> _bySession(List<LessonEvent> batch) {

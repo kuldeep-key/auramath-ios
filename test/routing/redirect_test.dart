@@ -25,6 +25,17 @@ void main() {
       expect(go('/verify?m=tok'), '${Paths.verify}?m=tok');
     });
 
+    test(
+      'the https sign-in link (App Link, universal link) lands on verify',
+      () {
+        expect(go('/parent#m=tok'), '${Paths.verify}?m=tok');
+        expect(go('/parent?m=tok'), '${Paths.verify}?m=tok');
+        // a link the app can't open goes to the start, not a dead end
+        expect(go('/parent#i=inv'), Paths.open);
+        expect(go('/parent#v=x', role: Role.parent), Paths.kids);
+      },
+    );
+
     test('may run setup and sign-in, nothing else', () {
       for (final loc in [
         Paths.welcome,

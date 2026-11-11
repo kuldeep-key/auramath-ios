@@ -10,6 +10,7 @@ import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
 import 'parts.dart';
+import 'session_drawing.dart';
 
 /// Book (652:35): this week's sessions with the server's note on each,
 /// then skills and badges, the month view and the simple report.
@@ -231,6 +232,7 @@ class _SessionCardState extends State<_SessionCard> {
                   : body.copyWith(color: AuraColors.mute),
             ),
           ),
+          SessionDrawingView(load: () => widget.repo.drawing(s.id)),
         ],
       ),
     );

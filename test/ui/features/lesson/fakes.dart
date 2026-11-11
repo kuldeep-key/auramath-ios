@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:auramath/data/repositories/pack_repository.dart';
 import 'package:auramath/data/repositories/session_repository.dart';
 import 'package:auramath/data/services/fake_api.dart';
 import 'package:auramath/data/services/outbox_db.dart';
@@ -31,9 +32,16 @@ class FakeVoice implements Voice {
   Future<void> warm(List<String> lines) async {}
 }
 
-Pack samplePack() => Pack.fromJson(
-  jsonDecode(File('assets/sample_pack/pack.json').readAsStringSync())
-      as Map<String, Object?>,
+/// The bundled pack, taught by the bundled policy, as the app loads it.
+Pack samplePack() => PackRepository.withPolicy(
+  Pack.fromJson(
+    jsonDecode(File('assets/sample_pack/pack.json').readAsStringSync())
+        as Map<String, Object?>,
+  ),
+  Policy.fromYaml(File('assets/spec/policy.yaml').readAsStringSync()),
+  ComparisonTemplate.fromYaml(
+    File('assets/spec/comparison-two-step.yaml').readAsStringSync(),
+  ),
 );
 
 /// Sessions over an in-memory outbox and a fake server, with the first

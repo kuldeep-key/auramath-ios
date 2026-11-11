@@ -5,6 +5,7 @@ import 'deps.dart';
 import 'l10n/app_localizations.dart';
 import 'routing/paths.dart';
 import 'routing/router.dart';
+import 'ui/core/parts/speak_button.dart';
 import 'ui/core/theme/app_theme.dart';
 
 class AuraApp extends StatefulWidget {
@@ -62,7 +63,13 @@ class _AuraAppState extends State<AuraApp> {
     debugShowCheckedModeBanner: false,
     // Large text is honoured up to 1.3×; past that the child's screens stop
     // fitting. Every screen still scrolls rather than clips.
-    builder: (context, child) =>
-        MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: child!),
+    builder: (context, child) => ReadAloud(
+      // the speaker on every child screen (NFR-06)
+      say: widget.deps.voice.say,
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.3,
+        child: child!,
+      ),
+    ),
   );
 }

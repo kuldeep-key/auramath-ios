@@ -220,6 +220,7 @@ void main() {
       await vm.send(i);
     }
     expect(vm.helpAttention, Attention.shake);
+    // the second wrong move: the rung's line in its next version (TUT-14)
     expect(vm.coachText, 'Read it again. Is the fig tree taller or shorter?');
     vm.dispose();
   });
@@ -290,15 +291,20 @@ void main() {
   });
 
   test(
-    'I know it opens the answer prompt, a near miss asks to recheck',
+    'I know it opens the answer prompt; swapped digits recheck, then a '
+    'second wrong total draws it; any other total checks one part (LES-05)',
     () async {
       final vm = await makeVm();
       await vm.send(const Started());
       vm.openKnowIt();
       expect(vm.knowPrompt, KnowPrompt.answer);
-      await vm.answer(268);
+      await vm.answer(256);
       expect(vm.knowPrompt, KnowPrompt.recheck);
       await vm.answer(300);
+      expect(vm.knowPrompt, isNull);
+      expect(vm.state.step, LessonStep.drawA);
+      vm.openKnowIt();
+      await vm.answer(268);
       expect(vm.knowPrompt, KnowPrompt.checkPart);
       await vm.answer(79);
       expect(vm.knowPrompt, KnowPrompt.checkTotal);

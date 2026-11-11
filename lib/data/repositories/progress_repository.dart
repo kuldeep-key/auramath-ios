@@ -14,16 +14,21 @@ import 'session_repository.dart';
 /// its "shorter" wording (level L5, SKL-10), then question type 2. The
 /// test checks every id is still in the map.
 enum TrailStop {
-  addBig('arith.add-3d-regroup', '➕'),
-  takeAwayBig('arith.sub-3d-regroup', '➖'),
-  trees('cmp.compare-bars', '🌳'),
-  trickyWords('cmp.inconsistent-wording', '🔀'),
-  totalAndDifference('td.total-and-difference', '🍔');
+  addBig('arith.add-3d-regroup', 'add_big'),
+  takeAwayBig('arith.sub-3d-regroup', 'take_away_big'),
+  trees('cmp.compare-bars', 'trees'),
+  trickyWords('cmp.inconsistent-wording', 'tricky_words'),
+  totalAndDifference('td.total-and-difference', 'total_and_difference');
 
-  const TrailStop(this.skillId, this.art);
+  const TrailStop(this.skillId, this._art);
 
   final String skillId;
-  final String art;
+  final String _art;
+
+  /// The stop's picture (REW-04): an asset, so Design's art replaces the
+  /// file, not code. DRAFT art for Design (FL-51), drawn flat in the app's
+  /// palette by `tool/trail_stop_art.py`.
+  String get art => 'assets/images/trail_stop_$_art.png';
 
   /// The stop a problem practises. Level L5 is the "shorter" wording that
   /// needs adding (SKL-10, `cmp.inconsistent-wording`); the rest of the
@@ -62,7 +67,10 @@ class ProgressRepository {
     required this._sessions,
     required this._family,
     required this._account,
-  });
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now;
+
+  final DateTime Function() _now;
 
   final Pack _pack;
 
@@ -130,13 +138,35 @@ class ProgressRepository {
 
   bool _welcomed = false;
 
-  /// True once per app launch, on the first Home, when a case was left
+  /// Whether the WelcomeBack just due has a case waiting (carry on first),
+  /// or the child is back on a later day with none (SES-07).
+  bool caseWaiting = false;
+
+  /// True once per app launch, on the first Home, when the child is back
+  /// on a later day than their last lesson (SES-07), or a case was left
   /// unfinished: WelcomeBack greets the child instead of Home.
   Future<bool> welcomeBackDue() async {
     if (_welcomed) return false;
     _welcomed = true;
     final next = await _sessions.whereNext(_pack);
-    return next?.resumeSessionId != null;
+    caseWaiting = next?.resumeSessionId != null || next?.carryFrom != null;
+    final due = caseWaiting || await _laterDay();
+    // the lesson needn't greet again from the server's welcomeBack
+    if (due) _sessions.greeted = true;
+    return due;
+  }
+
+  /// The child's last lesson was on an earlier day than today (local).
+  Future<bool> _laterDay() async {
+    final events = await _events();
+    if (events.isEmpty) return false;
+    final last = DateTime.fromMillisecondsSinceEpoch(events.last.at);
+    final now = _now();
+    return DateTime(
+      last.year,
+      last.month,
+      last.day,
+    ).isBefore(DateTime(now.year, now.month, now.day));
   }
 
   String? _name;
@@ -149,6 +179,18 @@ class ProgressRepository {
   /// frame.
   String? get cachedName => _nameOf == _account.childId ? _name : null;
 
+  String? _avatar;
+
+  /// The active child's avatar (ACC-12) from the same read as
+  /// [cachedName], or one just picked; null while there is none.
+  String? get cachedAvatar => _nameOf == _account.childId ? _avatar : null;
+
+  /// The child just picked [avatar] (ACC-12): Home shows it at once.
+  void avatarPicked(String avatar) {
+    _nameOf = _account.childId;
+    _avatar = avatar;
+  }
+
   /// The active child's name (`/api/children`). Offline or on a server
   /// error, the last name read; Home shows no name rather than a wrong one.
   Future<String?> childName() async {
@@ -156,7 +198,9 @@ class ProgressRepository {
     try {
       final kids = await _family.children();
       _nameOf = id;
-      return _name = kids.where((c) => c.id == id).firstOrNull?.name;
+      final child = kids.where((c) => c.id == id).firstOrNull;
+      _avatar = child?.avatar;
+      return _name = child?.name;
     } on ApiException {
       return cachedName;
     }

@@ -33,7 +33,7 @@ class _NotifyScreenState extends State<NotifyScreen> {
       _error = null;
     });
     try {
-      await widget.repo.setReportFrequency('each_session');
+      await widget.repo.setReportFrequency('each');
       if (mounted) popOr(context, Paths.grownUps);
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e);

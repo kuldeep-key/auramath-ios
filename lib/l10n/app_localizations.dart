@@ -1066,6 +1066,12 @@ abstract class AppLocalizations {
   /// **'This account has no email address to send a link to.'**
   String get guForgotNoEmail;
 
+  /// No description provided for @guForgotOr.
+  ///
+  /// In en, this message translates to:
+  /// **'Or sign in again here with Apple or Google, then choose a new passcode.'**
+  String get guForgotOr;
+
   /// No description provided for @guHomeHi.
   ///
   /// In en, this message translates to:
@@ -1180,11 +1186,71 @@ abstract class AppLocalizations {
   /// **'{name}\'s plan'**
   String guChildPlan(String name);
 
-  /// No description provided for @guNotifyLink.
+  /// No description provided for @guEmailRow.
   ///
   /// In en, this message translates to:
-  /// **'Email after each session'**
-  String get guNotifyLink;
+  /// **'Report email'**
+  String get guEmailRow;
+
+  /// No description provided for @guEmailUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get guEmailUnknown;
+
+  /// No description provided for @guEmailUnsubscribeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Every email also has a link to stop them.'**
+  String get guEmailUnsubscribeNote;
+
+  /// No description provided for @guEmailHowOften.
+  ///
+  /// In en, this message translates to:
+  /// **'How often'**
+  String get guEmailHowOften;
+
+  /// No description provided for @guEmailHowOftenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How often should we email?'**
+  String get guEmailHowOftenTitle;
+
+  /// No description provided for @guEmailEach.
+  ///
+  /// In en, this message translates to:
+  /// **'After each session'**
+  String get guEmailEach;
+
+  /// No description provided for @guEmailEachDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'One short note when a session ends'**
+  String get guEmailEachDetail;
+
+  /// No description provided for @guEmailWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a week'**
+  String get guEmailWeekly;
+
+  /// No description provided for @guEmailWeeklyDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'One note on Monday about the week before'**
+  String get guEmailWeeklyDetail;
+
+  /// No description provided for @guEmailOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get guEmailOff;
+
+  /// No description provided for @guEmailOffDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'No emails about lessons'**
+  String get guEmailOffDetail;
 
   /// No description provided for @guRightsLink.
   ///
@@ -1876,6 +1942,24 @@ abstract class AppLocalizations {
   /// **'No note for this session.'**
   String get guNoNote;
 
+  /// No description provided for @guNotesLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent notes'**
+  String get guNotesLink;
+
+  /// No description provided for @guNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s notes'**
+  String guNotesTitle(String name);
+
+  /// No description provided for @guNotesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet. One comes after each of {name}\'s sessions.'**
+  String guNotesNone(String name);
+
   /// No description provided for @guNoteError.
   ///
   /// In en, this message translates to:
@@ -2110,6 +2194,18 @@ abstract class AppLocalizations {
   /// **'School year'**
   String get guEditYear;
 
+  /// No description provided for @guEditAvatar.
+  ///
+  /// In en, this message translates to:
+  /// **'Detective'**
+  String get guEditAvatar;
+
+  /// No description provided for @guEditAvatarHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Let {name} pick one.'**
+  String guEditAvatarHint(String name);
+
   /// No description provided for @guEditSave.
   ///
   /// In en, this message translates to:
@@ -2278,6 +2374,42 @@ abstract class AppLocalizations {
   /// **'Next to earn'**
   String get kidNextToEarn;
 
+  /// No description provided for @kidSessionBadgeEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'Your badge for this session'**
+  String get kidSessionBadgeEarned;
+
+  /// DRAFT (REW-05, D-47) for Design and Julia: the kind streak moment. No number, no loss message, nothing sold.
+  ///
+  /// In en, this message translates to:
+  /// **'Back on the case again! Detectives keep at it.'**
+  String get kidStreakMoment;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when a case was solved, until the server names it.
+  ///
+  /// In en, this message translates to:
+  /// **'Case cracked'**
+  String get kidSessionBadgeFinished;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when time ran out.
+  ///
+  /// In en, this message translates to:
+  /// **'Detective at work'**
+  String get kidSessionBadgeTimeUp;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when the case was left for another day.
+  ///
+  /// In en, this message translates to:
+  /// **'Tried a tricky case'**
+  String get kidSessionBadgeLeft;
+
+  /// DRAFT (REW-01, D-47) for Design and Julia: session badge when the session paused (phone locked, app away).
+  ///
+  /// In en, this message translates to:
+  /// **'Good start on a case'**
+  String get kidSessionBadgePaused;
+
   /// No description provided for @kidNoBadgesYet.
   ///
   /// In en, this message translates to:
@@ -2419,7 +2551,7 @@ abstract class AppLocalizations {
   /// No description provided for @kidTryNewSkill.
   ///
   /// In en, this message translates to:
-  /// **'Try a new skill!'**
+  /// **'Try a new skill'**
   String get kidTryNewSkill;
 
   /// No description provided for @kidNewStopOpened.
@@ -2758,6 +2890,30 @@ abstract class AppLocalizations {
   /// **'Your child never types personal details.'**
   String get setupDataFirstNameDetail;
 
+  /// DRAFT (ACC-10) for Legal and Julia: the processors, under D-15/D-50. Not final wording.
+  ///
+  /// In en, this message translates to:
+  /// **'Who helps us'**
+  String get setupDataHelpers;
+
+  /// DRAFT (ACC-10) for Legal and Julia. Names the model provider, the voice service and email, as ACC-10 asks. The email service is not chosen yet (BE-02).
+  ///
+  /// In en, this message translates to:
+  /// **'Google Cloud in Sydney runs Auramath, its AI model (Gemini) and its voice. An email service sends your sign-in emails and notes. They work only for us, and none of them gets a name.'**
+  String get setupDataHelpersDetail;
+
+  /// DRAFT (ACC-10) for Legal and Julia: her weekly summary during the home week.
+  ///
+  /// In en, this message translates to:
+  /// **'Julia sees how families are doing'**
+  String get setupDataJulia;
+
+  /// DRAFT (ACC-10) for Legal and Julia. Confirm what the summary holds and whether it names the child.
+  ///
+  /// In en, this message translates to:
+  /// **'During the home week, Julia, our teacher, gets a weekly summary of her families\' lessons.'**
+  String get setupDataJuliaDetail;
+
   /// No description provided for @setupDataDelete.
   ///
   /// In en, this message translates to:
@@ -3075,6 +3231,474 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show a new code'**
   String get setupNewCode;
+
+  /// DRAFT, for Julia and design (no Figma frame): the case partner's small thinking cue when the tutor's decision takes over a second (NFR-05). Never a spinner; the child can carry on.
+  ///
+  /// In en, this message translates to:
+  /// **'Hmm, let me think.'**
+  String get lessonThinking;
+
+  /// DRAFT, for Julia and design (no Figma frame), AI-09: the tutor offers to read the question again after quick wrong answers. The question is read aloud as it opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s read it again'**
+  String get lessonReadAgainTitle;
+
+  /// DRAFT, for Julia (AI-09): closes the read-again prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my drawing'**
+  String get lessonReadAgainBack;
+
+  /// DRAFT, for Julia and design (no Figma frame), AI-10: the first help on a case that looks new links to one the child solved.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve solved one like this'**
+  String get lessonSeenBeforeTitle;
+
+  /// DRAFT, for Julia (AI-10): above a peek at the earlier case.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember this case? You cracked it. This one works the same way.'**
+  String get lessonSeenBeforeLinked;
+
+  /// DRAFT, for Julia (AI-10): when the decision names no earlier case, or this phone doesn't have it.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve cracked a case like this before. How did you draw it?'**
+  String get lessonSeenBeforeNoCase;
+
+  /// DRAFT, for Julia (AI-10): closes the seen-before prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my case'**
+  String get lessonSeenBeforeBack;
+
+  /// DRAFT, for Julia and design (no Figma frame), AI-08: above three faces after a solved case, ages 7 and up. Optional; Next works without a face.
+  ///
+  /// In en, this message translates to:
+  /// **'How was this case?'**
+  String get lessonRateAsk;
+
+  /// DRAFT (AI-08): the happy face.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get lessonRateEasy;
+
+  /// DRAFT (AI-08): the middle face.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get lessonRateOk;
+
+  /// DRAFT (AI-08): the thinking face.
+  ///
+  /// In en, this message translates to:
+  /// **'Tricky'**
+  String get lessonRateTricky;
+
+  /// DRAFT, for Julia (AI-08): the kind line about checking work after 'Easy'. Shown back only as a teaching moment.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy ones are worth a check too. A quick look at your sum keeps them easy.'**
+  String get lessonRateSaidEasy;
+
+  /// DRAFT, for Julia (AI-08): after 'OK'.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for telling me. Checking each step helps every time.'**
+  String get lessonRateSaidOk;
+
+  /// DRAFT, for Julia (AI-08): after 'Tricky'.
+  ///
+  /// In en, this message translates to:
+  /// **'Tricky cases take care. Checking each bar helped you crack it.'**
+  String get lessonRateSaidTricky;
+
+  /// DRAFT, for Julia and design (no Figma frame), AI-07: the first-meeting scene, once per child before their first lesson, with the grown-up there.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet your case partner'**
+  String get kidMeetTitle;
+
+  /// DRAFT, for Julia (AI-07): a note for the grown-up at the top of the first-meeting scene.
+  ///
+  /// In en, this message translates to:
+  /// **'Grown-up: please stay for this part.'**
+  String get kidMeetGrownUp;
+
+  /// DRAFT, for Julia (AI-07): line 1 of the case partner's disclosure. A line the content bundle serves (policy line.intro.*) replaces these.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! I\'m your case partner. I help you crack maths cases.'**
+  String get kidMeetLine1;
+
+  /// DRAFT, for Julia (AI-07): line 2, the disclosure itself.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m a computer helper, an AI. I\'m not a person.'**
+  String get kidMeetLine2;
+
+  /// DRAFT, for Julia (AI-07): line 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Julia\'s team wrote my rules. I can make mistakes, so if something looks odd, tell your grown-up.'**
+  String get kidMeetLine3;
+
+  /// DRAFT, for Julia (AI-07): line 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Your grown-up can see your work.'**
+  String get kidMeetLine4;
+
+  /// DRAFT (AI-07): ends the first-meeting scene and opens the first lesson.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s start'**
+  String get kidMeetStart;
+
+  /// DRAFT, for Julia and design (Figma 37.2 not built yet), TUT-09: a Help me choice on the sum steps; the number sentence shows each number's name under it, beside the bars.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the sum in words'**
+  String get lessonEasierSum;
+
+  /// DRAFT (TUT-09): the word under the difference in the easier number sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'gap'**
+  String get lessonSentenceGap;
+
+  /// DRAFT (TUT-09): the word under the ? in the easier sentence for the total.
+  ///
+  /// In en, this message translates to:
+  /// **'both'**
+  String get lessonSentenceBoth;
+
+  /// DRAFT, for Julia (TUT-05): the last button of Show me how. It opens a new problem of the same kind, so it can't say 'Back to the trees' (design review finding 23; Apoorv to confirm the label).
+  ///
+  /// In en, this message translates to:
+  /// **'Now try a new one'**
+  String get exampleNewOne;
+
+  /// DRAFT, for Julia (TUT-10): the too-hard sheet's second way out (E1), after Something easier. The case is kept to offer back another day (problem_left).
+  ///
+  /// In en, this message translates to:
+  /// **'Leave it for now'**
+  String get lessonLeaveForNow;
+
+  /// DRAFT, for Julia (TUT-16): a button on 'Which tree does it mean?' (H1-4a, H1-4b), naming one of the two things in the story.
+  ///
+  /// In en, this message translates to:
+  /// **'The {name}'**
+  String lessonItIs(String name);
+
+  /// DRAFT, for Julia (TUT-16): what a screen reader says for the H1-4b highlight, since colour is not the only signal.
+  ///
+  /// In en, this message translates to:
+  /// **'\'It\' and the {name} are in the same colour.'**
+  String lessonItHighlighted(String name);
+
+  /// DRAFT, for Julia and Design (TUT-18): the detour pause, a strip at the top of a side lesson saying the case is paused with its board kept. No Figma frame yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Your case is waiting. Your drawing is kept.'**
+  String get lessonDetourPaused;
+
+  /// DRAFT, for Julia (NFR-06): the speaker button's label on every child screen, for screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Read it to me'**
+  String get kidReadToMe;
+
+  /// DRAFT, for Julia (TUT-06): what a screen reader says for the H1-6 picture.
+  ///
+  /// In en, this message translates to:
+  /// **'A grown-up and a child, side by side.'**
+  String get lessonEverydayPicture;
+
+  /// DRAFT, for Julia (TUT-06): the label under the grown-up in the H1-6 picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Grown-up'**
+  String get lessonGrownUp;
+
+  /// DRAFT, for Julia (TUT-06): the label under the child in the H1-6 picture.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get lessonYou;
+
+  /// DRAFT, for Julia (TUT-17): bar-sense side lesson 1, from her slide 8 ('a longer bar represents a greater number'). Behind bar_sense_side_lessons.
+  ///
+  /// In en, this message translates to:
+  /// **'A longer bar shows a bigger number.'**
+  String get lessonBarSenseLine;
+
+  /// DRAFT, for Julia (TUT-17): bar-sense lesson 1, the child taps the bar for the bigger number.
+  ///
+  /// In en, this message translates to:
+  /// **'Which bar shows {n}?'**
+  String lessonBarSenseAsk(int n);
+
+  /// DRAFT, for Julia (TUT-17): bar-sense lesson 2, her words 'Let's compare 3 stars and 5 stars', for a child still unsure after lesson 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s compare {a} stars and {b} stars. Which row has more?'**
+  String lessonStarsAsk(int a, int b);
+
+  /// DRAFT, for Julia (TUT-17): bar-sense lesson 2, after the right row; the bars question comes again.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes! More stars make a longer row. Back to the bars.'**
+  String get lessonStarsRight;
+
+  /// DRAFT, for Julia (TUT-17): bar-sense lesson 1, after the right bar; then back to the case.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes! The longer bar shows the bigger number.'**
+  String get lessonBarSenseRight;
+
+  /// DRAFT (TUT-17): what a screen reader says for each bar in the bar-sense lesson, by its place (1 or 2), so it doesn't say the number.
+  ///
+  /// In en, this message translates to:
+  /// **'Bar {n}'**
+  String lessonBarLabel(int n);
+
+  /// DRAFT (TUT-17): what a screen reader says for each row in the stars lesson, by its place (1 or 2).
+  ///
+  /// In en, this message translates to:
+  /// **'Row {n}'**
+  String lessonStarRow(int n);
+
+  /// DRAFT, for Julia (LES-07, LES-15): what a screen reader says on a piece dropped in the wrong place; a tap puts it back in the tray, free.
+  ///
+  /// In en, this message translates to:
+  /// **'Take it back'**
+  String get lessonTakeBack;
+
+  /// What a screen reader says on the eye button that opens the whole question (LES-02). Figma: Prototype parts › Question strip.
+  ///
+  /// In en, this message translates to:
+  /// **'See the question'**
+  String get lessonSeeQuestion;
+
+  /// DRAFT, for Julia and design (no Figma frame), LES-02: closes the whole question and returns to the same place.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my work'**
+  String get lessonQuestionBack;
+
+  /// DRAFT, for Julia (LES-15): what a screen reader says on the board's undo key. An undo before a step is checked costs nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get lessonUndo;
+
+  /// DRAFT, for Julia (LES-16, no Figma frame): the line over each Quick sum.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick sums! Type the answer.'**
+  String get kidQuickLine;
+
+  /// DRAFT, for Julia (LES-16): after a first wrong Quick sum; it gets one more try. Avoids the forbidden 'try again'.
+  ///
+  /// In en, this message translates to:
+  /// **'Check it and have one more go.'**
+  String get kidQuickOneMore;
+
+  /// DRAFT, for Julia (LES-16): a first wrong Quick sum that was a regrouping slip (a dropped carry, or the smaller digit taken from the larger).
+  ///
+  /// In en, this message translates to:
+  /// **'Look at the ones first. Do you need to regroup?'**
+  String get kidQuickRegroup;
+
+  /// DRAFT, for Julia (LES-16, no Figma frame): the regrouping side lesson after a Quick sums slip, once the blocks are worked. The answer isn't given: the child types it on the one more try.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s regrouping! Now have one more go at your sum.'**
+  String get kidQuickSideDone;
+
+  /// DRAFT, for Julia (LES-16): the button that ends Quick sums' regrouping side lesson.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my sums'**
+  String get kidQuickSideBack;
+
+  /// DRAFT, for Julia (ACC-12, no Figma frame): the child's avatar picker's ribbon, and the name of the small avatar on Home that opens it.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your detective'**
+  String get kidPickAvatar;
+
+  /// DRAFT, for Julia (ACC-12): saves the avatar the child picked.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s me!'**
+  String get kidPickAvatarSave;
+
+  /// DRAFT, for Julia (ACC-12): the avatar couldn't be saved (offline, or the server said no).
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t save. Check the internet and tap again.'**
+  String get kidPickAvatarFailed;
+
+  /// DRAFT, for Julia (PAR-09): what a screen reader says for the lesson's drawing when the server sends no caption.
+  ///
+  /// In en, this message translates to:
+  /// **'The child\'s drawing from this lesson'**
+  String get guDrawingLabel;
+
+  /// DRAFT, for Julia (ACC-12): this phone may not set the child's avatar (a sibling who has never had a lesson on this shared phone); a grown-up sets it in Edit child.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a grown-up to set your detective for you.'**
+  String get kidPickAvatarAskGrownUp;
+
+  /// DRAFT, for Julia (LES-16): after the run of five. No score or count.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick sums done!'**
+  String get kidQuickDone;
+
+  /// DRAFT, for Julia (LES-16): after Quick sums, on to today's story problem.
+  ///
+  /// In en, this message translates to:
+  /// **'A story problem'**
+  String get kidQuickStory;
+
+  /// DRAFT, for Julia (LES-16): after Quick sums, back to Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Back home'**
+  String get kidQuickHome;
+
+  /// DRAFT, for Julia (LES-14, Figma A3 / 4.2): Choose today's title.
+  ///
+  /// In en, this message translates to:
+  /// **'What shall we do today?'**
+  String get kidTodayTitle;
+
+  /// DRAFT, for Julia (LES-14): today's case, at the child's level.
+  ///
+  /// In en, this message translates to:
+  /// **'A story problem'**
+  String get kidTodayStory;
+
+  /// DRAFT, for Julia (LES-14, LES-16): five quick sums at the child's level. Figma 4.2's Taking away is part of these.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick sums'**
+  String get kidTodayQuick;
+
+  /// DRAFT, for Julia (SES-07, Figma 25.3): WelcomeBack's second choice, after carrying on the last case; opens Choose today (LES-14).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose today\'s work'**
+  String get kidWelcomeChooseToday;
+
+  /// DRAFT, for Julia (LES-10): what a screen reader says on a word button under the question.
+  ///
+  /// In en, this message translates to:
+  /// **'What does {word} mean?'**
+  String kidWordWhat(String word);
+
+  /// DRAFT, for Julia (LES-10, Figma J09): under the drawing for 'taller'. Julia (journey 36): 'better with a teaching of the drawing'.
+  ///
+  /// In en, this message translates to:
+  /// **'Taller means it reaches higher. The taller one gets the longer bar.'**
+  String get kidWordTaller;
+
+  /// DRAFT, for Julia (LES-10, Figma J09): under the drawing for 'shorter'.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorter means it does not reach as high. The shorter one gets the shorter bar.'**
+  String get kidWordShorter;
+
+  /// DRAFT, for Julia (LES-10, CON-11): under the drawing for 'more' in a weight story.
+  ///
+  /// In en, this message translates to:
+  /// **'More means it weighs more. The heavier one gets the longer bar.'**
+  String get kidWordMore;
+
+  /// DRAFT, for Julia (LES-10, CON-11): under the drawing for 'less' in a weight story.
+  ///
+  /// In en, this message translates to:
+  /// **'Less means it weighs less. The lighter one gets the shorter bar.'**
+  String get kidWordLess;
+
+  /// DRAFT, for Julia (LES-10): closes a word's meaning.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get kidWordGotIt;
+
+  /// DRAFT, for Julia and Apoorv (LES-12, name_quantities, M3; screen TBD): asks which number is the first thing's height, before drawing. The options come from the template.
+  ///
+  /// In en, this message translates to:
+  /// **'How tall is the {a}?'**
+  String lessonNameHowTall(String a);
+
+  /// DRAFT, for Julia and Apoorv (LES-12, CON-11): the weight story's name_quantities question.
+  ///
+  /// In en, this message translates to:
+  /// **'How heavy is the {a}?'**
+  String lessonNameHowHeavy(String a);
+
+  /// DRAFT, for Julia (LES-06, J36): what a screen reader says on an empty box of the number sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty box'**
+  String get lessonSentenceBox;
+
+  /// DRAFT, for Julia (LES-06): the number sentence's sign, now +.
+  ///
+  /// In en, this message translates to:
+  /// **'Add. Tap to take away.'**
+  String get lessonSentenceAdd;
+
+  /// DRAFT, for Julia (LES-06): the number sentence's sign, now −.
+  ///
+  /// In en, this message translates to:
+  /// **'Take away. Tap to add.'**
+  String get lessonSentenceTake;
+
+  /// DRAFT, for Julia (LES-06, J36): sends the number sentence. Any equivalent form counts.
+  ///
+  /// In en, this message translates to:
+  /// **'Check my sentence'**
+  String get lessonSentenceCheck;
+
+  /// DRAFT, for Julia (LES-06, J36): above the number sentence builder.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a number sentence for the {b}.'**
+  String lessonSentenceTitle(String b);
+
+  /// DRAFT, for Julia (CON-11): the sizing chip on a weight story's board, in place of Taller (policy choice_mass: heavier).
+  ///
+  /// In en, this message translates to:
+  /// **'Heavier'**
+  String get lessonHeavier;
+
+  /// DRAFT, for Julia (CON-11): the sizing chip on a weight story's board, in place of Shorter.
+  ///
+  /// In en, this message translates to:
+  /// **'Lighter'**
+  String get lessonLighter;
+
+  /// DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 more').
+  ///
+  /// In en, this message translates to:
+  /// **'more'**
+  String get lessonMore;
+
+  /// DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 less').
+  ///
+  /// In en, this message translates to:
+  /// **'less'**
+  String get lessonLess;
 }
 
 class _AppLocalizationsDelegate

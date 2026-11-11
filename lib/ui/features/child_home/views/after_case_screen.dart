@@ -22,9 +22,13 @@ enum _Step { sent, streak, up, closed }
 /// shows the next case. [ProgressRepository.afterCase] decides which of
 /// the first three show.
 class AfterCaseScreen extends StatefulWidget {
-  const AfterCaseScreen({super.key, required this.after});
+  const AfterCaseScreen({super.key, required this.after, this.onShared});
 
   final AfterCase after;
+
+  /// Y4 shows: the badge is sent to the grown-up (DAT-03 logs it as
+  /// `badge_shared`).
+  final ValueChanged<String>? onShared;
 
   @override
   State<AfterCaseScreen> createState() => _AfterCaseScreenState();
@@ -39,6 +43,12 @@ class _AfterCaseScreenState extends State<AfterCaseScreen> {
   ];
   int _at = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.after.sentBadge case final badge?) widget.onShared?.call(badge);
+  }
+
   void _next() => setState(() => _at++);
 
   void _home() => context.go(Paths.home);
@@ -50,6 +60,7 @@ class _AfterCaseScreenState extends State<AfterCaseScreen> {
     return switch (_steps[_at]) {
       _Step.sent => AuraPage(
         play: true,
+        say: '${l.kidMySash}. ${l.kidInYourSash}',
         top: Padding(
           padding: const EdgeInsets.only(top: 10),
           child: Align(
@@ -124,6 +135,7 @@ class _CaseClosed extends StatelessWidget {
         TrailStop.of(next) == TrailStop.trickyWords;
     return AuraPage(
       play: true,
+      say: '${trickier ? l.kidTrickierOne : l.readyForNewCase} ${next.text}',
       top: Padding(
         padding: const EdgeInsets.only(top: 12),
         child: Ribbon(text: trickier ? l.kidTrickierOne : l.readyForNewCase),

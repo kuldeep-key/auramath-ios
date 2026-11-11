@@ -14,6 +14,7 @@ void main() {
     String at, {
     Map<String, String> stored = pairedChildPhone,
     List<SpecEvent> saved = const [],
+    void Function(FakeServer server)? serve,
   }) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -26,6 +27,7 @@ void main() {
         {'id': 'child-1', 'displayName': 'Mira'},
       ],
     });
+    serve?.call(server);
     if (saved.isNotEmpty) {
       await tester.runAsync(() => deps.sessions.record('s1', 0, saved));
     }
@@ -35,9 +37,102 @@ void main() {
     return deps;
   }
 
+  testWidgets('My badges adds the level badges the server served (REW-06)', (
+    tester,
+  ) async {
+    await boot(
+      tester,
+      Paths.badges,
+      serve: (server) => server.on('GET /api/children/child-1/rewards', {
+        'levelBadges': [
+          {
+            'badgeId': 'level.cmp.comparison.l4',
+            'kind': 'skill_mastered',
+            'name': 'Taller and shorter, up to 1000',
+            'questionType': 'cmp.comparison',
+            'level': 'L4',
+            'sessionId': 's1',
+            'draftName': true,
+          },
+          // another kind is not a level badge
+          {'badgeId': 'tree', 'kind': 'session', 'name': 'Tree'},
+        ],
+      }),
+    );
+    expect(find.text('Taller and shorter, up to 1000'), findsOneWidget);
+    await tester.tap(find.text('Taller and shorter, up to 1000'));
+    await settle(tester);
+    expect(find.text('Taller and shorter, up to 1000'), findsWidgets);
+    expect(find.text('My badges'), findsNothing); // its own screen
+  });
+
+  testWidgets('no level badges served: only what this phone earned', (
+    tester,
+  ) async {
+    await boot(tester, Paths.badges);
+    expect(find.text('Crack a case to earn your first badge!'), findsOneWidget);
+  });
+
   testWidgets('Home shows the child named by the server', (tester) async {
     await boot(tester, Paths.home);
     expect(find.text('Mira'), findsOneWidget);
+  });
+
+  testWidgets('ACC-12: on their own phone the child picks a detective with '
+      'the device token route; Home shows it', (tester) async {
+    late FakeServer server;
+    await boot(
+      tester,
+      Paths.home,
+      serve: (s) =>
+          (server = s).routes['PUT /api/children/child-1/avatar'] = (body) {
+            // every phone reads it back from now on
+            s.on('GET /api/children', {
+              'children': [
+                {'id': 'child-1', 'displayName': 'Mira', ...body},
+              ],
+            });
+            return (200, {'id': 'child-1', ...body});
+          },
+    );
+    await tester.tap(find.byKey(const Key('pickAvatar')));
+    await settle(tester);
+    expect(find.text('Pick your detective'), findsWidgets);
+    await tester.tap(find.bySemanticsLabel('Key'));
+    await settle(tester);
+    await tester.tap(find.byKey(const Key('avatarSave')));
+    await settle(tester);
+    final put = server.calls.lastWhere((c) => c.$1.startsWith('PUT'));
+    expect(put.$1, 'PUT /api/children/child-1/avatar');
+    expect(put.$2, {'avatar': 'key'});
+    expect(find.byIcon(Icons.key_rounded), findsWidgets, reason: 'on Home');
+    expect(find.text('Mira'), findsOneWidget);
+  });
+
+  testWidgets('ACC-12: a phone the server won\'t let set it (403) asks for '
+      'a grown-up', (tester) async {
+    await boot(
+      tester,
+      Paths.avatar,
+      serve: (s) => s.on('PUT /api/children/child-1/avatar', {
+        'error': 'another child from this phone',
+      }, status: 403),
+    );
+    await tester.tap(find.bySemanticsLabel('Compass'));
+    await settle(tester);
+    await tester.tap(find.byKey(const Key('avatarSave')));
+    await settle(tester);
+    expect(find.textContaining('Ask a grown-up'), findsOneWidget);
+    expect(find.textContaining("didn't save"), findsNothing);
+  });
+
+  testWidgets("ACC-12: a save that fails says so and stays", (tester) async {
+    await boot(tester, Paths.avatar); // no route: the fake answers 404
+    await tester.tap(find.bySemanticsLabel('Compass'));
+    await settle(tester);
+    await tester.tap(find.byKey(const Key('avatarSave')));
+    await settle(tester);
+    expect(find.textContaining("didn't save"), findsOneWidget);
   });
 
   testWidgets('My badges lists what this phone earned', (tester) async {

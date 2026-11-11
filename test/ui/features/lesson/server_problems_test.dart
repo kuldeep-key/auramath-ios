@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:auramath/data/models/server_problem.dart';
+import 'package:auramath/data/services/api.dart';
+import 'package:auramath/data/services/fake_api.dart';
 import 'package:auramath/ui/features/lesson/view_models/lesson_view_model.dart';
 import 'package:auramath/ui/features/lesson/view_models/sitting.dart';
 import 'package:auramath_engine/auramath_engine.dart';
@@ -60,6 +64,85 @@ void main() {
     expect(await db.problems(), isEmpty);
   });
 
+  test('@LES-03 @LES-12 the served steps and options are the lesson\'s', () {
+    final p = problemFromServer({
+      ...served(),
+      'steps': [
+        {
+          'id': 'name_quantities',
+          'input': 'choice',
+          'optional': true,
+          'options': [
+            {'id': 'opt_A', 'text': '186 cm', 'correct': true},
+            {'id': 'opt_D', 'text': '107 cm', 'correct': false},
+          ],
+        },
+        {'id': 'draw_known_bar', 'input': 'drag_bar', 'optional': false},
+        {'id': 'size_second_bar', 'input': 'size_bar', 'optional': false},
+        {'id': 'place_total', 'input': 'place_brace', 'optional': false},
+        {'id': 'place_difference', 'input': 'place_brace', 'optional': false},
+        {
+          'id': 'choose_operation',
+          'input': 'choice',
+          'optional': false,
+          'hintStartRung': 'D4w',
+          'options': [
+            {'id': 'a_minus_d', 'text': 'A - D', 'correct': true},
+            {'id': 'a_plus_d', 'text': 'A + D', 'correct': false},
+          ],
+        },
+        {'id': 'find_unknown', 'input': 'number', 'optional': false},
+        {'id': 'find_total', 'input': 'number', 'optional': false},
+      ],
+    });
+    expect(p.steps!.map((s) => s.id).take(2), [
+      'name_quantities',
+      'draw_known_bar',
+    ]);
+    expect(p.servedStep('choose_operation')!.hintStartRung, 'D4w');
+    final pack = samplePack();
+    final steps = lessonSteps(pack, p);
+    expect(
+      steps.indexOf(LessonStep.placeTotal),
+      lessThan(steps.indexOf(LessonStep.placeGap)),
+    );
+    expect(choiceOptions(pack, p, 'choose_operation').map((o) => o.id), [
+      'a_minus_d',
+      'a_plus_d',
+    ]);
+    // an older server sends none: the template's (or the engine's) own
+    expect(problemFromServer(served()).steps, isNull);
+  });
+
+  test('@CON-07 a total-and-difference case never crashes the phone', () {
+    final shown = {
+      'problem_id': 'g_td',
+      'template_id': 'cmp.comparison',
+      'template_version': '0.3.0',
+      'story_id': 'lemon-fig',
+      'relation': 'more',
+      'level': 'L4',
+      'numbers': {'total': 30, 'difference': 6},
+    };
+    final t = ComparisonTemplate.fromYaml(
+      File('assets/spec/comparison-two-step.yaml').readAsStringSync(),
+    );
+    expect(problemFromShown(shown, t), isNull);
+    expect(
+      problemFromShown({...shown, 'template_id': 'td.total-and-difference'}, t),
+      isNull,
+    );
+    expect(
+      () => problemFromServer({
+        ...served(),
+        'templateId': 'td.total-and-difference',
+        'relation': 'more',
+        'numbers': {'total': 30, 'difference': 6},
+      }),
+      throwsA(isA<ApiException>()),
+    );
+  });
+
   test('easierLevel goes one rung down, never below L1', () {
     expect(easierLevel('L4'), 'L3');
     expect(easierLevel('L1'), 'L1');
@@ -67,6 +150,9 @@ void main() {
   });
 
   group('a lesson on the server problems', () {
+    /// The fake server behind the last [makeVm].
+    late FakeApi server;
+
     Future<(LessonViewModel, List<(String, String?)>)> makeVm({
       String? checkLevel,
       List<Map<String, Object?>>? problems,
@@ -74,6 +160,7 @@ void main() {
     }) async {
       final pack = samplePack();
       final (sessions, _, api) = await memorySessions(withTemplate: true);
+      server = api;
       api
         ..checkLevel = checkLevel
         ..leftProblem = left
@@ -279,11 +366,12 @@ void main() {
       expect(next.variant, 'standard');
     });
 
-    test('something easier asks one level down, in a new session', () async {
+    test('@CON-06 something easier asks easier than this level, in a new '
+        'session, and problem_shown echoes the variant', () async {
       final (vm, asked) = await makeVm(
         problems: [
           served(),
-          served(id: 'g_easy', level: 'L3'),
+          {...served(id: 'g_easy', level: 'L3'), 'variant': 'easier'},
         ],
       );
       await vm.start();
@@ -292,7 +380,33 @@ void main() {
       await vm.send(const EasierTaken());
       expect(vm.problem.id, 'g_easy');
       expect(vm.sessionId, isNot(first));
-      expect(asked.last, (vm.sessionId, 'L3'));
+      // no level: the server goes one below the child's own, and says so
+      // (with a level it would serve that same level)
+      expect(asked.last, (vm.sessionId, null));
+      final api = server;
+      expect(api.askedEasier, [vm.sessionId]);
+      final shown = api.received.lastWhere((e) => e.name == 'problem_shown');
+      expect(shown.payload['variant'], 'easier');
+      expect(shown.sessionId, vm.sessionId);
+      vm.dispose();
+    });
+
+    test('show me how to its end asks the same level again, in a new '
+        'session (TUT-05)', () async {
+      final (vm, asked) = await makeVm(
+        problems: [
+          served(),
+          served(id: 'g_variant', a: 152, d: 68),
+        ],
+      );
+      await vm.start();
+      final first = vm.sessionId;
+      await vm.send(const Started());
+      await vm.send(const ShowMeHowTaken());
+      await vm.exampleDone();
+      expect(vm.problem.id, 'g_variant');
+      expect(vm.sessionId, isNot(first));
+      expect(asked.last, (vm.sessionId, 'L4'));
       vm.dispose();
     });
 

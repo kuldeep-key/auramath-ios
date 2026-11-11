@@ -22,8 +22,14 @@ class FakeServer {
       {};
   final List<(String, Map<String, Object?>)> calls = [];
 
+  /// Every request's full URL, query and all, in order.
+  final List<Uri> urls = [];
+
   void on(String route, Object? json, {int status = 200}) =>
       routes[route] = (_) => (status, json);
+
+  /// Answers [route] with these bytes and headers instead of JSON (a PNG).
+  final Map<String, http.Response> raw = {};
 
   late final http.Client client = MockClient((req) async {
     final key = '${req.method} ${req.url.path}';
@@ -31,6 +37,8 @@ class FakeServer {
         ? <String, Object?>{}
         : jsonDecode(req.body) as Map<String, Object?>;
     calls.add((key, body));
+    urls.add(req.url);
+    if (raw[key] case final r?) return r;
     final handler = routes[key];
     final (status, json) = handler == null
         ? (404, {'error': 'no route $key'})
@@ -71,6 +79,7 @@ class FakeDeviceLock implements DeviceLock {
 /// `tester.runAsync` (the outbox is SQLite in memory).
 Future<(Deps, FakeServer)> testDeps({
   Map<String, String> stored = const {},
+  Map<String, Object?> flags = allScreensOn,
 }) async {
   final server = FakeServer();
   final store = MemoryKeyStore()..values.addAll(stored);
@@ -100,7 +109,7 @@ Future<(Deps, FakeServer)> testDeps({
       deviceLock: FakeDeviceLock(),
       outbox: outbox,
       store: store,
-      flags: Flags(client, store, defaults: allScreensOn),
+      flags: Flags(client, store, defaults: flags),
       timeZone: () async => 'Australia/Sydney',
     ),
     server,

@@ -7,6 +7,7 @@ import 'package:auramath/ui/features/setup/views/sign_in_screen.dart';
 import 'package:auramath/ui/features/setup/views/verify_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../../helpers/app_harness.dart';
 import '../../../helpers/shots.dart';
@@ -84,6 +85,35 @@ void main() {
       expect(deps.account.role, Role.parent);
       expect(deps.account.draft.name, isNull);
       expect(find.text(readyPath), findsOneWidget);
+    });
+
+    testWidgets("FL-50 (ACC-02, D-38): Apple's own button, and Google's to "
+        'its branding guidelines', (tester) async {
+      final (deps, _) = await ready(tester);
+      await show(tester, SavePlaceScreen(deps: deps));
+      final apple = tester.widget<SignInWithAppleButton>(
+        find.byType(SignInWithAppleButton),
+      );
+      expect(apple.style, SignInWithAppleButtonStyle.black);
+      expect(apple.text, 'Continue with Apple');
+      final google = find.byKey(const Key('googleSignIn'));
+      final shape = tester.widget<Material>(google).shape! as StadiumBorder;
+      expect(tester.widget<Material>(google).color, const Color(0xFFFFFFFF));
+      expect(shape.side.color, const Color(0xFF747775));
+      final label = tester.widget<Text>(
+        find.descendant(
+          of: google,
+          matching: find.text('Continue with Google'),
+        ),
+      );
+      expect(label.style!.fontFamily, 'Roboto');
+      expect(label.style!.fontWeight, FontWeight.w500);
+      expect(label.style!.color, const Color(0xFF1F1F1F));
+      expect(
+        find.bySemanticsLabel('Continue with Google'),
+        findsOneWidget,
+        reason: 'one named button',
+      );
     });
 
     testWidgets('Apple switched off says so and stays', (tester) async {

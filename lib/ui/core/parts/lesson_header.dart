@@ -20,6 +20,8 @@ class LessonHeader extends StatelessWidget {
     required this.onHome,
     this.big = false,
     this.speaking,
+    this.onSeeQuestion,
+    this.seeQuestionLabel = 'See the question',
   });
 
   final String line;
@@ -37,6 +39,11 @@ class LessonHeader extends StatelessWidget {
 
   /// While true, the speak button glows (the prototype's speakPulse).
   final ValueListenable<bool>? speaking;
+
+  /// "See the question" on a working screen without the question strip
+  /// (show me how, a side lesson): LES-02. Null: no button.
+  final VoidCallback? onSeeQuestion;
+  final String seeQuestionLabel;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -78,9 +85,27 @@ class LessonHeader extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 8),
+      // a long line in large text (NFR-04) scrolls in the bubble rather
+      // than pushing the board off the screen
       Expanded(
-        child: SpeechBubble(text: line, big: big),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: big ? 200 : 128),
+          child: SingleChildScrollView(
+            child: SpeechBubble(text: line, big: big),
+          ),
+        ),
       ),
+      if (onSeeQuestion case final see?) ...[
+        const SizedBox(width: 8),
+        _SquareButton(
+          key: const Key('seeQuestion'),
+          icon: Icons.visibility_rounded,
+          fill: AuraColors.blue,
+          fg: AuraColors.white,
+          label: seeQuestionLabel,
+          onTap: see,
+        ),
+      ],
       const SizedBox(width: 8),
       _SquareButton(
         icon: Icons.home_rounded,
@@ -95,6 +120,7 @@ class LessonHeader extends StatelessWidget {
 
 class _SquareButton extends StatelessWidget {
   const _SquareButton({
+    super.key,
     required this.icon,
     required this.fill,
     required this.fg,

@@ -12,10 +12,11 @@ class OutboxDb {
   static Future<OutboxDb> open(String path) async {
     final db = await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: (db, _) async {
         await _create(db);
         await _createV3(db);
+        await _createV4(db);
       },
       onUpgrade: (db, from, _) async {
         // v1 held the pre-contract event shape; no real family has used the
@@ -25,6 +26,7 @@ class OutboxDb {
           await _create(db);
         }
         if (from < 3) await _createV3(db);
+        if (from < 4) await _createV4(db);
       },
     );
     return OutboxDb._(db);
@@ -51,6 +53,27 @@ class OutboxDb {
       'CREATE TABLE problems(id TEXT PRIMARY KEY, body TEXT NOT NULL)',
     );
   }
+
+  /// `carried`: a session that carries on an ended one's board (time up,
+  /// or ended by the server): its case resumes with that session's work
+  /// first (SES-01, SES-04).
+  static Future<void> _createV4(Database db) => db.execute(
+    'CREATE TABLE carried(session_id TEXT PRIMARY KEY, from_id TEXT NOT NULL)',
+  );
+
+  Future<void> saveCarried(String sessionId, String fromId) => _db.insert(
+    'carried',
+    {'session_id': sessionId, 'from_id': fromId},
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
+
+  Future<String?> carriedFrom(String sessionId) async =>
+      (await _db.query(
+            'carried',
+            where: 'session_id = ?',
+            whereArgs: [sessionId],
+          )).firstOrNull?['from_id']
+          as String?;
 
   Future<void> saveProblem(String id, Map<String, Object?> body) => _db.insert(
     'problems',
@@ -134,6 +157,7 @@ class OutboxDb {
     await _db.delete('events');
     await _db.delete('ended');
     await _db.delete('problems');
+    await _db.delete('carried');
   }
 
   Future<void> close() => _db.close();

@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 import 'fixtures.dart';
 
-/// The backend's event contract, copied from spec pack v0.3.0
+/// The backend's event contract, copied from spec pack v0.4.0 (unchanged since v0.3.0)
 /// (`auramath-backend/spec/contracts/events.schema.json`).
 final schema = JsonSchema.create(
   jsonDecode(File('test/contract/events.schema.json').readAsStringSync()),

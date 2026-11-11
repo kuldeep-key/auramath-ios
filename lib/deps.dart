@@ -27,6 +27,7 @@ class Deps {
     required this.store,
     required this.flags,
     required this.timeZone,
+    this.config = const AppConfig(sessionCapMinutes: 30),
   });
 
   final AccountRepository account;
@@ -50,6 +51,9 @@ class Deps {
 
   /// The server's feature flags: every provisional screen asks them.
   final Flags flags;
+
+  /// App-config (served, else bundled): the AI timings, the offline clock.
+  final AppConfig config;
 
   /// The phone's IANA time zone, e.g. `Australia/Sydney`.
   final Future<String> Function() timeZone;

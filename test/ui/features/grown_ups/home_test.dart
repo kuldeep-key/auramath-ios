@@ -1,6 +1,10 @@
+import 'package:auramath/data/repositories/recent_notes_repository.dart';
+import 'package:auramath/data/repositories/report_email_repository.dart';
 import 'package:auramath/routing/paths.dart';
+import 'package:auramath/ui/features/grown_ups/views/email_frequency_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/forgot_passcode_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/grown_up_home_screen.dart';
+import 'package:auramath/ui/features/grown_ups/views/recent_notes_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,6 +61,121 @@ void main() {
     });
   });
 
+  group('ForgotPass: sign in again (ACC-11)', () {
+    Widget screen(Gu g) =>
+        ForgotPasscodeScreen(account: g.deps.account, repo: g.repo);
+
+    void auth(Gu g) => g.server
+      ..on('GET /api/auth/config', {
+        'googleClientId': 'google-server-id',
+        'appleSignIn': true,
+        'emailLink': true,
+      })
+      ..on('POST /api/auth/apple', {'token': 'fresh-apple'})
+      ..on('POST /api/auth/google', {'token': 'fresh-google'});
+
+    for (final (button, token) in [
+      ('Continue with Apple', 'fresh-apple'),
+      ('Continue with Google', 'fresh-google'),
+    ]) {
+      testWidgets('$button signs in again, then GPass resets', (tester) async {
+        final g = await Gu.make(tester);
+        auth(g);
+        await tester.pumpWidget(shotApp(screen(g)));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text(button));
+        await tester.tap(find.text(button));
+        await tester.pumpAndSettle();
+        expect(g.deps.account.bearer, token);
+        expect(find.text('went to ${Paths.grownUpsPass}'), findsOneWidget);
+        expect(
+          await tester.runAsync(() => g.repo.passcodeResetReady(token)),
+          isTrue,
+        );
+      });
+    }
+
+    testWidgets('Apple off on this server: says so, nothing kept', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      auth(g);
+      g.server.on('GET /api/auth/config', {
+        'googleClientId': 'google-server-id',
+        'appleSignIn': false,
+      });
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Continue with Apple'));
+      await tester.tap(find.text('Continue with Apple'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text("Apple sign-in isn't switched on for this server yet."),
+        findsOneWidget,
+      );
+      expect(g.store.values['passcodeReset'], isNull);
+      expect(find.textContaining('went to'), findsNothing);
+    });
+  });
+
+  group('Recent notes (PAR-12)', () {
+    Widget screen(Gu g) => RecentNotesScreen(
+      childId: 'child-1',
+      family: g.deps.family,
+      notes: RecentNotesRepository(g.deps.client, g.repo),
+    );
+
+    testWidgets('the last-five route: at every size, newest first', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('GET /api/family/notes', {
+        'notes': [
+          for (var i = 0; i < 7; i++)
+            {
+              'sessionId': 's$i',
+              'endedAt': DateTime(2026, 11, 10 - i).millisecondsSinceEpoch,
+              'sentences': [
+                {'text': 'Note $i.'},
+              ],
+            },
+        ],
+      });
+      await shotAllSizes(tester, 'grown_ups_recent_notes', screen(g));
+      expect(find.text("Aarav's notes"), findsOneWidget);
+      expect(find.text('Note 0.'), findsOneWidget);
+      expect(find.text('Note 4.'), findsOneWidget);
+      expect(find.text('Note 5.'), findsNothing); // five at most
+      expect(
+        g.server.urls
+            .lastWhere((u) => u.path == '/api/family/notes')
+            .queryParameters,
+        {'childId': 'child-1', 'limit': '5'},
+      );
+    });
+
+    testWidgets('no last-five route yet: built from progress and summaries', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Practised comparing two bars. Did the second one alone.'),
+        findsOneWidget,
+      );
+      expect(g.calls, contains('GET /api/sessions/s1/summary'));
+    });
+
+    testWidgets('none yet says so', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.on('GET /api/family/notes', <Object>[]);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('No notes yet'), findsOneWidget);
+    });
+  });
+
   group('PHome', () {
     Widget screen(Gu g) => GrownUpHomeScreen(
       account: g.deps.account,
@@ -83,6 +202,35 @@ void main() {
       expect(find.textContaining('went to'), findsNothing);
       expect(find.textContaining('progress'), findsNothing);
       expect(find.text('Plan'), findsNothing);
+    });
+
+    testWidgets('no Recent notes while recent_notes_in_app is off', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.text('Recent notes'), findsNothing);
+    });
+
+    testWidgets('flag on: each child links to their recent notes (PAR-12)', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      await shotAllSizes(
+        tester,
+        'grown_ups_home_notes',
+        GrownUpHomeScreen(
+          account: g.deps.account,
+          family: g.deps.family,
+          repo: g.repo,
+          recentNotes: true,
+        ),
+      );
+      expect(find.text('Recent notes'), findsNWidgets(2));
+      await tester.tap(find.text('Recent notes').first);
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${Paths.notes('child-1')}'), findsOneWidget);
     });
 
     testWidgets('Back to the child chooses them and goes home', (tester) async {
@@ -153,8 +301,57 @@ void main() {
     });
   });
 
+  group('How often (PAR-06)', () {
+    Widget screen(Gu g) =>
+        EmailFrequencyScreen(email: ReportEmailRepository(g.deps.client));
+
+    testWidgets('at every size, the current choice ticked', (tester) async {
+      final g = await Gu.make(tester);
+      await shotAllSizes(tester, 'grown_ups_email_frequency', screen(g));
+      expect(find.text('After each session'), findsOneWidget);
+      expect(find.text('Once a week'), findsOneWidget);
+      expect(find.text('Off'), findsOneWidget);
+    });
+
+    for (final (label, wire) in [
+      ('Once a week', 'weekly'),
+      ('Off', 'off'),
+      ('After each session', 'each'),
+    ]) {
+      testWidgets('$label saves $wire and goes back', (tester) async {
+        final g = await Gu.make(tester);
+        g.server.on('PUT /api/family/settings/reports', null, status: 204);
+        await tester.pumpWidget(shotApp(screen(g)));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(label));
+        await tester.pumpAndSettle();
+        expect(g.bodyOf('PUT /api/family/settings/reports'), {
+          'frequency': wire,
+        });
+        expect(find.text('went to ${Paths.settings}'), findsOneWidget);
+      });
+    }
+
+    testWidgets('a refusal stays and says why', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.on('PUT /api/family/settings/reports', {
+        'error': 'database is down',
+      }, status: 500);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Off'));
+      await tester.pumpAndSettle();
+      expect(find.text('database is down'), findsOneWidget);
+      expect(find.textContaining('went to'), findsNothing);
+    });
+  });
+
   group('Settings', () {
-    Widget screen(Gu g) => SettingsScreen(family: g.deps.family, repo: g.repo);
+    Widget screen(Gu g) => SettingsScreen(
+      family: g.deps.family,
+      repo: g.repo,
+      email: ReportEmailRepository(g.deps.client),
+    );
 
     testWidgets('at every size, without Membership, plan or pad choice', (
       tester,
@@ -183,6 +380,54 @@ void main() {
       final prefs = await tester.runAsync(g.repo.loadPrefs);
       expect(prefs!.minutes, 20);
       expect(prefs.readAloud, isFalse);
+    });
+
+    testWidgets('report email on: one tap turns it off (PAR-05)', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server
+        ..on('GET /api/family/settings/reports', {'frequency': 'weekly'})
+        ..on('PUT /api/family/settings/reports', null, status: 204);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Report email'));
+      expect(find.text('Every email also has a link to stop them.'), findsOne);
+      g.server.on('GET /api/family/settings/reports', {'frequency': 'off'});
+      await tester.tap(find.text('Report email'));
+      await tester.pumpAndSettle();
+      expect(g.bodyOf('PUT /api/family/settings/reports'), {
+        'frequency': 'off',
+      });
+      expect(find.text('Off'), findsWidgets);
+    });
+
+    testWidgets('report email off: turning it on asks first (Notify)', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('GET /api/family/settings/reports', {'frequency': 'off'});
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Report email'));
+      await tester.tap(find.text('Report email'));
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${Paths.notify}'), findsOneWidget);
+      expect(g.calls, isNot(contains('PUT /api/family/settings/reports')));
+    });
+
+    testWidgets('report email on: How often opens the picker (PAR-06)', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('GET /api/family/settings/reports', {'frequency': 'weekly'});
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('How often'));
+      expect(find.text('Once a week'), findsOneWidget);
+      await tester.tap(find.text('How often'));
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${Paths.emailFrequency}'), findsOneWidget);
     });
 
     testWidgets('Sign out opens its confirmation', (tester) async {

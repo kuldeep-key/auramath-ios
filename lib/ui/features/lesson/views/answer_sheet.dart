@@ -26,12 +26,23 @@ class _AnswerSheetState extends State<AnswerSheet> {
     final l = AppLocalizations.of(context)!;
     final p = widget.vm.problem;
     final askB = l.askB(p.b.name.toLowerCase());
+    // Julia's library lines where it has them (TUT-11), else the sheet's own
+    final lib = widget.vm.libraryLine;
     final (title, sub) = switch (widget.vm.knowPrompt!) {
       KnowPrompt.answer => (p.ask == Ask.total ? l.askTotal : askB, null),
-      KnowPrompt.whatAsked => (l.whatAsked, p.text),
-      KnowPrompt.recheck => (l.checkSumAgain, null),
-      KnowPrompt.checkPart => (l.checkOnePart, askB),
-      KnowPrompt.checkTotal => (l.partRight(p.b.name), l.nowCheckAdding),
+      KnowPrompt.whatAsked => (
+        lib('line.hint.what-does-it-ask') ?? l.whatAsked,
+        p.text,
+      ),
+      KnowPrompt.recheck => (lib('line.check.again') ?? l.checkSumAgain, null),
+      KnowPrompt.checkPart => switch (lib('line.check.unknown-first')) {
+        final line? => (line, null),
+        null => (l.checkOnePart, askB),
+      },
+      KnowPrompt.checkTotal => switch (lib('line.check.adding')) {
+        final line? => (line, null),
+        null => (l.partRight(p.b.name), l.nowCheckAdding),
+      },
     };
     return AuraSheet(
       onClose: widget.vm.closeKnowIt,

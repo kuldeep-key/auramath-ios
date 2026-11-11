@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../routing/paths.dart';
+import '../../child_home/views/choose_today_screen.dart';
+import '../../child_home/views/welcome_back_screen.dart';
 
 import '../view_models/lesson_view_model.dart';
+import 'bar_sense_view.dart';
 import 'board_view.dart';
 import 'break_views.dart';
+import 'question_overlay.dart';
 import 'question_view.dart';
+import 'word_meaning.dart';
 import 'side_lesson_view.dart';
 import 'solved_view.dart';
 import 'starting_check_view.dart';
@@ -56,6 +61,29 @@ class LessonFlow extends StatelessWidget {
           ),
         );
       }
+      if (vm.welcomingBack case final w?) {
+        // SES-07: back on a later day, as the server counts it
+        return WelcomeBackScreen(
+          name: null,
+          caseWaiting: w.caseWaiting,
+          onCarryOn: vm.welcomedBack,
+        );
+      }
+      if (vm.choosingToday) {
+        // LES-14: the starting check just placed the child
+        return ChooseTodayScreen(
+          suggestQuickSums: vm.suggestQuickSums,
+          onStory: vm.chooseStory,
+          onQuick: (ms) async {
+            await vm.chooseQuickSums(ms);
+            if (context.mounted) context.go(Paths.quickSums);
+          },
+          onHome: () async {
+            await vm.leave();
+            onHome();
+          },
+        );
+      }
       if (!vm.ready) {
         final error = vm.startError;
         return error == null
@@ -73,6 +101,15 @@ class LessonFlow extends StatelessWidget {
                 onRetry: vm.start,
                 onGoHome: onHome,
               );
+      }
+      if (vm.offerSound) {
+        // read-aloud is off: sound on, or I'll read it myself (NFR-06)
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!context.mounted || !vm.offerSound) return;
+          vm.soundOffered();
+          final choice = await context.push<String>(Paths.sound);
+          await vm.soundAnswered(choice);
+        });
       }
       if (vm.askVoiceResting) {
         // once, between frames: "My voice is resting", then big words
@@ -94,10 +131,16 @@ class LessonFlow extends StatelessWidget {
         return Scaffold(
           body: TimeUpView(
             onStop: () async {
+              vm.promptAnswered('time_up', 'call_it_a_day');
               await vm.callItADay();
               onHome();
             },
-            onFinish: vm.canFinish ? vm.finishThisOne : null,
+            onFinish: vm.canFinish
+                ? () {
+                    vm.promptAnswered('time_up', 'finish_this_one');
+                    vm.finishThisOne();
+                  }
+                : null,
           ),
         );
       }
@@ -116,29 +159,59 @@ class LessonFlow extends StatelessWidget {
                               vm: vm,
                               onHome: vm.askBreak,
                             ),
+                            // bars the wrong way round, with the flag on:
+                            // Julia's bar-sense lessons (TUT-17, draft)
+                            LessonStep.sideLesson
+                                when vm.sideLesson == SideLesson.readRelation &&
+                                    vm.barSenseLessons =>
+                              BarSenseView(vm: vm, onHome: vm.askBreak),
+                            // a detour on reading the story (TUT-08): the
+                            // smaller worked example, then back
+                            LessonStep.sideLesson
+                                when vm.sideLesson?.arithmetic == false =>
+                              WorkedExampleView(vm: vm, onHome: vm.askBreak),
                             LessonStep.sideLesson => SideLessonView(
                               vm: vm,
                               onHome: vm.askBreak,
                             ),
-                            _ => BoardView(vm: vm, onHome: vm.askBreak),
+                            _ => BoardView(
+                              vm: vm,
+                              onHome: vm.askBreak,
+                              onLeave: () async {
+                                await vm.leaveProblem();
+                                onFinished(LessonViewModel.newProblem);
+                              },
+                            ),
                           },
                   ),
+                  if (vm.questionOpen) QuestionOverlay(vm: vm),
+                  if (vm.wordOpen case final word?)
+                    WordMeaningSheet(vm: vm, word: word),
                   if (!vm.online)
                     LostInternetPause(
-                      onRetry: vm.retryConnection,
+                      onRetry: () {
+                        vm.promptAnswered('offline', 'try_again');
+                        vm.retryConnection();
+                      },
                       onGoHome: () async {
+                        vm.promptAnswered('offline', 'stop_for_today');
                         await vm.leave();
                         onHome();
                       },
                     ),
                   if (vm.askingBreak)
                     BreakSheet(
-                      onKeepGoing: vm.keepGoing,
+                      onKeepGoing: () {
+                        vm.promptAnswered('paused', 'keep_going');
+                        vm.keepGoing();
+                      },
                       onGoHome: () async {
+                        vm.promptAnswered('paused', 'stop_for_today');
                         await vm.leave();
                         onHome();
                       },
                       onLeave: () async {
+                        vm.promptAnswered('paused', 'leave');
                         await vm.leaveProblem();
                         onFinished(LessonViewModel.newProblem);
                       },

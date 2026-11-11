@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:auramath/l10n/app_localizations.dart';
+import 'package:auramath/ui/core/parts/speak_button.dart';
 import 'package:auramath/ui/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -29,6 +30,10 @@ Future<void> loadAppFonts() async {
   final nunito = FontLoader('Nunito')
     ..addFont(rootBundle.load('assets/fonts/Nunito-Variable.ttf'));
   await nunito.load();
+  // Google's sign-in button's own font (ACC-02)
+  await (FontLoader(
+    'Roboto',
+  )..addFont(rootBundle.load('assets/fonts/Roboto-Medium.ttf'))).load();
   final flutterRoot =
       Platform.environment['FLUTTER_ROOT'] ??
       File(Platform.resolvedExecutable).parent.parent.parent.parent.parent.path;
@@ -42,6 +47,9 @@ Future<void> loadAppFonts() async {
   }
 }
 
+/// What the child screens' speakers read in [shotApp] (NFR-06).
+final spokenInShots = <String>[];
+
 /// Wraps [screen] the way the app does (theme, strings, text clamp), at
 /// `/` of a router so it can navigate. Every other path shows its own
 /// address, so a test can check where a tap went:
@@ -51,8 +59,13 @@ Widget shotApp(Widget screen) => MaterialApp.router(
   localizationsDelegates: AppLocalizations.localizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   debugShowCheckedModeBanner: false,
-  builder: (context, child) =>
-      MediaQuery.withClampedTextScaling(maxScaleFactor: 1.3, child: child!),
+  builder: (context, child) => ReadAloud(
+    say: (text) => spokenInShots.add(text),
+    child: MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.3,
+      child: child!,
+    ),
+  ),
   routerConfig: GoRouter(
     routes: [GoRoute(path: '/', builder: (_, _) => screen)],
     errorBuilder: (_, state) => Scaffold(body: Text('went to ${state.uri}')),
@@ -86,7 +99,9 @@ Future<void> shotAllSizes(
     await _precacheAssets(tester);
     await tester.pumpAndSettle();
     await _save(tester, '$name@$label');
-    if (label == shotSizes.keys.first) await _accessible(tester);
+    if (label == shotSizes.keys.first) {
+      await expectAccessible(tester, child: isChildShot(name));
+    }
   }
   tester.view.reset();
 }
@@ -109,10 +124,22 @@ Future<void> _precacheAssets(WidgetTester tester) async {
   );
 }
 
-/// Apple's 44 pt and Android's 48 dp touch targets, a label on everything
-/// tappable, and readable text contrast (WCAG 2.2 AA), at the Figma size.
-Future<void> _accessible(WidgetTester tester) async {
+/// A child's screen: the lesson's and the child's home (NFR-02).
+bool isChildShot(String name) =>
+    name.startsWith('lesson_') || name.startsWith('child_home_');
+
+/// NFR-02: every target on a child's screen is 56 pt or more.
+const childTapTargetGuideline = MinimumTapTargetGuideline(
+  size: Size(56, 56),
+  link: 'spec requirements.yaml NFR-02',
+);
+
+/// Apple's 44 pt and Android's 48 dp touch targets (56 pt on a [child]'s
+/// screen, NFR-02), a label on everything tappable, and readable text
+/// contrast (WCAG 2.2 AA), at the Figma size.
+Future<void> expectAccessible(WidgetTester tester, {bool child = false}) async {
   final semantics = tester.ensureSemantics();
+  if (child) await expectLater(tester, meetsGuideline(childTapTargetGuideline));
   await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
   await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
   await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));

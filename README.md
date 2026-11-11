@@ -70,6 +70,15 @@ flutter test                                  # unit, widget and screenshot test
   ```
 
   `setup_to_lesson` covers the grown-up's setup through a lesson the server records. `pair_to_lesson` covers a child's phone pairing with a code through a lesson. Start fresh before each run.
+- The contract test (`test_backend/backend_contract_test.dart`) drives the app's data layer over HTTP against a running backend. CI runs it on every pull request (`.github/workflows/contract.yml`, BE-22) through the backend's `scripts/contract/run.sh`, which starts the backend on Postgres and runs the test. Locally, from the backend's checkout:
+
+  ```bash
+  APP_DIR=../auramath-ios DATABASE_URL=postgres://tutor:tutor@localhost:5432/<empty db> scripts/contract/run.sh
+  ```
+
+### CI
+
+`.github/workflows/contract.yml` needs the repository secret `CONTRACT_REPO_TOKEN`: a fine-grained token with Contents: read-only on `kuldeep-key/auramath-backend` (`GITHUB_TOKEN` cannot read another private repository). Without it the job prints a notice and is skipped. It tests against the backend's `deploy/ai-layer-dev`; another branch: the `backend_ref` input when run by hand, or the repository variable `CONTRACT_BACKEND_REF`.
 
 ## Project layout
 
@@ -98,6 +107,42 @@ test/                              unit, widget and screenshot tests
 ```
 
 The architecture is MVVM: views listen to `ChangeNotifier` view models, which call repositories. Navigation is `go_router`, with redirects for each role (no account, the child's own phone, a grown-up).
+
+## App links (PLAT-11)
+
+The emailed sign-in link is `https://auramath.net/parent#m=<token>`. With the app installed it opens the app on Verify; without it, the browser.
+
+- **iOS:** `ios/Runner/Runner.entitlements` claims `applinks:auramath.net`. iOS checks `https://auramath.net/.well-known/apple-app-site-association`, which the backend serves once `APPLE_APP_IDS` is `<TEAM_ID>.net.auramath.app`.
+- **Android:** the `autoVerify` intent filter in `AndroidManifest.xml` claims `https://auramath.net/parent`. Android checks `https://auramath.net/.well-known/assetlinks.json`, which the backend serves once `ANDROID_APP_LINKS` is `net.auramath.app=<SHA-256 of the release key>` (`keytool -list -v -keystore <your keystore>`). Add the Play App Signing key's SHA-256 too once Play signs the app.
+- Until those are set the files are a 404 and the link opens in the browser. `auramath://auth/verify?m=…` still works for dev.
+- Only `m=` (sign-in) links open in the app. The others on `/parent` (`v=`, `r=`, `i=`) go to the app's start, so the backend should claim only `#m=*` in its AASA components.
+
+## Release signing and sign-in ids (ACC-02)
+
+Nothing secret is in this repo. The team provides each item below; the build reads it.
+
+### Android release key
+
+1. Create the upload key once and keep it out of git (`*.jks` and `key.properties` are ignored):
+
+   ```bash
+   keytool -genkey -v -keystore android/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+
+2. Copy `android/key.properties.example` to `android/key.properties` and fill in the store path (relative to `android/`), alias and passwords.
+3. `flutter build appbundle --release --dart-define-from-file=env/prod.json`.
+
+Without a complete `key.properties`, release builds are signed with the debug key and Gradle prints a `WARNING`. Play refuses those. Put the release key's SHA-256 (and later Play App Signing's) into the backend's `ANDROID_APP_LINKS` and into the Android OAuth client in Google Cloud.
+
+### Sign in with Apple
+
+- `ios/Runner/Runner.entitlements` turns on Sign in with Apple and associated domains. The App ID `net.auramath.app` needs both capabilities in the Apple Developer account, and the provisioning profile must include them.
+- **Team-provided:** the Apple Team ID, and a Services ID (for example `net.auramath.signin`) for the web and Android. Set the backend's `APPLE_CLIENT_ID` to `net.auramath.app,<services id>`: the iPhone's token names the bundle id, the web's names the Services ID. `APPLE_APP_IDS` is `<TEAM_ID>.net.auramath.app`.
+
+### Google on iOS
+
+- **Team-provided:** the prod iOS OAuth client id. Put it in `env/prod.json` as `GOOGLE_IOS_CLIENT_ID`. It is empty now, so the prod build's Google button says it isn't set up.
+- Also add its reversed id (`com.googleusercontent.apps.<id>`) to `CFBundleURLTypes` in `ios/Runner/Info.plist`, beside the dev one.
 
 ## Docs
 

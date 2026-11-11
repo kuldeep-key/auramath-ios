@@ -572,6 +572,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This account has no email address to send a link to.';
 
   @override
+  String get guForgotOr =>
+      'Or sign in again here with Apple or Google, then choose a new passcode.';
+
+  @override
   String get guHomeHi => 'Hi there';
 
   @override
@@ -645,7 +649,38 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get guNotifyLink => 'Email after each session';
+  String get guEmailRow => 'Report email';
+
+  @override
+  String get guEmailUnknown => 'Not set';
+
+  @override
+  String get guEmailUnsubscribeNote =>
+      'Every email also has a link to stop them.';
+
+  @override
+  String get guEmailHowOften => 'How often';
+
+  @override
+  String get guEmailHowOftenTitle => 'How often should we email?';
+
+  @override
+  String get guEmailEach => 'After each session';
+
+  @override
+  String get guEmailEachDetail => 'One short note when a session ends';
+
+  @override
+  String get guEmailWeekly => 'Once a week';
+
+  @override
+  String get guEmailWeeklyDetail => 'One note on Monday about the week before';
+
+  @override
+  String get guEmailOff => 'Off';
+
+  @override
+  String get guEmailOffDetail => 'No emails about lessons';
 
   @override
   String get guRightsLink => 'Your data and rights';
@@ -1044,6 +1079,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guNoNote => 'No note for this session.';
 
   @override
+  String get guNotesLink => 'Recent notes';
+
+  @override
+  String guNotesTitle(String name) {
+    return '$name\'s notes';
+  }
+
+  @override
+  String guNotesNone(String name) {
+    return 'No notes yet. One comes after each of $name\'s sessions.';
+  }
+
+  @override
   String get guNoteError => 'Couldn\'t load the note.';
 
   @override
@@ -1197,6 +1245,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guEditYear => 'School year';
 
   @override
+  String get guEditAvatar => 'Detective';
+
+  @override
+  String guEditAvatarHint(String name) {
+    return 'Let $name pick one.';
+  }
+
+  @override
   String get guEditSave => 'Save';
 
   @override
@@ -1289,6 +1345,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidNextToEarn => 'Next to earn';
 
   @override
+  String get kidSessionBadgeEarned => 'Your badge for this session';
+
+  @override
+  String get kidStreakMoment =>
+      'Back on the case again! Detectives keep at it.';
+
+  @override
+  String get kidSessionBadgeFinished => 'Case cracked';
+
+  @override
+  String get kidSessionBadgeTimeUp => 'Detective at work';
+
+  @override
+  String get kidSessionBadgeLeft => 'Tried a tricky case';
+
+  @override
+  String get kidSessionBadgePaused => 'Good start on a case';
+
+  @override
   String get kidNoBadgesYet => 'Crack a case to earn your first badge!';
 
   @override
@@ -1360,7 +1435,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidCaseAfterCase => 'Case after case. Detective work!';
 
   @override
-  String get kidTryNewSkill => 'Try a new skill!';
+  String get kidTryNewSkill => 'Try a new skill';
 
   @override
   String kidNewStopOpened(String stop) {
@@ -1553,6 +1628,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setupDataFirstNameDetail =>
       'Your child never types personal details.';
+
+  @override
+  String get setupDataHelpers => 'Who helps us';
+
+  @override
+  String get setupDataHelpersDetail =>
+      'Google Cloud in Sydney runs Auramath, its AI model (Gemini) and its voice. An email service sends your sign-in emails and notes. They work only for us, and none of them gets a name.';
+
+  @override
+  String get setupDataJulia => 'Julia sees how families are doing';
+
+  @override
+  String get setupDataJuliaDetail =>
+      'During the home week, Julia, our teacher, gets a weekly summary of her families\' lessons.';
 
   @override
   String get setupDataDelete => 'Delete it any time';
@@ -1748,4 +1837,277 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupNewCode => 'Show a new code';
+
+  @override
+  String get lessonThinking => 'Hmm, let me think.';
+
+  @override
+  String get lessonReadAgainTitle => 'Let\'s read it again';
+
+  @override
+  String get lessonReadAgainBack => 'Back to my drawing';
+
+  @override
+  String get lessonSeenBeforeTitle => 'You\'ve solved one like this';
+
+  @override
+  String get lessonSeenBeforeLinked =>
+      'Remember this case? You cracked it. This one works the same way.';
+
+  @override
+  String get lessonSeenBeforeNoCase =>
+      'You\'ve cracked a case like this before. How did you draw it?';
+
+  @override
+  String get lessonSeenBeforeBack => 'Back to my case';
+
+  @override
+  String get lessonRateAsk => 'How was this case?';
+
+  @override
+  String get lessonRateEasy => 'Easy';
+
+  @override
+  String get lessonRateOk => 'OK';
+
+  @override
+  String get lessonRateTricky => 'Tricky';
+
+  @override
+  String get lessonRateSaidEasy =>
+      'Easy ones are worth a check too. A quick look at your sum keeps them easy.';
+
+  @override
+  String get lessonRateSaidOk =>
+      'Thanks for telling me. Checking each step helps every time.';
+
+  @override
+  String get lessonRateSaidTricky =>
+      'Tricky cases take care. Checking each bar helped you crack it.';
+
+  @override
+  String get kidMeetTitle => 'Meet your case partner';
+
+  @override
+  String get kidMeetGrownUp => 'Grown-up: please stay for this part.';
+
+  @override
+  String get kidMeetLine1 =>
+      'Hi! I\'m your case partner. I help you crack maths cases.';
+
+  @override
+  String get kidMeetLine2 =>
+      'I\'m a computer helper, an AI. I\'m not a person.';
+
+  @override
+  String get kidMeetLine3 =>
+      'Julia\'s team wrote my rules. I can make mistakes, so if something looks odd, tell your grown-up.';
+
+  @override
+  String get kidMeetLine4 => 'Your grown-up can see your work.';
+
+  @override
+  String get kidMeetStart => 'Let\'s start';
+
+  @override
+  String get lessonEasierSum => 'Show the sum in words';
+
+  @override
+  String get lessonSentenceGap => 'gap';
+
+  @override
+  String get lessonSentenceBoth => 'both';
+
+  @override
+  String get exampleNewOne => 'Now try a new one';
+
+  @override
+  String get lessonLeaveForNow => 'Leave it for now';
+
+  @override
+  String lessonItIs(String name) {
+    return 'The $name';
+  }
+
+  @override
+  String lessonItHighlighted(String name) {
+    return '\'It\' and the $name are in the same colour.';
+  }
+
+  @override
+  String get lessonDetourPaused =>
+      'Your case is waiting. Your drawing is kept.';
+
+  @override
+  String get kidReadToMe => 'Read it to me';
+
+  @override
+  String get lessonEverydayPicture => 'A grown-up and a child, side by side.';
+
+  @override
+  String get lessonGrownUp => 'Grown-up';
+
+  @override
+  String get lessonYou => 'You';
+
+  @override
+  String get lessonBarSenseLine => 'A longer bar shows a bigger number.';
+
+  @override
+  String lessonBarSenseAsk(int n) {
+    return 'Which bar shows $n?';
+  }
+
+  @override
+  String lessonStarsAsk(int a, int b) {
+    return 'Let\'s compare $a stars and $b stars. Which row has more?';
+  }
+
+  @override
+  String get lessonStarsRight =>
+      'Yes! More stars make a longer row. Back to the bars.';
+
+  @override
+  String get lessonBarSenseRight =>
+      'Yes! The longer bar shows the bigger number.';
+
+  @override
+  String lessonBarLabel(int n) {
+    return 'Bar $n';
+  }
+
+  @override
+  String lessonStarRow(int n) {
+    return 'Row $n';
+  }
+
+  @override
+  String get lessonTakeBack => 'Take it back';
+
+  @override
+  String get lessonSeeQuestion => 'See the question';
+
+  @override
+  String get lessonQuestionBack => 'Back to my work';
+
+  @override
+  String get lessonUndo => 'Undo';
+
+  @override
+  String get kidQuickLine => 'Quick sums! Type the answer.';
+
+  @override
+  String get kidQuickOneMore => 'Check it and have one more go.';
+
+  @override
+  String get kidQuickRegroup =>
+      'Look at the ones first. Do you need to regroup?';
+
+  @override
+  String get kidQuickSideDone =>
+      'That\'s regrouping! Now have one more go at your sum.';
+
+  @override
+  String get kidQuickSideBack => 'Back to my sums';
+
+  @override
+  String get kidPickAvatar => 'Pick your detective';
+
+  @override
+  String get kidPickAvatarSave => 'That\'s me!';
+
+  @override
+  String get kidPickAvatarFailed =>
+      'That didn\'t save. Check the internet and tap again.';
+
+  @override
+  String get guDrawingLabel => 'The child\'s drawing from this lesson';
+
+  @override
+  String get kidPickAvatarAskGrownUp =>
+      'Ask a grown-up to set your detective for you.';
+
+  @override
+  String get kidQuickDone => 'Quick sums done!';
+
+  @override
+  String get kidQuickStory => 'A story problem';
+
+  @override
+  String get kidQuickHome => 'Back home';
+
+  @override
+  String get kidTodayTitle => 'What shall we do today?';
+
+  @override
+  String get kidTodayStory => 'A story problem';
+
+  @override
+  String get kidTodayQuick => 'Quick sums';
+
+  @override
+  String get kidWelcomeChooseToday => 'Choose today\'s work';
+
+  @override
+  String kidWordWhat(String word) {
+    return 'What does $word mean?';
+  }
+
+  @override
+  String get kidWordTaller =>
+      'Taller means it reaches higher. The taller one gets the longer bar.';
+
+  @override
+  String get kidWordShorter =>
+      'Shorter means it does not reach as high. The shorter one gets the shorter bar.';
+
+  @override
+  String get kidWordMore =>
+      'More means it weighs more. The heavier one gets the longer bar.';
+
+  @override
+  String get kidWordLess =>
+      'Less means it weighs less. The lighter one gets the shorter bar.';
+
+  @override
+  String get kidWordGotIt => 'Got it';
+
+  @override
+  String lessonNameHowTall(String a) {
+    return 'How tall is the $a?';
+  }
+
+  @override
+  String lessonNameHowHeavy(String a) {
+    return 'How heavy is the $a?';
+  }
+
+  @override
+  String get lessonSentenceBox => 'Empty box';
+
+  @override
+  String get lessonSentenceAdd => 'Add. Tap to take away.';
+
+  @override
+  String get lessonSentenceTake => 'Take away. Tap to add.';
+
+  @override
+  String get lessonSentenceCheck => 'Check my sentence';
+
+  @override
+  String lessonSentenceTitle(String b) {
+    return 'Make a number sentence for the $b.';
+  }
+
+  @override
+  String get lessonHeavier => 'Heavier';
+
+  @override
+  String get lessonLighter => 'Lighter';
+
+  @override
+  String get lessonMore => 'more';
+
+  @override
+  String get lessonLess => 'less';
 }

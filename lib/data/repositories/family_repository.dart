@@ -78,13 +78,19 @@ class FamilyRepository {
   }
 
   /// Parent only (ACC-14): only the fields in [changes] change
-  /// (`displayName`, `age`, `schoolYear`). 400 for a name or answer the
+  /// (`displayName`, `age`, `schoolYear`, `avatar`). 400 for a name or answer the
   /// server refuses, 409 when another child already has the name.
   Future<Child> editChild(String id, Map<String, Object?> changes) async =>
       Child.fromJson(
         await _client.patch('/api/children/$id', changes)
             as Map<String, Object?>,
       );
+
+  /// ACC-12: the avatar the child picked on their own phone (BE-20, `PUT
+  /// /api/children/{id}/avatar`), which the child's device token may call
+  /// for its own child only.
+  Future<void> setAvatar(String childId, String avatar) =>
+      _client.put('/api/children/$childId/avatar', {'avatar': avatar});
 
   /// Parent only. Needs consent first (403 otherwise).
   Future<Child> addChild(Map<String, Object?> body) async => Child.fromJson(

@@ -6,6 +6,7 @@ import '../../../../routing/paths.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
+import '../../../core/parts/avatar.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'play_icon_button.dart';
@@ -19,7 +20,14 @@ class HomeScreen extends StatelessWidget {
     required this.grownUps,
     this.trail = true,
     this.badges = true,
+    this.play = Paths.lessonNext,
+    this.moment,
+    this.avatar,
   });
+
+  /// The detective the child picked (ACC-12); the portrait until then. The
+  /// small one opens the picker.
+  final String? avatar;
 
   /// The child's name; null shows the portrait alone.
   final String? name;
@@ -33,16 +41,38 @@ class HomeScreen extends StatelessWidget {
   final bool trail;
   final bool badges;
 
+  /// Where Keep going leads: the next case, or Choose today (LES-14).
+  final String play;
+
+  /// What to celebrate on arriving (REW-01's session badge), in place of
+  /// some of the big portrait.
+  final Widget? moment;
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     return AuraPage(
       play: true,
+      say: l.readyForNewCase,
       top: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Row(
           children: [
-            const Portrait(size: 52),
+            Tooltip(
+              message: l.kidPickAvatar,
+              child: Semantics(
+                button: true,
+                child: GestureDetector(
+                  key: const Key('pickAvatar'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => context.push(Paths.avatar),
+                  child: SizedBox.square(
+                    dimension: 56,
+                    child: AvatarDisc(avatar: avatar, size: 52),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -61,9 +91,12 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 32,
+        spacing: moment == null ? 32 : 16,
         children: [
-          const Float(child: Portrait(size: 210)),
+          Float(
+            child: AvatarDisc(avatar: avatar, size: moment == null ? 210 : 120),
+          ),
+          ?moment,
           Ribbon(text: l.readyForNewCase),
         ],
       ),
@@ -74,7 +107,7 @@ class HomeScreen extends StatelessWidget {
           AuraButton(
             label: l.keepGoing,
             icon: Icons.play_arrow_rounded,
-            onPressed: () => context.go(Paths.lessonNext),
+            onPressed: () => context.go(play),
           ),
           // Figma's icons don't fit beside the labels in a half-width button
           // on a phone; they show where there is room (iPad).

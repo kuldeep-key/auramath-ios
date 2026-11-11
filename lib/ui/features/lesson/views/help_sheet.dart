@@ -10,10 +10,23 @@ import '../../../core/theme/tokens.dart';
 /// "How can I help?": a hint, show me how, or something easier. Figma: H0
 /// (M1-help).
 class HelpSheet extends StatelessWidget {
-  const HelpSheet({super.key, required this.onClose, required this.onChoose});
+  const HelpSheet({
+    super.key,
+    required this.onClose,
+    required this.onChoose,
+    this.onEasierSentence,
+    this.hint = true,
+  });
 
   final VoidCallback onClose;
   final ValueChanged<LessonInput> onChoose;
+
+  /// "Show the sum in words" (TUT-09, policy help_menu also_offers); null
+  /// hides it (not a sum step).
+  final VoidCallback? onEasierSentence;
+
+  /// False on a step with no hint rung (TUT-04): no "A hint".
+  final bool hint;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +45,8 @@ class HelpSheet extends StatelessWidget {
         Text(l.pickOne, style: AuraText.sheetLine, textAlign: TextAlign.center),
         const SizedBox(height: 16),
         for (final (label, icon, input) in [
-          (l.aHint, Icons.lightbulb_outline_rounded, const HintTaken()),
+          if (hint)
+            (l.aHint, Icons.lightbulb_outline_rounded, const HintTaken()),
           (
             l.showMeHow,
             Icons.play_circle_outline_rounded,
@@ -45,6 +59,15 @@ class HelpSheet extends StatelessWidget {
             icon: icon,
             color: AuraButtonColor.white,
             onPressed: () => onChoose(input),
+          ),
+          const SizedBox(height: 10),
+        ],
+        if (onEasierSentence case final ease?) ...[
+          AuraButton(
+            label: l.lessonEasierSum,
+            icon: Icons.short_text_rounded,
+            color: AuraButtonColor.white,
+            onPressed: ease,
           ),
           const SizedBox(height: 10),
         ],
@@ -107,23 +130,26 @@ class AuraSheetBody extends StatelessWidget {
       color: AuraColors.white,
       borderRadius: BorderRadius.circular(28),
     ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Center(
-          child: Container(
-            width: 40,
-            height: 5,
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: AuraColors.line,
-              borderRadius: BorderRadius.circular(3),
+    // large text on a short phone (NFR-04): the sheet scrolls, never clips
+    child: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 5,
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: AuraColors.line,
+                borderRadius: BorderRadius.circular(3),
+              ),
             ),
           ),
-        ),
-        ...children,
-      ],
+          ...children,
+        ],
+      ),
     ),
   );
 }

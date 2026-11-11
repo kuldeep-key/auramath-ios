@@ -278,7 +278,7 @@ error_types:                     # tutor_response describes the help; the lines 
     skill: cmp.read-relation
     counts_as: wrong
     side_lesson: on_repeat
-    side_lesson_content: "Show me how (Building A and B). If time permits at M2+ (TUT-17, D-28): Julia's 'a longer bar represents a greater number' (3 and 5), then 3 stars and 5 stars"
+    side_lesson_content: "Show me how (Building A and B). If time permits at M3 (TUT-17, D-28): Julia's 'a longer bar represents a greater number' (3 and 5), then 3 stars and 5 stars"
     tutor_response: "Hint: taller or shorter? (H1·4)"
     sources: [SR-4, VIF-S8-1009, VIF-S9-1009]
   - id: keyword_strategy

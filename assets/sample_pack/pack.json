@@ -1,10 +1,19 @@
 {
   "version": "sample-1",
   "timers": {"pulseMs": 15000, "glowMs": 25000, "handMs": 40000, "stillMs": 60000},
-  "hints": ["cmp.hint1", "cmp.hint2", "cmp.hint3", "cmp.hint4", "cmp.hint5", "cmp.hint6"],
   "badges": {
     "tree": {"name": "Tree Detective", "says": "Cracked a tree case by drawing it."},
     "asker": {"name": "Brave Asker", "says": "Asked for help and kept going."}
+  },
+  "library": {
+    "cmp.sizeBWrong": "line.hint.taller-or-shorter",
+    "cmp.gapWrong": "line.hint.D-tall-or-relation",
+    "cmp.opWrong": "line.hint.longer-or-shorter-bar",
+    "cmp.recheck": "line.check.again",
+    "cmp.partRight": "line.check.adding",
+    "cmp.drawIt": "line.hint.which-taller",
+    "cmp.twoBars": "line.hint.two-bars",
+    "cmp.takeYourTime": "line.quiet.draw-story"
   },
   "lines": {
     "cmp.drawA": "Drag a bar up here.",
@@ -33,14 +42,129 @@
     "cmp.twoBars": "We need two bars. Let us draw.",
     "cmp.takeYourTime": "Take your time.",
     "cmp.showMeHow": "Let's try a smaller one together.",
-    "cmp.hint1": "What height is the {a}?",
-    "cmp.hint2": "Make it reach {av} {u}.",
-    "cmp.hint3": "Good! Now what is the height of the {b}?",
-    "cmp.hint4": "Is the {b} taller or shorter?",
-    "cmp.hint5": "{d} taller or shorter?",
-    "cmp.hint6": "Sit with a grown-up and try it together.",
+    "cmp.sideKindBack": "That was a tricky one. Back to your case, with a hint.",
+    "cmp.firstHint.find_unknown": "Look at your bars. Is the {b} bar longer or shorter?",
+    "cmp.firstHint.find_total": "The question asks for both together. Look at both bars.",
+    "cmp.firstHint.place_total": "The total is both bars together.",
+    "cmp.itRight": "'It' is the {a}. Now size the {b} bar.",
     "side.takeAcrossTen": "The ten splits into ten ones.",
     "side.addWithCarry": "Bundle ten ones into a ten, and carry it."
+  },
+  "versions": {
+    "_note_tut18": "DRAFT, for Julia (TUT-18): cmp.sideKindBack and cmp.firstHint.* are Key's lines for a side lesson that ends unfinished; the policy has no hint for steps without a rung (steps_without_rung).",
+    "_note": "DRAFT, for Julia (TUT-14): Key's extra versions of each step, rung and mistake line. The first version is the library's (or the pack's) own; these follow it in turn, never the same one twice in a row. All unapproved (CON-04, CON-09); height words only, a weight story keeps its one mass line.",
+    "cmp.drawA": [
+      "Put a bar here for the {a}.",
+      "Start with the {a}. Drag a bar up."
+    ],
+    "cmp.placeB": [
+      "Next, a bar for the {b}.",
+      "Now the {b}. Drag its bar here."
+    ],
+    "cmp.sizeB": [
+      "Make the {b} bar the right size.",
+      "Size the {b} bar. The story tells you how."
+    ],
+    "cmp.placeGap": [
+      "Where does the gap go? Drag it there.",
+      "Now put the gap on your bars."
+    ],
+    "cmp.placeTotal": [
+      "Where does the total go? Drag it there.",
+      "Now put the total on your drawing."
+    ],
+    "cmp.chooseOp": [
+      "Pick the sum that finds the {b}.",
+      "Look at your bars. Which sum finds the {b}?"
+    ],
+    "cmp.findB": [
+      "Work it out. How tall is the {b}?",
+      "Now find the height of the {b}."
+    ],
+    "cmp.findTotal": [
+      "Now find the total height.",
+      "Both together: how tall are they?"
+    ],
+    "cmp.right": [
+      "That's it! {v} {u}.",
+      "Yes, {v} {u}."
+    ],
+    "cmp.totalWrong": [
+      "The total is both bars together.",
+      "Where do both bars end? The total covers them."
+    ],
+    "cmp.opposite": [
+      "Check your bars. Is the {b} bar longer or shorter?",
+      "Look back at the drawing. Is the {b} longer or shorter?"
+    ],
+    "cmp.tryAgain": [
+      "Not yet. Work that sum once more.",
+      "Let's look at that sum one more time."
+    ],
+    "cmp.addBoth": [
+      "Not yet. Put both bars together.",
+      "Not yet. Both bars together make the total."
+    ],
+    "cmp.regrouping": [
+      "Let's look at the ones together.",
+      "The ones need a closer look. Let's see."
+    ],
+    "cmp.carry": [
+      "Let's check the ones together.",
+      "Let's look at the ones as we add."
+    ],
+    "cmp.sideBack": [
+      "That trick helps. Back to your case!",
+      "Now back to the case, where you were."
+    ],
+    "line.hint.height-of-a": [
+      "How tall is the {a}?",
+      "Look at the story. What height is the {a}?"
+    ],
+    "line.nudge.reach-A": [
+      "Nearly! Stretch the {a} bar to {A} {unit}.",
+      "So close. The {a} bar needs to reach {A} {unit}."
+    ],
+    "line.hint.now-b": [
+      "Now the {b}. What do we know about its height?",
+      "Next, the {b}. What does the story say about it?"
+    ],
+    "line.hint.taller-or-shorter": [
+      "Read it again. Is the {b} taller or shorter?",
+      "Which is taller, the {a} or the {b}?"
+    ],
+    "line.hint.which-is-it": [
+      "Who is 'it' in the story: the {a} or the {b}?",
+      "Read the second sentence. Is 'it' the {a} or the {b}?"
+    ],
+    "line.hint.look-at-colours": [
+      "Words in the same colour go together. Which one is 'it'?",
+      "Find 'it' in colour. Which words have the same colour?"
+    ],
+    "line.hint.D-tall-or-relation": [
+      "Is {D} {unit} the height of the {b}, or the gap between the bars?",
+      "Does {D} {unit} tell us how tall the {b} is, or how much {b_word} it is?"
+    ],
+    "line.hint.grown-up-and-you": [
+      "Stand next to a grown-up. Who is taller?",
+      "Picture you and a grown-up side by side. Who is taller?"
+    ],
+    "line.hint.longer-or-shorter-bar": [
+      "Look at your bars. Would a taller {kind} have a longer bar or a shorter bar?",
+      "Look at your bars. Do you need the longer bar or the shorter one?"
+    ],
+    "line.hint.which-taller": [
+      "Which {kind} is taller? Read the story again.",
+      "Does the story tell us which {kind} is taller?"
+    ],
+    "line.hint.two-bars": [
+      "Let's draw a bar for each one.",
+      "One bar for the {a}, one for the {b}."
+    ],
+    "line.check.again": [
+      "Look at your sum once more.",
+      "Go over your sum one more time."
+    ]
   },
   "problems": [
     {

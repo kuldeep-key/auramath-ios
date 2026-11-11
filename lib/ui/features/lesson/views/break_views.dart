@@ -9,6 +9,7 @@ import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'help_sheet.dart';
+import '../../../core/parts/speak_button.dart';
 
 /// "Take a break?" when Home is tapped mid-lesson. Figma M1-pause (666:70),
 /// plus "leave this one" (SES-06), which the design doesn't have yet.
@@ -203,8 +204,12 @@ class _Moment extends StatelessWidget {
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: _FitOrScroll(
             children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: SpeakButton(text: '$title $body'),
+              ),
               const Spacer(),
               Burst(child: Text(emoji, style: const TextStyle(fontSize: 96))),
               const SizedBox(height: 24),
@@ -219,6 +224,24 @@ class _Moment extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A moment's column with its [Spacer]s: it fills the screen, and with
+/// large text on a short phone (NFR-04) scrolls instead of clipping.
+class _FitOrScroll extends StatelessWidget {
+  const _FitOrScroll({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) => SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: box.maxHeight),
+        child: IntrinsicHeight(child: Column(children: children)),
+      ),
+    ),
+  );
 }
 
 /// "That's today's time!" at the sitting's cap. Figma TU (650:118), plus the
@@ -239,8 +262,12 @@ class TimeUpView extends StatelessWidget {
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: _FitOrScroll(
             children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: SpeakButton(text: '${l.timeUpTitle} ${l.timeUpBody}'),
+              ),
               const Spacer(),
               const Burst(child: Text('🌙', style: TextStyle(fontSize: 96))),
               const SizedBox(height: 24),
@@ -346,6 +373,7 @@ class NeedInternetView extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     return AuraPage(
       play: true,
+      say: '${l.lessonNeedInternet} ${detail ?? l.lessonNeedInternetBody}',
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

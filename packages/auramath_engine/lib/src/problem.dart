@@ -1,5 +1,22 @@
 enum BigSide { a, b }
 
+/// The spec step ids this engine can run, in the order it runs them when a
+/// problem has no template to read them from (LES-03).
+const knownSteps = [
+  'name_quantities',
+  'draw_known_bar',
+  'size_second_bar',
+  'place_difference',
+  'place_total',
+  'choose_operation',
+  'find_unknown',
+  'find_total',
+  'number_sentence',
+];
+
+/// The steps the template marks optional: they run only where turned on.
+const optionalSteps = {'name_quantities', 'number_sentence'};
+
 /// What the question asks for: both together, or the second item alone.
 enum Ask { total, b }
 
@@ -11,6 +28,40 @@ class Item {
 
   final String name;
   final String pic;
+}
+
+/// One option of a choice step as the server serves it with a problem
+/// (`problem.steps[].options`, LES-12): its text already in the problem's
+/// words or the template's symbols, and whether it is right here.
+class ServedOption {
+  const ServedOption({
+    required this.id,
+    required this.text,
+    required this.correct,
+  });
+
+  final String id;
+  final String text;
+  final bool correct;
+}
+
+/// One step as the server serves it with a problem (`problem.steps[]`,
+/// LES-03), in the order the lesson runs them for the problem's level.
+class ServedStep {
+  const ServedStep({
+    required this.id,
+    this.optional = false,
+    this.hintStartRung,
+    this.options = const [],
+  });
+
+  /// The spec step id: `draw_known_bar`, `choose_operation`, ...
+  final String id;
+
+  /// Runs only where the app turns it on (a flag).
+  final bool optional;
+  final String? hintStartRung;
+  final List<ServedOption> options;
 }
 
 /// Which problem comes after this one, by how it went.
@@ -52,6 +103,8 @@ class ComparisonProblem {
     required this.storyId,
     required this.variant,
     this.level,
+    this.quantity = 'height',
+    this.steps,
   });
 
   factory ComparisonProblem.fromJson(Map<String, Object?> j) {
@@ -74,6 +127,7 @@ class ComparisonProblem {
       storyId: j['story'] as String,
       variant: j['variant'] as String,
       level: j['level'] as String?,
+      quantity: j['quantity'] as String? ?? 'height',
     );
   }
 
@@ -99,6 +153,18 @@ class ComparisonProblem {
 
   /// `L1` to `L5`; null when the problem sits outside the ladder.
   final String? level;
+
+  /// `height` or `mass` (CON-11): a mass story's bars lie across (LES-04).
+  final String quantity;
+  bool get isMass => quantity == 'mass';
+
+  /// The server's steps for this problem, in order, with their options
+  /// (LES-03, LES-12); null for a problem the server didn't serve them
+  /// with: then the pack's template, else the engine's own order.
+  final List<ServedStep>? steps;
+
+  ServedStep? servedStep(String id) =>
+      steps?.where((s) => s.id == id).firstOrNull;
 
   int get bValue => big == BigSide.a ? aValue - diff : aValue + diff;
   int get total => aValue + bValue;

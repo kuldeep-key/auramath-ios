@@ -14,14 +14,29 @@ import '../../../core/parts/standing_button.dart';
 import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
 import 'answer_sheet.dart';
+import 'everyday_example.dart';
 import 'help_sheet.dart';
+import 'number_sentence.dart';
+import 'question_chips.dart';
+import 'thinking_cue.dart';
+import 'tutor_prompts.dart';
+import 'which_it.dart';
 
 /// Drawing it out, choosing the sum, and working it out. Figma: M1, D1–D6.
 class BoardView extends StatefulWidget {
-  const BoardView({super.key, required this.vm, required this.onHome});
+  const BoardView({
+    super.key,
+    required this.vm,
+    required this.onHome,
+    this.onLeave,
+  });
 
   final LessonViewModel vm;
   final VoidCallback onHome;
+
+  /// "Leave it for now" on the too-hard sheet (TUT-10): the case is kept
+  /// for another day and the lesson moves on.
+  final VoidCallback? onLeave;
 
   @override
   State<BoardView> createState() => _BoardViewState();
@@ -38,9 +53,9 @@ class _BoardViewState extends State<BoardView> {
 
   late int _wobbles = vm.wobbles;
 
-  /// The sum button tapped last, which wobbles if it was the wrong one,
-  /// and the wrong moves before that tap.
-  Op? _lastOp;
+  /// The option tapped last, which wobbles if it was the wrong one, and
+  /// the wrong moves before that tap.
+  String? _lastOption;
   int _wobblesAtTap = 0;
 
   LessonViewModel get vm => widget.vm;
@@ -59,82 +74,124 @@ class _BoardViewState extends State<BoardView> {
     final l = AppLocalizations.of(context)!;
     final p = vm.problem;
     final s = vm.state;
-    final rel = p.big == BigSide.a ? l.taller : l.shorter;
+    // a weight story says more and less (CON-11)
+    final rel = p.isMass
+        ? (p.big == BigSide.a ? l.lessonMore : l.lessonLess)
+        : p.big == BigSide.a
+        ? l.taller
+        : l.shorter;
 
     return Stack(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              LessonHeader(
-                big: vm.voice.resting.value,
-                line: vm.coachText,
-                onSpeak: vm.sayAgain,
-                speaking: vm.voice.speaking,
-                muted: !vm.readAloud,
-                onSound: vm.sound,
-                onHome: widget.onHome,
-              ),
-              const SizedBox(height: 12),
-              _arrive(
-                duration: 650,
-                builder: (t, child) => Opacity(
-                  opacity: 0.3 + 0.7 * t.clamp(0.0, 1.0),
-                  child: Transform.translate(
-                    offset: Offset(
-                      0,
-                      220 * (1 - AuraCurves.sheet.transform(t)),
+          child: _RoomForBoard(
+            keypad:
+                s.step == LessonStep.findB || s.step == LessonStep.findTotal,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                LessonHeader(
+                  big: vm.voice.resting.value,
+                  line: vm.coachText,
+                  onSpeak: vm.sayAgain,
+                  speaking: vm.voice.speaking,
+                  muted: !vm.readAloud,
+                  onSound: vm.sound,
+                  onHome: widget.onHome,
+                ),
+                const SizedBox(height: 12),
+                _arrive(
+                  duration: 650,
+                  builder: (t, child) => Opacity(
+                    opacity: 0.3 + 0.7 * t.clamp(0.0, 1.0),
+                    child: Transform.translate(
+                      offset: Offset(
+                        0,
+                        220 * (1 - AuraCurves.sheet.transform(t)),
+                      ),
+                      child: Transform.scale(
+                        scale: 1.18 - 0.18 * AuraCurves.sheet.transform(t),
+                        child: child,
+                      ),
                     ),
-                    child: Transform.scale(
-                      scale: 1.18 - 0.18 * AuraCurves.sheet.transform(t),
-                      child: child,
+                  ),
+                  child: QuestionStrip(
+                    chips: [
+                      StripChip(label: '${p.a.pic} ${p.aValue}', lit: true),
+                      StripChip(
+                        label: '${p.diff} ${rel.toLowerCase()}',
+                        lit: s.gapPlaced,
+                      ),
+                    ],
+                    onSeeQuestion: vm.seeQuestion,
+                    seeQuestionLabel: l.lessonSeeQuestion,
+                  ),
+                ),
+                if (vm.questions case final qs when qs.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  QuestionChips(questions: qs, onAsk: vm.ask),
+                ],
+                const SizedBox(height: 12),
+                Expanded(
+                  child: _arrive(
+                    duration: 500,
+                    delay: 300,
+                    builder: (t, child) => Opacity(opacity: t, child: child),
+                    child: BarBoard(
+                      problem: p,
+                      state: s,
+                      onInput: vm.send,
+                      glowPiece: vm.glowPiece,
+                      showHand: vm.showHand,
+                      wobbles: vm.wobbles,
+                      // across for a weight story (LES-04, CON-11)
+                      across: p.isMass && vm.weightStories,
                     ),
                   ),
                 ),
-                child: QuestionStrip(
-                  chips: [
-                    StripChip(label: '${p.a.pic} ${p.aValue}', lit: true),
-                    StripChip(
-                      label: '${p.diff} ${rel.toLowerCase()}',
-                      lit: s.gapPlaced,
-                    ),
-                  ],
-                  onSeeQuestion: vm.readQuestion,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: _arrive(
-                  duration: 500,
-                  delay: 300,
-                  builder: (t, child) => Opacity(opacity: t, child: child),
-                  child: BarBoard(
-                    problem: p,
-                    state: s,
-                    onInput: vm.send,
-                    glowPiece: vm.glowPiece,
-                    showHand: vm.showHand,
-                    wobbles: vm.wobbles,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _bottom(l, p, s),
-            ],
+                const SizedBox(height: 12),
+                _bottom(l, p, s),
+              ],
+            ),
           ),
         ),
+        if (vm.thinking)
+          Positioned(
+            top: 84,
+            left: 16,
+            right: 16,
+            child: ThinkingCue(text: l.lessonThinking),
+          ),
+        if (vm.asksWhichIt && !vm.stillThere)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 110,
+            child: Wobbly(
+              count: vm.itWrongPicks,
+              child: WhichItCard(vm: vm),
+            ),
+          ),
         if (vm.stillThere) _stillThere(l),
         if (_helpOpen)
           HelpSheet(
+            hint: vm.canHint,
             onClose: () => setState(() => _helpOpen = false),
             onChoose: (input) {
               setState(() => _helpOpen = false);
               vm.send(input);
             },
+            onEasierSentence: vm.canEaseSentence
+                ? () {
+                    setState(() => _helpOpen = false);
+                    vm.showEasierSentence();
+                  }
+                : null,
           ),
+        if (vm.showingEveryday) EverydayExampleSheet(vm: vm),
         if (vm.knowPrompt != null) AnswerSheet(vm: vm),
+        if (vm.prompt != null) TutorPromptSheet(vm: vm),
       ],
     );
   }
@@ -156,34 +213,78 @@ class _BoardViewState extends State<BoardView> {
 
   Widget _bottom(AppLocalizations l, ComparisonProblem p, LessonState s) {
     switch (s.step) {
-      case LessonStep.chooseOp:
+      case LessonStep.chooseOp || LessonStep.nameQuantities:
+        // the template's options (LES-12): D4's sums, or naming the height
+        final stepId = specStepId(s.step)!;
+        final options = choiceOptions(vm.pack, p, stepId);
         return Column(
           children: [
-            Row(
+            if (s.step == LessonStep.nameQuantities)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  p.isMass
+                      ? l.lessonNameHowHeavy(p.a.name.toLowerCase())
+                      : l.lessonNameHowTall(p.a.name.toLowerCase()),
+                  style: AuraText.title,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                for (final (op, sign) in [(Op.subtract, '−'), (Op.add, '+')])
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Wobbly(
-                        count: _lastOp == op ? vm.wobbles - _wobblesAtTap : 0,
-                        child: AuraButton(
-                          label: '${p.aValue} $sign ${p.diff}',
-                          color: AuraButtonColor.white,
-                          onPressed: () {
-                            setState(() {
-                              _lastOp = op;
-                              _wobblesAtTap = vm.wobbles;
-                            });
-                            vm.send(OpChosen(op));
-                          },
-                        ),
+                for (final o in options)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: options.length > 2 ? 100 : 150,
+                    ),
+                    child: Wobbly(
+                      count: _lastOption == o.id
+                          ? vm.wobbles - _wobblesAtTap
+                          : 0,
+                      child: AuraButton(
+                        key: Key('option-${o.id}'),
+                        label: o.label,
+                        color: AuraButtonColor.white,
+                        onPressed: () {
+                          setState(() {
+                            _lastOption = o.id;
+                            _wobblesAtTap = vm.wobbles;
+                          });
+                          vm.send(o.input(stepId));
+                        },
                       ),
                     ),
                   ),
               ],
             ),
             TextButton.icon(
+              // a child's target: 56 pt (NFR-02)
+              style: TextButton.styleFrom(minimumSize: const Size(56, 56)),
+              onPressed: _help,
+              icon: const Icon(Icons.support_rounded),
+              label: Text(l.helpMe, style: AuraText.link),
+            ),
+          ],
+        );
+      case LessonStep.numberSentence:
+        return Column(
+          children: [
+            Text(
+              l.lessonSentenceTitle(p.b.name.toLowerCase()),
+              style: AuraText.title,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            SentenceBuilder(
+              problem: p,
+              wobbles: vm.wobbles,
+              onSentence: vm.send,
+            ),
+            TextButton.icon(
+              style: TextButton.styleFrom(minimumSize: const Size(56, 56)),
               onPressed: _help,
               icon: const Icon(Icons.support_rounded),
               label: Text(l.helpMe, style: AuraText.link),
@@ -202,16 +303,22 @@ class _BoardViewState extends State<BoardView> {
                 Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(
-                      sentence,
-                      style: AuraText.title.copyWith(fontSize: 32),
-                    ),
+                    child: vm.easierSentence
+                        ? _wordsUnder(l, p, s)
+                        : Text(
+                            sentence,
+                            style: AuraText.title.copyWith(fontSize: 32),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 _AnswerBox(text: _typed, wobbles: vm.wobbles),
                 const SizedBox(width: 8),
                 IconButton.outlined(
+                  constraints: const BoxConstraints.tightFor(
+                    width: 56,
+                    height: 56,
+                  ),
                   onPressed: _help,
                   icon: const Icon(Icons.support_rounded),
                   tooltip: l.helpMe,
@@ -256,6 +363,56 @@ class _BoardViewState extends State<BoardView> {
     }
   }
 
+  /// The sum with each number's name under it (TUT-09), so the sentence
+  /// reads off the bars above it.
+  // Draft: Figma 37.2 shows a different layout; this reuses the sum row.
+  Widget _wordsUnder(AppLocalizations l, ComparisonProblem p, LessonState s) {
+    final findB = s.step == LessonStep.findB;
+    final parts = findB
+        ? [
+            ('${p.aValue}', '${p.a.pic} ${p.a.name.toLowerCase()}'),
+            (s.op == Op.add ? '+' : '−', ''),
+            ('${p.diff}', l.lessonSentenceGap),
+            ('=', ''),
+          ]
+        : [
+            ('${p.aValue}', '${p.a.pic} ${p.a.name.toLowerCase()}'),
+            ('+', ''),
+            ('${p.bValue}', '${p.b.pic} ${p.b.name.toLowerCase()}'),
+            ('=', ''),
+          ];
+    return Row(
+      key: const Key('easierSentence'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final (n, word) in parts)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(
+              children: [
+                Text(n, style: AuraText.title.copyWith(fontSize: 32)),
+                Text(word, style: AuraText.small),
+              ],
+            ),
+          ),
+        // the answer box says what the ? is
+        Padding(
+          padding: const EdgeInsets.only(top: 40),
+          child: Text(
+            findB
+                ? '${p.b.pic} ${p.b.name.toLowerCase()}'
+                : l.lessonSentenceBoth,
+            style: AuraText.small,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// "Still there?" or the way-out offer answered (DAT-03).
+  void _answered(String choice) =>
+      vm.promptAnswered(vm.tooHard ? 'too_hard' : 'still_there', choice);
+
   Widget _stillThere(AppLocalizations l) => Positioned(
     left: 16,
     right: 16,
@@ -281,36 +438,83 @@ class _BoardViewState extends State<BoardView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                vm.tooHard ? l.tooHardTitle : l.stillThere,
+                vm.tooHard ? l.tooHardTitle : vm.stillThereLine ?? l.stillThere,
                 style: AuraText.title,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              AuraButton(
-                label: l.helpMe,
-                color: AuraButtonColor.white,
-                onPressed: () {
-                  vm.dismissStillThere();
-                  _help();
-                },
-              ),
-              const SizedBox(height: 8),
+              // too hard (TUT-10, E1): something easier or leave it for now;
+              // the quiet child (TUT-07, 16.3): Help me or something easier
+              if (!vm.tooHard) ...[
+                AuraButton(
+                  label: l.helpMe,
+                  color: AuraButtonColor.white,
+                  onPressed: () {
+                    _answered('help_me');
+                    vm.dismissStillThere();
+                    _help();
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
               AuraButton(
                 label: l.anEasierOne,
                 color: AuraButtonColor.white,
-                onPressed: () => vm.send(EasierTaken(noProgress: vm.tooHard)),
+                onPressed: () {
+                  _answered('easier_one');
+                  vm.send(EasierTaken(noProgress: vm.tooHard));
+                },
               ),
               const SizedBox(height: 8),
+              if (vm.tooHard && widget.onLeave != null) ...[
+                AuraButton(
+                  label: l.lessonLeaveForNow,
+                  color: AuraButtonColor.white,
+                  onPressed: () {
+                    _answered('leave');
+                    widget.onLeave!();
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
               AuraButton(
                 label: l.stillThinking,
                 color: AuraButtonColor.blue,
-                onPressed: vm.dismissStillThere,
+                onPressed: () {
+                  _answered('still_thinking');
+                  vm.stillThinking();
+                },
               ),
             ],
           ),
         ),
       ),
     ),
+  );
+}
+
+/// Large text on a short phone (NFR-04): the header, the strip and the
+/// keypad grow, and the board would be squeezed to nothing. Then the screen
+/// scrolls instead, with room kept for the board. At normal text, or with
+/// room enough, the board fills what's left as before.
+class _RoomForBoard extends StatelessWidget {
+  const _RoomForBoard({required this.keypad, required this.child});
+
+  final bool keypad;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final scale = MediaQuery.textScalerOf(context).scale(100) / 100;
+      if (scale <= 1.05) return child;
+      // what the board needs with large text: measured at 1.3x on an SE
+      final tall = keypad ? 900.0 : 760.0;
+      if (box.maxHeight >= tall) return child;
+      return SingleChildScrollView(
+        child: SizedBox(height: tall, child: child),
+      );
+    },
   );
 }
 
@@ -327,7 +531,12 @@ class _AnswerBox extends StatelessWidget {
     tween: Tween(begin: 1, end: 0),
     duration: const Duration(milliseconds: 500),
     builder: (context, t, child) => Transform.translate(
-      offset: Offset(wobbles == 0 ? 0 : 8 * t * math.sin(t * math.pi * 6), 0),
+      offset: Offset(
+        wobbles == 0 || calmMotion(context)
+            ? 0
+            : 8 * t * math.sin(t * math.pi * 6),
+        0,
+      ),
       child: child,
     ),
     child: Container(

@@ -144,13 +144,13 @@ void main() {
     expect(r.state.returnStep, LessonStep.findTotal);
   });
 
-  test('268 coaches recheck', () {
+  test('268 is not a near miss: add both bars (LES-05)', () {
     final r = run(lemon, [
       ...toFindB,
       const NumberEntered(79),
       const NumberEntered(268),
     ]);
-    expect(r.decisions, contains(coach('cmp.recheck')));
+    expect(r.decisions, contains(coach('cmp.addBoth')));
     expect(r.state.step, LessonStep.findTotal);
   });
 

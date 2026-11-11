@@ -17,6 +17,7 @@ import 'data/repositories/pack_repository.dart';
 import 'data/repositories/session_repository.dart';
 import 'data/services/api_client.dart';
 import 'data/services/content_bundle.dart';
+import 'data/services/content_versions.dart';
 import 'data/services/device_lock.dart';
 import 'data/services/error_reporter.dart';
 import 'data/services/flags.dart';
@@ -51,6 +52,12 @@ Future<void> main() async {
   );
   account.client = client;
   await account.load();
+  // AUR-34: lessons go with the child's device token once paired
+  final lessonClient = ApiClient(
+    baseUrl: Env.apiBase,
+    bearer: () => account.lessonBearer,
+    onUnauthorized: account.lessonUnauthorized,
+  );
 
   final errors = ErrorReporter(
     client,
@@ -92,9 +99,19 @@ Future<void> main() async {
     }
   }
 
-  final pack = await served(
-    (b) => PackRepository(source: AssetPackSource(served: b)).load(),
+  // Julia's comparison template: draws a left case, and gives the lesson
+  // its step order, choices and worked examples (LES-03, LES-12, CON-05)
+  final template = await served(
+    (b) async => ComparisonTemplate.fromYaml(
+      b?.yamlOf('comparison-two-step.yaml') ??
+          await rootBundle.loadString('assets/spec/comparison-two-step.yaml'),
+    ),
   );
+  final pack = (await served(
+    (b) async => (await PackRepository(
+      source: AssetPackSource(served: b),
+    ).load()).withPraise(b?.praise ?? const {}),
+  )).copyWith(template: template);
   final config = await served(
     (b) async => AppConfig.fromYaml(
       b?.yamlOf('app-config.yaml') ??
@@ -111,17 +128,19 @@ Future<void> main() async {
   unawaited(flags.refresh());
   // the version of each content file this launch teaches from, served or
   // bundled (PLAT-04); the template's comes with each problem
-  final versions = <String, String>{};
-  for (final name in ['app-config', 'policy', 'skill-map']) {
-    final text =
-        bundle.yamlOf('$name.yaml') ??
-        await rootBundle.loadString('assets/spec/$name.yaml');
-    final v = RegExp(r'version"?\s*:\s*"?(\d+\.\d+\.\d+)').firstMatch(text);
-    if (v != null) versions[name] = v[1]!;
-  }
+  final versions = contentVersions(
+    served: bundle.yamlOf,
+    held: bundle.contentVersions,
+    bundled: {
+      for (final name in ['app-config', 'policy', 'skill-map'])
+        '$name.yaml': await rootBundle.loadString('assets/spec/$name.yaml'),
+    },
+  );
   final sessions = SessionRepository(
     db: db,
-    api: HttpApi(client),
+    api: HttpApi(lessonClient),
+    // the paired device's id from pairing on, no restart needed (AUR-34)
+    deviceId: () => account.deviceRef,
     identity: (
       deviceId: account.deviceRef,
       appVersion: Env.appVersion,
@@ -136,12 +155,7 @@ Future<void> main() async {
     ),
     onFailed: (sessionId, message) =>
         errors.report('error', message, screen: 'lesson', sessionId: sessionId),
-    template: await served(
-      (b) async => ComparisonTemplate.fromYaml(
-        b?.yamlOf('comparison-two-step.yaml') ??
-            await rootBundle.loadString('assets/spec/comparison-two-step.yaml'),
-      ),
-    ),
+    template: template,
   );
   // the server's problems this phone has shown, for a case left part way
   await sessions.loadProblems(pack);
@@ -173,6 +187,7 @@ Future<void> main() async {
           fallback: DeviceVoice(),
         ),
         sitting: sitting,
+        config: config,
         deviceLock: LocalDeviceLock(),
         outbox: db,
         store: store,

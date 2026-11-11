@@ -140,9 +140,55 @@ void main() {
     );
     final s = await api.startSession(isDemo: false);
     expect(
-      (s.startingCheckDue, s.retestDueAt, s.checkLevel),
-      (false, null, null),
+      (s.startingCheckDue, s.retestDueAt, s.checkLevel, s.todaySuggestion),
+      (false, null, null, null),
     );
+  });
+
+  test("LES-14: today's suggestion is read; an arithmetic one is Quick "
+      'sums', () async {
+    final api = HttpApi(
+      clientFor(
+        (_) async => http.Response(
+          '{"id":"s1","childRef":"ch_abc12345","startingCheckDue":false,'
+          '"todaySuggestion":{"skill":"arith.addsub-2d-regroup",'
+          '"level":"A6","reason":"regrouping_slips"}}',
+          200,
+        ),
+      ),
+    );
+    final s = await api.startSession(isDemo: false);
+    expect(s.todaySuggestion, (
+      skill: 'arith.addsub-2d-regroup',
+      level: 'A6',
+      reason: 'regrouping_slips',
+    ));
+    expect(suggestsQuickSums(s.todaySuggestion), isTrue);
+    expect(
+      suggestsQuickSums((skill: 'cmp.comparison', level: 'L3', reason: 'x')),
+      isFalse,
+    );
+    expect(suggestsQuickSums(null), isFalse);
+  });
+
+  test('SES-07: welcomeBack is read; null and absent are none', () async {
+    for (final (body, want) in [
+      (
+        ',"welcomeBack":{"lastLessonAt":1791000000000,"daysAway":3,'
+            '"timeZone":"Australia/Sydney","caseWaiting":true}',
+        (lastLessonAt: 1791000000000, daysAway: 3, caseWaiting: true),
+      ),
+      (',"welcomeBack":null', null),
+      ('', null),
+    ]) {
+      final api = HttpApi(
+        clientFor(
+          (_) async =>
+              http.Response('{"id":"s1","childRef":"ch_abc12345"$body}', 200),
+        ),
+      );
+      expect((await api.startSession(isDemo: false)).welcomeBack, want);
+    }
   });
 
   test("the starting check's result is sent, and the server's level read "

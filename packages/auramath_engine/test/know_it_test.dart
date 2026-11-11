@@ -50,10 +50,87 @@ void main() {
     expect(r.state.step, LessonStep.solved);
   });
 
-  test('know 268 opens recheck', () {
+  test('know 268 checks one part: no near-miss rule (LES-05)', () {
     final r = run(lemon, [...start, const KnowIt(268)]);
-    expect(r.decisions.single, isA<OpenRecheck>());
+    expect(r.decisions.single, isA<CheckOnePart>());
     expect(r.state.step, LessonStep.drawA);
+  });
+
+  test('know 256 (swapped digits) checks the sum again', () {
+    final r = run(lemon, [...start, const KnowIt(256)]);
+    expect(r.decisions.single, isA<OpenRecheck>());
+    expect(r.state.wrong, 0);
+  });
+
+  group('a second wrong answer at any one stage draws it (LES-05)', () {
+    test('total: swapped twice', () {
+      final r = run(lemon, [...start, const KnowIt(256), const KnowIt(300)]);
+      expect(r.decisions.last, isA<DrawIt>());
+      expect(r.state.step, LessonStep.drawA);
+      expect(r.state.knowFlow, KnowFlow.none);
+    });
+
+    test('total after a swap, right, solves', () {
+      final r = run(lemon, [...start, const KnowIt(256), const KnowIt(265)]);
+      expect(r.state.step, LessonStep.solved);
+    });
+
+    test('unknown: swapped, then wrong again', () {
+      final r = run(lemon, [
+        ...start,
+        const KnowIt(300),
+        const PartChecked(97),
+        const PartChecked(80),
+      ]);
+      expect(r.decisions.last, isA<DrawIt>());
+    });
+
+    test('unknown: back from the side lesson, then wrong again', () {
+      final r = run(lemon, [
+        ...start,
+        const KnowIt(300),
+        const PartChecked(81),
+        const SideLessonDone(),
+        const PartChecked(81),
+      ]);
+      expect(r.decisions.last, isA<DrawIt>());
+      expect(r.decisions.whereType<OpenSideLesson>(), hasLength(1));
+    });
+
+    test('total after unknown: carry side lesson, then wrong again', () {
+      final r = run(lemon, [
+        ...start,
+        const KnowIt(300),
+        const PartChecked(79),
+        const KnowTotalChecked(255),
+        const SideLessonDone(),
+        const KnowTotalChecked(255),
+      ]);
+      expect(r.decisions.last, isA<DrawIt>());
+    });
+
+    test('total after unknown: anything unmatched draws it', () {
+      final r = run(lemon, [
+        ...start,
+        const KnowIt(300),
+        const PartChecked(79),
+        const KnowTotalChecked(300),
+      ]);
+      expect(r.decisions.last, isA<DrawIt>());
+    });
+
+    test('79 asked what the question asks; 255 after it is the adding', () {
+      final r = run(lemon, [...start, const KnowIt(79), const KnowIt(255)]);
+      expect(
+        r.decisions.whereType<OpenSideLesson>().single.kind,
+        SideLesson.addWithCarry,
+      );
+    });
+
+    test('79 twice draws it', () {
+      final r = run(lemon, [...start, const KnowIt(79), const KnowIt(79)]);
+      expect(r.decisions.last, isA<DrawIt>());
+    });
   });
 
   test('know 255 (dropped carry) checks one part instead of recheck', () {
@@ -152,8 +229,20 @@ void main() {
     expect(r.state.wrong, 1);
   });
 
-  test('know it is ignored on the question screen and when solved', () {
-    final s = initialState();
+  test('@LES-01 know it from the question itself (M0) solves as know', () {
+    final r = step(pack, lemon, initialState(), const KnowIt(265));
+    expect(r.state.step, LessonStep.solved);
+    expect(r.decisions.whereType<Solved>().single.by, SolvedBy.know);
+  });
+
+  test('@LES-01 not yet, from M0: the board opens to draw it', () {
+    final r = run(lemon, [const KnowIt(300), const PartChecked(107)]);
+    expect(r.decisions, contains(isA<DrawIt>()));
+    expect(r.state.step, LessonStep.drawA);
+  });
+
+  test('know it is ignored once solved', () {
+    final s = run(lemon, [const KnowIt(265)]).state;
     expect(step(pack, lemon, s, const KnowIt(265)).state, same(s));
   });
 

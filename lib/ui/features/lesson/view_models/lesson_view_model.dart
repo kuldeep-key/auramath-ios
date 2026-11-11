@@ -7,11 +7,18 @@ import '../../../../data/repositories/session_repository.dart';
 import '../../../../data/services/api.dart';
 import '../../../../data/services/voice.dart';
 import '../../../core/parts/standing_button.dart';
+import 'line_library.dart';
 import 'sitting.dart';
 import 'step_decision.dart';
 
+part 'lesson_gaps.dart';
+
 /// Which answer sheet is open during "I know it".
 enum KnowPrompt { answer, whatAsked, recheck, checkPart, checkTotal }
+
+/// A prompt the tutor's decision opens over the board: read the question
+/// again (AI-09), or a case like this one solved before (AI-10).
+enum TutorPrompt { readAgain, seenBefore }
 
 /// Where a side lesson is once its blocks are worked: the child types the
 /// sum, practises a few if it was wrong, then goes back.
@@ -39,7 +46,7 @@ String fillLine(String template, Map<String, String> slots) => template
 
 /// Runs one lesson: hands each child input to the engine, saves it, and turns
 /// the engine's decisions into what the screens show. Decides nothing itself.
-class LessonViewModel extends ChangeNotifier {
+class LessonViewModel extends ChangeNotifier with _LessonGaps {
   LessonViewModel({
     required Pack pack,
     required String problemId,
@@ -69,7 +76,7 @@ class LessonViewModel extends ChangeNotifier {
     _voice.resting.addListener(_voiceResting);
   }
 
-  final Pack _pack;
+  Pack _pack;
   final Sitting _sitting;
   final SessionRepository _sessions;
   final Voice _voice;
@@ -87,6 +94,42 @@ class LessonViewModel extends ChangeNotifier {
   bool askDecisions = false;
   final _signals = StepSignals();
 
+  /// The flag `ai_decisions`: after a wrong step its help waits for the
+  /// server's decision and shows that instead of the rules' (AI-04). Off:
+  /// the rules' choice shows at once and the decision is only logged.
+  bool actOnDecisions = false;
+
+  /// App-config `ai` (NFR-05): no decision after [cueAfterMs], a thinking
+  /// cue; none after [fallbackAfterMs], the rules' choice. Each reply's
+  /// own values are used from the next step on.
+  int cueAfterMs = 1000;
+  int fallbackAfterMs = 4000;
+
+  /// The case partner's small thinking cue while a decision is late.
+  /// Never a blocking spinner: the child can carry on meanwhile.
+  bool thinking = false;
+
+  /// Flags `read_again_prompt` (AI-09) and `seen_before_bridge` (AI-10):
+  /// off, a decision for either shows the rules' help.
+  bool readAgainPrompt = false;
+  bool seenBeforeBridge = false;
+
+  /// The tutor's prompt open now, if any.
+  TutorPrompt? prompt;
+
+  /// The solved case the seen-before prompt shows a peek of; null when the
+  /// decision named none, or this phone doesn't have it.
+  ComparisonProblem? seenCase;
+
+  void closePrompt() {
+    prompt = null;
+    notifyListeners();
+  }
+
+  /// A wrong step whose help waits for the server's decision.
+  _Held? _held;
+  bool _disposed = false;
+
   /// The problem id that means "the server's next one".
   static const newProblem = 'new';
 
@@ -96,6 +139,11 @@ class LessonViewModel extends ChangeNotifier {
 
   /// The level to ask for with the next problem ("something easier").
   String? _askLevel;
+
+  /// The next problem is "something easier" (CON-06): asked with `easier`
+  /// and no level, so the server goes one below the child's own and serves
+  /// it as variant easier.
+  bool _askEasier = false;
 
   /// Null until the server opened the session.
   String? _sessionId;
@@ -115,7 +163,17 @@ class LessonViewModel extends ChangeNotifier {
 
   /// The server opened this lesson's session (and sent its problem); until
   /// then nothing is drawn.
-  bool get ready => _sessionId != null && _p != null;
+  bool get ready => _sessionId != null && _p != null && !_carrying;
+
+  /// A carried-on case whose board isn't rebuilt yet: no input until it is.
+  bool _carrying = false;
+
+  /// [_state] rebuilt from a session's [events] through the engine, with
+  /// the side lesson it was on.
+  void _replayed(List<SpecEvent> events) {
+    _state = replay(_pack, _problem, inputsFrom(_pack, _problem, events));
+    sideLesson = _state.sideLesson;
+  }
 
   /// The session couldn't be opened: no connection, or the server said no.
   /// The lesson waits on a "need the internet" screen with Try again.
@@ -160,11 +218,19 @@ class LessonViewModel extends ChangeNotifier {
   Future<void> start() async {
     startError = null;
     try {
-      final sessionId = _sessionId ??= await _openSession();
+      // a case carried on after time's up goes on in the server's
+      // continuation of its session (SES-01); else a new session
+      final sessionId = _sessionId ??=
+          await _continueAfterTimeUp() ?? await _openSession();
       final next = _nextProblem;
+      // SES-07: the server says the child is back on a later day (on any
+      // phone) and Home didn't greet them: welcome back first
+      if (_offerWelcomeBack(sessionId)) return;
       if (_p == null && next != null) {
         // a new child's four starting sums come first (SKL-07)
         if (await _startingCheck(sessionId)) return;
+        // just placed: Choose today before the first case (LES-14)
+        if (_offerToday()) return;
         // a case left last time: offered back first (SES-06)
         final left = _sessions.leftProblem(_pack, sessionId);
         if (left != null) {
@@ -172,9 +238,15 @@ class LessonViewModel extends ChangeNotifier {
           notifyListeners();
           return;
         }
+        // a skill due for review warms up first (FL-46, TUT-08)
+        if (await _warmUp(sessionId)) return;
+        if (_askEasier) _sessions.askEasier(sessionId);
         _p = await next(sessionId, level: _askLevel);
         _askLevel = null;
-      } else if (next != null && _sessions.checkDue(sessionId)) {
+        _askEasier = false;
+      } else if (next != null &&
+          carryFrom == null &&
+          _sessions.checkDue(sessionId)) {
         // a case fetched ahead last session: the check due here comes first
         _p = await next(sessionId);
       }
@@ -185,6 +257,7 @@ class LessonViewModel extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    _carrying = carryFrom != null && carryFrom != _sessionId;
     notifyListeners();
     _warmVoice(); // the problem is known now, from the pack or the server
     final events = [
@@ -199,6 +272,7 @@ class LessonViewModel extends ChangeNotifier {
       problemShown(_problem),
     ];
     await _record(events);
+    await _afterShown();
   }
 
   /// The starting check's four sums (SKL-07), while a new child does them
@@ -252,8 +326,81 @@ class LessonViewModel extends ChangeNotifier {
       _sessions.failed(sessionId, 'starting check not sent: $e');
     }
     _startingChecked = true;
+    _placed = true;
     startingSums = const [];
     return false;
+  }
+
+  /// FL-46 (TUT-08): the arithmetic level of a skill's warm-up sums: the
+  /// level the starting check gives that skill.
+  static const warmUpLevels = {
+    'arith.add-3d-regroup': 'A9',
+    'arith.sub-3d-regroup': 'A10',
+    'arith.addsub-2d-regroup': 'A6',
+  };
+
+  /// The review skill the warm-up sums practise (`reviewDue`), while they
+  /// run in [startingSums]; null for the starting check's own.
+  String? _warmUpSkill;
+  bool _warmedUp = false;
+
+  /// True while a warm-up is on (FL-46): the session opened with a skill
+  /// due for review (`reviewDue`: past the side-lesson limit last time, or
+  /// a one-off mistake two weeks on), so before the first case a few sums
+  /// of that skill (policy `practice_if_unsure`), in the starting check's
+  /// calm screen, logged as a side lesson on it: `side_lesson_started`,
+  /// `quick_sum_answered {context: side_lesson}`, then `side_lesson_ended
+  /// {completed: true}`, which takes it off the server's review queue. A
+  /// skill with no sums (reading the story) gets no warm-up: the first
+  /// case is its review. Once per lesson.
+  Future<bool> _warmUp(String sessionId) async {
+    final id = childId;
+    if (_warmedUp || id == null) return false;
+    if (_warmUpSkill case final skill?) {
+      if (inStartingCheck) {
+        notifyListeners();
+        return true;
+      }
+      _warmedUp = true;
+      _warmUpSkill = null;
+      startingSums = const [];
+      await _record([
+        SpecEvent('side_lesson_ended', {'skill_id': skill, 'completed': true}),
+      ]);
+      return false;
+    }
+    final due = _sessions
+        .reviewDue(sessionId)
+        .where((r) => warmUpLevels.containsKey(r['skill']))
+        .firstOrNull;
+    if (due == null) {
+      _warmedUp = true;
+      return false;
+    }
+    final skill = due['skill']! as String;
+    List<Sum> sums = const [];
+    try {
+      sums = await _sessions.practiceSums(id, level: warmUpLevels[skill]!);
+    } on ApiException catch (e) {
+      if (e.offline) rethrow;
+      _sessions.failed(sessionId, 'warm-up sums not fetched: $e');
+    }
+    if (sums.isEmpty) {
+      _warmedUp = true;
+      return false;
+    }
+    _warmUpSkill = skill;
+    startingSums = sums.take(_pack.practiceSums).toList();
+    startingAt = 0;
+    _itemAt = _now();
+    notifyListeners();
+    await _record([
+      SpecEvent('side_lesson_started', {
+        'skill_id': skill,
+        'error_type': due['errorType'] as String? ?? 'review',
+      }),
+    ]);
+    return true;
   }
 
   /// One starting sum typed: logged as `placement_answered`, with its time
@@ -268,12 +415,22 @@ class LessonViewModel extends ChangeNotifier {
     // saved without waiting on the network, so the next sum is heard at
     // once; the last one is waited for before the case starts
     final saving = _record([
-      SpecEvent('placement_answered', {
-        'item_id': 'start-${at + 1}',
-        'value': value,
-        'correct': correct,
-        'ms_from_item_start': now - _itemAt,
-      }),
+      if (_warmUpSkill != null)
+        SpecEvent('quick_sum_answered', {
+          'context': 'side_lesson',
+          'item_id': 'warm-up-${at + 1}',
+          'level': item.level,
+          'value': value,
+          'correct': correct,
+          'ms_from_item_start': now - _itemAt,
+        })
+      else
+        SpecEvent('placement_answered', {
+          'item_id': 'start-${at + 1}',
+          'value': value,
+          'correct': correct,
+          'ms_from_item_start': now - _itemAt,
+        }),
     ]);
     _itemAt = now;
     if (inStartingCheck) return unawaited(saving);
@@ -283,8 +440,9 @@ class LessonViewModel extends ChangeNotifier {
 
   Future<void> _record(List<SpecEvent> events) async {
     final sessionId = _sessionId;
-    // nothing happened yet to record, or the server closed the log
-    if (sessionId == null || endedByServer) return;
+    // nothing happened yet to record, or the server closed the log, or
+    // time was up and the child stopped: the next lesson carries it on
+    if (sessionId == null || endedByServer || _calledItADay) return;
     final first = _seq;
     _seq += events.length;
     await _sessions.record(sessionId, first, events);
@@ -323,13 +481,20 @@ class LessonViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// "Now try a new one" after show me how (TUT-05): this problem closes,
+  /// scored as solved with help, and a new one of the same kind opens.
+  Future<void> exampleDone() async {
+    showingExample = false;
+    await send(const ExampleDone());
+  }
+
   /// Rebuilds the lesson from its saved events: replayed through the engine,
   /// never from a snapshot.
   Future<void> restore() async {
     _warmVoice();
     final sessionId = _sessionId!;
     final (:events, :lastSeq) = await _sessions.resume(sessionId);
-    _state = replay(_pack, _problem, inputsFrom(_pack, _problem, events));
+    _replayed(events);
     _seq = lastSeq + 2;
     await _sessions.record(sessionId, lastSeq + 1, const [
       SpecEvent('session_resumed', {}),
@@ -342,7 +507,10 @@ class LessonViewModel extends ChangeNotifier {
   /// decides whether that matters.
   Future<void> tick() async {
     final now = _now();
-    if (_pausedAt == null) _sitting.activeMs += now - _lastTickMs;
+    // locked, or waiting for the internet (SES-04): the cap doesn't run
+    if (_pausedAt == null && (online || !clockPausesOffline)) {
+      _sitting.activeMs += now - _lastTickMs;
+    }
     _lastTickMs = now;
     if (_sitting.over &&
         !_sitting.finishing &&
@@ -389,7 +557,12 @@ class LessonViewModel extends ChangeNotifier {
         'active_ms': _sitting.activeMs,
       }),
     ]);
+    // nothing more goes into the ended session: the server would open its
+    // continuation for it (SES-01), which the next lesson opens instead
+    _calledItADay = true;
   }
+
+  bool _calledItADay = false;
 
   /// The phone locked or the app went to the background (SES-03).
   Future<void> paused() async {
@@ -423,6 +596,9 @@ class LessonViewModel extends ChangeNotifier {
     askingBreak = false;
     notifyListeners();
   }
+
+  /// App-config `session.clock_pauses_while_offline` (SES-04).
+  bool clockPausesOffline = true;
 
   /// The server can't be reached (or can again). Online-first: the lesson
   /// pauses until it can; every tap so far is held and resent (SES-04).
@@ -462,10 +638,23 @@ class LessonViewModel extends ChangeNotifier {
   }
 
   Future<void> send(LessonInput input) async {
+    input = _withExample(input);
     final sessionId = _sessionId;
     // no session yet, no case yet (the starting sums, a left case on
     // offer), paused for the connection, or over: the board isn't live
-    if (sessionId == null || _p == null || !online || endedByServer) return;
+    if (sessionId == null ||
+        _p == null ||
+        !online ||
+        endedByServer ||
+        _calledItADay ||
+        _carrying) {
+      return;
+    }
+    if (_held != null) {
+      // the child moved on before the decision: the rules' help shows
+      if (input is QuietFor) return;
+      unawaited(_settle(null)); // shown at once: nothing awaited
+    }
     final r = step(_pack, _problem, _state, input);
     if (identical(r.state, _state) && r.decisions.isEmpty) return;
     final now = _now();
@@ -501,47 +690,308 @@ class LessonViewModel extends ChangeNotifier {
               seq: first + i,
               signals: _signals,
               maxSideLessons: _pack.maxSideLessons,
+              prompts: {
+                if (actOnDecisions && readAgainPrompt) 'read_again',
+                if (actOnDecisions && seenBeforeBridge) 'seen_before',
+              },
             ),
     ];
     if (entering != null) {
       _signals.reset();
       _wayOutOffered = false;
+      easierSentence = false;
+      _newStepHelp();
     }
-    _state = r.state;
+    // a wrong step the server may help with differently: its help waits
+    final wait = actOnDecisions ? asks.where(_judged).lastOrNull : null;
     _seq += events.length;
     final solved = r.decisions.any((d) => d is Solved);
     final reads = _heldReads = [];
-    _apply(r.decisions);
-    // back from a side lesson opened on "check one part": that sheet again
-    if (input is SideLessonDone && _state.knowFlow == KnowFlow.checkingPart) {
-      knowPrompt = KnowPrompt.checkPart;
-    }
-    final stepLine = _stepLines[entering];
-    if (stepLine != null && !r.decisions.any((d) => d is Coach)) {
-      _coach(stepLine, const {});
+    final held = _Held(r, input, entering);
+    if (wait != null) {
+      // the phone's check shows now: the wobble, Help me shaking
+      _apply([
+        for (final d in r.decisions)
+          if (d is Wobble || d is ShakeHelp) d,
+      ]);
+      _held = held..fedBack = true;
+      // the cue and the fallback count from the step, not from the upload
+      // below (NFR-05)
+      _holdTimers(held);
+    } else {
+      _present(held);
     }
     // lines read aloud on this step follow its events, in this session
     _heldReads = null;
     if (_sessionId == sessionId) _seq += reads.length;
     // solved: the session ends as finished (SES-01), after this step's
-    // events and reads; its seq taken now so a tick meanwhile can't take it
-    final endAt = solved && _sessionId == sessionId ? _seq++ : null;
+    // events and reads; its seq taken now so a tick meanwhile can't take it.
+    // With faces to rate, after the rating instead (AI-08).
+    final ending = solved && _sessionId == sessionId;
+    if (ending && offerRating) _rated = Completer();
+    final endAt = ending && _rated == null ? _seq++ : null;
     notifyListeners();
     await _sessions.record(sessionId, first, [...events, ...reads]);
     for (final ask in asks) {
-      unawaited(_askServer(sessionId, ask));
+      unawaited(
+        identical(ask, wait)
+            ? _decideThenShow(sessionId, ask, held)
+            : _askServer(sessionId, ask),
+      );
     }
-    if (endAt != null) await _endFinished(sessionId, endAt);
+    if (ending && _rated != null) {
+      unawaited(_endFinished(sessionId, null));
+    } else if (endAt != null) {
+      await _endFinished(sessionId, endAt);
+    }
+    if (_sessionId == sessionId) await _repeatDetour(events);
     // something easier: the easier problem gets its own session
     if (_sessionId == null) await start();
   }
 
-  /// Sends one decision. The rules' choice already happened on the phone.
-  // ponytail: the server's answer isn't acted on: with the AI off (dev,
-  // R1) it is our own default anyway, and nothing waits for it, so there's
-  // no thinking cue yet. Acting on a different answer needs an event that
-  // a resume can replay; add it, the 1 s cue and the 4 s fallback when the
-  // evaluator is switched on (M3).
+  /// A mistake that came back across problems, or the same operation
+  /// wrong twice this sitting, opens its side lesson (TUT-08, policy
+  /// `side_lessons.trigger.on_repeat`), within `max_per_session`. Past
+  /// it, the step's own help carries on (`over_limit_on_step`), and the
+  /// server queues the skill for review from the log.
+  Future<void> _repeatDetour(List<SpecEvent> events) async {
+    final repeats = _sitting.repeats;
+    SideLesson? due;
+    for (final e in events) {
+      if (e.name == 'side_lesson_started') {
+        final kind = sideSkill.entries
+            .where((k) => k.value == e.payload['skill_id'])
+            .firstOrNull
+            ?.key;
+        if (kind != null) repeats.ran(kind);
+      }
+      if (e.name != 'step_committed' && e.name != 'i_know_it_answered' ||
+          e.payload['correct'] != false ||
+          e.payload['error_type'] == 'transposition') {
+        continue;
+      }
+      final op = switch (e.payload['step_id']) {
+        'find_unknown' => _problem.big == BigSide.a ? Op.subtract : Op.add,
+        'find_total' => Op.add,
+        _ => null,
+      };
+      due ??= repeats.charge(
+        _problem.id,
+        e.payload['error_type'] as String?,
+        op: e.name == 'step_committed' ? op : null,
+      );
+    }
+    if (due == null) return;
+    // the server is deciding this step's help: it opens once that's shown
+    if (_held != null) {
+      _repeatDue = (kind: due, problemId: _problem.id);
+      return;
+    }
+    await _openRepeat(due);
+  }
+
+  /// A repeat side lesson due while the server decided a step's help.
+  ({SideLesson kind, String problemId})? _repeatDue;
+
+  Future<void> _openRepeat(SideLesson due) async {
+    // a side lesson is open, or the session's are used up
+    if (!_onBoard || _state.sideLessons >= _pack.maxSideLessons) return;
+    await send(SideLessonChosen(due));
+  }
+
+  /// "Show me how" names the template's worked example it draws (CON-05).
+  LessonInput _withExample(LessonInput input) =>
+      input is ShowMeHowTaken && input.storyId == null && _p != null
+      ? ShowMeHowTaken(
+          afterWrong: input.afterWrong,
+          storyId: exampleFor(_pack, _problem)?.storyId,
+        )
+      : input;
+
+  /// The engine's result for one input, shown: its state, its decisions,
+  /// and the line for a step just entered.
+  void _present(_Held h, {bool help = true}) {
+    _state = h.r.state;
+    _apply([
+      for (final d in h.r.decisions)
+        if ((help || d is! Coach && d is! OpenSideLesson) &&
+            (!h.fedBack || d is! Wobble && d is! ShakeHelp))
+          d,
+    ]);
+    // back from a side lesson opened on "check one part": that sheet again
+    if (h.input is SideLessonDone && _state.knowFlow == KnowFlow.checkingPart) {
+      knowPrompt = KnowPrompt.checkPart;
+    }
+    final stepLine = _stepLines[h.entering];
+    if (stepLine != null && !h.r.decisions.any((d) => d is Coach)) {
+      _coach(stepLine, const {});
+    }
+  }
+
+  /// A wrong step the server judges, with more than carrying on allowed.
+  static bool _judged(Map<String, Object?> ask) =>
+      (ask['step'] as Map?)?['phoneVerdict'] == 'incorrect' &&
+      (ask['allowed']! as List).length > 1;
+
+  /// Asks the server about a held wrong step and shows its help: the
+  /// thinking cue after [cueAfterMs]; the rules' help after
+  /// [fallbackAfterMs], on an error, or when the rules decided there too.
+  Future<void> _decideThenShow(
+    String sessionId,
+    Map<String, Object?> ask,
+    _Held held,
+  ) async {
+    Map<String, Object?>? reply;
+    try {
+      reply = await _sessions
+          .decide(sessionId, ask)
+          .timeout(Duration(milliseconds: fallbackAfterMs));
+      cueAfterMs = reply['cueAfterMs'] as int? ?? cueAfterMs;
+      fallbackAfterMs = reply['fallbackAfterMs'] as int? ?? fallbackAfterMs;
+    } on TimeoutException {
+      debugPrint('decision: none in $fallbackAfterMs ms; the rules\' help');
+    } on ApiException catch (e) {
+      debugPrint('decision not asked: $e');
+    }
+    // the child moved on meanwhile: the rules' help already showed
+    if (!identical(_held, held) || _disposed) return;
+    await _settle(reply == null ? null : aiChoice(reply));
+  }
+
+  /// The thinking cue at [cueAfterMs] and the rules' help at
+  /// [fallbackAfterMs], from when [held] was held.
+  void _holdTimers(_Held held) {
+    held.cue = Timer(Duration(milliseconds: cueAfterMs), () {
+      if (!identical(_held, held) || _disposed) return;
+      thinking = true;
+      notifyListeners();
+    });
+    held.fallback = Timer(Duration(milliseconds: fallbackAfterMs), () {
+      if (!identical(_held, held) || _disposed) return;
+      debugPrint('decision: none in $fallbackAfterMs ms; the rules\' help');
+      unawaited(_settle(null));
+    });
+  }
+
+  /// Shows the held step's help, then a repeat side lesson that came due
+  /// meanwhile, if the case is still on its board.
+  Future<void> _settle(AiChoice? ai) async {
+    await _showHeld(ai);
+    final due = _repeatDue;
+    _repeatDue = null;
+    if (due != null && _p?.id == due.problemId && _held == null) {
+      await _openRepeat(due.kind);
+    }
+  }
+
+  /// The held step's help: the server's [ai] choice where it differs from
+  /// the rules' and this app can show it, else the rules' own.
+  Future<void> _showHeld(AiChoice? ai) async {
+    final held = _held!;
+    _held = null;
+    held.cue?.cancel();
+    held.fallback?.cancel();
+    thinking = false;
+    final rules = held.r.decisions.any((d) => d is OpenSideLesson)
+        ? 'side_lesson'
+        : 'none';
+    final help = ai?.help;
+    // paused for the connection or ended: the engine takes no input now
+    if (help == null ||
+        help == rules ||
+        !_canShow(help, held, ai) ||
+        !online ||
+        endedByServer) {
+      _present(held);
+      notifyListeners();
+      if (ai != null) _nextAction(ai.next);
+      return;
+    }
+    // the server's help, not the rules': a side lesson the rules opened
+    // closes unrun, and the rules' line isn't said
+    _present(held, help: false);
+    if (_state.step == LessonStep.sideLesson) {
+      await send(const SideLessonDone(completed: false));
+    }
+    switch (help) {
+      case 'hint':
+        await send(const HintTaken(afterWrong: true));
+      case 'show_me_how':
+        await send(const ShowMeHowTaken(afterWrong: true));
+      case 'easier':
+        await send(const EasierTaken(afterWrong: true));
+        return; // a new problem: nothing next on this one
+      case 'side_lesson':
+        await send(SideLessonChosen(_sideFor(ai!.sideSkill)));
+      case 'check_again':
+        _coach('cmp.recheck', const {});
+      case 'read_again':
+        // the question again, aloud, before any other help (AI-09)
+        prompt = TutorPrompt.readAgain;
+        _speak(_problem.say, 'question');
+        await _record(const [
+          SpecEvent('prompt_offered', {'kind': 'read_again'}),
+        ]);
+      case 'seen_before':
+        final id = ai!.seenBefore?.problemId;
+        seenCase = id == null || id == _problem.id ? null : _pack.problems[id];
+        prompt = TutorPrompt.seenBefore;
+        await _record([
+          SpecEvent('prompt_offered', {
+            'kind': 'seen_before',
+            'linked_problem_id': ?seenCase?.id,
+          }),
+        ]);
+      default: // none: only the step's own line
+        _coach('cmp.tryAgain', const {});
+    }
+    notifyListeners();
+    _nextAction(ai!.next);
+  }
+
+  /// Whether this app can show [help] for the held step.
+  bool _canShow(String help, _Held held, AiChoice? ai) => switch (help) {
+    // a sum's side lesson works the step's own sum; one on reading the
+    // story (a score-triggered detour, TUT-08) opens from any board step
+    'side_lesson' =>
+      held.r.state.step != LessonStep.sideLesson &&
+          held.r.state.sideLessons < _pack.maxSideLessons &&
+          (!_sideFor(ai?.sideSkill).arithmetic ||
+              const {
+                LessonStep.findB,
+                LessonStep.findTotal,
+              }.contains(held.r.state.step)),
+    'read_again' => readAgainPrompt,
+    'seen_before' => seenBeforeBridge,
+    _ => helpActions.contains(help),
+  };
+
+  /// The side lesson for the server's skill; with none named, the one the
+  /// step's sum needs.
+  SideLesson _sideFor(String? skill) =>
+      sideSkill.entries.where((e) => e.value == skill).firstOrNull?.key ??
+      (_state.step == LessonStep.findB && _problem.big == BigSide.a
+          ? SideLesson.takeAcrossTen
+          : SideLesson.addWithCarry);
+
+  /// A decision's `next.action`, shown with what the lesson already has.
+  /// The child chooses: nothing switches the case on its own.
+  void _nextAction(String next) {
+    if (!_onBoard) return;
+    switch (next) {
+      case 'same_level_new_numbers' || 'one_easier_then_back':
+        // the way-out offer: Help me, something easier, still thinking
+        tooHard = stillThere = _wayOutOffered = true;
+      case 'end_case' || 'end_session':
+        askingBreak = true;
+      default: // continue; next_level moves at the end of the case (SKL-04)
+        return;
+    }
+    notifyListeners();
+  }
+
+  /// Sends one decision and only logs the answer: the rules' choice
+  /// already showed (a correct step, or `ai_decisions` off).
   Future<void> _askServer(String sessionId, Map<String, Object?> ask) async {
     try {
       final reply = await _sessions.decide(sessionId, ask);
@@ -601,9 +1051,86 @@ class LessonViewModel extends ChangeNotifier {
   /// The flag `mastery_badges`: the badge after "case cracked".
   bool showBadges = true;
 
+  /// The flag `self_rating` and the child's age (AI-08): three faces after
+  /// a solved case from `self_rating_min_age` (7) up, never younger. The
+  /// rating is only logged: it changes no level, score or next case.
+  bool selfRating = false;
+  int selfRatingMinAge = 7;
+  int? childAge;
+  bool get offerRating =>
+      selfRating && childAge != null && childAge! >= selfRatingMinAge;
+
+  /// The face the child tapped for this case: `easy`, `ok` or `tricky`.
+  String? rating;
+
+  /// Set while the faces wait: the session ends once they're answered.
+  Completer<void>? _rated;
+
+  /// A face tapped: `self_rating_given`, then the session can end.
+  Future<void> rate(String face) async {
+    if (rating != null) return;
+    rating = face;
+    notifyListeners();
+    await _record([
+      SpecEvent('self_rating_given', {
+        'problem_id': _problem.id,
+        'rating': face,
+      }),
+    ]);
+    _doneRating();
+  }
+
+  /// Next without a face: no rating, and the session ends.
+  void _doneRating() {
+    final rated = _rated;
+    if (rated != null && !rated.isCompleted) rated.complete();
+  }
+
+  void skipRating() => _doneRating();
+
   /// Why the lesson opened (`session_started`, DAT-05): the child on their
   /// own phone, or a grown-up's phone handed over.
   String launchSource = 'child_opened';
+
+  /// The flag `bar_sense_side_lessons` (TUT-17, tentative): the
+  /// wrong-way-round detour is Julia's bar-sense lessons, not the worked
+  /// example.
+  bool barSenseLessons = false;
+
+  /// The flag `read_aloud`: with it on and read-aloud off for this child,
+  /// the Sound screen asks once a sitting (NFR-06, journey 20).
+  bool readAloudFlag = false;
+
+  /// Read-aloud is off: offer to turn the sound on, or read it myself.
+  bool get offerSound =>
+      readAloudFlag &&
+      !readAloud &&
+      !_sitting.soundAsked &&
+      ready &&
+      _state.step == LessonStep.question;
+
+  /// The Sound screen is showing.
+  void soundOffered() {
+    _sitting.soundAsked = true;
+    notifyListeners();
+  }
+
+  /// The child's answer on the Sound screen (`sound_on`, `read_myself`;
+  /// null when closed some other way): logged as `prompt_answered`;
+  /// sound on reads aloud for the rest of the sitting's lesson.
+  Future<void> soundAnswered(String? choice) async {
+    if (choice == 'sound_on') {
+      readAloud = true;
+      autoReadQuestion();
+    }
+    notifyListeners();
+    await _record([
+      SpecEvent('prompt_answered', {
+        'prompt': 'sound_on',
+        'choice': choice ?? 'dismissed',
+      }),
+    ]);
+  }
 
   /// The question as it first shows: spoken if read-aloud is on.
   void autoReadQuestion() {
@@ -653,6 +1180,70 @@ class LessonViewModel extends ChangeNotifier {
     return (left: p.aValue, right: p.diff, subtract: p.big == BigSide.a);
   }
 
+  /// The sum step's number sentence shows each number's name under it,
+  /// beside the bars (TUT-09). Until the step changes.
+  bool easierSentence = false;
+
+  /// Help me's "Show the sum in words": on the sum steps only.
+  bool get canEaseSentence =>
+      _p != null &&
+      const {LessonStep.findB, LessonStep.findTotal}.contains(_state.step);
+
+  void showEasierSentence() {
+    if (easierSentence || !canEaseSentence) return;
+    easierSentence = true;
+    notifyListeners();
+    unawaited(
+      _record([
+        SpecEvent('easier_number_sentence_shown', {
+          'step_id': specStepId(_state.step),
+        }),
+      ]),
+    );
+  }
+
+  /// The flag `child_questions` (TUT-13): tap-to-ask buttons on the board.
+  bool childQuestions = false;
+
+  /// The current step's question buttons (policy `question_buttons`), the
+  /// step's own first, then every step's; at most three. Each answer is
+  /// Julia's library line: it never gives the step's answer away.
+  List<({String id, String question, String answer})> get questions {
+    if (!childQuestions || !_onBoard || _p == null) return const [];
+    final buttons = _pack.questionButtons;
+    final slots = {...lineSlots(_problem), 'kind': _kind};
+    return [
+      for (final id in [...?buttons[specStepId(_state.step)], ...?buttons['*']])
+        // "What does taller mean? | Taller means ..."
+        if (_pack.policyLines[id]?.split(' | ') case [final q, final a])
+          (id: id, question: fillLine(q, slots), answer: fillLine(a, slots)),
+    ].take(3).toList();
+  }
+
+  /// The thing both are, for a line's `{kind}`: "tree" for the lemon tree
+  /// and the fig tree, else "one".
+  String get _kind {
+    final a = _problem.a.name.toLowerCase().split(' ').last;
+    return a == _problem.b.name.toLowerCase().split(' ').last ? a : 'one';
+  }
+
+  /// A question button tapped: its answer is the coach's line, read aloud
+  /// if read-aloud is on, and `question_chip_tapped` is logged.
+  void ask(({String id, String question, String answer}) q) {
+    coachText = q.answer;
+    autoSay(q.answer);
+    notifyListeners();
+    unawaited(
+      _record([
+        SpecEvent('question_chip_tapped', {
+          'chip_id': q.id,
+          'step_id': ?specStepId(_state.step),
+          'line_id': q.id,
+        }),
+      ]),
+    );
+  }
+
   /// The child, for the practice sums' `/arithmetic` (set by the route).
   String? childId;
 
@@ -668,6 +1259,23 @@ class LessonViewModel extends ChangeNotifier {
 
   /// Every practice sum was wrong: a kind ending, then back (TUT-18).
   bool get practiceAllWrong => practice.isNotEmpty && practiceRight == 0;
+
+  /// Practice sums answered wrong in this side lesson.
+  int get practiceWrong => practiceAt - practiceRight;
+
+  /// The side lesson can't be finished (TUT-18): policy
+  /// `abandon_after_wrong_practice` sums wrong, or every one there was.
+  /// It ends kindly, logs `completed: false`, and the step it paused shows
+  /// its first hint.
+  bool get sideAbandoned =>
+      practice.isNotEmpty &&
+      (practiceWrong >= _pack.abandonAfterWrongPractice ||
+          practiceAt == practice.length && practiceRight == 0);
+
+  /// "Back to the problem" from a side lesson: finished, or not (TUT-18).
+  Future<void> endSideLesson() => send(
+    sideAbandoned ? const SideLessonAbandoned() : const SideLessonDone(),
+  );
 
   Future<void> checkOwnSum(int value) async {
     final s = sideSum;
@@ -697,7 +1305,9 @@ class LessonViewModel extends ChangeNotifier {
     if (correct) practiceRight++;
     final now = _now();
     final at = practiceAt++;
-    if (practiceAt == practice.length) sideStage = SideStage.back;
+    if (practiceAt == practice.length || sideAbandoned) {
+      sideStage = SideStage.back;
+    }
     notifyListeners();
     await _record([
       SpecEvent('quick_sum_answered', {
@@ -722,9 +1332,80 @@ class LessonViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// The hint rung shown last on this step (TUT-04); null on a new step.
+  HintRung? hintRung;
+  bool _itAnswered = false;
+
+  /// Wrong picks on "Which tree does 'it' mean?", for the buttons' wobble.
+  int itWrongPicks = 0;
+
+  /// H1-4a or H1-4b is asking which thing "it" means (TUT-16), and the
+  /// child hasn't picked the right one yet.
+  bool get asksWhichIt {
+    final r = hintRung;
+    if (r == null ||
+        _itAnswered ||
+        _state.step != LessonStep.sizeB && _state.step != LessonStep.placeB) {
+      return false;
+    }
+    return r.choice.contains('a') && r.choice.contains('b') ||
+        r.highlight != null;
+  }
+
+  /// H1-4b: "it" and the thing it means in one colour, underlined. Shown
+  /// only after a request for help, and never on the next problem.
+  bool get highlightIt => hintRung?.highlight != null;
+
+  /// The child's pick on "Which tree does 'it' mean?". A wrong one
+  /// wobbles and leads to the highlight; it is logged, not charged.
+  Future<void> pickIt(String option) async {
+    if (option == 'a') {
+      _itAnswered = true;
+    } else {
+      itWrongPicks++;
+    }
+    await send(ItPicked(option));
+  }
+
+  void _newStepHelp() {
+    hintRung = null;
+    _itAnswered = false;
+    _everydayClosed = false;
+  }
+
+  bool _everydayClosed = false;
+
+  /// H1-6 (TUT-06): the everyday example's picture, a grown-up and a
+  /// child, is showing over the board until the child goes back.
+  bool get showingEveryday =>
+      hintRung?.everydayExample == true && !_everydayClosed && _onBoard;
+
+  /// "Back to the problem" from the everyday example: the same step.
+  void closeEveryday() {
+    _everydayClosed = true;
+    notifyListeners();
+  }
+
+  /// The quiet child's "Want a hand?" (policy `quiet.still_there_line`,
+  /// TUT-07); null without one, and the sheet says its own.
+  String? get stillThereLine => switch (_pack.quietLines.still) {
+    final id? when _p != null => _lineText(id, const {}),
+    _ => null,
+  };
+
+  /// "I'm still thinking" on the quiet child's sheet: it closes, and the
+  /// step's first hint follows (policy `quiet.then: first_hint`, TUT-07).
+  /// On the too-hard sheet (TUT-10) it only closes.
+  Future<void> stillThinking() async {
+    final quiet = stillThere && !tooHard;
+    dismissStillThere();
+    if (quiet) await send(const HintTaken(afterQuiet: true));
+  }
+
   /// Opens the sheet that matches where an "I know it" answer is up to, so a
   /// dismissed "check one part" reopens as itself.
   void openKnowIt() {
+    _knowItOpened();
     knowPrompt = switch (_state.knowFlow) {
       KnowFlow.askingWhat => KnowPrompt.whatAsked,
       KnowFlow.checkingPart => KnowPrompt.checkPart,
@@ -748,9 +1429,13 @@ class LessonViewModel extends ChangeNotifier {
 
   /// Starts the next problem the engine chose; with the server's problems,
   /// one a level easier than this one, from the server.
-  void goTo(String problemId) {
+  void goTo(String problemId, {bool sameLevel = false}) {
     if (_nextProblem != null) {
-      _askLevel = easierLevel(_problem.level);
+      // something easier: no level, so the server goes one below the
+      // child's own (at the lowest, its smallest numbers) and says so
+      // (variant easier). With a level it serves that level as it is.
+      _askLevel = sameLevel ? _problem.level : null;
+      _askEasier = !sameLevel;
       _p = null;
     } else {
       _p = _pack.problems[problemId]!;
@@ -764,16 +1449,22 @@ class LessonViewModel extends ChangeNotifier {
     helpAttention = Attention.none;
     glowPiece = showHand = stillThere = false;
     knowPrompt = sideLesson = badgeId = nextProblemId = null;
+    prompt = null;
+    seenCase = null;
+    easierSentence = false;
+    rating = null;
+    _newStepHelp(); // the next problem opens with no highlight (TUT-16)
     notifyListeners();
   }
 
   /// Solved: `session_ended {finished}`, so the server writes the note and
   /// moves the level now rather than at the idle sweep. After the next case
   /// is fetched: problems/next refuses an ended session (409).
-  Future<void> _endFinished(String sessionId, int seq) async {
+  Future<void> _endFinished(String sessionId, int? seq) async {
     await _fetching;
+    await _rated?.future;
     if (endedByServer) return;
-    await _sessions.record(sessionId, seq, [
+    await _sessions.record(sessionId, seq ?? _seq++, [
       SpecEvent('session_ended', {
         'reason': 'finished',
         'active_ms': _sitting.activeMs,
@@ -801,8 +1492,10 @@ class LessonViewModel extends ChangeNotifier {
       switch (d) {
         case Coach(:final lineId, :final slots):
           _coach(lineId, slots);
-        case ShowHint(:final lineId):
+        case ShowHint(:final lineId, :final rung):
           _coach(lineId, const {});
+          hintRung = rung ?? hintRung;
+          _everydayClosed = false;
         case Wobble():
           wobbles++;
         case ShakeHelp():
@@ -834,6 +1527,8 @@ class LessonViewModel extends ChangeNotifier {
           _coach('cmp.showMeHow', const {});
         case SwitchProblem(:final problemId):
           goTo(problemId);
+        case NextVariant(:final problemId):
+          goTo(problemId, sameLevel: true);
         case Solved(:final badgeId, nextProblemId: final next):
           knowPrompt = null;
           this.badgeId = badgeId;
@@ -865,11 +1560,33 @@ class LessonViewModel extends ChangeNotifier {
   }
 
   void _coach(String lineId, Map<String, String> slots) {
-    // Every Coach carries the problem's own slots; hints and fallbacks don't.
-    final all = {...lineSlots(_problem), ...slots};
-    coachText = fillLine(_pack.lines[lineId] ?? '', all);
+    // the line's next version: never the same one twice in a row (TUT-14)
+    coachText = lines.next(lineId, _problem, slots);
     autoSay(coachText);
   }
+
+  /// Every line's words: Julia's library first (TUT-11).
+  late final LineLibrary lines = LineLibrary(_pack);
+
+  /// A line's text for this problem, from the library ([lines]).
+  String _lineText(String lineId, Map<String, String> slots) =>
+      lines.line(lineId, _problem, slots);
+
+  /// The finish screen's praise (TUT-12): "You solved the Tree Word
+  /// Problem!" (`line.praise.solved`), else the short one; null without
+  /// either, and the screen keeps its own.
+  String? get praise =>
+      libraryLine('line.praise.solved') ??
+      libraryLine('line.praise.solved-short');
+
+  /// Julia's library line [id] for this problem, or null when the library
+  /// doesn't hold it (the screen keeps its own words).
+  String? libraryLine(String id) =>
+      _p != null && lines.fromLibrary(id) ? _lineText(id, const {}) : null;
+
+  /// Help me offers a hint on this step: false on a step with no rung on
+  /// the policy ladder (TUT-04), where it offers show me how and easier.
+  bool get canHint => _p == null || hasHint(_pack, _state.step);
 
   /// The line said on entering a board step, unless the engine said one.
   /// Prototype: STEPLINE.
@@ -886,6 +1603,10 @@ class LessonViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    _held?.cue?.cancel();
+    _held?.fallback?.cancel();
+    _doneRating();
     _sessions.online.removeListener(_onlineChanged);
     _sessions.ended.removeListener(_endedByServer);
     _voice.resting.removeListener(_voiceResting);
@@ -901,4 +1622,18 @@ class LessonViewModel extends ChangeNotifier {
 String? easierLevel(String? level) {
   final n = int.tryParse(level?.substring(1) ?? '');
   return n == null ? null : 'L${n > 1 ? n - 1 : 1}';
+}
+
+/// One input's engine result whose help waits for the server's decision.
+class _Held {
+  _Held(this.r, this.input, this.entering);
+
+  final StepResult r;
+  final LessonInput input;
+  final LessonStep? entering;
+  Timer? cue;
+  Timer? fallback;
+
+  /// The wobble and Help me's shake already showed, while it waited.
+  bool fedBack = false;
 }

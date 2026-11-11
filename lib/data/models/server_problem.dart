@@ -36,7 +36,35 @@ ComparisonProblem problemFromServer(Map<String, Object?> j) {
     storyId: j['storyId']! as String,
     variant: j['variant'] as String? ?? 'standard',
     level: j['level'] as String?,
+    // a weight story's bars lie across (LES-04, CON-11)
+    quantity: story['quantity'] as String? ?? 'height',
+    steps: _steps(j['steps']),
   );
+}
+
+/// `problem.steps[]` (LES-03, LES-12): the server's order and options for
+/// this problem; null when it sent none (an older server), so the
+/// template's are used. A step or option missing its id is left out.
+List<ServedStep>? _steps(Object? raw) {
+  if (raw is! List || raw.isEmpty) return null;
+  return [
+    for (final st in raw)
+      if (st is Map && st['id'] is String)
+        ServedStep(
+          id: st['id']! as String,
+          optional: st['optional'] == true,
+          hintStartRung: st['hintStartRung'] as String?,
+          options: [
+            for (final o in st['options'] as List? ?? const [])
+              if (o is Map && o['id'] is String && o['text'] is String)
+                ServedOption(
+                  id: o['id']! as String,
+                  text: o['text']! as String,
+                  correct: o['correct'] == true,
+                ),
+          ],
+        ),
+  ];
 }
 
 /// The question as the voice reads it: "186 cm" as "186 centimetres".
@@ -64,7 +92,12 @@ ComparisonProblem? problemFromShown(
       shown['template_version'] != template.version) {
     return null;
   }
-  final numbers = shown['numbers']! as Map<String, Object?>;
+  final numbers = shown['numbers'];
+  // a total-and-difference case ({total, difference}, CON-07) isn't one
+  // this phone can draw
+  if (numbers is! Map || numbers['A'] is! int || numbers['D'] is! int) {
+    return null;
+  }
   final storyId = shown['story_id']! as String;
   final story = template.stories.where((s) => s.id == storyId).firstOrNull;
   final level = shown['level'] as String?;
@@ -72,8 +105,8 @@ ComparisonProblem? problemFromShown(
   return template.problem(
     level!,
     storyId,
-    a: numbers['A']! as int,
-    d: numbers['D']! as int,
+    a: numbers['A'] as int,
+    d: numbers['D'] as int,
     relation: shown['relation'] as String?,
     pics: {story.a: itemPic(story.a), story.b: itemPic(story.b)},
     next: const NextProblems(fast: '', helped: '', easier: ''),

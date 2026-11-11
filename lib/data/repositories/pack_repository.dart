@@ -9,18 +9,41 @@ class PackRepository {
 
   final PackSource _source;
 
-  /// The pack, with the quiet timers taken from Julia's policy file so a
-  /// change to her timings is a content edit (PLAT-03).
+  /// The pack, with Julia's teaching values taken from her policy file (the
+  /// quiet timers, the hint ladder, the line library) so a change to them
+  /// is a content edit (PLAT-03).
   Future<Pack> load() async {
     final pack = Pack.fromJson(
       jsonDecode(await _source.read()) as Map<String, Object?>,
     );
-    final policy = Policy.fromYaml(await _source.readPolicy());
-    return pack.copyWith(
-      timers: policy.timers,
-      maxSideLessons: policy.maxSideLessons,
-      noProgressMs: policy.noProgressMs,
-      practiceSums: policy.practiceSums,
+    return withPolicy(
+      pack,
+      Policy.fromYaml(await _source.readPolicy()),
+      ComparisonTemplate.fromYaml(await _source.readTemplate()),
     );
   }
+
+  /// [pack] taught by [policy]; hints start where [template]'s steps say.
+  static Pack withPolicy(
+    Pack pack,
+    Policy policy, [
+    ComparisonTemplate? template,
+  ]) => pack.copyWith(
+    timers: policy.timers,
+    maxSideLessons: policy.maxSideLessons,
+    noProgressMs: policy.noProgressMs,
+    practiceSums: policy.practiceSums,
+    abandonAfterWrongPractice: policy.abandonAfterWrongPractice,
+    questionButtons: policy.questionButtons,
+    policyLines: policy.lines,
+    hintLadder: policy.hintLadder,
+    hintStart: template?.hintStart,
+    quietLines: policy.quietLines,
+    policyMassLines: policy.massLines,
+    lineVersions: {
+      ...pack.lineVersions,
+      for (final MapEntry(:key, :value) in policy.versions.entries)
+        key: [...value, ...?pack.lineVersions[key]],
+    },
+  );
 }

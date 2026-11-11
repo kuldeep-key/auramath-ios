@@ -113,6 +113,183 @@ void main() {
     expectContract(api.received);
   });
 
+  test('LES-14: with quick_sums on, Choose today follows the check; the '
+      'story problem is then the case at the placed level', () async {
+    final (vm, api) = await makeVm();
+    addTearDown(vm.dispose);
+    vm.chooseToday = true;
+    await vm.start();
+    for (final v in [83, 37, 400, 254]) {
+      await vm.answerStarting(v);
+    }
+    expect(vm.choosingToday, isTrue);
+    expect(vm.suggestQuickSums, isFalse, reason: 'no suggestion sent');
+    expect(api.asked, isEmpty, reason: 'no case before the choice');
+    await vm.chooseStory(1500);
+    expect(vm.choosingToday, isFalse);
+    expect(api.asked.single.$2, 'L3');
+    expect(vm.ready, isTrue);
+    final log = api.received.where((e) => e.sessionId == vm.sessionId);
+    expect(log.singleWhere((e) => e.name == 'choice_selected').payload, {
+      'step_id': 'choose_today',
+      'option_id': 'story_problem',
+      'ms_from_step_start': 1500,
+    });
+    expectContract(api.received);
+  });
+
+  test("LES-14: the server's suggestion of Quick sums comes first; chosen, "
+      'the check session ends with the choice in it', () async {
+    final (vm, api) = await makeVm();
+    addTearDown(vm.dispose);
+    api.todaySuggestion = (
+      skill: 'arith.addsub-2d-regroup',
+      level: 'A6',
+      reason: 'regrouping',
+    );
+    vm.chooseToday = true;
+    await vm.start();
+    for (final v in [83, 37, 400, 254]) {
+      await vm.answerStarting(v);
+    }
+    expect(vm.suggestQuickSums, isTrue);
+    expect(vm.sessions.lastSuggestion?.level, 'A6');
+    await vm.chooseQuickSums(900);
+    final log = api.received.where((e) => e.sessionId == vm.sessionId);
+    expect([for (final e in log) e.name].skip(4), [
+      'session_started',
+      'choice_selected',
+      'prompt_answered',
+      'session_ended',
+    ]);
+    expect(log.elementAt(5).payload['option_id'], 'quick_sums');
+    expect(api.asked, isEmpty, reason: 'no case: Quick sums is its own');
+    expectContract(api.received);
+  });
+
+  test('LES-14: chosen on the way in (Home), Choose today is not asked '
+      'again after the check', () async {
+    final (vm, api) = await makeVm();
+    addTearDown(vm.dispose);
+    vm
+      ..chooseToday = true
+      ..chosenToday = 700;
+    await vm.start();
+    for (final v in [83, 37, 400, 254]) {
+      await vm.answerStarting(v);
+    }
+    expect(vm.choosingToday, isFalse);
+    expect(vm.ready, isTrue);
+  });
+
+  group('FL-46: a skill due for review warms up first', () {
+    const review = {
+      'skill': 'arith.sub-3d-regroup',
+      'errorType': 'sub_smaller_from_larger',
+      'reason': 'over_limit',
+    };
+
+    test(
+      'a few sums of it, logged as a side lesson on it, then the case',
+      () async {
+        final (vm, api) = await makeVm(due: false);
+        addTearDown(vm.dispose);
+        api
+          ..reviewDue = [review]
+          ..sums.addAll(sums.skip(3)) // one A10 sum, three times
+          ..sums.addAll(sums.skip(3))
+          ..sums.addAll(sums.skip(3))
+          ..sums.addAll(sums.skip(3));
+        await vm.start();
+        expect(vm.inStartingCheck, isTrue, reason: 'the warm-up screen');
+        expect(vm.startingSums, hasLength(3), reason: 'practice_if_unsure');
+        expect(api.sumLevels, ['A10']);
+        expect(api.asked, isEmpty);
+        for (final v in [254, 250, 254]) {
+          await vm.answerStarting(v);
+        }
+        expect(vm.ready, isTrue);
+        expect(api.asked.single.$2, isNull, reason: "at the child's level");
+        final log = api.received.where((e) => e.sessionId == vm.sessionId);
+        expect(
+          [for (final e in log) e.name],
+          [
+            'side_lesson_started',
+            ...List.filled(3, 'quick_sum_answered'),
+            'side_lesson_ended',
+            'session_started',
+            'problem_shown',
+          ],
+        );
+        expect(log.first.payload, {
+          'skill_id': 'arith.sub-3d-regroup',
+          'error_type': 'sub_smaller_from_larger',
+        });
+        expect(log.elementAt(2).payload['correct'], isFalse);
+        expect(log.elementAt(4).payload, {
+          'skill_id': 'arith.sub-3d-regroup',
+          'completed': true,
+        });
+        expect(api.startingChecks, isEmpty, reason: 'no placement sent');
+        expectContract(api.received);
+      },
+    );
+
+    test('a skill with no sums, or sums the server can\'t give: straight '
+        'to the case', () async {
+      for (final skill in ['cmp.read-relation', 'arith.sub-3d-regroup']) {
+        final (vm, api) = await makeVm(due: false);
+        api.reviewDue = [
+          {...review, 'skill': skill},
+        ];
+        await vm.start();
+        expect(vm.inStartingCheck, isFalse, reason: skill);
+        expect(vm.ready, isTrue, reason: skill);
+        vm.dispose();
+      }
+    });
+
+    test('after the starting check, the warm-up, then the case', () async {
+      final (vm, api) = await makeVm();
+      addTearDown(vm.dispose);
+      api
+        ..reviewDue = [review]
+        ..sums.add(sums.last);
+      await vm.start();
+      for (final v in [83, 37, 413, 254]) {
+        await vm.answerStarting(v);
+      }
+      expect(vm.inStartingCheck, isTrue, reason: 'now the warm-up');
+      await vm.answerStarting(254);
+      expect(vm.ready, isTrue);
+      expect(api.asked.single.$2, 'L3');
+      expectContract(api.received);
+    });
+  });
+
+  test("SES-07: the server's welcomeBack greets first, once a launch; "
+      'Home having greeted, not again', () async {
+    final (vm, api) = await makeVm(due: false);
+    addTearDown(vm.dispose);
+    api.welcomeBack = (lastLessonAt: 1, daysAway: 2, caseWaiting: false);
+    await vm.start();
+    expect(vm.welcomingBack?.daysAway, 2);
+    expect(vm.ready, isFalse);
+    expect(api.asked, isEmpty);
+    await vm.welcomedBack();
+    expect(vm.welcomingBack, isNull);
+    expect(vm.ready, isTrue);
+    expect(vm.sessions.greeted, isTrue);
+
+    final (vm2, api2) = await makeVm(due: false);
+    addTearDown(vm2.dispose);
+    api2.welcomeBack = (lastLessonAt: 1, daysAway: 1, caseWaiting: true);
+    vm2.sessions.greeted = true; // Home's WelcomeBack showed
+    await vm2.start();
+    expect(vm2.welcomingBack, isNull);
+    expect(vm2.ready, isTrue);
+  });
+
   test('not due: straight to the case, no sums asked', () async {
     final (vm, api) = await makeVm(due: false);
     addTearDown(vm.dispose);

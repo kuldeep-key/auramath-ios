@@ -24,7 +24,21 @@ final lemon = ComparisonProblem.fromJson({
 const drawA = LessonState(step: LessonStep.drawA);
 const placeB = LessonState(step: LessonStep.placeB, barA: true);
 const sizeB = LessonState(step: LessonStep.sizeB, barA: true, barB: true);
-const placeGap = LessonState(step: LessonStep.placeGap, barA: true, barB: true);
+const placeGap = LessonState(
+  step: LessonStep.placeGap,
+  barA: true,
+  barB: true,
+  bSized: true,
+);
+
+/// The gap dropped on the fig bar (Figma W1, W2).
+const gapOnFig = LessonState(
+  step: LessonStep.placeGap,
+  barA: true,
+  barB: true,
+  bSized: true,
+  misplaced: Target.barB,
+);
 
 void main() {
   late List<LessonInput> inputs;
@@ -151,5 +165,33 @@ void main() {
     await pumpBoard(tester, placeGap);
     await tester.tap(find.byKey(const Key('undo')));
     expect(inputs.single, isA<Undo>());
+  });
+
+  group('a wrong drop stays and wobbles (LES-07)', () {
+    testWidgets('the gap sits on the fig bar, not in the tray', (tester) async {
+      await pumpBoard(tester, gapOnFig);
+      expect(find.byKey(const Key('misplaced')), findsOneWidget);
+      expect(find.byKey(const Key('piece')), findsNothing);
+      // over bar B
+      final piece = tester.getCenter(find.byKey(const Key('misplaced')));
+      final bar = tester.getRect(find.byKey(const Key('barB')));
+      expect(piece.dx, closeTo(bar.center.dx, 1));
+    });
+
+    testWidgets('a tap takes it back, as an undo (LES-15)', (tester) async {
+      await pumpBoard(tester, gapOnFig);
+      await tester.tap(find.byKey(const Key('misplaced')));
+      expect(inputs.single, isA<Undo>());
+    });
+
+    testWidgets('dragged on to the gap, it is placed there', (tester) async {
+      await pumpBoard(tester, gapOnFig);
+      final from = tester.getCenter(find.byKey(const Key('misplaced')));
+      final to = tester.getCenter(find.byKey(const Key('gapSlot')));
+      await tester.dragFrom(from, to - from);
+      await tester.pumpAndSettle();
+      final drop = inputs.single as PieceDropped;
+      expect(drop.target, Target.gapSlot);
+    });
   });
 }

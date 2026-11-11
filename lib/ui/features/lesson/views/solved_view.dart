@@ -9,6 +9,8 @@ import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import '../../child_home/views/badge_disc.dart' show badgeArt;
 import '../view_models/lesson_view_model.dart';
+import 'self_rating.dart';
+import '../../../core/parts/speak_button.dart';
 
 /// Case cracked, then the one badge that says what the child did.
 /// Figma: Y2, Y3.
@@ -43,6 +45,15 @@ class _SolvedViewState extends State<SolvedView> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: SpeakButton(
+                      text: _showBadge
+                          ? '${badge?.name ?? ''}. ${badge?.says ?? ''}'
+                          : '${l.caseCracked} '
+                                '${widget.vm.praise ?? l.youSolvedIt}',
+                    ),
+                  ),
                   const Spacer(),
                   if (!_showBadge) ...[
                     Ribbon(text: l.caseCracked),
@@ -50,10 +61,17 @@ class _SolvedViewState extends State<SolvedView> {
                     const Burst(child: Portrait(size: 200)),
                     const SizedBox(height: 24),
                     Text(
-                      l.youSolvedIt,
+                      widget.vm.praise ?? l.youSolvedIt,
                       style: AuraText.cheer,
                       textAlign: TextAlign.center,
                     ),
+                    if (widget.vm.offerRating) ...[
+                      const SizedBox(height: 20),
+                      ListenableBuilder(
+                        listenable: widget.vm,
+                        builder: (_, _) => SelfRating(vm: widget.vm),
+                      ),
+                    ],
                   ] else ...[
                     Ribbon(text: l.newBadge),
                     const SizedBox(height: 24),
@@ -105,7 +123,11 @@ class _SolvedViewState extends State<SolvedView> {
                             ? _reveal
                             : next == null
                             ? null
-                            : () => widget.onFinished(next),
+                            : () {
+                                // no face tapped: the session ends unrated
+                                widget.vm.skipRating();
+                                widget.onFinished(next);
+                              },
                       );
                     },
                   ),

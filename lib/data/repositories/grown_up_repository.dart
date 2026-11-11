@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
@@ -7,6 +8,10 @@ import 'package:path_provider/path_provider.dart';
 import '../services/api.dart';
 import '../services/api_client.dart';
 import '../services/key_store.dart';
+import 'partner_intro_repository.dart';
+
+/// A lesson's drawing (PAR-09): the PNG, and what it shows in words.
+typedef SessionDrawing = ({Uint8List png, String? caption});
 
 /// A grown-up in the family (`GET /api/parent/members`). The first
 /// parent (the owner) has no member [id].
@@ -263,10 +268,22 @@ class LessonPrefs {
 /// The grown-up area's own calls: the family, phones, reports, the plan,
 /// the two rights, and this phone's lesson settings.
 class GrownUpRepository {
-  GrownUpRepository(this._client, this._store);
+  GrownUpRepository(
+    this._client,
+    this._store, {
+    Future<Directory> Function()? documents,
+    Future<Directory> Function()? cache,
+  }) : _documents = documents ?? getApplicationDocumentsDirectory,
+       _cache = cache ?? getTemporaryDirectory;
 
   final ApiClient _client;
   final KeyStore _store;
+
+  /// Where a saved export goes (the Files app can see it).
+  final Future<Directory> Function() _documents;
+
+  /// Where the voice clips are kept ([FileClipPlayer]).
+  final Future<Directory> Function() _cache;
 
   Future<Map<String, Object?>> _get(String path) async =>
       await _client.get(path) as Map<String, Object?>;
@@ -350,7 +367,27 @@ class GrownUpRepository {
     }
   }
 
-  /// `each_session`, `weekly` or `off` (PAR-06). This is the report email:
+  /// PAR-09: the child's board from this lesson with the key move ringed
+  /// (`GET /api/sessions/{id}/drawing.png`), the picture the report email
+  /// carries, and its caption (`X-Caption`). Null when nothing was placed
+  /// on the board (its 404).
+  Future<SessionDrawing?> drawing(String sessionId) async {
+    try {
+      final r = await _client.getBytes('/api/sessions/$sessionId/drawing.png');
+      final caption = r.headers['x-caption'];
+      return (
+        png: r.bytes,
+        caption: caption == null || caption.isEmpty
+            ? null
+            : Uri.decodeComponent(caption),
+      );
+    } on ApiException catch (e) {
+      if (e.status == 404) return null;
+      rethrow;
+    }
+  }
+
+  /// `each`, `weekly` or `off` (PAR-06). This is the report email:
   /// there is no push service.
   Future<void> setReportFrequency(String frequency) =>
       _client.put('/api/family/settings/reports', {'frequency': frequency});
@@ -368,9 +405,44 @@ class GrownUpRepository {
   /// file. The download needs the parent token, so it can't be a link.
   Future<File> saveExport(String id) async {
     final json = await _client.get('/api/parent/export-jobs/$id/download');
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/auramath-export-$id.json');
+    final dir = await _documents();
+    final file = File('${dir.path}/$_exportPrefix$id.json');
     return file.writeAsString(jsonEncode(json));
+  }
+
+  static const _exportPrefix = 'auramath-export-';
+
+  /// DEV-06: what this phone kept of the family outside the outbox, gone on
+  /// sign-out and erase: every saved export, the cached voice clips of the
+  /// lessons, the forgot-passcode marker, and who met the case partner. A file that can't be deleted
+  /// doesn't stop the rest. Returns how many files went.
+  Future<int> forgetSavedData() async {
+    var gone = 0;
+    Future<void> sweep(Directory dir, bool Function(String name) match) async {
+      if (!await dir.exists()) return;
+      await for (final f in dir.list()) {
+        final name = f.uri.pathSegments.last;
+        if (f is! File || !match(name)) continue;
+        try {
+          await f.delete();
+          gone++;
+        } on FileSystemException {
+          // gone already, or locked: the next sign-out tries again
+        }
+      }
+    }
+
+    await sweep(
+      await _documents(),
+      (n) => n.startsWith(_exportPrefix) && n.endsWith('.json'),
+    );
+    await sweep(
+      await _cache(),
+      (n) => n.startsWith('voice-') && n.endsWith('.mp3'),
+    );
+    await endPasscodeReset();
+    await PartnerIntroRepository(_store).forget();
+    return gone;
   }
 
   /// Erases the whole family, children, lessons and phones (ACC-09).

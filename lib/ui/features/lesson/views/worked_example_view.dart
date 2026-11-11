@@ -12,8 +12,8 @@ import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
 
 /// "Show me how": a smaller problem of the same shape, drawn step by step
-/// (Figma H2 667:2, H2-1 666:146, H2-2 666:183, H2-3 666:220), then back to
-/// the child's own problem. B is shorter or taller as in that problem.
+/// (Figma H2 667:2, H2-1 666:146, H2-2 666:183, H2-3 666:220), then a new
+/// problem of the same kind (TUT-05, Figma 8.6). B is shorter or taller as in that problem.
 class WorkedExampleView extends StatefulWidget {
   const WorkedExampleView({super.key, required this.vm, required this.onHome});
 
@@ -25,10 +25,18 @@ class WorkedExampleView extends StatefulWidget {
 }
 
 class _WorkedExampleViewState extends State<WorkedExampleView> {
-  static const _a = 6, _d = 2;
+  /// The template's worked example (CON-05): Building A 6 m, B 4 m
+  /// shorter. Its numbers, with B shorter or taller as in the child's
+  /// problem. With no template, the same numbers.
+  late final _example = exampleFor(widget.vm.pack, widget.vm.problem);
+  late final _a = _example?.a ?? 6;
+  late final _d = _example?.d ?? 4;
   int _step = 0;
 
   bool get _shorter => widget.vm.problem.big == BigSide.a;
+
+  /// Shown as a side lesson (TUT-08), not from Help me.
+  bool get _detour => widget.vm.state.step == LessonStep.sideLesson;
   int get _b => _shorter ? _a - _d : _a + _d;
 
   String _line(AppLocalizations l) => switch (_step) {
@@ -69,6 +77,8 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
             muted: !widget.vm.readAloud,
             onSound: widget.vm.sound,
             onHome: widget.onHome,
+            onSeeQuestion: widget.vm.seeQuestion,
+            seeQuestionLabel: l.lessonSeeQuestion,
           ),
           const SizedBox(height: 12),
           Container(
@@ -100,11 +110,19 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
               const SizedBox(width: 12),
               Expanded(
                 child: AuraButton(
-                  label: _step < 3 ? l.next : l.exampleNowYouTry,
+                  label: _step < 3
+                      ? l.next
+                      : _detour
+                      ? l.backToProblem
+                      : l.exampleNewOne,
                   color: AuraButtonColor.blue,
+                  // TUT-05: a new problem of the same kind, not theirs
+                  // again; as a detour (TUT-08), back to the same step
                   onPressed: _step < 3
                       ? () => _go(_step + 1)
-                      : widget.vm.closeExample,
+                      : _detour
+                      ? () => widget.vm.send(const SideLessonDone())
+                      : widget.vm.exampleDone,
                 ),
               ),
             ],
@@ -192,72 +210,83 @@ class _Bars extends StatelessWidget {
               ),
             );
 
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
+      // large text (NFR-04): the drawing shrinks to fit rather than clip
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.bottomCenter,
+        child: SizedBox(
+          width: box.maxWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  label('$a m'),
-                  if (!gapOnB && step >= 1) gap(),
-                  SizedBox(
-                    width: barWidth,
-                    height: a * unit,
-                    child: const Bar(color: AuraColors.yellow),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      label('$a m'),
+                      if (!gapOnB && step >= 1) gap(),
+                      SizedBox(
+                        width: barWidth,
+                        height: a * unit,
+                        child: const Bar(color: AuraColors.yellow),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: gapBetween),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (step == 1) label('? m'),
+                      if (gapOnB && step >= 1) gap(),
+                      barB,
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(width: gapBetween),
-              Column(
-                mainAxisSize: MainAxisSize.min,
+              Container(
+                height: 4,
+                width: barWidth * 2 + gapBetween + 40,
+                color: AuraColors.line,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (step == 1) label('? m'),
-                  if (gapOnB && step >= 1) gap(),
-                  barB,
+                  SizedBox(
+                    width: barWidth,
+                    child: Text(
+                      'A',
+                      style: AuraText.barName,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(width: gapBetween),
+                  SizedBox(
+                    width: barWidth,
+                    child: Text(
+                      'B',
+                      style: AuraText.barName,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ],
               ),
-            ],
-          ),
-          Container(
-            height: 4,
-            width: barWidth * 2 + gapBetween + 40,
-            color: AuraColors.line,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+              const SizedBox(height: 8),
               SizedBox(
-                width: barWidth,
-                child: Text(
-                  'A',
-                  style: AuraText.barName,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(width: gapBetween),
-              SizedBox(
-                width: barWidth,
-                child: Text(
-                  'B',
-                  style: AuraText.barName,
-                  textAlign: TextAlign.center,
-                ),
+                width: barWidth * 2 + gapBetween,
+                // the brace's pill holds a Bold 20 label
+                height: 50,
+                child: step == 3
+                    ? Pop(child: Brace(label: '${a + b} m'))
+                    : null,
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: barWidth * 2 + gapBetween,
-            // the brace's pill holds a Bold 20 label
-            height: 50,
-            child: step == 3 ? Pop(child: Brace(label: '${a + b} m')) : null,
-          ),
-        ],
+        ),
       );
     },
   );

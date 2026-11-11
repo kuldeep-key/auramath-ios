@@ -21,6 +21,18 @@ String? redirectFor({
       queryParameters: uri.queryParameters,
     ).toString();
   }
+  // `https://auramath.net/parent#m=…`: the same link as an App Link or
+  // universal link (PLAT-11). Only a sign-in link (`m=`) opens in the app;
+  // the others (`v=`, `r=`, `i=`) belong to the website
+  if (loc == '/parent' || loc.startsWith('/parent/')) {
+    final m =
+        RegExp(r'(?:^|&)m=([^&]+)').firstMatch(uri.fragment)?.group(1) ??
+        uri.queryParameters['m'];
+    if (m != null) {
+      return Uri(path: Paths.verify, queryParameters: {'m': m}).toString();
+    }
+    return removed ? Paths.removed : _start(role, childId);
+  }
   if (removed) return loc == Paths.removed ? null : Paths.removed;
   if (loc == '/') return _start(role, childId);
 
@@ -82,4 +94,8 @@ bool _needsChild(String loc) =>
     loc.startsWith(Paths.badges) ||
     loc.startsWith(Paths.trail) ||
     loc == Paths.check ||
-    loc == Paths.afterCase;
+    loc == Paths.meetPartner ||
+    loc == Paths.afterCase ||
+    loc == Paths.chooseToday ||
+    loc == Paths.quickSums ||
+    loc == Paths.avatar;
