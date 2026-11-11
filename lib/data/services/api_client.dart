@@ -285,6 +285,11 @@ class HttpApi implements Api {
     } on ApiException catch (e) {
       // the lesson's log is full: nothing more is stored for it
       if (e.status == 413) return (rejected: const <String>[], ended: 'full');
+      // consent withdrawn (the events route's only 403): nothing more may
+      // be stored, so lessons are paused, not offline
+      if (e.status == 403) {
+        return (rejected: const <String>[], ended: 'consent');
+      }
       rethrow;
     }
     final ended = json['sessionEnded'] as Map<String, Object?>?;
