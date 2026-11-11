@@ -660,5 +660,9 @@
   "lessonSentenceBoth": "both",
   "@lessonSentenceBoth": {"description": "DRAFT (TUT-09): the word under the ? in the easier sentence for the total."},
   "lessonTakeBack": "Take it back",
-  "@lessonTakeBack": {"description": "DRAFT, for Julia (LES-07, LES-15): what a screen reader says on a piece dropped in the wrong place; a tap puts it back in the tray, free."}
+  "@lessonTakeBack": {"description": "DRAFT, for Julia (LES-07, LES-15): what a screen reader says on a piece dropped in the wrong place; a tap puts it back in the tray, free."},
+  "lessonSeeQuestion": "See the question",
+  "@lessonSeeQuestion": {"description": "What a screen reader says on the eye button that opens the whole question (LES-02). Figma: Prototype parts › Question strip."},
+  "lessonQuestionBack": "Back to my work",
+  "@lessonQuestionBack": {"description": "DRAFT, for Julia and design (no Figma frame), LES-02: closes the whole question and returns to the same place."}
 }

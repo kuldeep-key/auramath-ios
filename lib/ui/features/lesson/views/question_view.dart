@@ -7,6 +7,7 @@ import '../../../core/parts/aura_card.dart';
 import '../../../core/parts/lesson_header.dart';
 import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
+import 'question_overlay.dart';
 
 /// The question, big and alone, read aloud first. Figma: M0.
 class QuestionView extends StatefulWidget {
@@ -55,7 +56,7 @@ class _QuestionViewState extends State<QuestionView> {
                       ),
                       const SizedBox(height: 12),
                       Text.rich(
-                        _story(p),
+                        storySpan(p),
                         style: AuraText.story,
                         textAlign: TextAlign.left,
                       ),
@@ -81,29 +82,5 @@ class _QuestionViewState extends State<QuestionView> {
         ],
       ),
     );
-  }
-
-  /// The story with each item's name in its bar's colour.
-  TextSpan _story(ComparisonProblem p) {
-    final names = {
-      p.a.name.toLowerCase(): AuraColors.yellowInk,
-      p.b.name.toLowerCase(): AuraColors.blueInk,
-    };
-    final pattern = RegExp(names.keys.map(RegExp.escape).join('|'));
-    final spans = <TextSpan>[];
-    var at = 0;
-    for (final m in pattern.allMatches(p.text)) {
-      spans
-        ..add(TextSpan(text: p.text.substring(at, m.start)))
-        ..add(
-          TextSpan(
-            text: m[0],
-            style: AuraText.storyName.copyWith(color: names[m[0]]),
-          ),
-        );
-      at = m.end;
-    }
-    spans.add(TextSpan(text: p.text.substring(at)));
-    return TextSpan(children: spans);
   }
 }

@@ -1831,4 +1831,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonTakeBack => 'Take it back';
+
+  @override
+  String get lessonSeeQuestion => 'See the question';
+
+  @override
+  String get lessonQuestionBack => 'Back to my work';
 }

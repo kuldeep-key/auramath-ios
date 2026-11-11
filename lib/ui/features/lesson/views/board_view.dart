@@ -102,7 +102,8 @@ class _BoardViewState extends State<BoardView> {
                       lit: s.gapPlaced,
                     ),
                   ],
-                  onSeeQuestion: vm.readQuestion,
+                  onSeeQuestion: vm.seeQuestion,
+                  seeQuestionLabel: l.lessonSeeQuestion,
                 ),
               ),
               if (vm.questions case final qs when qs.isNotEmpty) ...[

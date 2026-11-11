@@ -3225,6 +3225,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Take it back'**
   String get lessonTakeBack;
+
+  /// What a screen reader says on the eye button that opens the whole question (LES-02). Figma: Prototype parts › Question strip.
+  ///
+  /// In en, this message translates to:
+  /// **'See the question'**
+  String get lessonSeeQuestion;
+
+  /// DRAFT, for Julia and design (no Figma frame), LES-02: closes the whole question and returns to the same place.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to my work'**
+  String get lessonQuestionBack;
 }
 
 class _AppLocalizationsDelegate

@@ -10,6 +10,8 @@ import '../../../core/parts/standing_button.dart';
 import 'sitting.dart';
 import 'step_decision.dart';
 
+part 'lesson_gaps.dart';
+
 /// Which answer sheet is open during "I know it".
 enum KnowPrompt { answer, whatAsked, recheck, checkPart, checkTotal }
 
@@ -43,7 +45,7 @@ String fillLine(String template, Map<String, String> slots) => template
 
 /// Runs one lesson: hands each child input to the engine, saves it, and turns
 /// the engine's decisions into what the screens show. Decides nothing itself.
-class LessonViewModel extends ChangeNotifier {
+class LessonViewModel extends ChangeNotifier with _LessonGaps {
   LessonViewModel({
     required Pack pack,
     required String problemId,

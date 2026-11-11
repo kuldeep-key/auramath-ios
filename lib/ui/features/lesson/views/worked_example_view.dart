@@ -72,6 +72,8 @@ class _WorkedExampleViewState extends State<WorkedExampleView> {
             onSpeak: () => widget.vm.say(line),
             speaking: widget.vm.voice.speaking,
             onHome: widget.onHome,
+            onSeeQuestion: widget.vm.seeQuestion,
+            seeQuestionLabel: l.lessonSeeQuestion,
           ),
           const SizedBox(height: 12),
           Container(

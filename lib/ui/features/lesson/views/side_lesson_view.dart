@@ -9,6 +9,7 @@ import '../../../core/parts/lesson_header.dart';
 import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
 import '../view_models/place_value.dart';
+import 'question_overlay.dart';
 
 /// A short lesson on the one skill a wrong answer showed: the child works
 /// the sum on hundreds, tens and ones, breaking a ten (or making one) by
@@ -124,24 +125,34 @@ class _SideLessonViewState extends State<SideLessonView> {
             onHome: widget.onHome,
           ),
           const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: AuraColors.navy,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                _sumText,
-                style: AuraText.title.copyWith(
-                  color: AuraColors.white,
-                  fontSize: 26,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AuraColors.navy,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _sumText,
+                  style: AuraText.title.copyWith(
+                    color: AuraColors.white,
+                    fontSize: 26,
+                  ),
                 ),
               ),
-            ),
+              const Spacer(),
+              // the whole question, from the side lesson too (LES-02, T1)
+              SeeQuestionButton(
+                label: l.lessonSeeQuestion,
+                onTap: widget.vm.seeQuestion,
+              ),
+            ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Expanded(
             child: SingleChildScrollView(
               child: Column(

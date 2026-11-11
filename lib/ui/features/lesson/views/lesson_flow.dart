@@ -7,6 +7,7 @@ import '../../../../routing/paths.dart';
 import '../view_models/lesson_view_model.dart';
 import 'board_view.dart';
 import 'break_views.dart';
+import 'question_overlay.dart';
 import 'question_view.dart';
 import 'side_lesson_view.dart';
 import 'solved_view.dart';
@@ -123,6 +124,7 @@ class LessonFlow extends StatelessWidget {
                             _ => BoardView(vm: vm, onHome: vm.askBreak),
                           },
                   ),
+                  if (vm.questionOpen) QuestionOverlay(vm: vm),
                   if (!vm.online)
                     LostInternetPause(
                       onRetry: vm.retryConnection,
