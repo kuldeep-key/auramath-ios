@@ -42,6 +42,7 @@
     "cmp.twoBars": "We need two bars. Let us draw.",
     "cmp.takeYourTime": "Take your time.",
     "cmp.showMeHow": "Let's try a smaller one together.",
+    "cmp.itRight": "Yes! 'It' is the {a}. Now size the {b} bar.",
     "side.takeAcrossTen": "The ten splits into ten ones.",
     "side.addWithCarry": "Bundle ten ones into a ten, and carry it."
   },

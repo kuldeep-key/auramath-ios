@@ -662,5 +662,9 @@
   "exampleNewOne": "Now try a new one",
   "@exampleNewOne": {"description": "DRAFT, for Julia (TUT-05): the last button of Show me how. It opens a new problem of the same kind, so it can't say 'Back to the trees' (design review finding 23; Apoorv to confirm the label)."},
   "lessonLeaveForNow": "Leave it for now",
-  "@lessonLeaveForNow": {"description": "DRAFT, for Julia (TUT-10): the too-hard sheet's second way out (E1), after Something easier. The case is kept to offer back another day (problem_left)."}
+  "@lessonLeaveForNow": {"description": "DRAFT, for Julia (TUT-10): the too-hard sheet's second way out (E1), after Something easier. The case is kept to offer back another day (problem_left)."},
+  "lessonItIs": "The {name}",
+  "@lessonItIs": {"description": "DRAFT, for Julia (TUT-16): a button on 'Which tree does it mean?' (H1-4a, H1-4b), naming one of the two things in the story.", "placeholders": {"name": {"type": "String"}}},
+  "lessonItHighlighted": "'It' and the {name} are in the same colour.",
+  "@lessonItHighlighted": {"description": "DRAFT, for Julia (TUT-16): what a screen reader says for the H1-4b highlight, since colour is not the only signal.", "placeholders": {"name": {"type": "String"}}}
 }

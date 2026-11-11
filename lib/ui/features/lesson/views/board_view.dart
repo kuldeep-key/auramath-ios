@@ -18,6 +18,7 @@ import 'help_sheet.dart';
 import 'question_chips.dart';
 import 'thinking_cue.dart';
 import 'tutor_prompts.dart';
+import 'which_it.dart';
 
 /// Drawing it out, choosing the sum, and working it out. Figma: M1, D1–D6.
 class BoardView extends StatefulWidget {
@@ -145,6 +146,16 @@ class _BoardViewState extends State<BoardView> {
             left: 16,
             right: 16,
             child: ThinkingCue(text: l.lessonThinking),
+          ),
+        if (vm.asksWhichIt && !vm.stillThere)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 110,
+            child: Wobbly(
+              count: vm.itWrongPicks,
+              child: WhichItCard(vm: vm),
+            ),
           ),
         if (vm.stillThere) _stillThere(l),
         if (_helpOpen)

@@ -570,6 +570,7 @@ class LessonViewModel extends ChangeNotifier {
       _signals.reset();
       _wayOutOffered = false;
       easierSentence = false;
+      _newStepHelp();
     }
     // a wrong step the server may help with differently: its help waits
     final wait = actOnDecisions ? asks.where(_judged).lastOrNull : null;
@@ -1049,6 +1050,46 @@ class LessonViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// The hint rung shown last on this step (TUT-04); null on a new step.
+  HintRung? hintRung;
+  bool _itAnswered = false;
+
+  /// Wrong picks on "Which tree does 'it' mean?", for the buttons' wobble.
+  int itWrongPicks = 0;
+
+  /// H1-4a or H1-4b is asking which thing "it" means (TUT-16), and the
+  /// child hasn't picked the right one yet.
+  bool get asksWhichIt {
+    final r = hintRung;
+    if (r == null ||
+        _itAnswered ||
+        _state.step != LessonStep.sizeB && _state.step != LessonStep.placeB) {
+      return false;
+    }
+    return r.choice.contains('a') && r.choice.contains('b') ||
+        r.highlight != null;
+  }
+
+  /// H1-4b: "it" and the thing it means in one colour, underlined. Shown
+  /// only after a request for help, and never on the next problem.
+  bool get highlightIt => hintRung?.highlight != null;
+
+  /// The child's pick on "Which tree does 'it' mean?". A wrong one
+  /// wobbles and leads to the highlight; it is logged, not charged.
+  Future<void> pickIt(String option) async {
+    if (option == 'a') {
+      _itAnswered = true;
+    } else {
+      itWrongPicks++;
+    }
+    await send(ItPicked(option));
+  }
+
+  void _newStepHelp() {
+    hintRung = null;
+    _itAnswered = false;
+  }
+
   /// The quiet child's "Want a hand?" (policy `quiet.still_there_line`,
   /// TUT-07); null without one, and the sheet says its own.
   String? get stillThereLine => switch (_pack.quietLines.still) {
@@ -1111,6 +1152,7 @@ class LessonViewModel extends ChangeNotifier {
     seenCase = null;
     easierSentence = false;
     rating = null;
+    _newStepHelp(); // the next problem opens with no highlight (TUT-16)
     notifyListeners();
   }
 
@@ -1149,8 +1191,9 @@ class LessonViewModel extends ChangeNotifier {
       switch (d) {
         case Coach(:final lineId, :final slots):
           _coach(lineId, slots);
-        case ShowHint(:final lineId):
+        case ShowHint(:final lineId, :final rung):
           _coach(lineId, const {});
+          hintRung = rung ?? hintRung;
         case Wobble():
           wobbles++;
         case ShakeHelp():

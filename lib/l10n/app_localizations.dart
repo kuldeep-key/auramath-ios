@@ -3231,6 +3231,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leave it for now'**
   String get lessonLeaveForNow;
+
+  /// DRAFT, for Julia (TUT-16): a button on 'Which tree does it mean?' (H1-4a, H1-4b), naming one of the two things in the story.
+  ///
+  /// In en, this message translates to:
+  /// **'The {name}'**
+  String lessonItIs(String name);
+
+  /// DRAFT, for Julia (TUT-16): what a screen reader says for the H1-4b highlight, since colour is not the only signal.
+  ///
+  /// In en, this message translates to:
+  /// **'\'It\' and the {name} are in the same colour.'**
+  String lessonItHighlighted(String name);
 }
 
 class _AppLocalizationsDelegate

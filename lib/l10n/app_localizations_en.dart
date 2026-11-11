@@ -1834,4 +1834,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonLeaveForNow => 'Leave it for now';
+
+  @override
+  String lessonItIs(String name) {
+    return 'The $name';
+  }
+
+  @override
+  String lessonItHighlighted(String name) {
+    return '\'It\' and the $name are in the same colour.';
+  }
 }

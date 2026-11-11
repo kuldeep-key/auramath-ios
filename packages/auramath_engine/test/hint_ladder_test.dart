@@ -45,6 +45,7 @@ const _toSizeB = [Started(), BarADrawn(), BarBPlaced()];
 
 void main() {
   showMeHowTests();
+  whichItTests();
 
   test(
     'the quiet child hears the policy lines at 25, 40 and 60 s (TUT-07)',
@@ -168,5 +169,57 @@ void showMeHowTests() {
     expect(r.events.where((e) => e.name == 'badge_awarded'), isEmpty);
     final back = replay(laddered, lemon, inputsFrom(laddered, lemon, r.events));
     expect(back, r.state);
+  });
+}
+
+/// TUT-16: "Which tree does 'it' mean?"
+void whichItTests() {
+  const toWhichIt = [..._toSizeB, HintTaken(), HintTaken(), HintTaken()];
+
+  test('size_second_bar gives H1-3, H1-4, then H1-4a, then H1-4b, each '
+      'logged as hint_shown', () {
+    final r = run([...toWhichIt, const HintTaken()]);
+    expect(rungs(r.decisions), ['H1-3', 'H1-4', 'H1-4a', 'H1-4b']);
+    expect(
+      [
+        for (final e in r.events)
+          if (e.name == 'hint_shown') e.payload['rung_id'],
+      ],
+      ['H1-3', 'H1-4', 'H1-4a', 'H1-4b'],
+    );
+    final b = r.decisions.whereType<ShowHint>().last.rung!;
+    expect(b.highlight, 'it_to_a');
+    final a = r.decisions.whereType<ShowHint>().elementAt(2).rung!;
+    expect(a.choice, ['a', 'b']);
+  });
+
+  test('a wrong pick wobbles, is logged, is not charged, and leads to the '
+      'highlight', () {
+    final asked = run(toWhichIt);
+    final before = asked.state;
+    final r = run([...toWhichIt, const ItPicked('b')]);
+    expect(r.decisions.whereType<Wobble>(), hasLength(1));
+    expect(rungs(r.decisions).last, 'H1-4b');
+    expect(r.state.wrong, before.wrong);
+    expect(r.events.skip(asked.events.length).map((e) => e.name), [
+      'choice_selected',
+      'hint_shown',
+    ]);
+    expect(
+      r.events
+          .lastWhere((e) => e.name == 'choice_selected')
+          .payload['option_id'],
+      'it_b',
+    );
+    final back = replay(laddered, lemon, inputsFrom(laddered, lemon, r.events));
+    expect(back, r.state);
+  });
+
+  test('a right pick says so; a pick with no question asked is ignored', () {
+    final r = run([...toWhichIt, const ItPicked('a')]);
+    expect(r.decisions.last, isA<Coach>());
+    expect((r.decisions.last as Coach).lineId, 'cmp.itRight');
+    final none = run([..._toSizeB, const ItPicked('b')]);
+    expect(none.decisions.whereType<Wobble>(), isEmpty);
   });
 }

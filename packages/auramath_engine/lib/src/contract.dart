@@ -290,6 +290,27 @@ List<SpecEvent> eventsFor(
           'trigger': noProgress ? 'no_progress' : 'child',
         }),
       );
+    case ItPicked(:final option):
+      // logged, never charged (TUT-16): no step_committed
+      out.add(
+        SpecEvent('choice_selected', {
+          'step_id': stepId,
+          'option_id': 'it_$option',
+          'ms_from_step_start': t.stepMs,
+        }),
+      );
+      for (final d in decisions) {
+        if (d case ShowHint(:final lineId, :final rung)) {
+          out.add(
+            SpecEvent('hint_shown', {
+              'step_id': stepId,
+              'rung_id': rung?.id ?? 'H${after.hintsUsed}',
+              'line_id': lineId,
+              'model_used': false,
+            }),
+          );
+        }
+      }
     case ExampleDone():
       // closed after show me how: solved with help (TUT-05; scoring
       // outcome_rules.show_me_how -> with_hints). No badge: not solved.
@@ -378,6 +399,8 @@ List<LessonInput> inputsFrom(
 ) {
   var s = initialState();
   final inputs = <LessonInput>[];
+  // hint_shown events an input wrote for a hint it showed by itself
+  var skipHints = 0;
   for (final e in events) {
     final j = e.payload;
     final LessonInput? input = switch (e.name) {
@@ -400,9 +423,14 @@ List<LessonInput> inputsFrom(
           },
         ),
       },
-      'choice_selected' => OpChosen(
-        j['option_id'] == 'a_plus_d' ? Op.add : Op.subtract,
-      ),
+      'choice_selected' => switch (j['option_id']) {
+        'it_a' => const ItPicked('a'),
+        'it_b' => const ItPicked('b'),
+        'a_plus_d' => const OpChosen(Op.add),
+        _ => const OpChosen(Op.subtract),
+      },
+      // a hint the input before it showed by itself (a wrong pick's H1-4b)
+      'hint_shown' when skipHints > 0 => null,
       'value_entered' => NumberEntered(j['value']! as int),
       'i_know_it_answered' => switch (j['stage']) {
         'total_after_unknown' => KnowTotalChecked(j['value']! as int),
@@ -430,9 +458,16 @@ List<LessonInput> inputsFrom(
       'idle_prompt_shown' => QuietFor(j['after_ms']! as int),
       _ => null,
     };
-    if (input == null) continue;
+    if (input == null) {
+      if (e.name == 'hint_shown') skipHints--;
+      continue;
+    }
     inputs.add(input);
-    s = step(pack, p, s, input).state;
+    final r = step(pack, p, s, input);
+    s = r.state;
+    skipHints = input is HintTaken
+        ? 0
+        : r.decisions.whereType<ShowHint>().length;
   }
   return inputs;
 }
