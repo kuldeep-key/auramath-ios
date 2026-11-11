@@ -1,3 +1,4 @@
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -41,6 +42,10 @@ List<RouteBase> childRoutes(Deps deps) {
   );
 
   final rewards = RewardsRepository(deps.client);
+
+  /// REW-06: the level badges last served, by id, for the badge's own screen.
+  final levelBadges = <String, BadgeInfo>{};
+  BadgeInfo? badgeInfo(String? id) => deps.pack.badges[id] ?? levelBadges[id];
   final moments = HomeMomentsSource(rewards: rewards);
 
   Widget named(Widget Function(String? name) screen) => FutureBuilder(
@@ -110,15 +115,36 @@ List<RouteBase> childRoutes(Deps deps) {
     GoRoute(
       path: Paths.badges,
       builder: (_, _) => Loaded(
-        load: progress.earnedBadges,
-        builder: (earned) =>
-            BadgesScreen(earned: earned, badges: deps.pack.badges),
+        // the case badges earned on this phone, then (REW-06, behind
+        // mastery_badges like the screen) the level badges the server
+        // says were earned; only earned ones are ever served
+        load: () async {
+          final earned = await progress.earnedBadges();
+          final id = deps.account.childId;
+          final levels = id == null
+              ? const <ServedBadge>[]
+              : await rewards.levelBadges(id);
+          levelBadges
+            ..clear()
+            ..addAll({
+              for (final b in levels)
+                b.id: BadgeInfo(name: b.name, says: b.says ?? b.name),
+            });
+          return [
+            ...earned,
+            for (final b in levels)
+              if (!earned.contains(b.id)) b.id,
+          ];
+        },
+        builder: (earned) => BadgesScreen(
+          earned: earned,
+          badges: {...deps.pack.badges, ...levelBadges},
+        ),
       ),
     ),
     GoRoute(
       path: '/badges/:badgeId',
-      redirect: (_, state) =>
-          deps.pack.badges.containsKey(state.pathParameters['badgeId'])
+      redirect: (_, state) => badgeInfo(state.pathParameters['badgeId']) != null
           ? null
           : Paths.badges,
       pageBuilder: (_, state) {
@@ -126,7 +152,7 @@ List<RouteBase> childRoutes(Deps deps) {
         return MotionPage(
           key: state.pageKey,
           arrive: Arrive.zoom,
-          child: BadgeScreen(id: id, badge: deps.pack.badges[id]!),
+          child: BadgeScreen(id: id, badge: badgeInfo(id)!),
         );
       },
     ),
