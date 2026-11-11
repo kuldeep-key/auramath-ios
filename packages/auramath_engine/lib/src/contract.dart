@@ -148,23 +148,27 @@ List<SpecEvent> eventsFor(
         committed(moved, moved ? null : 'relation_reversed');
       }
     case PieceDropped(:final piece, :final target):
+      final object = piece == Piece.gap ? 'difference' : 'total';
+      final misplaced = before.misplaced;
+      // picked up from where it was wrongly dropped: that slip is charged now
+      if (misplaced != null) {
+        out.add(
+          SpecEvent('object_moved', {
+            'step_id': stepId,
+            'object': object,
+            'ms_from_step_start': t.stepMs,
+          }),
+        );
+        committed(false, _placedError(piece, misplaced));
+      }
       placed(
-        piece == Piece.gap ? 'difference' : 'total',
-        switch (target) {
-          Target.gapSlot => 'gap',
-          Target.totalSlot => 'across_both',
-          Target.barA => 'bar_a',
-          Target.barB => 'bar_b',
-        },
-        true,
+        object,
+        _targetId(target),
+        // a wrong drop is held, not committed, until it's moved or undone
+        after.misplaced == null,
         {if (piece == Piece.gap) 'value': p.diff},
       );
-      committed(
-        moved,
-        !moved && piece == Piece.gap && target == Target.barB
-            ? 'difference_as_amount'
-            : null,
-      );
+      if (moved) committed(true);
     case OpChosen(:final op):
       out.add(
         SpecEvent('choice_selected', {
@@ -244,6 +248,15 @@ List<SpecEvent> eventsFor(
       );
     case SideLessonChosen():
       break; // side_lesson_started, below
+    case Undo() when before.misplaced != null:
+      out.add(
+        SpecEvent('undo_used', {
+          'step_id': stepId,
+          'object': before.step == LessonStep.placeTotal
+              ? 'total'
+              : 'difference',
+        }),
+      );
     case Undo():
       out.add(
         SpecEvent('undo_used', {
@@ -412,6 +425,18 @@ List<LessonInput> inputsFrom(
   }
   return inputs;
 }
+
+String _targetId(Target target) => switch (target) {
+  Target.gapSlot => 'gap',
+  Target.totalSlot => 'across_both',
+  Target.barA => 'bar_a',
+  Target.barB => 'bar_b',
+};
+
+/// Template `error_rules` for a piece placed wrongly: the gap on bar B is
+/// the difference taken as an amount.
+String? _placedError(Piece piece, Target target) =>
+    piece == Piece.gap && target == Target.barB ? 'difference_as_amount' : null;
 
 /// Template `error_rules` / `answer_sheet_rules` for a wrong unknown. On the
 /// answer sheet nothing is drawn, so A + D reads as "thought it was taller".

@@ -252,6 +252,7 @@ class LessonState {
     this.knowMisses = 0,
     this.bSized = false,
     this.bFound = false,
+    this.misplaced,
   });
 
   final LessonStep step;
@@ -291,6 +292,11 @@ class LessonState {
   /// B's value is found (the board writes it in bar B).
   final bool bFound;
 
+  /// Where the current step's piece was dropped wrongly. It stays there,
+  /// wobbling (LES-07), and isn't charged yet: an Undo takes it back for
+  /// free (LES-15); moving it on charges the slip.
+  final Target? misplaced;
+
   LessonState copyWith({
     LessonStep? step,
     bool? barA,
@@ -311,6 +317,8 @@ class LessonState {
     int? knowMisses,
     bool? bSized,
     bool? bFound,
+    Target? misplaced,
+    bool clearMisplaced = false,
   }) => LessonState(
     step: step ?? this.step,
     barA: barA ?? this.barA,
@@ -331,6 +339,7 @@ class LessonState {
     knowMisses: knowMisses ?? this.knowMisses,
     bSized: bSized ?? this.bSized,
     bFound: bFound ?? this.bFound,
+    misplaced: clearMisplaced ? null : misplaced ?? this.misplaced,
   );
 
   List<Object?> get _fields => [
@@ -353,6 +362,7 @@ class LessonState {
     knowMisses,
     bSized,
     bFound,
+    misplaced,
   ];
 
   @override
@@ -487,6 +497,29 @@ StepResult _move(
     ]);
   }
 
+  // A drop on the board. A wrong one stays where it landed, wobbling, and
+  // isn't charged (LES-07, LES-15); moving it on from there charges it.
+  StepResult place(Target target, Target slot, String wrongLine) {
+    if (target == s.misplaced) return to(s);
+    final charged = s.misplaced == null
+        ? s
+        : s.copyWith(wrong: s.wrong + 1, clearMisplaced: true);
+    if (target == slot) {
+      return advance(
+        charged.copyWith(
+          gapPlaced: slot == Target.gapSlot ? true : null,
+          totalPlaced: slot == Target.totalSlot ? true : null,
+        ),
+      );
+    }
+    final next = charged.copyWith(misplaced: target, wrongRow: s.wrongRow + 1);
+    return to(next, [
+      const Wobble(),
+      if (next.wrongRow >= 2) const ShakeHelp(),
+      Coach(wrongLine, slots),
+    ]);
+  }
+
   final bigA = p.big == BigSide.a;
 
   switch ((s.step, input)) {
@@ -506,15 +539,13 @@ StepResult _move(
       return advance(s.copyWith(bSized: true));
 
     case (LessonStep.placeGap, PieceDropped(piece: Piece.gap, :final target)):
-      if (target != Target.gapSlot) return wrongMove('cmp.gapWrong');
-      return advance(s.copyWith(gapPlaced: true));
+      return place(target, Target.gapSlot, 'cmp.gapWrong');
 
     case (
       LessonStep.placeTotal,
       PieceDropped(piece: Piece.total, :final target),
     ):
-      if (target != Target.totalSlot) return wrongMove('cmp.totalWrong');
-      return advance(s.copyWith(totalPlaced: true));
+      return place(target, Target.totalSlot, 'cmp.totalWrong');
 
     case (LessonStep.chooseOp, OpChosen(:final op)):
       if (op != (bigA ? Op.subtract : Op.add)) return wrongMove('cmp.opWrong');
@@ -652,6 +683,10 @@ StepResult _findB(
 }
 
 StepResult _undo(Pack pack, ComparisonProblem p, LessonState s) {
+  // a piece dropped in the wrong place goes back to the tray, for free
+  if (s.misplaced != null) {
+    return (state: s.copyWith(clearMisplaced: true), decisions: const []);
+  }
   final back = undoneStep(pack, p, s);
   return (
     state: back == null
