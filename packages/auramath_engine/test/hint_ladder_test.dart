@@ -15,6 +15,7 @@ final template = ComparisonTemplate.fromYaml(
 final laddered = pack.copyWith(
   hintLadder: policy.hintLadder,
   hintStart: template.hintStart,
+  quietLines: policy.quietLines,
 );
 
 ({LessonState state, List<Decision> decisions, List<SpecEvent> events}) run(
@@ -44,6 +45,26 @@ const _toSizeB = [Started(), BarADrawn(), BarBPlaced()];
 
 void main() {
   showMeHowTests();
+
+  test(
+    'the quiet child hears the policy lines at 25, 40 and 60 s (TUT-07)',
+    () {
+      final r = run([
+        const Started(),
+        const QuietFor(25000),
+        const QuietFor(40000),
+        const QuietFor(60000),
+      ]);
+      expect(
+        [for (final c in r.decisions.whereType<Coach>()) c.lineId],
+        [
+          'line.quiet.draw-story',
+          'line.quiet.watch-me',
+          'line.quiet.want-a-hand',
+        ],
+      );
+    },
+  );
 
   test("the template's start rungs are the policy's first rung per step", () {
     expect(template.hintStart, {

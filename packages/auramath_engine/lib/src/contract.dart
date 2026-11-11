@@ -103,12 +103,17 @@ List<SpecEvent> eventsFor(
     }),
   );
 
-  void helpOpened({bool afterWrong = false}) => out.add(
-    SpecEvent('help_opened', {
-      'step_id': stepId,
-      'trigger': afterWrong ? 'after_wrong' : 'child',
-    }),
-  );
+  void helpOpened({bool afterWrong = false, bool afterQuiet = false}) =>
+      out.add(
+        SpecEvent('help_opened', {
+          'step_id': stepId,
+          'trigger': afterWrong
+              ? 'after_wrong'
+              : afterQuiet
+              ? 'after_quiet'
+              : 'child',
+        }),
+      );
 
   void answered(
     String field,
@@ -255,8 +260,8 @@ List<SpecEvent> eventsFor(
           },
         }),
       );
-    case HintTaken(:final afterWrong):
-      helpOpened(afterWrong: afterWrong);
+    case HintTaken(:final afterWrong, :final afterQuiet):
+      helpOpened(afterWrong: afterWrong, afterQuiet: afterQuiet);
       final hint = decisions.whereType<ShowHint>().firstOrNull;
       // no rung on this step, or past the last: show me how is offered,
       // and no hint was shown (TUT-04)

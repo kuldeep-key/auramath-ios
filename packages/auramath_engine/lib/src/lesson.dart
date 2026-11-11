@@ -109,11 +109,15 @@ final class KnowTotalChecked extends LessonInput {
 }
 
 final class HintTaken extends LessonInput {
-  const HintTaken({this.afterWrong = false});
+  const HintTaken({this.afterWrong = false, this.afterQuiet = false});
 
   /// Given by the tutor after a wrong step (the server's decision), not
   /// asked for from Help me.
   final bool afterWrong;
+
+  /// Given after the quiet child's "Want a hand?" (policy `quiet.then:
+  /// first_hint`, TUT-07).
+  final bool afterQuiet;
 }
 
 final class ShowMeHowTaken extends LessonInput {
@@ -480,6 +484,7 @@ bool hasHint(Pack pack, LessonStep step) =>
 StepResult _quiet(Pack pack, ComparisonProblem p, LessonState s, int ms) {
   if (!_boardSteps.contains(s.step)) return (state: s, decisions: const []);
   final t = pack.timers;
+  final lines = pack.quietLines;
   final level = [
     t.pulseMs,
     t.glowMs,
@@ -491,9 +496,15 @@ StepResult _quiet(Pack pack, ComparisonProblem p, LessonState s, int ms) {
     for (var l = s.quietLevel + 1; l <= level; l++)
       ...switch (l) {
         1 => const [PulseHelp()],
-        2 => [const GlowPiece(), Coach('cmp.takeYourTime', lineSlots(p))],
-        3 => const [ShowHand()],
-        _ => const [AskStillThere()],
+        2 => [const GlowPiece(), Coach(lines.glow, lineSlots(p))],
+        3 => [
+          const ShowHand(),
+          if (lines.demo case final demo?) Coach(demo, lineSlots(p)),
+        ],
+        _ => [
+          const AskStillThere(),
+          if (lines.still case final still?) Coach(still, lineSlots(p)),
+        ],
       },
   ];
   return (state: s.copyWith(quietLevel: level), decisions: decisions);

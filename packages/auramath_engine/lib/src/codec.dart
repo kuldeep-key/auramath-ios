@@ -29,9 +29,10 @@ Map<String, Object?> inputToJson(LessonInput i) => switch (i) {
     'type': 'knowTotalChecked',
     'value': value,
   },
-  HintTaken(:final afterWrong) => {
+  HintTaken(:final afterWrong, :final afterQuiet) => {
     'type': 'hintTaken',
     if (afterWrong) 'afterWrong': true,
+    if (afterQuiet) 'afterQuiet': true,
   },
   ShowMeHowTaken(:final afterWrong) => {
     'type': 'showMeHowTaken',
@@ -67,7 +68,10 @@ LessonInput inputFromJson(Map<String, Object?> j) {
     'knowIt' => KnowIt(n('value')),
     'partChecked' => PartChecked(n('value')),
     'knowTotalChecked' => KnowTotalChecked(n('value')),
-    'hintTaken' => HintTaken(afterWrong: j['afterWrong'] == true),
+    'hintTaken' => HintTaken(
+      afterWrong: j['afterWrong'] == true,
+      afterQuiet: j['afterQuiet'] == true,
+    ),
     'showMeHowTaken' => ShowMeHowTaken(afterWrong: j['afterWrong'] == true),
     'easierTaken' => EasierTaken(
       noProgress: j['noProgress'] == true,

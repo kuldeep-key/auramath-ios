@@ -1048,6 +1048,22 @@ class LessonViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// The quiet child's "Want a hand?" (policy `quiet.still_there_line`,
+  /// TUT-07); null without one, and the sheet says its own.
+  String? get stillThereLine => switch (_pack.quietLines.still) {
+    final id? when _p != null => _lineText(id, const {}),
+    _ => null,
+  };
+
+  /// "I'm still thinking" on the quiet child's sheet: it closes, and the
+  /// step's first hint follows (policy `quiet.then: first_hint`, TUT-07).
+  /// On the too-hard sheet (TUT-10) it only closes.
+  Future<void> stillThinking() async {
+    final quiet = stillThere && !tooHard;
+    dismissStillThere();
+    if (quiet) await send(const HintTaken(afterQuiet: true));
+  }
+
   /// Opens the sheet that matches where an "I know it" answer is up to, so a
   /// dismissed "check one part" reopens as itself.
   void openKnowIt() {
@@ -1198,11 +1214,17 @@ class LessonViewModel extends ChangeNotifier {
   }
 
   void _coach(String lineId, Map<String, String> slots) {
-    // Every Coach carries the problem's own slots; hints and fallbacks don't.
+    coachText = _lineText(lineId, slots);
+    autoSay(coachText);
+  }
+
+  /// A line's text for this problem: the pack's own, else Julia's policy
+  /// library. Every Coach carries the problem's own slots; hints and
+  /// fallbacks don't, so they are added here.
+  String _lineText(String lineId, Map<String, String> slots) {
     final all = {...lineSlots(_problem), ...policySlots(_problem), ...slots};
     final line = _pack.lines[lineId] ?? _pack.policyLines[lineId] ?? '';
-    coachText = fillLine(line, all);
-    autoSay(coachText);
+    return fillLine(line, all);
   }
 
   /// Help me offers a hint on this step: false on a step with no rung on

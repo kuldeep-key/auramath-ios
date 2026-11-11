@@ -22,6 +22,16 @@ class Timers {
   final int stillMs;
 }
 
+/// The lines the quiet-child nudges say (policy `quiet.glow_line`,
+/// `demo_line`, `still_there_line`, TUT-07). Null: no line with that one.
+class QuietLines {
+  const QuietLines({this.glow = 'cmp.takeYourTime', this.demo, this.still});
+
+  final String glow;
+  final String? demo;
+  final String? still;
+}
+
 /// One rung of the tutor policy's `hint_ladder` (TUT-04): the step it
 /// belongs to (a spec step id, or `any` for the everyday example) and its
 /// line. A rung with [choice] asks the child to pick (TUT-16 H1-4a); one
@@ -78,6 +88,7 @@ class Pack {
     this.policyLines = const {},
     this.hintLadder = const [],
     this.hintStart = const {},
+    this.quietLines = const QuietLines(),
   });
 
   factory Pack.fromJson(Map<String, Object?> j) => Pack(
@@ -106,6 +117,7 @@ class Pack {
     Map<String, String>? policyLines,
     List<HintRung>? hintLadder,
     Map<String, String>? hintStart,
+    QuietLines? quietLines,
   }) => Pack(
     version: version,
     timers: timers ?? this.timers,
@@ -120,10 +132,14 @@ class Pack {
     policyLines: policyLines ?? this.policyLines,
     hintLadder: hintLadder ?? this.hintLadder,
     hintStart: hintStart ?? this.hintStart,
+    quietLines: quietLines ?? this.quietLines,
   );
 
   final String version;
   final Timers timers;
+
+  /// Policy `quiet.*_line` (TUT-07).
+  final QuietLines quietLines;
 
   /// Tutor policy `side_lessons.max_per_session`; past it the child gets
   /// the step's usual help instead.
