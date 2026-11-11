@@ -1,3 +1,4 @@
+import 'package:auramath/data/repositories/partner_intro_repository.dart';
 import 'dart:io';
 
 import 'package:auramath/data/repositories/account_repository.dart';
@@ -135,6 +136,7 @@ void main() {
         File('${g.documents.path}/notes.txt').writeAsStringSync('not ours');
         File('${g.cache.path}/voice-ab.mp3').writeAsBytesSync([1]);
         await g.repo.startPasscodeReset('old');
+        await PartnerIntroRepository(g.store).markMet('child-1');
       });
       await shotAllSizes(
         tester,
@@ -158,6 +160,12 @@ void main() {
         ['notes.txt'],
       );
       expect(g.store.values['passcodeReset'], isNull);
+      expect(
+        await tester.runAsync(
+          () => PartnerIntroRepository(g.store).met('child-1'),
+        ),
+        isFalse,
+      );
       expect(find.text('went to ${Paths.open}'), findsOneWidget);
     });
 

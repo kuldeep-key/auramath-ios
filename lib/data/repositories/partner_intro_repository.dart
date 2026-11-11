@@ -7,13 +7,24 @@ class PartnerIntroRepository {
 
   final KeyStore _store;
 
-  /// Each child's own; a phone with no child chosen yet keeps one for itself.
-  String _key(String? childId) => 'partner_met.${childId ?? 'this_phone'}';
+  /// The children who met the partner, one per line, in one key so that
+  /// sign-out and erase clear it at once (DEV-06). A phone with no child
+  /// chosen yet counts as one.
+  static const _key = 'partner_met';
+
+  Future<Set<String>> _met() async =>
+      (await _store.read(_key))?.split('\n').toSet() ?? {};
+
+  String _id(String? childId) => childId ?? 'this_phone';
 
   Future<bool> met(String? childId) async =>
-      await _store.read(_key(childId)) != null;
+      (await _met()).contains(_id(childId));
 
-  Future<void> markMet(String? childId) => _store.write(_key(childId), '1');
+  Future<void> markMet(String? childId) async =>
+      _store.write(_key, {...await _met(), _id(childId)}.join('\n'));
+
+  /// No child on this phone has met the partner (DEV-06).
+  Future<void> forget() => _store.write(_key, null);
 
   /// The partner's lines as the content serves them (policy `lines.pack`
   /// ids starting `line.intro.`, in order, but the reminder said at

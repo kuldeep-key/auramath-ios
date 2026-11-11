@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import '../services/api.dart';
 import '../services/api_client.dart';
 import '../services/key_store.dart';
+import 'partner_intro_repository.dart';
 
 /// A lesson's drawing (PAR-09): the PNG, and what it shows in words.
 typedef SessionDrawing = ({Uint8List png, String? caption});
@@ -413,7 +414,7 @@ class GrownUpRepository {
 
   /// DEV-06: what this phone kept of the family outside the outbox, gone on
   /// sign-out and erase: every saved export, the cached voice clips of the
-  /// lessons, and the forgot-passcode marker. A file that can't be deleted
+  /// lessons, the forgot-passcode marker, and who met the case partner. A file that can't be deleted
   /// doesn't stop the rest. Returns how many files went.
   Future<int> forgetSavedData() async {
     var gone = 0;
@@ -440,6 +441,7 @@ class GrownUpRepository {
       (n) => n.startsWith('voice-') && n.endsWith('.mp3'),
     );
     await endPasscodeReset();
+    await PartnerIntroRepository(_store).forget();
     return gone;
   }
 
