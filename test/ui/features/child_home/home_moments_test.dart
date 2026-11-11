@@ -137,6 +137,24 @@ void main() {
       expect(await visit(at: monday.add(const Duration(days: 3))), isFalse);
     });
 
+    test('DAT-03: the moment shown is handed on with its band, once', () async {
+      final (deps, server) = await testDeps();
+      final m = HomeMomentsSource(rewards: RewardsRepository(deps.client));
+      server.on('GET /api/children/c1/rewards', {
+        'streak': {'show': true, 'band': '7_plus', 'coveredMissedDay': true},
+      });
+      final shown = <StreakMoment>[];
+      for (var i = 0; i < 2; i++) {
+        await m.next(
+          lastStop: null,
+          childId: 'c1',
+          streakOn: true,
+          onStreak: shown.add,
+        );
+      }
+      expect(shown, [(band: '7_plus', coveredMissedDay: true)]);
+    });
+
     test('no route yet: no moment, and no error', () async {
       final (deps, _) = await testDeps();
       final m = HomeMomentsSource(rewards: RewardsRepository(deps.client));

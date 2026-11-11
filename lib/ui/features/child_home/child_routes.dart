@@ -78,6 +78,14 @@ List<RouteBase> childRoutes(Deps deps) {
                 null => null,
               },
               streakOn: deps.flags.on('streak_moment'),
+              // DAT-03: logged after the child's last lesson
+              onStreak: (m) => deps.sessions.recordAfterLesson(
+                deps.account.childId,
+                SpecEvent('streak_moment_shown', {
+                  'consecutive_days_band': m.band,
+                  if (m.coveredMissedDay) 'covered_missed_day': true,
+                }),
+              ),
             ),
             builder: (moment) => ListenableBuilder(
               listenable: deps.flags,
@@ -210,6 +218,11 @@ List<RouteBase> childRoutes(Deps deps) {
               await deps.family.editChild(id, {'avatar': avatar});
             }
             progress.avatarPicked(avatar);
+            // DAT-03, ACC-12
+            await deps.sessions.recordAfterLesson(
+              id,
+              SpecEvent('avatar_chosen', {'avatar_id': avatar}),
+            );
           },
         ),
       ),
@@ -267,6 +280,11 @@ List<RouteBase> childRoutes(Deps deps) {
               sentBadge: deps.flags.on('report_delivery') ? a.sentBadge : null,
               streak: deps.flags.on('three_in_a_row') && a.streak,
               opened: deps.flags.on('trail') ? a.opened : null,
+            ),
+            // DAT-03: Y4 says the badge went to the grown-up
+            onShared: (badge) => deps.sessions.recordAfterLesson(
+              deps.account.childId,
+              SpecEvent('badge_shared', {'badge_id': badge, 'shared': true}),
             ),
           ),
         ),

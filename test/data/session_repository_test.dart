@@ -41,6 +41,68 @@ void main() {
     await db.close();
   });
 
+  test('DAT-03: an event outside a lesson goes after the end of the '
+      "child's last lesson; it waits while there is none, or it ended at "
+      "time's up", () async {
+    final db = await memoryOutbox();
+    final api = FakeApi();
+    final repo = SessionRepository(
+      db: db,
+      api: api,
+      identity: testIdentity,
+      nowMs: () => 1791400000000,
+    );
+    const avatar = SpecEvent('avatar_chosen', {'avatar_id': 'key'});
+    const streak = SpecEvent('streak_moment_shown', {
+      'consecutive_days_band': '3_to_6',
+    });
+    // no lesson yet: it waits
+    await repo.recordAfterLesson('test1234', avatar);
+    expect(api.received, isEmpty);
+    await repo.open(); // s1
+    await repo.record('s1', 0, const [
+      step,
+      SpecEvent('session_ended', {'reason': 'time_up'}),
+    ]);
+    await repo.recordAfterLesson('test1234', streak);
+    expect(
+      api.received.map((e) => e.name),
+      isNot(contains('avatar_chosen')),
+      reason: "after a time_up end it would open the continuation",
+    );
+    // another child's lesson ends: not theirs
+    api.childRef = 'ch_other999';
+    await repo.open(); // s2
+    await repo.record('s2', 0, const [
+      SpecEvent('session_ended', {'reason': 'finished'}),
+    ]);
+    expect(api.received.where((e) => e.sessionId == 's2'), hasLength(1));
+    // the child's next lesson ends: both, after its end, past its seqs
+    api.childRef = 'ch_test1234';
+    await repo.open(); // s3
+    await repo.record('s3', 0, const [
+      step,
+      SpecEvent('session_ended', {'reason': 'finished'}),
+    ]);
+    final s3 = api.received.where((e) => e.sessionId == 's3').toList();
+    expect(s3.map((e) => (e.name, e.seq)), [
+      ('step_entered', 0),
+      ('session_ended', 1),
+      ('avatar_chosen', 1 + SessionRepository.afterLessonGap),
+      ('streak_moment_shown', 2 + SessionRepository.afterLessonGap),
+    ]);
+    expectContract(api.received);
+    // with the last lesson ended cleanly, the next one goes there at once
+    await repo.recordAfterLesson(
+      'test1234',
+      const SpecEvent('badge_shared', {'badge_id': 'tree', 'shared': true}),
+    );
+    expect(api.received.last.name, 'badge_shared');
+    expect(api.received.last.sessionId, 's3');
+    repo.dispose();
+    await db.close();
+  });
+
   test('the last stopped session and how, for its badge (REW-01)', () async {
     final db = await memoryOutbox();
     final repo = SessionRepository(

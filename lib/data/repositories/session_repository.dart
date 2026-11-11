@@ -403,7 +403,69 @@ class SessionRepository {
         );
       }
     }
+    if (events.any((e) => e.name == 'session_ended')) {
+      await _placeAfterLesson(sessionId);
+    }
     await syncNow();
+  }
+
+  /// DAT-03: an event outside a lesson for [childId] (Home's streak moment,
+  /// Y4's badge sent to the grown-up, an avatar picked). Every event needs
+  /// a session, so it goes after the end of the child's last lesson on
+  /// this phone. While that lesson hasn't ended yet, ended at time's up
+  /// (anything after that opens its continuation, SES-01), or there is
+  /// none, it waits in memory for the next of their lessons to end.
+  Future<void> recordAfterLesson(String? childId, SpecEvent event) async {
+    if (childId == null) return;
+    _afterLesson.add((
+      childRef: childRefFor(childId),
+      event: event,
+      at: _now(),
+    ));
+    final last = lastStop.value?.sessionId;
+    if (last != null && await _placeAfterLesson(last)) await syncNow();
+  }
+
+  final List<({String childRef, SpecEvent event, int at})> _afterLesson = [];
+
+  /// The seqs events after a lesson's end start from, past its last one:
+  /// a lesson can still log a little after its end (a read-aloud on the
+  /// solved screen), from seqs it holds already.
+  static const afterLessonGap = 1000;
+
+  /// Writes the waiting events of [sessionId]'s child after its end, if it
+  /// ended cleanly. True when any were written.
+  Future<bool> _placeAfterLesson(String sessionId) async {
+    if (_afterLesson.isEmpty) return false;
+    final all = await _db.forSession(sessionId);
+    final ends = all.where((e) => e.name == 'session_ended');
+    if (ends.isEmpty || ends.any((e) => e.payload['reason'] == 'time_up')) {
+      return false;
+    }
+    final childRef = all.last.childRef;
+    final mine = [
+      for (final w in _afterLesson)
+        if (w.childRef == childRef) w,
+    ];
+    if (mine.isEmpty) return false;
+    _afterLesson.removeWhere(mine.contains);
+    var seq = all.map((e) => e.seq).reduce(math.max) + afterLessonGap;
+    for (final w in mine) {
+      await _db.insert(
+        LessonEvent(
+          eventId: _newId(),
+          sessionId: sessionId,
+          seq: seq++,
+          at: w.at,
+          name: w.event.name,
+          childRef: childRef,
+          deviceId: identity.deviceId,
+          appVersion: identity.appVersion,
+          payload: w.event.payload,
+        ),
+      );
+    }
+    return true;
   }
 
   /// Sends everything unconfirmed, one batch per session, oldest first.
@@ -444,6 +506,7 @@ class SessionRepository {
     _sittings.clear();
     _suggestions.clear();
     lastSuggestion = null;
+    _afterLesson.clear();
     _easier.clear();
     for (final (pack, id) in _served) {
       pack.problems.remove(id);

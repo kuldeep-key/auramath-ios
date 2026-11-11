@@ -10,9 +10,10 @@ import '../../../data/helpers.dart' show expectContract;
 import 'fakes.dart';
 
 /// @DAT-03: a full problem produces an event for every interaction in
-/// contracts/events.schema.json. The few no one problem can write are
-/// named, with why, so a new contract event fails here until it's emitted
-/// or listed.
+/// contracts/events.schema.json, and the moments around it (Y4, Home's
+/// streak, the avatar picker) log theirs after its end. The few no one
+/// problem can write are named, with why, so a new contract event fails
+/// here until it's emitted or listed.
 const notInOneProblem = {
   'placement_answered': 'the starting check, before the first case',
   'quick_sum_answered': 'Quick sums, and practice after a side lesson',
@@ -20,9 +21,6 @@ const notInOneProblem = {
   'easier_chosen': 'something easier switches the case',
   'self_rating_given': 'the self_rating flag, after a solved case',
   'prompt_offered': 'the server\'s decision (ai_decisions)',
-  'badge_shared': 'the grown-up\'s screens',
-  'streak_moment_shown': 'Home, after a case',
-  'avatar_chosen': 'set-up (ACC-12)',
 };
 
 void main() {
@@ -91,6 +89,16 @@ void main() {
     await vm.send(const SentenceEntered('D+box=A'));
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(vm.state.step, LessonStep.solved);
+    // after the case: Y4's badge sent, Home's streak moment, a new avatar,
+    // each after the lesson's end (they're shown outside it)
+    expect(sessions.lastStop.value?.reason, 'finished');
+    for (final e in const [
+      SpecEvent('badge_shared', {'badge_id': 'tree', 'shared': true}),
+      SpecEvent('streak_moment_shown', {'consecutive_days_band': '2'}),
+      SpecEvent('avatar_chosen', {'avatar_id': 'key'}),
+    ]) {
+      await sessions.recordAfterLesson('test1234', e);
+    }
 
     final events = await db.forSession('s1');
     expectContract(events);

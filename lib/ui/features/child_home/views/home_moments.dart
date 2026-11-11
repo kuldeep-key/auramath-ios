@@ -26,13 +26,15 @@ class HomeMomentsSource {
 
   /// [replied]: the badge the server named in its answer to the batch
   /// that ended the session (REW-01), when it did: shown as it is, with no
-  /// rewards read.
+  /// rewards read. [onStreak]: today's streak moment is about to show
+  /// (DAT-03 logs it as `streak_moment_shown`).
   Future<HomeMoments> next({
     required ({String sessionId, String reason})? lastStop,
     String? childId,
     bool streakOn = false,
     DateTime? now,
     ServedBadge? Function(String sessionId)? replied,
+    void Function(StreakMoment moment)? onStreak,
   }) async {
     SessionBadge? badge;
     if (lastStop != null && _shownSessions.add(lastStop.sessionId)) {
@@ -50,8 +52,12 @@ class HomeMomentsSource {
     final today = DateUtils.dateOnly(now ?? DateTime.now());
     var streak = false;
     if (streakOn && childId != null && _streakShownOn != today) {
-      streak = await rewards.streakMoment(childId);
-      if (streak) _streakShownOn = today;
+      final moment = await rewards.streak(childId);
+      streak = moment != null;
+      if (moment != null) {
+        _streakShownOn = today;
+        onStreak?.call(moment);
+      }
     }
     return (badge: badge, streak: streak);
   }

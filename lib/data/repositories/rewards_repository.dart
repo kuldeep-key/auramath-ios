@@ -10,6 +10,11 @@ typedef ServedBadge = ({String id, String name, String? says});
 /// child-facing name from content, and the skill it stands for.
 typedef ServedStop = ({String id, String name, String? skillId});
 
+/// REW-05: today's kind streak moment, as the server decides it: its band
+/// of days (`2`, `3_to_6`, `7_plus`, never shown as a number) and whether a
+/// free missed day kept it going. Logged as `streak_moment_shown`.
+typedef StreakMoment = ({String band, bool coveredMissedDay});
+
 /// Where the child is on the trail, as the server knows it on every phone.
 typedef ServedTrail = ({List<ServedStop> stops, int here, bool atTop});
 
@@ -75,9 +80,23 @@ class RewardsRepository {
   /// REW-05: whether today's kind streak moment shows (`streak.show`).
   /// Never a number: days and the free missed days are the server's, in
   /// the family's time zone.
-  Future<bool> streakMoment(String childId) async {
-    final j = (await _rewards(childId))?['streak'];
-    return j is Map && j['show'] == true;
+  Future<bool> streakMoment(String childId) async =>
+      await streak(childId) != null;
+
+  /// REW-05: today's moment, with its band; null when it doesn't show.
+  Future<StreakMoment?> streak(String childId) async =>
+      streakFrom((await _rewards(childId))?['streak']);
+
+  /// The server's `streak` when today's moment shows; null when it doesn't.
+  static StreakMoment? streakFrom(Object? j) {
+    if (j is! Map || j['show'] != true) return null;
+    final band = j['band'];
+    return (
+      band: const {'2', '3_to_6', '7_plus'}.contains(band)
+          ? band as String
+          : '2',
+      coveredMissedDay: j['coveredMissedDay'] == true,
+    );
   }
 
   /// REW-06: the level badges earned, first earned first (`levelBadges`,
