@@ -14,6 +14,7 @@ import '../../../core/parts/standing_button.dart';
 import '../../../core/theme/tokens.dart';
 import '../view_models/lesson_view_model.dart';
 import 'answer_sheet.dart';
+import 'everyday_example.dart';
 import 'help_sheet.dart';
 import 'question_chips.dart';
 import 'thinking_cue.dart';
@@ -177,6 +178,7 @@ class _BoardViewState extends State<BoardView> {
                   }
                 : null,
           ),
+        if (vm.showingEveryday) EverydayExampleSheet(vm: vm),
         if (vm.knowPrompt != null) AnswerSheet(vm: vm),
         if (vm.prompt != null) TutorPromptSheet(vm: vm),
       ],

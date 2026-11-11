@@ -1181,6 +1181,20 @@ class LessonViewModel extends ChangeNotifier {
   void _newStepHelp() {
     hintRung = null;
     _itAnswered = false;
+    _everydayClosed = false;
+  }
+
+  bool _everydayClosed = false;
+
+  /// H1-6 (TUT-06): the everyday example's picture, a grown-up and a
+  /// child, is showing over the board until the child goes back.
+  bool get showingEveryday =>
+      hintRung?.everydayExample == true && !_everydayClosed && _onBoard;
+
+  /// "Back to the problem" from the everyday example: the same step.
+  void closeEveryday() {
+    _everydayClosed = true;
+    notifyListeners();
   }
 
   /// The quiet child's "Want a hand?" (policy `quiet.still_there_line`,
@@ -1287,6 +1301,7 @@ class LessonViewModel extends ChangeNotifier {
         case ShowHint(:final lineId, :final rung):
           _coach(lineId, const {});
           hintRung = rung ?? hintRung;
+          _everydayClosed = false;
         case Wobble():
           wobbles++;
         case ShakeHelp():

@@ -1851,4 +1851,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidReadToMe => 'Read it to me';
+
+  @override
+  String get lessonEverydayPicture => 'A grown-up and a child, side by side.';
+
+  @override
+  String get lessonGrownUp => 'Grown-up';
+
+  @override
+  String get lessonYou => 'You';
 }

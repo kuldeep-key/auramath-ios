@@ -108,6 +108,12 @@ void main() {
     'board_find_b': toFindB,
     'which_it': [...toSizeB, for (var i = 0; i < 3; i++) const HintTaken()],
     'still_there': const [Started(), QuietFor(60000)],
+    'everyday_example': const [
+      Started(),
+      HintTaken(),
+      HintTaken(),
+      HintTaken(),
+    ],
     'side_lesson': [...toFindB, const NumberEntered(81)],
     'worked_example': const [Started(), ShowMeHowTaken()],
     'solved': [...toFindB, const NumberEntered(79), const NumberEntered(265)],

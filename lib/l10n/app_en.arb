@@ -670,5 +670,11 @@
   "lessonDetourPaused": "Your case is waiting. Your drawing is kept.",
   "@lessonDetourPaused": {"description": "DRAFT, for Julia and Design (TUT-18): the detour pause, a strip at the top of a side lesson saying the case is paused with its board kept. No Figma frame yet."},
   "kidReadToMe": "Read it to me",
-  "@kidReadToMe": {"description": "DRAFT, for Julia (NFR-06): the speaker button's label on every child screen, for screen readers."}
+  "@kidReadToMe": {"description": "DRAFT, for Julia (NFR-06): the speaker button's label on every child screen, for screen readers."},
+  "lessonEverydayPicture": "A grown-up and a child, side by side.",
+  "@lessonEverydayPicture": {"description": "DRAFT, for Julia (TUT-06): what a screen reader says for the H1-6 picture."},
+  "lessonGrownUp": "Grown-up",
+  "@lessonGrownUp": {"description": "DRAFT, for Julia (TUT-06): the label under the grown-up in the H1-6 picture."},
+  "lessonYou": "You",
+  "@lessonYou": {"description": "DRAFT, for Julia (TUT-06): the label under the child in the H1-6 picture."}
 }

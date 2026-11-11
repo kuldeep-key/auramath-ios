@@ -3255,6 +3255,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read it to me'**
   String get kidReadToMe;
+
+  /// DRAFT, for Julia (TUT-06): what a screen reader says for the H1-6 picture.
+  ///
+  /// In en, this message translates to:
+  /// **'A grown-up and a child, side by side.'**
+  String get lessonEverydayPicture;
+
+  /// DRAFT, for Julia (TUT-06): the label under the grown-up in the H1-6 picture.
+  ///
+  /// In en, this message translates to:
+  /// **'Grown-up'**
+  String get lessonGrownUp;
+
+  /// DRAFT, for Julia (TUT-06): the label under the child in the H1-6 picture.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get lessonYou;
 }
 
 class _AppLocalizationsDelegate
