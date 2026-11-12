@@ -66,6 +66,66 @@ stories:
     levels: [L3, L4, L5]        # two-step levels only this term
     problem_name: Bowl and Mug Word Problem
     source: FIGMA-C-1009
+  - id: orange-gum                # KEY-DRAFT (12 Nov): more height stories; nouns from content/age-word-list.yaml core (CON-13) for Julia's check (CON-09)
+    a: orange tree
+    b: gum tree
+    kind: tree
+    plural: trees
+    unit: cm
+    quantity: height
+    orientation: upright
+    text: "The {a} is {A} {unit} tall. It is {D} {unit} {relation} than the {b}. What is the total height of the two {plural}?"
+    use: lesson
+    problem_name: Tree Word Problem
+    source: KEY-DRAFT
+  - id: apple-palm                # KEY-DRAFT (12 Nov): more height stories; nouns from content/age-word-list.yaml core (CON-13) for Julia's check (CON-09)
+    a: apple tree
+    b: palm tree
+    kind: tree
+    plural: trees
+    unit: cm
+    quantity: height
+    orientation: upright
+    text: "The {a} is {A} {unit} tall. It is {D} {unit} {relation} than the {b}. What is the total height of the two {plural}?"
+    use: lesson
+    problem_name: Tree Word Problem
+    source: KEY-DRAFT
+  - id: house-tower                # KEY-DRAFT (12 Nov): more height stories; nouns from content/age-word-list.yaml core (CON-13) for Julia's check (CON-09)
+    a: house
+    b: tower
+    kind: building
+    plural: buildings
+    unit: cm
+    quantity: height
+    orientation: upright
+    text: "The {a} is {A} {unit} tall. It is {D} {unit} {relation} than the {b}. What is the total height of the two {plural}?"
+    use: lesson
+    problem_name: Building Word Problem
+    source: KEY-DRAFT
+  - id: sunflower-bush                # KEY-DRAFT (12 Nov): more height stories; nouns from content/age-word-list.yaml core (CON-13) for Julia's check (CON-09)
+    a: sunflower
+    b: bush
+    kind: plant
+    plural: plants
+    unit: cm
+    quantity: height
+    orientation: upright
+    text: "The {a} is {A} {unit} tall. It is {D} {unit} {relation} than the {b}. What is the total height of the two {plural}?"
+    use: lesson
+    problem_name: Plant Word Problem
+    source: KEY-DRAFT
+  - id: giraffe-kangaroo                # KEY-DRAFT (12 Nov): more height stories; nouns from content/age-word-list.yaml core (CON-13) for Julia's check (CON-09)
+    a: giraffe
+    b: kangaroo
+    kind: animal
+    plural: animals
+    unit: cm
+    quantity: height
+    orientation: upright
+    text: "The {a} is {A} {unit} tall. It is {D} {unit} {relation} than the {b}. What is the total height of the two {plural}?"
+    use: lesson
+    problem_name: Animal Word Problem
+    source: KEY-DRAFT
 relations:
   taller:  {word: taller,  b_word: shorter, B: "A - D", keyword_trap: false}
   shorter: {word: shorter, b_word: taller,  B: "A + D", keyword_trap: true}    # 'shorter' but the child must add (SR-1, ASK-J20)
