@@ -1,9 +1,10 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/material.dart' show Icons, Curves;
 
 import '../motion/motion.dart';
 import '../theme/tokens.dart';
+import 'tutor_art.dart';
 
 /// The art Apoorv delivers (D-59), by the spec's art keys
 /// (`art.look.look_03.detective`, `art.tutor.robot.detective`,
@@ -121,11 +122,30 @@ class LookPortrait extends StatelessWidget {
 enum TutorState { idle, talking, thinking, cheering, encourage }
 
 /// The tutor ([tutorId], its [kind] from tutors.yaml) in [world]'s costume
-/// and its [state]. A placeholder until Apoorv's art: a rounded card, a
-/// mortarboard for a teacher, a robot for the robot. Moves only while it
-/// talks, thinks or cheers; still while the child works (idle), and a
-/// still picture for every state with reduced motion. Never flashes,
-/// never red.
+/// and its [state], drawn as the prototype draws it (16 Nov, [TutorPainter]):
+/// `teacher_1` is its teacher a, `teacher_2` its teacher b, and the robot a
+/// DRAFT in the same parts. Apoorv's art (`art.tutor.<id>.<world>[.<state>]`)
+/// replaces the drawing once it is in the build.
+///
+/// [headOnly] draws the head alone, as the prototype's `tutorHead` for the
+/// 56 to 64 pt lesson header and the Me screen (TTR-05); by default any
+/// figure 64 pt or smaller. The whole figure pops in (`pop .5s`) when
+/// [entrance] is on.
+///
+/// The prototype's moves, timed as its keyframes:
+/// * the body bobs 4 units up and back every 2.8 s (`tuBob`) while idle,
+///   talking or encouraging; cheering it jumps 8 units, 0.5 s each way
+///   (`tuCheer`); thinking it stands still;
+/// * the eyes blink every 5 s, shut at 97 % (`tuBlink`); cheering eyes
+///   are happy arcs and don't blink;
+/// * the talking mouth opens and closes, 0.3 s each way (`tuTalk`);
+/// * thinking shows three dots fading 1.2 s, 0.2 s apart (`tuDot`);
+/// * cheering shows three sparks, 1.1 s, the second 0.35 s late
+///   (`tuSpark`).
+///
+/// With reduced motion each state is a still picture (tutors.yaml
+/// `reduced_motion: still_pose_per_state`). Never red; nothing flashes
+/// faster than about twice a second.
 class TutorFigure extends StatefulWidget {
   const TutorFigure({
     super.key,
@@ -134,13 +154,26 @@ class TutorFigure extends StatefulWidget {
     this.kind = 'grown_up_teacher',
     this.world = 'detective',
     this.state = TutorState.idle,
+    this.headOnly,
+    this.entrance = true,
   });
 
   final String tutorId;
   final String kind;
   final String world;
+
+  /// The figure's width; its height follows the drawing (220/228 for the
+  /// whole figure, 124/120 for the head).
   final double size;
   final TutorState state;
+
+  /// The head alone. Null: for a figure 64 pt or smaller.
+  final bool? headOnly;
+
+  /// The whole figure pops in when first shown (the prototype's `.tutor`).
+  final bool entrance;
+
+  bool get head => headOnly ?? size <= 64;
 
   @override
   State<TutorFigure> createState() => _TutorFigureState();
@@ -148,119 +181,82 @@ class TutorFigure extends StatefulWidget {
 
 class _TutorFigureState extends State<TutorFigure>
     with SingleTickerProviderStateMixin {
-  late final _beat = AnimationController(
-    vsync: this,
-    // one gentle beat a second at most: far under three flashes a second
-    duration: const Duration(milliseconds: 900),
-  );
+  late final _ticker = createTicker(_tick);
+  final _pose = ValueNotifier(const TutorPose());
+  Duration _since = Duration.zero;
+  Duration _last = Duration.zero;
 
-  bool get _moves => widget.state != TutorState.idle;
-  TutorState? _ran;
+  TutorPart get _part => TutorPart.values[widget.state.index];
 
-  /// A few gentle beats when the state changes to one that moves, then
-  /// still: a placeholder never loops (and a screen can settle).
-  Future<void> _run(bool still) async {
-    if (!_moves || still) {
-      _beat
-        ..stop()
-        ..value = 0;
-      _ran = null;
+  void _tick(Duration elapsed) {
+    _last = elapsed;
+    final ms = (elapsed - _since).inMicroseconds / 1000;
+    _pose.value = TutorPose.at(_part, ms);
+  }
+
+  /// Runs the moves, from the start of the state (as the prototype's
+  /// animations restart with each new drawing); still with calm motion.
+  void _run() {
+    if (calmMotion(context)) {
+      if (_ticker.isActive) _ticker.stop();
+      _pose.value = const TutorPose();
       return;
     }
-    if (_ran == widget.state) return;
-    _ran = widget.state;
-    try {
-      for (var i = 0; i < 2 && mounted && _ran == widget.state; i++) {
-        await _beat.forward(from: 0).orCancel;
-        await _beat.reverse().orCancel;
-      }
-    } on TickerCanceled {
-      // disposed or stopped
-    }
+    _since = _last;
+    _pose.value = TutorPose.at(_part, 0);
+    if (!_ticker.isActive) _ticker.start();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _run(calmMotion(context));
+    _run();
   }
 
   @override
   void didUpdateWidget(TutorFigure old) {
     super.didUpdateWidget(old);
-    _run(calmMotion(context));
+    if (old.state != widget.state) _run();
   }
 
   @override
   void dispose() {
-    _beat.dispose();
+    _ticker.dispose();
+    _pose.dispose();
     super.dispose();
   }
 
-  static Color colorOf(String tutorId) => switch (tutorId) {
-    'teacher_1' => AuraColors.blueInk,
-    'teacher_2' => AuraColors.green,
-    'robot' => AuraColors.navy,
-    _ => AuraColors.blue,
-  };
-
   @override
   Widget build(BuildContext context) {
-    final size = widget.size;
-    final icon = widget.kind == 'robot'
-        ? Icons.smart_toy_rounded
-        : Icons.school_rounded;
-    final badge = switch (widget.state) {
-      TutorState.talking => Icons.graphic_eq_rounded,
-      TutorState.thinking => Icons.more_horiz_rounded,
-      TutorState.cheering => Icons.celebration_rounded,
-      TutorState.encourage => Icons.thumb_up_rounded,
-      TutorState.idle => null,
-    };
-    final placeholder = Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              color: colorOf(widget.tutorId),
-              borderRadius: BorderRadius.circular(size * 0.28),
-              border: Border.all(
-                color: AuraColors.white,
-                width: size < 80 ? 3 : 5,
-              ),
+    final head = widget.head;
+    final box = head ? TutorPainter.headBox : TutorPainter.bodyBox;
+    final width = widget.size;
+    final height = width * box.height / box.width;
+    final key =
+        'art.tutor.${widget.tutorId}.${widget.world}'
+        '${widget.state == TutorState.idle ? '' : '.${widget.state.name}'}';
+    final path = ArtAssets.pathOf(key);
+    Widget art = path != null
+        ? Image.asset(path, fit: BoxFit.contain)
+        : CustomPaint(
+            painter: TutorPainter(
+              look: TutorLook.of(widget.tutorId, widget.kind),
+              state: _part,
+              head: head,
+              pose: _pose,
             ),
-            child: Icon(icon, size: size * 0.6, color: AuraColors.white),
-          ),
-        ),
-        if (badge != null)
-          Positioned(
-            right: -size * 0.06,
-            top: -size * 0.06,
-            child: Container(
-              width: size * 0.36,
-              height: size * 0.36,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: AuraColors.yellow,
-              ),
-              child: Icon(badge, size: size * 0.24, color: AuraColors.navy),
-            ),
-          ),
-      ],
-    );
-    return AnimatedBuilder(
-      animation: _beat,
-      builder: (_, child) =>
-          Transform.scale(scale: 1 + _beat.value * 0.04, child: child),
-      child: ArtOr(
-        // one picture per state once drawn: art.tutor.<id>.<world>.<state>
-        artKey:
-            'art.tutor.${widget.tutorId}.${widget.world}'
-            '${widget.state == TutorState.idle ? '' : '.${widget.state.name}'}',
-        size: size,
-        placeholder: placeholder,
+          );
+    art = ExcludeSemantics(
+      child: SizedBox(
+        key: ValueKey('tutor.${widget.state.name}'),
+        width: width,
+        height: height,
+        child: art,
       ),
     );
+    if (!head && widget.entrance) {
+      art = Pop(duration: AuraDurations.popBig, curve: Curves.ease, child: art);
+    }
+    return art;
   }
 }
