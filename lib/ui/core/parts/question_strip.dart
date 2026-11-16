@@ -20,7 +20,12 @@ class QuestionStrip extends StatelessWidget {
     required this.chips,
     required this.onSeeQuestion,
     this.seeQuestionLabel = 'See the question',
+    this.seeWord,
   });
+
+  /// The short word beside the eye (the prototype's "See"); null: the eye
+  /// alone.
+  final String? seeWord;
 
   final List<StripChip> chips;
 
@@ -51,21 +56,39 @@ class QuestionStrip extends StatelessWidget {
         Semantics(
           button: true,
           label: seeQuestionLabel,
+          excludeSemantics: true,
           child: GestureDetector(
             key: const Key('seeQuestion'),
             onTap: onSeeQuestion,
             child: PressScale(
               child: Container(
-                // a child's target: 56 pt (NFR-02)
-                width: 56,
-                height: 56,
+                // a child's target: 56 pt (NFR-02); the prototype's .eye:
+                // blue, radius 12, the eye and its word
+                constraints: const BoxConstraints(minWidth: 56, minHeight: 56),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   color: AuraColors.blue,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.visibility_rounded,
-                  color: AuraColors.white,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 4,
+                  children: [
+                    const Icon(
+                      Icons.visibility_rounded,
+                      color: AuraColors.white,
+                      size: 20,
+                    ),
+                    if (seeWord case final w?)
+                      Text(
+                        w,
+                        style: AuraText.standing.copyWith(
+                          fontSize: 15,
+                          color: AuraColors.white,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),

@@ -3484,6 +3484,12 @@ abstract class AppLocalizations {
   /// **'See the question'**
   String get lessonSeeQuestion;
 
+  /// DRAFT (prototype 16 Nov): the word on the question strip's eye button
+  ///
+  /// In en, this message translates to:
+  /// **'See'**
+  String get lessonSee;
+
   /// DRAFT, for Julia and design (no Figma frame), LES-02: closes the whole question and returns to the same place.
   ///
   /// In en, this message translates to:
