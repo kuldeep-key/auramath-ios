@@ -51,6 +51,8 @@ flutter:
     - assets/spec/
     # Apoorv's art by spec art key (D-59): drop-in, no code change
     - assets/art/
+    # the prototype's own pictures and sounds (Endless Orchard path)
+    - assets/proto/sfx/
 
   fonts:
     - family: Nunito
