@@ -3352,7 +3352,7 @@ abstract class AppLocalizations {
   /// **'Your grown-up can see your work.'**
   String get kidMeetLine4;
 
-  /// DRAFT (AI-07): ends the first-meeting scene and opens the first lesson.
+  /// DRAFT (AI-07, JRN-01): Meet's button, with the grown-up there.
   ///
   /// In en, this message translates to:
   /// **'Let\'s start'**
@@ -3699,6 +3699,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'less'**
   String get lessonLess;
+
+  /// DRAFT, for Key (ACC-12, TTR-01): picks a look or a tutor at random; the child sees it and can pick again.
+  ///
+  /// In en, this message translates to:
+  /// **'Surprise me'**
+  String get kidSurpriseMe;
+
+  /// DRAFT, for Key (ACC-12): a look's name for screen readers until Key names the looks. Never a gender.
+  ///
+  /// In en, this message translates to:
+  /// **'Look {n}'**
+  String kidLookName(int n);
+
+  /// DRAFT (TTR-01, contract 6): a tutor's name until Key names the tutors. Never the child's name (NFR-08).
+  ///
+  /// In en, this message translates to:
+  /// **'Your tutor'**
+  String get kidTutorPlaceholderName;
+
+  /// DRAFT (TTR-01): a tutor tile's label until Key names the tutors.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutor {n}'**
+  String kidTutorName(int n);
+
+  /// DRAFT (TTR-06): a voice's label on My tutor until Key names the voices.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice {n}'**
+  String kidVoiceName(int n);
+
+  /// DRAFT (TTR-01, TTR-06): plays the tutor's or voice's hello sample.
+  ///
+  /// In en, this message translates to:
+  /// **'Hear hello'**
+  String get kidHearHello;
+
+  /// DRAFT (ACC-12, TTR-01): saves the look, tutor, voice or world picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose this one'**
+  String get kidChooseThis;
+
+  /// DRAFT (REW-22): a greyed world tile; no name, placeholder art.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get kidComingSoon;
+
+  /// DRAFT (JRN-02): the Me screen's title; the child's own choices, no passcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get kidMe;
+
+  /// DRAFT (JRN-02, AVT-01).
+  ///
+  /// In en, this message translates to:
+  /// **'My look'**
+  String get kidMyLook;
+
+  /// DRAFT (JRN-02, TTR-06).
+  ///
+  /// In en, this message translates to:
+  /// **'My tutor'**
+  String get kidMyTutor;
+
+  /// DRAFT (TTR-06): switch the tutor's voice.
+  ///
+  /// In en, this message translates to:
+  /// **'My tutor\'s voice'**
+  String get kidMyVoice;
+
+  /// DRAFT (JRN-02, JRN-05): only with flags.worlds on and two or more worlds enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'My world'**
+  String get kidMyWorld;
+
+  /// DRAFT (REW-17): a world change applies from the next session.
+  ///
+  /// In en, this message translates to:
+  /// **'Your new world starts next time.'**
+  String get kidWorldNextTime;
+
+  /// DRAFT (ACC-12, TTR-01): a look, tutor or world couldn't be saved.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t save. Check the internet and tap again.'**
+  String get kidSaveFailed;
+
+  /// DRAFT (REW-12): the cabinet's title. Earned badges only; never a count.
+  ///
+  /// In en, this message translates to:
+  /// **'My badges'**
+  String get kidBadgeCabinet;
+
+  /// DRAFT (REW-12): the cabinet with nothing earned yet. No outline, no count, no 'next to earn'.
+  ///
+  /// In en, this message translates to:
+  /// **'Your badges will live here.'**
+  String get kidCabinetEmpty;
+
+  /// DRAFT (JRN-03): the next stop's tag on the path.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stop'**
+  String get kidTrailNext;
+
+  /// catalogue.yaml ui_words explored (Key's word).
+  ///
+  /// In en, this message translates to:
+  /// **'Explored'**
+  String get kidTrailExplored;
+
+  /// DRAFT (JRN-03): an earned stop's tag, beside its medal.
+  ///
+  /// In en, this message translates to:
+  /// **'Earned'**
+  String get kidTrailEarned;
+
+  /// DRAFT (JRN-03): a later stop or the next land's teaser, for screen readers; nothing is named in the mist.
+  ///
+  /// In en, this message translates to:
+  /// **'Still in the mist'**
+  String get kidTrailMist;
+
+  /// catalogue.yaml ui_words polish_me (Key's word, REW-08).
+  ///
+  /// In en, this message translates to:
+  /// **'Polish me'**
+  String get kidPolishMe;
+
+  /// DRAFT (JRN-04): the lesson header's side path during a detour: the case paused, a short path to the skill, and back to the same step.
+  ///
+  /// In en, this message translates to:
+  /// **'Side path'**
+  String get kidSidePath;
+
+  /// DRAFT (JRN-04): the way back on the side path.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to your case'**
+  String get kidSidePathBack;
 }
 
 class _AppLocalizationsDelegate

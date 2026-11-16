@@ -2110,4 +2110,83 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonLess => 'less';
+
+  @override
+  String get kidSurpriseMe => 'Surprise me';
+
+  @override
+  String kidLookName(int n) {
+    return 'Look $n';
+  }
+
+  @override
+  String get kidTutorPlaceholderName => 'Your tutor';
+
+  @override
+  String kidTutorName(int n) {
+    return 'Tutor $n';
+  }
+
+  @override
+  String kidVoiceName(int n) {
+    return 'Voice $n';
+  }
+
+  @override
+  String get kidHearHello => 'Hear hello';
+
+  @override
+  String get kidChooseThis => 'Choose this one';
+
+  @override
+  String get kidComingSoon => 'Coming soon';
+
+  @override
+  String get kidMe => 'Me';
+
+  @override
+  String get kidMyLook => 'My look';
+
+  @override
+  String get kidMyTutor => 'My tutor';
+
+  @override
+  String get kidMyVoice => 'My tutor\'s voice';
+
+  @override
+  String get kidMyWorld => 'My world';
+
+  @override
+  String get kidWorldNextTime => 'Your new world starts next time.';
+
+  @override
+  String get kidSaveFailed =>
+      'That didn\'t save. Check the internet and tap again.';
+
+  @override
+  String get kidBadgeCabinet => 'My badges';
+
+  @override
+  String get kidCabinetEmpty => 'Your badges will live here.';
+
+  @override
+  String get kidTrailNext => 'Next stop';
+
+  @override
+  String get kidTrailExplored => 'Explored';
+
+  @override
+  String get kidTrailEarned => 'Earned';
+
+  @override
+  String get kidTrailMist => 'Still in the mist';
+
+  @override
+  String get kidPolishMe => 'Polish me';
+
+  @override
+  String get kidSidePath => 'Side path';
+
+  @override
+  String get kidSidePathBack => 'Back to your case';
 }

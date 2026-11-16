@@ -22,24 +22,27 @@ void main() {
     );
   });
 
-  testWidgets('B1 shows earned, then next to earn, and no count', (
-    tester,
-  ) async {
+  testWidgets('REW-12: the cabinet shows earned badges only: no outlines, '
+      'no next to earn, no count', (tester) async {
     await show(tester, BadgesScreen(earned: const ['tree'], badges: badges));
     expect(find.text('Tree Detective'), findsOneWidget);
-    expect(find.text('NEXT TO EARN'), findsOneWidget);
-    expect(find.text('Brave Asker'), findsOneWidget);
+    expect(find.text('NEXT TO EARN'), findsNothing);
+    expect(find.text('Brave Asker'), findsNothing);
     expect(find.textContaining(' of '), findsNothing);
     expect(find.textContaining('%'), findsNothing);
 
+    await show(tester, BadgesScreen(earned: const [], badges: badges));
+    expect(find.text('Your badges will live here.'), findsOneWidget);
+  });
+
+  testWidgets('REW-12: tapping a badge says so (badge_opened)', (tester) async {
+    final opened = <String>[];
     await show(
       tester,
-      BadgesScreen(earned: const ['tree', 'asker'], badges: badges),
+      BadgesScreen(earned: const ['tree'], badges: badges, onOpen: opened.add),
     );
-    expect(find.text('NEXT TO EARN'), findsNothing);
-
-    await show(tester, BadgesScreen(earned: const [], badges: badges));
-    expect(find.text('Crack a case to earn your first badge!'), findsOneWidget);
+    await tapAndSettle(tester, find.text('Tree Detective'));
+    expect(opened, ['tree']);
   });
 
   testWidgets('tapping an earned badge opens it; home goes home', (

@@ -36,6 +36,10 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 20));
     });
     await tester.pumpAndSettle();
+    // REW-01: the session's badge first, within its length (REW-16)
+    expect(find.byKey(const Key('celebration')), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 1600));
+    await tester.pumpAndSettle();
     expect(find.text('Ready for a new case?'), findsOneWidget);
   });
 

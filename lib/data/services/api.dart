@@ -24,7 +24,57 @@ typedef ServerBadge = ({
   String name,
   String? forWhat,
   bool draftName,
+
+  /// rules.yaml `session_badge.subtitle`: the case's name ("Tree Word
+  /// Problem"), never a step (TUT-12).
+  String? subtitle,
 });
+
+/// A big badge (stop, land or habit) the events answer names (D-53 A):
+/// shown at the end of the case it was earned in, at most one a session
+/// (REW-11); one earned but not shown comes back [queued] after the first
+/// solved case of the next session. A last stop and its land in one case
+/// are one moment: [alsoLand].
+typedef Award = ({
+  String badgeId,
+  String kind,
+  String name,
+  String? problemId,
+  String celebration,
+  bool queued,
+  ({String badgeId, String name})? alsoLand,
+});
+
+Award? awardFromJson(Object? j) {
+  if (j is! Map || j['badgeId'] is! String || j['name'] is! String) {
+    return null;
+  }
+  final land = j['alsoLand'];
+  final kind = j['kind'] as String? ?? 'skill_mastered';
+  return (
+    badgeId: j['badgeId'] as String,
+    kind: kind,
+    name: j['name'] as String,
+    problemId: j['problemId'] as String?,
+    celebration:
+        j['celebration'] as String? ??
+        switch (kind) {
+          'land' => 'land_badge',
+          'habit' => 'habit_badge',
+          'first_case' => 'first_badge',
+          _ => 'stop_badge',
+        },
+    queued: j['queued'] == true,
+    alsoLand: land is Map && land['badgeId'] is String && land['name'] is String
+        ? (badgeId: land['badgeId'] as String, name: land['name'] as String)
+        : null,
+  );
+}
+
+List<Award> awardsFromJson(Object? j) => [
+  if (j is List)
+    for (final a in j) ?awardFromJson(a),
+];
 
 /// A badge as the server sends it, or null when it isn't one.
 ServerBadge? badgeFromJson(Object? j) {
@@ -37,6 +87,7 @@ ServerBadge? badgeFromJson(Object? j) {
     name: j['name'] as String,
     forWhat: j['for'] as String?,
     draftName: j['draftName'] == true,
+    subtitle: j['subtitle'] as String?,
   );
 }
 
@@ -57,6 +108,9 @@ typedef EventsReply = ({
 
   /// REW-01: the lesson's badge, in the answer to the batch that ends it.
   ServerBadge? badge,
+
+  /// REW-11: the big badges earned in the case this batch completed.
+  List<Award> awards,
 });
 
 /// The child's unfinished lesson on the server.

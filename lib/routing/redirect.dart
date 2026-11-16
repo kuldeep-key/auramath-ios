@@ -98,4 +98,7 @@ bool _needsChild(String loc) =>
     loc == Paths.afterCase ||
     loc == Paths.chooseToday ||
     loc == Paths.quickSums ||
-    loc == Paths.avatar;
+    loc == Paths.avatar ||
+    loc == Paths.badgeWaiting ||
+    loc.startsWith(Paths.me) ||
+    loc == Paths.firstRun;

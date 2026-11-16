@@ -70,7 +70,7 @@ void main() {
     tester,
   ) async {
     await boot(tester, Paths.badges);
-    expect(find.text('Crack a case to earn your first badge!'), findsOneWidget);
+    expect(find.text('Your badges will live here.'), findsOneWidget);
   });
 
   testWidgets('Home shows the child named by the server', (tester) async {
@@ -135,26 +135,45 @@ void main() {
     expect(find.textContaining("didn't save"), findsOneWidget);
   });
 
-  testWidgets('My badges lists what this phone earned', (tester) async {
+  testWidgets('REW-12: the cabinet is the server\'s, earned badges only; '
+      'another child\'s case on this phone is not this child\'s', (
+    tester,
+  ) async {
     await boot(
       tester,
       Paths.badges,
+      // s1 is the fake server's other child's session
       saved: const [
         SpecEvent('problem_completed', {
           'problem_id': 'lemon',
           'outcome': 'solved_alone',
         }),
       ],
+      serve: (server) => server.on('GET /api/children/child-1/rewards', {
+        'world': 'detective',
+        'cabinet': [
+          {'badgeId': 'first_case', 'kind': 'first_case', 'name': 'First Case'},
+          {
+            'badgeId': 'stop.orchard.l1',
+            'kind': 'skill_mastered',
+            'name': 'Seedling Path',
+          },
+        ],
+      }),
     );
-    expect(find.text('Tree Detective'), findsOneWidget);
-    expect(find.text('Brave Asker'), findsOneWidget); // next to earn
+    expect(find.text('First Case'), findsOneWidget);
+    expect(find.text('Seedling Path'), findsOneWidget);
+    // never an outline, one still to earn, or a count
+    expect(find.text('Tree Detective'), findsNothing);
+    expect(find.text('Brave Asker'), findsNothing);
+    expect(find.textContaining(' of '), findsNothing);
   });
 
   testWidgets('an unknown badge or next case goes somewhere sensible', (
     tester,
   ) async {
     await boot(tester, Paths.badge('nope'));
-    expect(find.text('NEXT TO EARN'), findsOneWidget);
+    expect(find.text('Your badges will live here.'), findsOneWidget);
 
     await boot(tester, Paths.afterCaseNext('nope'));
     expect(find.text('Ready for a new case?'), findsOneWidget);

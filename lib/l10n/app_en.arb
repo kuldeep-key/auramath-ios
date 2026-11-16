@@ -804,5 +804,120 @@
   "lessonMore": "more",
   "@lessonMore": {"description": "DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 more')."},
   "lessonLess": "less",
-  "@lessonLess": {"description": "DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 less')."}
+  "@lessonLess": {"description": "DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 less')."},
+  "kidSurpriseMe": "Surprise me",
+  "@kidSurpriseMe": {
+    "description": "DRAFT, for Key (ACC-12, TTR-01): picks a look or a tutor at random; the child sees it and can pick again."
+  },
+  "kidLookName": "Look {n}",
+  "@kidLookName": {
+    "description": "DRAFT, for Key (ACC-12): a look's name for screen readers until Key names the looks. Never a gender.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "kidTutorPlaceholderName": "Your tutor",
+  "@kidTutorPlaceholderName": {
+    "description": "DRAFT (TTR-01, contract 6): a tutor's name until Key names the tutors. Never the child's name (NFR-08)."
+  },
+  "kidTutorName": "Tutor {n}",
+  "@kidTutorName": {
+    "description": "DRAFT (TTR-01): a tutor tile's label until Key names the tutors.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "kidVoiceName": "Voice {n}",
+  "@kidVoiceName": {
+    "description": "DRAFT (TTR-06): a voice's label on My tutor until Key names the voices.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "kidHearHello": "Hear hello",
+  "@kidHearHello": {
+    "description": "DRAFT (TTR-01, TTR-06): plays the tutor's or voice's hello sample."
+  },
+  "kidChooseThis": "Choose this one",
+  "@kidChooseThis": {
+    "description": "DRAFT (ACC-12, TTR-01): saves the look, tutor, voice or world picked."
+  },
+  "kidComingSoon": "Coming soon",
+  "@kidComingSoon": {
+    "description": "DRAFT (REW-22): a greyed world tile; no name, placeholder art."
+  },
+  "kidMe": "Me",
+  "@kidMe": {
+    "description": "DRAFT (JRN-02): the Me screen's title; the child's own choices, no passcode."
+  },
+  "kidMyLook": "My look",
+  "@kidMyLook": {
+    "description": "DRAFT (JRN-02, AVT-01)."
+  },
+  "kidMyTutor": "My tutor",
+  "@kidMyTutor": {
+    "description": "DRAFT (JRN-02, TTR-06)."
+  },
+  "kidMyVoice": "My tutor's voice",
+  "@kidMyVoice": {
+    "description": "DRAFT (TTR-06): switch the tutor's voice."
+  },
+  "kidMyWorld": "My world",
+  "@kidMyWorld": {
+    "description": "DRAFT (JRN-02, JRN-05): only with flags.worlds on and two or more worlds enabled."
+  },
+  "kidWorldNextTime": "Your new world starts next time.",
+  "@kidWorldNextTime": {
+    "description": "DRAFT (REW-17): a world change applies from the next session."
+  },
+  "kidSaveFailed": "That didn't save. Check the internet and tap again.",
+  "@kidSaveFailed": {
+    "description": "DRAFT (ACC-12, TTR-01): a look, tutor or world couldn't be saved."
+  },
+  "kidMeetStart": "Let's start",
+  "@kidMeetStart": {
+    "description": "DRAFT (AI-07, JRN-01): Meet's button, with the grown-up there."
+  },
+  "kidBadgeCabinet": "My badges",
+  "@kidBadgeCabinet": {
+    "description": "DRAFT (REW-12): the cabinet's title. Earned badges only; never a count."
+  },
+  "kidCabinetEmpty": "Your badges will live here.",
+  "@kidCabinetEmpty": {
+    "description": "DRAFT (REW-12): the cabinet with nothing earned yet. No outline, no count, no 'next to earn'."
+  },
+  "kidTrailNext": "Next stop",
+  "@kidTrailNext": {
+    "description": "DRAFT (JRN-03): the next stop's tag on the path."
+  },
+  "kidTrailExplored": "Explored",
+  "@kidTrailExplored": {
+    "description": "catalogue.yaml ui_words explored (Key's word)."
+  },
+  "kidTrailEarned": "Earned",
+  "@kidTrailEarned": {
+    "description": "DRAFT (JRN-03): an earned stop's tag, beside its medal."
+  },
+  "kidTrailMist": "Still in the mist",
+  "@kidTrailMist": {
+    "description": "DRAFT (JRN-03): a later stop or the next land's teaser, for screen readers; nothing is named in the mist."
+  },
+  "kidPolishMe": "Polish me",
+  "@kidPolishMe": {
+    "description": "catalogue.yaml ui_words polish_me (Key's word, REW-08)."
+  },
+  "kidSidePath": "Side path",
+  "@kidSidePath": {
+    "description": "DRAFT (JRN-04): the lesson header's side path during a detour: the case paused, a short path to the skill, and back to the same step."
+  },
+  "kidSidePathBack": "Back to your case",
+  "@kidSidePathBack": {
+    "description": "DRAFT (JRN-04): the way back on the side path."
+  }
 }

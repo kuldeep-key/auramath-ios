@@ -24,6 +24,10 @@ class HomeMomentsSource {
   final Set<String> _shownSessions = {};
   DateTime? _streakShownOn;
 
+  /// [sessionId]'s badge has shown elsewhere (waiting from last time,
+  /// REW-01): not again here.
+  void markShown(String sessionId) => _shownSessions.add(sessionId);
+
   /// [replied]: the badge the server named in its answer to the batch
   /// that ended the session (REW-01), when it did: shown as it is, with no
   /// rewards read. [onStreak]: today's streak moment is about to show

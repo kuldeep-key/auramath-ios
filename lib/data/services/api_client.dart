@@ -326,6 +326,7 @@ class HttpApi implements Api {
           ended: 'full',
           continuedIn: null,
           badge: null,
+          awards: const <Award>[],
         );
       }
       // consent withdrawn (the events route's only 403): nothing more may
@@ -336,6 +337,7 @@ class HttpApi implements Api {
           ended: 'consent',
           continuedIn: null,
           badge: null,
+          awards: const <Award>[],
         );
       }
       rethrow;
@@ -350,6 +352,7 @@ class HttpApi implements Api {
       ended: ended == null ? null : '${ended['reason']}',
       continuedIn: continued?['sessionId'] as String?,
       badge: badgeFromJson(json['badge']),
+      awards: awardsFromJson(json['awards']),
     );
   }
 }
