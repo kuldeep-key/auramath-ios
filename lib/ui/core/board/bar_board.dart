@@ -751,9 +751,7 @@ class _BarBoardState extends State<BarBoard> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ExcludeSemantics(
-                    child: Text(item.pic, style: const TextStyle(fontSize: 24)),
-                  ),
+                  ExcludeSemantics(child: storyPicture(item.pic, 28)),
                   Text(
                     item.name,
                     style: AuraText.barName,
@@ -1228,3 +1226,14 @@ class _Handle extends StatelessWidget {
     );
   }
 }
+
+/// The story's picture: the prototype's Fluent 3D bowl and mug for Julia's
+/// weight story (WT1, WT2), else the pack's emoji.
+Widget storyPicture(String pic, double size) => switch (pic) {
+  '🥣' || '☕' => Image.asset(
+    'assets/proto/pictures/${pic == '🥣' ? 'bowl-with-spoon' : 'mug-hot-beverage'}.png',
+    width: size,
+    height: size,
+  ),
+  _ => Text(pic, style: TextStyle(fontSize: size * .86)),
+};

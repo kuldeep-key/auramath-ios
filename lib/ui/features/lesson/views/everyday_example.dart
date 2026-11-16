@@ -10,8 +10,8 @@ import 'help_sheet.dart';
 /// a grown-up and a child side by side, not bars, with the policy line
 /// ("Think of a grown-up and you. Who is taller?"), then back to the step.
 ///
-/// DRAFT for Design: no Figma frame, and the art is Material's person
-/// figures until Apoorv draws a parent and a child.
+/// The prototype's hint picture (`.hintpic`): its Fluent 3D grown-up and
+/// child, the grown-up the taller, standing on one line.
 class EverydayExampleSheet extends StatelessWidget {
   const EverydayExampleSheet({super.key, required this.vm});
 
@@ -34,12 +34,16 @@ class EverydayExampleSheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 _Figure(
-                  icon: Icons.man_rounded,
-                  size: 160,
+                  image: 'assets/proto/pictures/grown-up-person.png',
+                  size: 150,
                   label: l.lessonGrownUp,
                 ),
                 const SizedBox(width: 8),
-                _Figure(icon: Icons.boy_rounded, size: 96, label: l.lessonYou),
+                _Figure(
+                  image: 'assets/proto/pictures/child.png',
+                  size: 100,
+                  label: l.lessonYou,
+                ),
               ],
             ),
           ),
@@ -63,9 +67,9 @@ class EverydayExampleSheet extends StatelessWidget {
 }
 
 class _Figure extends StatelessWidget {
-  const _Figure({required this.icon, required this.size, required this.label});
+  const _Figure({required this.image, required this.size, required this.label});
 
-  final IconData icon;
+  final String image;
   final double size;
   final String label;
 
@@ -73,7 +77,7 @@ class _Figure extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     mainAxisAlignment: MainAxisAlignment.end,
     children: [
-      Icon(icon, size: size - 24, color: AuraColors.navy),
+      Image.asset(image, height: size - 24, fit: BoxFit.contain),
       Text(label, style: AuraText.small),
     ],
   );

@@ -53,6 +53,7 @@ flutter:
     - assets/art/
     # the prototype's own pictures and sounds (Endless Orchard path)
     - assets/proto/sfx/
+    - assets/proto/pictures/
 
   fonts:
     - family: Nunito
