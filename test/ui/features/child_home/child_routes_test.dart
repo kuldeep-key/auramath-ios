@@ -211,7 +211,8 @@ void main() {
     expect(find.text('Your badges will live here.'), findsOneWidget);
 
     await boot(tester, Paths.afterCaseNext('nope'));
-    expect(find.text('Ready for a new case?'), findsOneWidget);
+    // Home: its tutor's greeting on the ribbon
+    expect(find.text('Your case is waiting.'), findsOneWidget);
   });
 
   testWidgets('after a case with nothing saved, X1 shows the next case', (

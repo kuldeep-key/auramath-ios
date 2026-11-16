@@ -66,12 +66,12 @@ void main() {
     expect(find.byType(Portrait), findsOneWidget);
   });
 
-  testWidgets('Grown-ups goes to the grown-up area', (tester) async {
+  testWidgets('Family area goes to the grown-up area', (tester) async {
     final (deps, server) = await setUp(tester);
     server.on(_children, familyJson(['Sam', 'Ari']));
     await tester.pumpWidget(shotApp(screen(deps)));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Grown-ups'));
+    await tester.tap(find.text('Family area'));
     await tester.pumpAndSettle();
     expect(find.text('went to ${Paths.grownUps}'), findsOneWidget);
   });

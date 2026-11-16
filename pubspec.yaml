@@ -52,6 +52,7 @@ flutter:
     # Apoorv's art by spec art key (D-59): drop-in, no code change
     - assets/art/
     # the prototype's own pictures and sounds (Endless Orchard path)
+    - assets/proto/
     - assets/proto/sfx/
 
   fonts:

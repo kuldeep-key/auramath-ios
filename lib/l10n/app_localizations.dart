@@ -3574,10 +3574,10 @@ abstract class AppLocalizations {
   /// **'Back home'**
   String get kidQuickHome;
 
-  /// DRAFT, for Julia (LES-14, Figma A3 / 4.2): Choose today's title.
+  /// DRAFT, for Julia (LES-14, prototype A3, 16 Nov; Figma A3 / 4.2 had 'What shall we do today?'): Choose today's title.
   ///
   /// In en, this message translates to:
-  /// **'What shall we do today?'**
+  /// **'Which one first?'**
   String get kidTodayTitle;
 
   /// DRAFT, for Julia (LES-14): today's case, at the child's level.
@@ -3741,6 +3741,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose this one'**
   String get kidChooseThis;
+
+  /// DRAFT, for Key (ACC-12; prototype LookPick, 16 Nov): saves the look picked.
+  ///
+  /// In en, this message translates to:
+  /// **'This is me!'**
+  String get kidThisIsMe;
+
+  /// DRAFT, for Key (TTR-01; prototype TutorPick, 16 Nov): saves the tutor picked.
+  ///
+  /// In en, this message translates to:
+  /// **'This is my teacher!'**
+  String get kidThisIsMyTutor;
+
+  /// DRAFT, for Key (JRN-02; prototype Me, 16 Nov): under My look.
+  ///
+  /// In en, this message translates to:
+  /// **'Change how you look'**
+  String get kidMyLookNote;
+
+  /// DRAFT, for Key (JRN-02; prototype Me, 16 Nov): under My tutor.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick who teaches you'**
+  String get kidMyTutorNote;
+
+  /// DRAFT, for Key (TTR-06; prototype Me, 16 Nov): under My tutor's voice.
+  ///
+  /// In en, this message translates to:
+  /// **'How your teacher sounds'**
+  String get kidMyVoiceNote;
+
+  /// DRAFT, for Key (REW-22; prototype Me, 16 Nov): under My world.
+  ///
+  /// In en, this message translates to:
+  /// **'Where your cases happen'**
+  String get kidMyWorldNote;
+
+  /// DRAFT, for Key (DEV-01; prototype A1, 16 Nov): under Who's learning today?
+  ///
+  /// In en, this message translates to:
+  /// **'Tap your picture.'**
+  String get kidTapYourPicture;
+
+  /// DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): something failed on the child's side. Nothing red, no error code.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t work'**
+  String get kidErrTitle;
+
+  /// DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): under That didn't work.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s have another go.'**
+  String get kidErrLine;
+
+  /// DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): tries the read again.
+  ///
+  /// In en, this message translates to:
+  /// **'Have another go'**
+  String get kidErrRetry;
+
+  /// DRAFT, for Key (SES-07; prototype WelcomeBack, 16 Nov): back on a later day with no case waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for a case?'**
+  String get kidReadyForACase;
+
+  /// DRAFT, for Key (prototype ErrChild, 16 Nov): back to the child's Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Go home'**
+  String get kidGoHome;
+
+  /// DRAFT, for Key (ACC-01; prototype Open, 16 Nov): the ribbon on a fresh phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! Ready to play?'**
+  String get pairReadyToPlay;
+
+  /// DRAFT, for Key (DEV-02; prototype Open, 16 Nov): a child pairs this phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get pairPlay;
+
+  /// DRAFT, for Key (ACC-01; prototype Open, 16 Nov): a grown-up sets up.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents and carers'**
+  String get pairParentsAndCarers;
+
+  /// DRAFT, for Key (ACC-01; prototype Open, 16 Nov): a grown-up signs in.
+  ///
+  /// In en, this message translates to:
+  /// **'Already set up? Sign in'**
+  String get pairSetUpSignIn;
+
+  /// DRAFT, for Key (DEV-01; prototype A1, 16 Nov): the grown-ups' way in, behind the passcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Family area'**
+  String get pairFamilyArea;
 
   /// DRAFT (REW-22): a greyed world tile; no name, placeholder art.
   ///

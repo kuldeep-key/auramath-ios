@@ -68,18 +68,34 @@ class _KidsScreenState extends State<KidsScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    // the prototype's A1 (16 Nov): the ribbon, "Tap your picture." and the
+    // children's tiles in the middle; the Family area pinned below
     return AuraPage(
       play: true,
+      bottom: AuraButton(
+        label: l.pairFamilyArea,
+        leading: const Icon(
+          Icons.lock_rounded,
+          size: 28,
+          color: AuraColors.navy,
+        ),
+        color: AuraButtonColor.white,
+        onPressed: () => context.go(Paths.grownUps),
+      ),
       body: Padding(
         padding: const EdgeInsets.only(top: 18),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Ribbon(text: l.pairWhosLearning),
+            Center(child: Ribbon(text: l.pairWhosLearning)),
+            const SizedBox(height: 12),
+            Text(
+              l.kidTapYourPicture,
+              textAlign: TextAlign.center,
+              style: AuraText.play.copyWith(fontSize: 19),
             ),
-            const SizedBox(height: 26),
+            const SizedBox(height: 18),
             FutureBuilder(
               future: _children,
               builder: (context, snap) {
@@ -146,13 +162,6 @@ class _KidsScreenState extends State<KidsScreen> {
                 );
               },
             ),
-            const SizedBox(height: 20),
-            AuraButton(
-              label: l.pairGrownUps,
-              icon: Icons.lock_outline_rounded,
-              color: AuraButtonColor.white,
-              onPressed: () => context.go(Paths.grownUps),
-            ),
           ],
         ),
       ),
@@ -180,7 +189,8 @@ class _ChildTile extends StatelessWidget {
           borderRadius: radius,
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.all(17),
+            constraints: const BoxConstraints(minHeight: 190),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               borderRadius: radius,
               border: Border.all(color: AuraColors.navy, width: 3),
@@ -197,8 +207,9 @@ class _ChildTile extends StatelessWidget {
               ),
             ),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AvatarDisc(avatar: child.avatar, size: 96),
+                AvatarDisc(avatar: child.avatar, size: 112),
                 const SizedBox(height: 8),
                 Text(
                   child.name,

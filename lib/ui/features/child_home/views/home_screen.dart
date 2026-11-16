@@ -10,7 +10,6 @@ import '../../../core/parts/avatar.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/parts/journey_art.dart';
-import 'journey_screens.dart';
 import 'play_icon_button.dart';
 
 /// The child's home (JRN-02): their look and name small at the top (tap:
@@ -104,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
         : LookPortrait(lookId: lookId, world: world, size: size);
     return AuraPage(
       play: true,
-      say: l.readyForNewCase,
+      say: greeting ?? l.readyForNewCase,
       top: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Row(
@@ -132,30 +131,39 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             PlayIconButton(
-              icon: Icons.lock_outline_rounded,
+              icon: Icons.lock_rounded,
               tooltip: l.kidForGrownUps,
               onPressed: () => context.go(grownUps),
             ),
           ],
         ),
       ),
+      // the prototype's Home: the tutor large and its greeting on the
+      // ribbon under it (no bubble: one line, not two)
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        spacing: moment == null ? 32 : 16,
+        spacing: moment == null ? 14 : 12,
         children: [
           if (tutorId != null && greeting != null)
-            TutorSays(
-              tutorId: tutorId,
-              tutorKind: widget.tutorKind,
-              world: world,
-              line: greeting,
-              size: moment == null ? 170 : 110,
-              onTap: () => widget.onGreet?.call(tapped: true),
+            Semantics(
+              button: true,
+              label: greeting,
+              excludeSemantics: true,
+              child: GestureDetector(
+                key: const Key('tutor'),
+                onTap: () => widget.onGreet?.call(tapped: true),
+                child: TutorFigure(
+                  tutorId: tutorId,
+                  kind: widget.tutorKind,
+                  world: world,
+                  size: moment == null ? 220 : 110,
+                ),
+              ),
             )
           else
             Float(child: me(moment == null ? 210 : 120)),
           ?moment,
-          Ribbon(text: l.readyForNewCase),
+          Ribbon(text: greeting ?? l.readyForNewCase),
         ],
       ),
       bottom: Column(
@@ -164,7 +172,12 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           AuraButton(
             label: l.keepGoing,
-            icon: Icons.play_arrow_rounded,
+            // the prototype's play mark sits before the words
+            leading: const Icon(
+              Icons.play_arrow_rounded,
+              size: 26,
+              color: AuraColors.buttonYellowText,
+            ),
             onPressed: () => context.go(play),
           ),
           // Figma's icons don't fit beside the labels in a half-width button

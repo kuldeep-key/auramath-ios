@@ -38,11 +38,14 @@ void main() {
     await show(tester, screen());
     expect(find.byKey(const Key('grownUpNote')), findsOneWidget);
     expect(
-      find.text("I'm a computer helper, an AI. I'm not a person."),
+      find.textContaining("I'm a computer helper, an AI. I'm not a person."),
       findsOneWidget,
     );
     expect(find.textContaining('I can make mistakes'), findsOneWidget);
-    expect(find.text('Your grown-up can see your work.'), findsOneWidget);
+    expect(
+      find.textContaining('Your grown-up can see your work.'),
+      findsOneWidget,
+    );
     // read aloud as it opens, and again on a tap
     expect(said.single, contains('an AI'));
     await tapAndSettle(tester, find.text('Hear it again'));
@@ -58,7 +61,7 @@ void main() {
 
   testWidgets('the content bundle\'s lines replace the drafts', (tester) async {
     await show(tester, screen(served: ['Served line one.', 'Served two.']));
-    expect(find.text('Served line one.'), findsOneWidget);
+    expect(find.textContaining('Served line one.'), findsOneWidget);
     expect(find.textContaining('an AI'), findsNothing);
   });
 
