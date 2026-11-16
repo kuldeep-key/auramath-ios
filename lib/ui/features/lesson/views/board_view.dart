@@ -131,7 +131,6 @@ class _BoardViewState extends State<BoardView> {
                     ],
                     onSeeQuestion: vm.seeQuestion,
                     seeQuestionLabel: l.lessonSeeQuestion,
-                    seeWord: l.lessonSee,
                   ),
                 ),
                 if (vm.questions case final qs when qs.isNotEmpty) ...[
