@@ -4,8 +4,10 @@ import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
 /// The coach's line. Figma: Prototype parts › Speech bubble. Each new line
-/// comes in word by word, as the prototype's: every word rises 6 px and
-/// fades in (320 ms, springy), 45 ms after the one before.
+/// comes in word by word, as the prototype's `coachHTML` and `wordIn`:
+/// every word rises 6 px and fades in (320 ms, springy: the prototype's
+/// `.bubble .w` rule), 45 ms after the one before, so the words appear as
+/// the tutor says them.
 class SpeechBubble extends StatelessWidget {
   const SpeechBubble({super.key, required this.text, this.big = false});
 
@@ -14,7 +16,8 @@ class SpeechBubble extends StatelessWidget {
   /// The voice is resting: the words show big instead (NoVoice 659:39).
   final bool big;
 
-  static const _word = 320, _stagger = 45;
+  static final _word = AuraDurations.wordIn.inMilliseconds;
+  static final _stagger = AuraDurations.wordStagger.inMilliseconds;
 
   @override
   Widget build(BuildContext context) {
@@ -76,11 +79,14 @@ class _Word extends StatelessWidget {
   final double t;
 
   @override
-  Widget build(BuildContext context) => Opacity(
-    opacity: t,
-    child: Transform.translate(
-      offset: Offset(0, 6 * (1 - AuraCurves.spring.transform(t))),
-      child: Text(word, style: style),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final e = AuraCurves.spring.transform(t);
+    return Opacity(
+      opacity: e.clamp(0.0, 1.0),
+      child: Transform.translate(
+        offset: Offset(0, 6 * (1 - e)),
+        child: Text(word, style: style),
+      ),
+    );
+  }
 }

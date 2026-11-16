@@ -66,6 +66,7 @@ class _AuraAppState extends State<AuraApp> {
     builder: (context, child) => ReadAloud(
       // the speaker on every child screen (NFR-06)
       say: widget.deps.voice.say,
+      speaking: widget.deps.voice.speaking,
       child: MediaQuery.withClampedTextScaling(
         maxScaleFactor: 1.3,
         child: child!,

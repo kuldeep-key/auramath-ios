@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import '../services/api.dart';
 import '../services/api_client.dart';
 import '../services/key_store.dart';
+import '../services/sound_effects.dart';
 
 /// A lesson's drawing (PAR-09): the PNG, and what it shows in words.
 typedef SessionDrawing = ({Uint8List png, String? caption});
@@ -456,9 +457,12 @@ class GrownUpRepository {
       '0' => false,
       _ => null,
     };
+    final readAloud = await flag('lesson.readAloud');
+    // the sound effects follow the grown-up's read-aloud, once it is set
+    if (readAloud != null) AuraSound.soundOn.value = readAloud;
     return LessonPrefs(
       minutes: minutes ?? d.minutes,
-      readAloud: await flag('lesson.readAloud'),
+      readAloud: readAloud,
       biggerPad: await flag('lesson.biggerPad') ?? d.biggerPad,
     );
   }
@@ -468,6 +472,7 @@ class GrownUpRepository {
     await _store.write('lesson.minutes', '${p.minutes}');
     await _store.write('lesson.readAloud', b(p.readAloud));
     await _store.write('lesson.biggerPad', b(p.biggerPad));
+    if (p.readAloud != null) AuraSound.soundOn.value = p.readAloud!;
   }
 
   // ---------------------------------------------- forgot the passcode

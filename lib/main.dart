@@ -27,6 +27,7 @@ import 'data/services/key_store.dart';
 import 'data/services/outbox_db.dart';
 import 'data/services/pack_source.dart';
 import 'data/services/social_sign_in.dart';
+import 'data/services/sound_effects.dart';
 import 'data/services/voice.dart';
 import 'deps.dart';
 import 'ui/core/parts/journey_art.dart';
@@ -196,6 +197,8 @@ Future<void> main() async {
   );
   // which of Apoorv's art files this build holds (placeholders until then)
   await ArtAssets.load();
+  // the prototype's sound effects, under the app's sound setting
+  AuraSound.player = AssetSfxPlayer();
   final looks = LookRepository(client, journey);
   // every line in the voice the child chose for their tutor (TTR-02)
   void voiceOfChild() => voice.voiceId = looks.cached(account.childId)?.voiceId;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../data/services/sound_effects.dart';
 import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
@@ -101,6 +102,9 @@ class _AuraButtonState extends State<AuraButton> {
             ? (_) {
                 setState(() => _down = false);
                 AuraHaptics.tap();
+                // the prototype's confirmTap: the main (filled) buttons
+                // confirm with a soft blip; white ones are silent
+                if (widget.color != AuraButtonColor.white) AuraSound.tap();
                 widget.onPressed!();
               }
             : null,

@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 
 import '../motion/motion.dart';
 import '../theme/tokens.dart';
+import 'speak_button.dart';
 import 'speech_bubble.dart';
 
-/// Speak button, the coach's line, and home. Figma: Prototype parts ›
-/// Lesson header.
+/// The tutor's speak button, the coach's line, and home: the prototype's
+/// `lhead`. Figma: Prototype parts › Lesson header.
 class LessonHeader extends StatelessWidget {
   const LessonHeader({
     super.key,
@@ -56,36 +57,8 @@ class LessonHeader extends StatelessWidget {
   Widget _row(BuildContext context) => Row(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
-      ValueListenableBuilder(
-        valueListenable: speaking ?? const _Quiet(),
-        builder: (context, on, button) => on
-            ? Loop(
-                period: const Duration(seconds: 1),
-                builder: (context, t, child) => DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AuraColors.blue.withValues(
-                          alpha: 0.25 * halfway(t),
-                        ),
-                        spreadRadius: 6 * halfway(t),
-                      ),
-                    ],
-                  ),
-                  child: child,
-                ),
-                child: button,
-              )
-            : button!,
-        child: _SquareButton(
-          icon: Icons.volume_up_rounded,
-          fill: AuraColors.blue,
-          fg: AuraColors.white,
-          label: 'Say it again',
-          onTap: onSpeak,
-        ),
-      ),
+      // the child's tutor: it talks while the line plays (TTR-03, TTR-05)
+      TutorSpeakButton(onTap: onSpeak, speaking: speaking),
       const SizedBox(width: 8),
       // a long line in large text (NFR-04) scrolls in the bubble rather
       // than pushing the board off the screen
@@ -227,18 +200,4 @@ class _SquareButton extends StatelessWidget {
       ),
     ),
   );
-}
-
-/// No voice to follow: never speaking.
-class _Quiet implements ValueListenable<bool> {
-  const _Quiet();
-
-  @override
-  bool get value => false;
-
-  @override
-  void addListener(VoidCallback listener) {}
-
-  @override
-  void removeListener(VoidCallback listener) {}
 }

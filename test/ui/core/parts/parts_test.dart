@@ -135,7 +135,7 @@ void main() {
       ),
     );
     expect(find.text('Drag a bar up here.'), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.volume_up_rounded));
+    await tester.tap(find.byKey(const Key('tutorSpeak')));
     await tester.tap(find.byIcon(Icons.home_rounded));
     expect((spoke, home), (1, 1));
   });
