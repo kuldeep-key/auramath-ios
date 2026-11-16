@@ -187,6 +187,7 @@ class _SideLessonViewState extends State<SideLessonView> {
             ),
             const SizedBox(height: 8),
             Keypad(
+              ours: true,
               keyHeight: widget.vm.biggerPad ? 64 : 56,
               onChanged: (s) => setState(() => _typed = s),
               onCheck: _typedIn,

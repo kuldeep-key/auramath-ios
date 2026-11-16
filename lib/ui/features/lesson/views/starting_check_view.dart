@@ -94,6 +94,7 @@ class _StartingCheckViewState extends State<StartingCheckView> {
           ),
           const Spacer(),
           Keypad(
+            ours: true,
             // a fresh pad for each sum
             key: ValueKey(vm.startingAt),
             keyHeight: vm.biggerPad ? 64 : 56,

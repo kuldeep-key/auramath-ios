@@ -236,10 +236,22 @@ class _BarBoardState extends State<BarBoard> {
     return LayoutBuilder(
       builder: (context, c) {
         final w = c.maxWidth, h = c.maxHeight;
+        // working the sum out (the prototype's .board.compact): the keypad
+        // is up, so the names, the total and the tray step aside and the
+        // bars keep their height; each value carries its picture instead
+        final compact =
+            _step == LessonStep.findB || _step == LessonStep.findTotal;
         final trayH = showTray ? 76.0 : 0.0;
-        final totH = p.ask == Ask.total ? 62.0 : 0.0;
-        const capH = 56.0, topH = 40.0;
+        final totH = p.ask == Ask.total && !compact ? 62.0 : 0.0;
+        final capH = compact ? 14.0 : 56.0;
+        const topH = 40.0;
         final base = trayH + totH + capH;
+        final valueStyle = compact
+            ? AuraText.barValue.copyWith(fontSize: 20)
+            : AuraText.barValue;
+        String valued(String pic, String v) => compact ? '$pic $v' : v;
+        // B's value sits inside the top of its bar once there's room
+        // (the prototype's .measure.in: white 22, 42 down from the top)
         final maxH = (h - base - topH).clamp(60.0, double.infinity);
         final bw = ((w - 60) / 2.6).clamp(40.0, 92.0);
         final gapX = (bw * 0.55).clamp(0.0, 48.0);
@@ -307,15 +319,18 @@ class _BarBoardState extends State<BarBoard> {
                 ),
               ),
               at(
-                xA - 20,
-                base + hA + 6,
-                bw + 40,
-                30,
+                xA - 30,
+                base + hA + 10,
+                bw + 60,
+                34,
                 Center(
                   child: Pop(
-                    child: Text(
-                      '${p.aValue} ${p.unit}',
-                      style: AuraText.barValue,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        valued(p.a.pic, '${p.aValue} ${p.unit}'),
+                        style: valueStyle,
+                      ),
                     ),
                   ),
                 ),
@@ -338,24 +353,37 @@ class _BarBoardState extends State<BarBoard> {
                       1,
                       Bar(
                         color: AuraColors.blue,
-                        child: bFound
-                            // found: the answer grows in (from 1.4×)
-                            ? Entrance(
-                                duration: const Duration(milliseconds: 400),
-                                builder: (context, t, child) => Transform.scale(
-                                  scale: 1.4 - 0.4 * t,
-                                  child: child,
+                        childAlignment: Alignment.topCenter,
+                        child: hB <= 40
+                            ? null
+                            : Padding(
+                                padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: bFound
+                                      // found: the answer grows in (from 1.4x)
+                                      ? Entrance(
+                                          duration: const Duration(
+                                            milliseconds: 400,
+                                          ),
+                                          builder: (context, t, child) =>
+                                              Transform.scale(
+                                                scale: 1.4 - 0.4 * t,
+                                                child: child,
+                                              ),
+                                          child: Text(
+                                            valued(
+                                              p.b.pic,
+                                              '${p.bValue} ${p.unit}',
+                                            ),
+                                            style: AuraText.barInside,
+                                          ),
+                                        )
+                                      : Text(
+                                          valued(p.b.pic, '? ${p.unit}'),
+                                          style: AuraText.barInside,
+                                        ),
                                 ),
-                                child: Text(
-                                  '${p.bValue}\n${p.unit}',
-                                  textAlign: TextAlign.center,
-                                  style: AuraText.barInside,
-                                ),
-                              )
-                            : Text(
-                                '?\n${p.unit}',
-                                textAlign: TextAlign.center,
-                                style: AuraText.barInside,
                               ),
                       ),
                     ),
@@ -365,24 +393,22 @@ class _BarBoardState extends State<BarBoard> {
               ),
               if (_step == LessonStep.sizeB)
                 at(
-                  xB + bw / 2 - 24,
-                  base + hB - 14,
+                  xB + bw / 2 - 32,
+                  base + hB - 22,
+                  64,
                   48,
-                  28,
                   Listener(
                     key: const Key('handleB'),
+                    behavior: HitTestBehavior.opaque,
                     onPointerDown: (e) => _dragStartY = e.position.dy,
                     onPointerMove: (e) => setState(
                       () => _dragDy =
                           e.position.dy - (_dragStartY ?? e.position.dy),
                     ),
                     onPointerUp: (_) => _endSizing(maxH),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AuraColors.white,
-                        borderRadius: BorderRadius.circular(AuraRadii.small),
-                        border: Border.all(color: AuraColors.navy, width: 3),
-                      ),
+                    child: const Align(
+                      alignment: Alignment(0, -0.33),
+                      child: _Handle(),
                     ),
                   ),
                 ),
@@ -406,36 +432,37 @@ class _BarBoardState extends State<BarBoard> {
               ),
             // captions
             for (final (x, item) in [(xA, p.a), (xB, p.b)])
-              Positioned(
-                left: x - 14,
-                width: bw + 28,
-                bottom: base - capH,
-                height: capH,
-                // large text (NFR-04, 1.3x): the caption shrinks into its box
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.topCenter,
-                  child: Column(
-                    children: [
-                      // Figma's caption: the emoji at 26 / 28.6; a picture
-                      // of the name under it, so not read out
-                      ExcludeSemantics(
-                        child: Text(
-                          item.pic,
-                          style: const TextStyle(fontSize: 26, height: 1.1),
+              if (!compact)
+                Positioned(
+                  left: x - 14,
+                  width: bw + 28,
+                  bottom: base - capH,
+                  height: capH,
+                  // large text (NFR-04, 1.3x): the caption shrinks into its box
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.topCenter,
+                    child: Column(
+                      children: [
+                        // Figma's caption: the emoji at 26 / 28.6; a picture
+                        // of the name under it, so not read out
+                        ExcludeSemantics(
+                          child: Text(
+                            item.pic,
+                            style: const TextStyle(fontSize: 26, height: 1.1),
+                          ),
                         ),
-                      ),
-                      Text(
-                        item.name,
-                        textAlign: TextAlign.center,
-                        style: AuraText.barName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                        Text(
+                          item.name,
+                          textAlign: TextAlign.center,
+                          style: AuraText.barName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             // the total
             if (_step == LessonStep.placeTotal)
               Positioned(
@@ -445,7 +472,7 @@ class _BarBoardState extends State<BarBoard> {
                 height: 56,
                 child: _slot(_Zone.totalSlot, '${l.pieceTotal}?'),
               ),
-            if (s.totalPlaced)
+            if (s.totalPlaced && !compact)
               Positioned(
                 left: xA,
                 width: xB + bw - xA,
@@ -531,6 +558,7 @@ class _BarBoardState extends State<BarBoard> {
     final visual = TrayPiece(
       piece: piece,
       label: label,
+      barColor: _step == LessonStep.drawA ? AuraColors.yellow : AuraColors.blue,
       armed: _armed == piece,
       glow: widget.glowPiece,
     );
@@ -713,7 +741,10 @@ class _BarBoardState extends State<BarBoard> {
               bw,
               _zone(
                 _Zone.barA,
-                (_) => _cheered(0, const Bar(color: AuraColors.yellow)),
+                (_) => _cheered(
+                  0,
+                  const Bar(color: AuraColors.yellow, across: true),
+                ),
                 label: p.a.name,
               ),
             ),
@@ -744,6 +775,7 @@ class _BarBoardState extends State<BarBoard> {
                     1,
                     Bar(
                       color: AuraColors.blue,
+                      across: true,
                       child: Text(
                         s.bFound ? '${p.bValue} ${p.unit}' : '? ${p.unit}',
                         style: AuraText.barInside,
@@ -769,13 +801,7 @@ class _BarBoardState extends State<BarBoard> {
                         -(e.position.dx - (_dragStartY ?? e.position.dx)),
                   ),
                   onPointerUp: (_) => _endSizing(maxL),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AuraColors.white,
-                      borderRadius: BorderRadius.circular(AuraRadii.small),
-                      border: Border.all(color: AuraColors.navy, width: 3),
-                    ),
-                  ),
+                  child: const _Handle(across: true),
                 ),
               ),
           ],
@@ -1126,4 +1152,39 @@ class _AcrossBrace extends StatelessWidget {
       ),
     ],
   );
+}
+
+/// The grip on B's top (the prototype's .handle): a white pill, 44 by 28,
+/// a navy edge and three navy lines; across, it stands on B's end.
+class _Handle extends StatelessWidget {
+  const _Handle({this.across = false});
+
+  final bool across;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget line() => Container(
+      width: across ? 3 : 16,
+      height: across ? 16 : 3,
+      decoration: BoxDecoration(
+        color: AuraColors.navy,
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
+    return Container(
+      width: across ? 28 : 44,
+      height: across ? 44 : 28,
+      decoration: BoxDecoration(
+        color: AuraColors.white,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AuraColors.navy, width: 3),
+      ),
+      child: Flex(
+        direction: across ? Axis.horizontal : Axis.vertical,
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 2,
+        children: [line(), line(), line()],
+      ),
+    );
+  }
 }

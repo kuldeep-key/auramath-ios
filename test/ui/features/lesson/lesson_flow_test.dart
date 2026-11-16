@@ -57,7 +57,7 @@ void main() {
       for (final d in digits.split('')) {
         await tap(find.text(d).last);
       }
-      await tap(find.byIcon(Icons.check_rounded));
+      await tap(find.byKey(const Key('keypadCheck')));
     }
 
     await tap(find.text("Got it, let's draw"));

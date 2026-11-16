@@ -45,7 +45,7 @@ class TutorLesson {
     for (final d in digits.split('')) {
       await tap(find.text(d).last);
     }
-    await tap(find.byIcon(Icons.check_rounded));
+    await tap(find.byKey(const Key('keypadCheck')));
   }
 }
 

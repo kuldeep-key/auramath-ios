@@ -268,4 +268,7 @@ abstract final class AuraText {
   );
   static final braceLabel = _nunito(700, 20, color: AuraColors.white);
   static final gap = _nunito(900, 19, color: AuraColors.blueInk);
+
+  /// The child's number pad keys (`.pad.ours button`): Black 28, navy.
+  static final key = _nunito(900, 28, color: AuraColors.navy);
 }

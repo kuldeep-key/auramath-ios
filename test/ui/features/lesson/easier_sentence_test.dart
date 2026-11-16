@@ -59,7 +59,7 @@ void main() {
   ];
 
   Future<void> openHelp(WidgetTester tester) async {
-    await tester.tap(find.byTooltip('Help me'));
+    await tester.tap(find.byKey(const Key('sentenceHelp')));
     await tester.pumpAndSettle();
   }
 

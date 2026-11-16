@@ -112,7 +112,7 @@ void main() {
     for (final d in ['1', '2', '2']) {
       await tap(find.text(d).last);
     }
-    await tap(find.byIcon(Icons.check_rounded));
+    await tap(find.byKey(const Key('keypadCheck')));
     await tap(find.text('Next'));
     await tap(find.text('Add to my sash'));
 

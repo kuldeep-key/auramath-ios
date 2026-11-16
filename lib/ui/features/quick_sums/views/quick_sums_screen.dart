@@ -131,6 +131,7 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
         ),
         const Spacer(),
         Keypad(
+          ours: true,
           key: ValueKey('${vm.at}'),
           onChanged: (v) => setState(() => _typed = v),
           onCheck: (v) {
