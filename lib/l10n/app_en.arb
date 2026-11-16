@@ -1062,5 +1062,29 @@
   "@kidTrailOf": {
     "description": "DRAFT (JRN-03, prototype K2): under the land's name at the top of the Orchard path. Read on screen, never spoken by the tutor.",
     "placeholders": {"name": {"type": "String"}}
+  },
+  "timeUpCallItADay": "Call it a day",
+  "@timeUpCallItADay": {
+    "description": "DRAFT (SES-01, prototype TU): stop for today at the sitting's cap; nothing is lost."
+  },
+  "timeUpBodyFinish": "Good detective work. Finish this one, or call it a day?",
+  "@timeUpBodyFinish": {
+    "description": "DRAFT (SES-01, prototype TU): the time-up line when a case is open on screen. No clock, no count (SES-02)."
+  },
+  "lostInternetTitle": "Lost the internet",
+  "@lostInternetTitle": {
+    "description": "DRAFT (SES-04, prototype LostNet): the ribbon while the lesson waits for the internet."
+  },
+  "lostInternetBody": "Your drawing is safe. We'll carry on when it's back.",
+  "@lostInternetBody": {
+    "description": "DRAFT (SES-04, prototype LostNet)."
+  },
+  "kidCheckAgain": "Check again",
+  "@kidCheckAgain": {
+    "description": "DRAFT (PLAT-09, prototype NeedNet and LostNet): look for the internet again."
+  },
+  "lessonNeedInternetAsk": "Ask your family to check the Wi-Fi. Then tap Check again.",
+  "@lessonNeedInternetAsk": {
+    "description": "DRAFT (PLAT-09, prototype NeedNet)."
   }
 }

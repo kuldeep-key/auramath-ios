@@ -2304,4 +2304,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String kidTrailOf(String name) {
     return '$name\'s trail';
   }
+
+  @override
+  String get timeUpCallItADay => 'Call it a day';
+
+  @override
+  String get timeUpBodyFinish =>
+      'Good detective work. Finish this one, or call it a day?';
+
+  @override
+  String get lostInternetTitle => 'Lost the internet';
+
+  @override
+  String get lostInternetBody =>
+      'Your drawing is safe. We\'ll carry on when it\'s back.';
+
+  @override
+  String get kidCheckAgain => 'Check again';
+
+  @override
+  String get lessonNeedInternetAsk =>
+      'Ask your family to check the Wi-Fi. Then tap Check again.';
 }

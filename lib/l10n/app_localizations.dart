@@ -4059,6 +4059,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}\'s trail'**
   String kidTrailOf(String name);
+
+  /// DRAFT (SES-01, prototype TU): stop for today at the sitting's cap; nothing is lost.
+  ///
+  /// In en, this message translates to:
+  /// **'Call it a day'**
+  String get timeUpCallItADay;
+
+  /// DRAFT (SES-01, prototype TU): the time-up line when a case is open on screen. No clock, no count (SES-02).
+  ///
+  /// In en, this message translates to:
+  /// **'Good detective work. Finish this one, or call it a day?'**
+  String get timeUpBodyFinish;
+
+  /// DRAFT (SES-04, prototype LostNet): the ribbon while the lesson waits for the internet.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost the internet'**
+  String get lostInternetTitle;
+
+  /// DRAFT (SES-04, prototype LostNet).
+  ///
+  /// In en, this message translates to:
+  /// **'Your drawing is safe. We\'ll carry on when it\'s back.'**
+  String get lostInternetBody;
+
+  /// DRAFT (PLAT-09, prototype NeedNet and LostNet): look for the internet again.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get kidCheckAgain;
+
+  /// DRAFT (PLAT-09, prototype NeedNet).
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your family to check the Wi-Fi. Then tap Check again.'**
+  String get lessonNeedInternetAsk;
 }
 
 class _AppLocalizationsDelegate

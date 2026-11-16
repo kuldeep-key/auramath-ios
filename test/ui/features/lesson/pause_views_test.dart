@@ -87,7 +87,11 @@ void main() {
     });
     await tester.pumpAndSettle();
     expect(find.text("That's today's time!"), findsOneWidget);
-    expect(find.textContaining('saved for next time'), findsOneWidget);
+    // the prototype's TU: finishing leads while a case is open
+    expect(
+      find.textContaining('Finish this one, or call it a day?'),
+      findsOneWidget,
+    );
 
     await tap(tester, find.text('Finish this one'));
     expect(find.text("That's today's time!"), findsNothing);
@@ -95,14 +99,16 @@ void main() {
     vm.dispose();
   });
 
-  testWidgets("OK on time's up goes home with the work kept", (tester) async {
+  testWidgets("Call it a day on time's up goes home with the work kept", (
+    tester,
+  ) async {
     await pumpLesson(tester);
     await tester.runAsync(() async {
       now += 30 * 60 * 1000;
       await vm.tick();
     });
     await tester.pumpAndSettle();
-    await tap(tester, find.text('OK'));
+    await tap(tester, find.text('Call it a day'));
     expect(wentHome, 1);
     vm.dispose();
   });
