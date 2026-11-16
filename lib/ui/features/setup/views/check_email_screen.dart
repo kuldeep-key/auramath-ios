@@ -10,6 +10,7 @@ import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/aura_text_field.dart';
+import '../../../core/parts/aura_toast.dart';
 import '../../../core/theme/tokens.dart';
 import '../finish_setup.dart';
 import 'setup_parts.dart';
@@ -78,7 +79,18 @@ class _CheckEmailScreenState extends State<CheckEmailScreen> {
     }
   }
 
+  /// "Send it again": the same link request SignIn made, to the same
+  /// address.
+  void _sendAgain() => _run(() async {
+    final l = AppLocalizations.of(context)!;
+    await widget.deps.account.sendEmailLink(widget.email!);
+    if (mounted) AuraToast.show(context, l.setupSentAgain, icon: Icons.send);
+  });
+
   Future<void> _done() async {
+    if (mounted) {
+      AuraToast.show(context, AppLocalizations.of(context)!.setupSignedIn);
+    }
     if (widget.fromSetup) {
       await finishSetup(context, widget.deps);
     } else if (mounted) {
@@ -125,16 +137,52 @@ class _CheckEmailScreenState extends State<CheckEmailScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuraHeading(title: l.setupCheckTitle, subtitle: l.setupCheckBody),
-          const SizedBox(height: 22),
-          const Float(
-            child: IconTile(
-              icon: Icons.mark_email_unread_outlined,
-              color: AuraColors.yellowInk,
-              background: AuraColors.yellowTint,
+          AuraHeading(
+            title: l.setupCheckTitle,
+            subtitle: widget.email == null
+                ? l.setupCheckBody
+                : l.setupCheckBodyTo(widget.email!),
+          ),
+          const SizedBox(height: 4),
+          // the prototype's envelope: 130 pt, radius 34, floating (3 s)
+          Center(
+            child: Float(
+              child: Container(
+                width: 130,
+                height: 130,
+                decoration: BoxDecoration(
+                  color: AuraColors.yellowTint,
+                  borderRadius: BorderRadius.circular(34),
+                ),
+                child: const Icon(
+                  Icons.mark_email_unread_rounded,
+                  size: 76,
+                  color: AuraColors.yellowInk,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
+          if (widget.email != null) ...[
+            AuraButton(
+              label: l.setupSendAgain,
+              color: AuraButtonColor.white,
+              onPressed: _busy ? null : _sendAgain,
+            ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: AuraLink(
+                label: l.setupWrongEmail,
+                onPressed: () => context.canPop()
+                    ? context.pop()
+                    : context.go(
+                        widget.fromSetup ? Paths.setupSave : Paths.signIn,
+                      ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           FutureBuilder(
             future: _codes,
             builder: (context, snap) => snap.data != true

@@ -143,7 +143,7 @@ void main() {
     ) async {
       await show(tester, NotSureScreen(draft: aarav()..schoolYear = 'year_2'));
       expect(
-        find.textContaining('Aarav starts at a typical Year 2 level'),
+        find.textContaining('Aarav starts where most 7-year-olds do'),
         findsOneWidget,
       );
       await tapAndWait(tester, find.text('Continue'));
@@ -167,7 +167,7 @@ void main() {
         'Get ahead',
         'Word problems',
         'Do well in the school curriculum',
-        "I'm not sure",
+        'Not sure yet',
       ]) {
         expect(find.text(goal), findsOneWidget);
       }
@@ -181,8 +181,8 @@ void main() {
     testWidgets("I'm not sure sends not_sure", (tester) async {
       final draft = aarav();
       await show(tester, GoalScreen(draft: draft));
-      await tester.ensureVisible(find.text("I'm not sure"));
-      await tapAndWait(tester, find.text("I'm not sure"));
+      await tester.ensureVisible(find.text('Not sure yet'));
+      await tapAndWait(tester, find.text('Not sure yet'));
       await tapAndWait(tester, find.text('Continue'));
       expect(draft.goal, 'not_sure');
     });
@@ -204,11 +204,20 @@ void main() {
     testWidgets('I agree records it and opens SavePlace', (tester) async {
       final draft = aarav();
       await show(tester, DataScreen(draft: draft));
-      expect(find.text("Aarav's details stay safe"), findsOneWidget);
+      expect(find.text('What we hold about Aarav'), findsOneWidget);
       // ACC-10: the processors and Julia's summary, before consent
       expect(find.textContaining('Gemini'), findsOneWidget);
       expect(find.textContaining('email service'), findsOneWidget);
       expect(find.textContaining('weekly summary'), findsOneWidget);
+      // the tick first (`.consent`): I agree waits for it
+      await tapAndWait(tester, find.text('I agree'));
+      expect(draft.agreed, isFalse);
+      await tapAndWait(
+        tester,
+        find.text(
+          "I am Aarav's parent or guardian. I agree to this for Aarav.",
+        ),
+      );
       await tapAndWait(tester, find.text('I agree'));
       expect(draft.agreed, isTrue);
       expect(find.text('went to /setup/save'), findsOneWidget);

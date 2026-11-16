@@ -106,7 +106,9 @@ class _SignInMethodsState extends State<SignInMethods> {
         AppleButton(onPressed: busy ? null : _apple),
         const SizedBox(height: 12),
         GoogleButton(onPressed: busy ? null : _google),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
+        const _Or(),
+        const SizedBox(height: 4),
         if (!_emailOpen)
           AuraButton(
             label: l.setupUseEmail,
@@ -129,6 +131,12 @@ class _SignInMethodsState extends State<SignInMethods> {
             color: AuraButtonColor.blue,
             onPressed: busy ? null : _sendLink,
           ),
+          const SizedBox(height: 12),
+          Text(
+            l.setupTerms,
+            textAlign: TextAlign.center,
+            style: AuraText.subtitle.copyWith(fontSize: 14),
+          ),
         ],
         if (busy)
           Padding(
@@ -150,6 +158,34 @@ class _SignInMethodsState extends State<SignInMethods> {
             ),
           ),
         if (_error != null) ErrorNote(_error!),
+      ],
+    );
+  }
+}
+
+/// "or" between the sign-in buttons and the email: a 2 pt line each side.
+class _Or extends StatelessWidget {
+  const _Or();
+
+  @override
+  Widget build(BuildContext context) {
+    final line = Expanded(child: Container(height: 2, color: AuraColors.line));
+    return Row(
+      children: [
+        line,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Text(
+            AppLocalizations.of(context)!.setupOr,
+            style: AuraText.small.copyWith(
+              color: AuraColors.mute,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              fontVariations: const [FontVariation('wght', 800)],
+            ),
+          ),
+        ),
+        line,
       ],
     );
   }
@@ -205,8 +241,11 @@ class GoogleButton extends StatelessWidget {
         child: Material(
           key: const Key('googleSignIn'),
           color: const Color(0xFFFFFFFF),
-          shape: const StadiumBorder(
-            side: BorderSide(color: Color(0xFF747775)),
+          // the prototype's corners (14), as Apple's; Google allows
+          // rectangular buttons
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AuraRadii.small),
+            side: const BorderSide(color: Color(0xFF747775), width: 1.5),
           ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
