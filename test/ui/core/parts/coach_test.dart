@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:auramath/data/services/sound_effects.dart';
 import 'package:auramath/ui/core/motion/motion.dart';
+import 'package:auramath/ui/core/parts/aura_button.dart';
 import 'package:auramath/ui/core/parts/journey_art.dart';
 import 'package:auramath/ui/core/parts/lesson_header.dart';
 import 'package:auramath/ui/core/parts/question_strip.dart';
@@ -114,6 +115,36 @@ void main() {
       t.widget<TutorFigure>(find.byType(TutorFigure)).tutorId,
       'teacher_2',
     );
+  });
+
+  testWidgets("the main buttons confirm with the prototype's blip; white "
+      'ones are silent; none with the sound off', (t) async {
+    final rec = RecordingSfxPlayer();
+    AuraSound.player = rec;
+    addTearDown(() {
+      AuraSound.player = const SilentSfxPlayer();
+      AuraSound.soundOn.value = true;
+    });
+    await t.pumpWidget(
+      app(
+        Column(
+          children: [
+            AuraButton(label: 'Go', onPressed: () {}),
+            AuraButton(
+              label: 'Later',
+              color: AuraButtonColor.white,
+              onPressed: () {},
+            ),
+          ],
+        ),
+      ),
+    );
+    await t.tap(find.text('Go'));
+    await t.tap(find.text('Later'));
+    expect(rec.played, [Sfx.tap]);
+    AuraSound.soundOn.value = false;
+    await t.tap(find.text('Go'));
+    expect(rec.played, [Sfx.tap]);
   });
 
   group('moving', () {
