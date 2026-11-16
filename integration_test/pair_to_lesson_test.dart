@@ -80,7 +80,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 700));
     }
 
-    await tap(find.text("I'm a kid"));
+    await tap(find.text('Play'));
     await see(find.text('Type your code'));
     for (final d in code.split('')) {
       await tap(find.text(d).last);
