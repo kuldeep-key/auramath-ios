@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../services/api.dart';
 import '../services/api_client.dart';
 
@@ -60,6 +62,12 @@ class FamilyRepository {
 
   final ApiClient _client;
 
+  /// Counts each change to a child this phone saved (an edit, a new child,
+  /// an avatar). A list of children that stays on screen, or under another
+  /// one, listens and reads them again, so a name changed in the grown-up
+  /// area shows when the grown-up comes back.
+  final ValueNotifier<int> childrenChanged = ValueNotifier(0);
+
   /// Parent or child phone (`require_family`).
   Future<List<Child>> children() async => (await family()).children;
 
@@ -80,22 +88,30 @@ class FamilyRepository {
   /// Parent only (ACC-14): only the fields in [changes] change
   /// (`displayName`, `age`, `schoolYear`, `avatar`). 400 for a name or answer the
   /// server refuses, 409 when another child already has the name.
-  Future<Child> editChild(String id, Map<String, Object?> changes) async =>
-      Child.fromJson(
-        await _client.patch('/api/children/$id', changes)
-            as Map<String, Object?>,
-      );
+  Future<Child> editChild(String id, Map<String, Object?> changes) async {
+    final child = Child.fromJson(
+      await _client.patch('/api/children/$id', changes) as Map<String, Object?>,
+    );
+    childrenChanged.value++;
+    return child;
+  }
 
   /// ACC-12: the avatar the child picked on their own phone (BE-20, `PUT
   /// /api/children/{id}/avatar`), which the child's device token may call
   /// for its own child only.
-  Future<void> setAvatar(String childId, String avatar) =>
-      _client.put('/api/children/$childId/avatar', {'avatar': avatar});
+  Future<void> setAvatar(String childId, String avatar) async {
+    await _client.put('/api/children/$childId/avatar', {'avatar': avatar});
+    childrenChanged.value++;
+  }
 
   /// Parent only. Needs consent first (403 otherwise).
-  Future<Child> addChild(Map<String, Object?> body) async => Child.fromJson(
-    await _client.post('/api/children', body) as Map<String, Object?>,
-  );
+  Future<Child> addChild(Map<String, Object?> body) async {
+    final child = Child.fromJson(
+      await _client.post('/api/children', body) as Map<String, Object?>,
+    );
+    childrenChanged.value++;
+    return child;
+  }
 
   /// Agrees to the notice version the server serves now (ACC-03).
   Future<void> giveConsent() async {

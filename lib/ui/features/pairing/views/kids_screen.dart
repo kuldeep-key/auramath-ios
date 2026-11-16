@@ -31,9 +31,32 @@ class KidsScreen extends StatefulWidget {
 class _KidsScreenState extends State<KidsScreen> {
   late Future<List<Child>> _children = _load();
 
-  Future<List<Child>> _load() async {
+  @override
+  void initState() {
+    super.initState();
+    // the grown-up area changed a child: read them again, so the picker
+    // shows the new name when the grown-up comes back here
+    widget.family.childrenChanged.addListener(_reread);
+  }
+
+  @override
+  void dispose() {
+    widget.family.childrenChanged.removeListener(_reread);
+    super.dispose();
+  }
+
+  void _reread() {
+    if (!mounted) return;
+    setState(() {
+      _children = _load(pickOnly: false);
+    });
+  }
+
+  /// [pickOnly]: a family with one child goes straight to them, but only
+  /// on the first read, never while the grown-up area is in front.
+  Future<List<Child>> _load({bool pickOnly = true}) async {
     final children = await widget.family.children();
-    if (children.length == 1) await _pick(children.single);
+    if (pickOnly && children.length == 1) await _pick(children.single);
     return children;
   }
 

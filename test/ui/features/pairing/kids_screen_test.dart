@@ -85,6 +85,28 @@ void main() {
     expect(find.text('went to ${Paths.addChild}'), findsOneWidget);
   });
 
+  testWidgets('a name changed in the grown-up area shows when the grown-up '
+      'comes back (the picker under it reads the children again)', (
+    tester,
+  ) async {
+    final (deps, server) = await setUp(tester);
+    server.on(_children, familyJson(['Sam', 'Ari']));
+    await tester.pumpWidget(shotApp(screen(deps)));
+    await tester.pumpAndSettle();
+    expect(find.text('Ari'), findsOneWidget);
+
+    // the grown-up renames Ari to Ava and saves; the server now lists Ava
+    server.on('PATCH /api/children/c1', {'id': 'c1', 'displayName': 'Ava'});
+    server.on(_children, familyJson(['Sam', 'Ava']));
+    final saved = deps.family.editChild('c1', {'displayName': 'Ava'});
+    await tester.pumpAndSettle();
+    await saved;
+    expect(find.text('Ava'), findsOneWidget);
+    expect(find.text('Ari'), findsNothing);
+    // and a reread never sends the phone anywhere
+    expect(find.textContaining('went to'), findsNothing);
+  });
+
   testWidgets('a failure shows the message and tries again', (tester) async {
     final (deps, server) = await setUp(tester);
     server.on(_children, {'error': 'database is down'}, status: 500);
