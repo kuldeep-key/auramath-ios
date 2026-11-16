@@ -4,7 +4,9 @@ import 'dart:math' as math;
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 
+import '../../../data/services/sound_effects.dart';
 import '../../../l10n/app_localizations.dart';
+import '../motion/fx_burst.dart';
 import '../motion/motion.dart';
 import '../motion/sparkle_burst.dart';
 import '../theme/tokens.dart';
@@ -61,6 +63,7 @@ class _BarBoardState extends State<BarBoard> {
   int _cheers = 0; // a right answer: the bars bounce
   int _barWobble = 0;
   int _bursts = 0;
+  int _steps = 0; // a step right: the prototype's celebrate('step')
   _Landed? _landed;
   Timer? _hintTimer;
   bool _hinting = false; // the hand shows the move, 5 s after a piece
@@ -92,14 +95,32 @@ class _BarBoardState extends State<BarBoard> {
       _landed = landed;
       _bursts++;
       AuraHaptics.snap();
+      // SFX.snap as it lands; the gap and the total are right moves too
+      AuraSound.snap();
+      if (landed == _Landed.gap || landed == _Landed.total) _rightMove();
+    }
+    // B sized the right way (checkB2): it snaps
+    if (!was.bSized && now.bSized) AuraSound.snap();
+    // the right sum chosen (pickop)
+    if (was.step == LessonStep.chooseOp &&
+        now.step != LessonStep.chooseOp &&
+        now.op != null) {
+      _rightMove();
     }
     if (!was.bFound && now.bFound ||
         was.step != LessonStep.solved && now.step == LessonStep.solved) {
       _cheers++;
+      if (!was.bFound && now.bFound) _rightMove();
     }
     if (widget.wobbles > old.wobbles && now.step == LessonStep.sizeB) {
       _barWobble++;
     }
+  }
+
+  /// SFX.right, and the step's small celebration over the board.
+  void _rightMove() {
+    AuraSound.right();
+    _steps++;
   }
 
   @override
@@ -160,6 +181,7 @@ class _BarBoardState extends State<BarBoard> {
       _armed = null;
       if (input == null) _homeBack++;
     });
+    if (input == null) AuraSound.wrong();
     if (input != null) widget.onInput(input);
   }
 
@@ -548,6 +570,14 @@ class _BarBoardState extends State<BarBoard> {
                   times: widget.showHand ? 2 : 1,
                 ),
               ),
+            if (_steps > 0)
+              Positioned.fill(
+                child: FxBurst.moment(
+                  FxMoment.step,
+                  key: ValueKey('step$_steps'),
+                  at: const Offset(0.5, 0.5),
+                ),
+              ),
           ],
         );
       },
@@ -588,6 +618,8 @@ class _BarBoardState extends State<BarBoard> {
         _dragging = false;
         if (!accepted) _homeBack++;
       });
+      // a miss springs home with SFX.soft
+      if (!accepted) AuraSound.wrong();
     }
 
     return Draggable<BoardPiece>(
@@ -852,6 +884,14 @@ class _BarBoardState extends State<BarBoard> {
               child: Center(child: _misplaced(pc, l)),
             ),
           if (showTray) _tray(l, s, piece, trayH),
+          if (_steps > 0)
+            Positioned.fill(
+              child: FxBurst.moment(
+                FxMoment.step,
+                key: ValueKey('step$_steps'),
+                at: const Offset(0.5, 0.5),
+              ),
+            ),
         ],
       );
     },

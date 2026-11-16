@@ -1862,7 +1862,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lessonSeenBeforeBack => 'Back to my case';
 
   @override
-  String get lessonRateAsk => 'How was this case?';
+  String get lessonRateAsk => 'How was that one?';
+
+  @override
+  String get lessonRateAnyAnswer => 'Any answer is fine.';
+
+  @override
+  String get lessonRateSkip => 'Skip';
+
+  @override
+  String get lessonFamilySees => 'Your family will see this too.';
 
   @override
   String get lessonRateEasy => 'Easy';

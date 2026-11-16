@@ -3277,8 +3277,26 @@ abstract class AppLocalizations {
   /// DRAFT, for Julia and design (no Figma frame), AI-08: above three faces after a solved case, ages 7 and up. Optional; Next works without a face.
   ///
   /// In en, this message translates to:
-  /// **'How was this case?'**
+  /// **'How was that one?'**
   String get lessonRateAsk;
+
+  /// DRAFT (prototype Rate, 16 Nov, AI-08): under the three faces.
+  ///
+  /// In en, this message translates to:
+  /// **'Any answer is fine.'**
+  String get lessonRateAnyAnswer;
+
+  /// DRAFT (prototype Rate): the link under the faces; no face given.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get lessonRateSkip;
+
+  /// DRAFT (prototype Y2, 16 Nov, AI-07 reminder at a natural break): under the praise on case cracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family will see this too.'**
+  String get lessonFamilySees;
 
   /// DRAFT (AI-08): the happy face.
   ///

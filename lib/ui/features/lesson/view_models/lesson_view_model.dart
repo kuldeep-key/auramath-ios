@@ -1015,6 +1015,11 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// The grown-up's "Bigger number pad" (Settings).
   bool biggerPad = false;
 
+  /// The child's tutor (TTR-01), who cheers on "case cracked": its id and
+  /// kind in tutors.yaml. The route sets it; the default teacher until then.
+  String tutorId = 'teacher_1';
+  String tutorKind = 'grown_up_teacher';
+
   /// Tapped "Hear it again": always spoken.
   void readQuestion() {
     _signals.readAloudUsed = true;

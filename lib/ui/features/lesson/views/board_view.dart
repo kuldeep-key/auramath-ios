@@ -4,6 +4,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../../data/services/sound_effects.dart';
 import '../../../core/board/bar_board.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
@@ -63,7 +64,11 @@ class _BoardViewState extends State<BoardView> {
   @override
   void didUpdateWidget(BoardView old) {
     super.didUpdateWidget(old);
-    if (vm.wobbles > _wobbles) AuraHaptics.wrong();
+    if (vm.wobbles > _wobbles) {
+      // the prototype's wrongMove: SFX.boing with buzz(30)
+      AuraHaptics.wrong();
+      AuraSound.wrongMove();
+    }
     _wobbles = vm.wobbles;
   }
 
