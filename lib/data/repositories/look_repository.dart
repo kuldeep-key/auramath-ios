@@ -19,7 +19,7 @@ class ChildLook {
     required this.tutorId,
     required this.voiceId,
     this.needsFirstRun = const [],
-    this.worldFromNextSession,
+    this.worldFromNextSession = false,
   });
 
   factory ChildLook.fromJson(
@@ -40,7 +40,7 @@ class ChildLook {
         for (final s in j['needsFirstRun'] as List? ?? const [])
           if (firstRunSteps.contains(s)) '$s',
       ],
-      worldFromNextSession: j['worldFromNextSession'] as String?,
+      worldFromNextSession: j['worldFromNextSession'] == true,
     );
   }
 
@@ -70,8 +70,8 @@ class ChildLook {
   /// (JRN-01). Empty once done.
   final List<String> needsFirstRun;
 
-  /// Set when a world change waits for the next session (REW-17).
-  final String? worldFromNextSession;
+  /// True when a world change waits for the next session (REW-17).
+  final bool worldFromNextSession;
 
   /// What `session_started.look` records (JRN-07).
   SessionLook get session =>
@@ -205,7 +205,11 @@ class LookRepository extends ChangeNotifier {
       );
     }
     try {
-      await _client.post('/api/children/$childId/first-run', {'step': step});
+      final j = await _client.post('/api/children/$childId/first-run', {
+        'step': step,
+      });
+      // the same body as GET look
+      if (j is Map) _keep(ChildLook.fromJson(j, config, childId: childId));
     } on ApiException catch (e) {
       debugPrint('first run: $step not sent: $e');
     }

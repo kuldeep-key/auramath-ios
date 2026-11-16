@@ -45,11 +45,7 @@ void main() {
     final ended = t.api.received.lastWhere(
       (e) => e.name == 'side_lesson_ended',
     );
-    expect(ended.payload, {
-      'skill_id': 'cmp.read-relation',
-      'completed': true,
-      'problem_id': 'mango',
-    });
+    expect(ended.payload, {'skill_id': 'cmp.read-relation', 'completed': true});
     expectContract(t.api.received);
   });
 

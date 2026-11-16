@@ -8,8 +8,7 @@ import 'package:test/test.dart';
 import 'fixtures.dart';
 
 /// The backend's event contract, copied from spec pack v0.5.4
-/// (`auramath-backend/spec/contracts/events.schema.json`), with the
-/// problem_id fields D-54 and D-55 add (search the copy for "App copy only").
+/// (`auramath-backend/spec/contracts/events.schema.json`), byte for byte.
 final schema = JsonSchema.create(
   jsonDecode(File('test/contract/events.schema.json').readAsStringSync()),
 );
@@ -151,7 +150,6 @@ void main() {
     expect(events.last.payload, {
       'skill_id': 'arith.sub-3d-regroup',
       'error_type': 'sub_smaller_from_larger',
-      'problem_id': 'lemon',
     });
   });
 
@@ -317,16 +315,9 @@ void main() {
     });
 
     test('badge_shown, badge_opened, cabinet_opened, trail_opened pass', () {
-      final shown = badgeShown(
-        'stop.orchard.l1',
-        queued: true,
-        problemId: 'lemon',
-      );
-      expect(shown.payload, {
-        'badge_id': 'stop.orchard.l1',
-        'queued': true,
-        'problem_id': 'lemon',
-      });
+      final shown = badgeShown('stop.orchard.l1', queued: true);
+      // no problem_id: the v0.5.4 schema refuses it (contract correction)
+      expect(shown.payload, {'badge_id': 'stop.orchard.l1', 'queued': true});
       expect(badgeShown('session.all_by_myself').payload, {
         'badge_id': 'session.all_by_myself',
         'queued': false,
@@ -392,7 +383,8 @@ void main() {
       expect(e.payload['variant'], 'standard');
     });
 
-    test('D-55: side lessons name their case, started and ended', () {
+    test('side lessons carry no problem_id until the schema allows it '
+        '(D-55, contract correction)', () {
       final events = play(lemon, lessons['regrouping slip']!);
       final side = events.where((e) => e.name.startsWith('side_lesson_'));
       expect(side.map((e) => e.name), [
@@ -400,14 +392,19 @@ void main() {
         'side_lesson_ended',
       ]);
       for (final e in side) {
-        expect(e.payload['problem_id'], 'lemon', reason: e.name);
+        expect(e.payload.containsKey('problem_id'), isFalse, reason: e.name);
+        expect(valid(e), isTrue, reason: e.name);
       }
-      final abandoned = play(lemon, [
-        ...toFindB,
-        const NumberEntered(81),
-        const SideLessonAbandoned(),
-      ]).lastWhere((e) => e.name == 'side_lesson_ended');
-      expect(abandoned.payload['problem_id'], 'lemon');
+      expect(
+        valid(
+          const SpecEvent('badge_shown', {
+            'badge_id': 'x',
+            'queued': false,
+            'problem_id': 'lemon',
+          }),
+        ),
+        isFalse,
+      );
     });
 
     test('D-55: help_opened always says why, idle prompts their step', () {

@@ -96,11 +96,7 @@ void main() {
       expect(vm.state.step, LessonStep.findB, reason: 'the same step');
       expect(
         api.received.lastWhere((e) => e.name == 'side_lesson_ended').payload,
-        {
-          'skill_id': 'arith.sub-3d-regroup',
-          'completed': false,
-          'problem_id': 'lemon',
-        },
+        {'skill_id': 'arith.sub-3d-regroup', 'completed': false},
       );
       final hint = api.received.lastWhere((e) => e.name == 'hint_shown');
       expect(hint.payload['step_id'], 'find_unknown');
@@ -131,11 +127,7 @@ void main() {
     await vm.endSideLesson();
     expect(
       api.received.lastWhere((e) => e.name == 'side_lesson_ended').payload,
-      {
-        'skill_id': 'arith.sub-3d-regroup',
-        'completed': true,
-        'problem_id': 'lemon',
-      },
+      {'skill_id': 'arith.sub-3d-regroup', 'completed': true},
     );
   });
 

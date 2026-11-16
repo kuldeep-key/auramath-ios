@@ -291,7 +291,6 @@ List<SpecEvent> eventsFor(
         SpecEvent('side_lesson_ended', {
           'skill_id': _sideSkill[before.sideLesson],
           'completed': completed,
-          'problem_id': p.id,
         }),
       );
     case SideLessonAbandoned():
@@ -300,7 +299,6 @@ List<SpecEvent> eventsFor(
         SpecEvent('side_lesson_ended', {
           'skill_id': _sideSkill[before.sideLesson],
           'completed': false,
-          'problem_id': p.id,
         }),
       );
       for (final d in decisions) {
@@ -430,7 +428,6 @@ List<SpecEvent> eventsFor(
         SpecEvent('side_lesson_started', {
           'skill_id': _sideSkill[d.kind],
           'error_type': error?.payload['error_type'] ?? _sideError[d.kind],
-          'problem_id': p.id,
         }),
       );
     }

@@ -109,11 +109,7 @@ void main() {
       expect(vm.coachText, line('cmp.showMeHow'));
       expect(
         api.received.lastWhere((e) => e.name == 'side_lesson_ended').payload,
-        {
-          'skill_id': 'arith.sub-3d-regroup',
-          'completed': false,
-          'problem_id': 'lemon',
-        },
+        {'skill_id': 'arith.sub-3d-regroup', 'completed': false},
       );
       final pack = samplePack();
       final events = [for (final e in api.received) e.spec];
@@ -163,11 +159,7 @@ void main() {
       expect(vm.sideLesson, SideLesson.takeAcrossTen);
       expect(
         api.received.lastWhere((e) => e.name == 'side_lesson_started').payload,
-        {
-          'skill_id': 'arith.sub-3d-regroup',
-          'error_type': isA<String>(),
-          'problem_id': 'lemon',
-        },
+        {'skill_id': 'arith.sub-3d-regroup', 'error_type': isA<String>()},
       );
     });
     expectContract(api.received);

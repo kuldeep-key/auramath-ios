@@ -1393,11 +1393,6 @@
         },
         "error_type": {
           "type": "string"
-        },
-        "problem_id": {
-          "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
-          "description": "App copy only (D-55 A, closed 12 Nov; not yet in pack v0.5.4's file): the case the side lesson ran in"
         }
       }
     },
@@ -1414,11 +1409,6 @@
         },
         "completed": {
           "type": "boolean"
-        },
-        "problem_id": {
-          "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
-          "description": "App copy only (D-55 A, closed 12 Nov; not yet in pack v0.5.4's file): the case the side lesson ran in"
         }
       }
     },
@@ -1953,11 +1943,6 @@
         "queued": {
           "type": "boolean",
           "description": "true if it waited from an earlier session"
-        },
-        "problem_id": {
-          "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
-          "description": "App copy only (D-54, rewards spec 9: badge_shown.problem_id; not yet in pack v0.5.4's file): the case the badge was shown after"
         }
       }
     },
@@ -2110,6 +2095,5 @@
       "description": "JRN-03 (v0.5.4): the child opened the trail; no payload",
       "properties": {}
     }
-  },
-  "$comment": "Spec pack v0.5.4 contracts/events.schema.json, plus three fields the pack's decisions add and its file doesn't have yet: problem_id on side_lesson_started, side_lesson_ended (D-55) and badge_shown (D-54). Search 'App copy only'."
+  }
 }

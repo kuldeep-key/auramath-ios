@@ -64,7 +64,6 @@ void main() {
     expect(started.payload, {
       'skill_id': 'cmp.read-relation',
       'error_type': 'relation_reversed',
-      'problem_id': 'mango',
     });
     // the smaller example, then back to the bar
     expect(find.text('Building A is 6 metres tall.'), findsOneWidget);
@@ -75,11 +74,7 @@ void main() {
     expect(t.vm.state.step, LessonStep.sizeB);
     expect(
       t.api.received.lastWhere((e) => e.name == 'side_lesson_ended').payload,
-      {
-        'skill_id': 'cmp.read-relation',
-        'completed': true,
-        'problem_id': 'mango',
-      },
+      {'skill_id': 'cmp.read-relation', 'completed': true},
     );
     expectContract(t.api.received);
     expect(find.byType(Scaffold), findsOneWidget);

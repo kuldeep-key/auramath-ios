@@ -63,17 +63,11 @@ SpecEvent readAloudPlayed({
 
 /// `badge_shown` (REW-11): the child saw the badge. This, not the
 /// server's `badge_awarded`, counts it as given (REW-19). [queued] when it
-/// waited from an earlier session; [problemId] the case it was shown
-/// after (D-54), none for a session badge.
-SpecEvent badgeShown(
-  String badgeId, {
-  bool queued = false,
-  String? problemId,
-}) => SpecEvent('badge_shown', {
-  'badge_id': badgeId,
-  'queued': queued,
-  'problem_id': ?problemId,
-});
+/// waited from an earlier session. The case it was shown after
+/// (`problem_id`, D-54 in the rewards spec) is not sent: the v0.5.4 schema
+/// doesn't allow it yet (additionalProperties false).
+SpecEvent badgeShown(String badgeId, {bool queued = false}) =>
+    SpecEvent('badge_shown', {'badge_id': badgeId, 'queued': queued});
 
 /// Where a badge was tapped open (REW-12, REW-20).
 enum BadgeOpenedFrom { cabinet, casebook, celebration }

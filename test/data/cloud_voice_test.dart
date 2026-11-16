@@ -145,4 +145,23 @@ void main() {
     expect(asked, isEmpty);
     expect(phone.said, ['Two']);
   });
+
+  test('TTR-02: a voice with no service voice yet (404) is read by the '
+      'phone; the other voices still play', () async {
+    final v = CloudVoice(
+      fetch: (text, id) async => id == 'voice_b'
+          ? throw const ApiException('no voice', status: 404)
+          : Uint8List.fromList([1]),
+      warmer: (_, _) async {},
+      player: clips,
+      fallback: phone,
+      wait: const Duration(milliseconds: 50),
+    )..voiceId = 'voice_b';
+    await v.say('Hi!');
+    await v.say('Again');
+    expect(phone.said, ['Hi!', 'Again']);
+    v.voiceId = 'voice_a';
+    await v.say('Hello');
+    expect(clips.played, hasLength(1));
+  });
 }

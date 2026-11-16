@@ -146,7 +146,9 @@ class FileClipPlayer implements ClipPlayer {
 ///
 /// Any refusal falls back to [fallback] for that line, so a lesson never
 /// waits on it: no answer within [wait], an error, or a 422 because the line
-/// names the child (those always use the phone's voice). A 404 means the
+/// names the child (those always use the phone's voice). A 404 for a chosen
+/// voice means it has no service voice yet: the phone reads that voice's
+/// lines. A 404 with no voice chosen means the
 /// server reads nothing aloud; the phone's voice reads every line after it.
 class CloudVoice implements Voice {
   CloudVoice({
@@ -181,6 +183,12 @@ class CloudVoice implements Voice {
   int _turn = 0;
   bool _off = false;
 
+  /// Voices the server has no service voice for yet (its 404 for that
+  /// voiceId): the phone reads their lines; the others still play.
+  final _unvoiced = <String>{};
+  bool get _phoneOnly => _off || _unvoiced.contains(voiceId);
+  void _notFound() => voiceId == null ? _off = true : _unvoiced.add(voiceId!);
+
   @override
   ValueListenable<bool> get resting => fallback.resting;
 
@@ -195,7 +203,7 @@ class CloudVoice implements Voice {
     final turn = ++_turn;
     await _hush();
     if (turn != _turn) return;
-    if (_off) return fallback.say(text);
+    if (_phoneOnly) return fallback.say(text);
 
     var clip = _clips['$voiceId|$text'];
     if (clip == null) {
@@ -204,7 +212,7 @@ class CloudVoice implements Voice {
         _clips['$voiceId|$text'] = clip;
         if (_clips.length > _keep) _clips.remove(_clips.keys.first);
       } on ApiException catch (e) {
-        if (e.status == 404) _off = true;
+        if (e.status == 404) _notFound();
       } on TimeoutException {
         // too slow this time: the phone reads it
       }
@@ -231,12 +239,12 @@ class CloudVoice implements Voice {
       for (final l in {...lines})
         if (l.trim().isNotEmpty && !_clips.containsKey('$voiceId|$l')) l,
     ];
-    for (var i = 0; i < todo.length && !_off; i += warmBatch) {
+    for (var i = 0; i < todo.length && !_phoneOnly; i += warmBatch) {
       final batch = todo.sublist(i, (i + warmBatch).clamp(0, todo.length));
       try {
         await warmer(batch, voiceId);
       } on ApiException catch (e) {
-        if (e.status == 404) _off = true;
+        if (e.status == 404) _notFound();
         return; // throttled or offline: the lines are made when said
       } on Exception {
         return;
