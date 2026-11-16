@@ -1,3 +1,4 @@
+import 'package:auramath/data/services/sound_effects.dart';
 import 'package:auramath/ui/core/motion/celebration.dart';
 import 'package:auramath/ui/core/motion/celebration_fx.dart';
 import 'package:auramath/ui/core/motion/motion.dart';
@@ -132,6 +133,27 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets('each moment plays the prototype\'s sound as it opens', (
+    tester,
+  ) async {
+    final rec = RecordingSfxPlayer();
+    AuraSound.player = rec;
+    addTearDown(() => AuraSound.player = const SilentSfxPlayer());
+    for (final s in [y3, habit, levelUp, land, streak, first]) {
+      await tester.pumpWidget(shotApp(view(s)));
+      await tester.pumpAndSettle();
+    }
+    await tester.pumpWidget(const SizedBox());
+    expect(rec.played, [
+      Sfx.badge,
+      Sfx.badge,
+      Sfx.win,
+      Sfx.win,
+      Sfx.win,
+      Sfx.right,
+    ]);
+  });
+
   testWidgets('each kind of badge has its own shape', (tester) async {
     await show(
       tester,
@@ -178,9 +200,9 @@ void main() {
           .storage[0]
           .abs();
       expect(scale(), lessThan(0.05));
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(scale(), greaterThan(1.05)); // the springy overshoot
-      await tester.pump(const Duration(milliseconds: 850));
+      await tester.pump(const Duration(milliseconds: 540));
+      expect(scale(), closeTo(1.15, 0.02)); // 60 %: 1.15
+      await tester.pump(const Duration(milliseconds: 410));
       expect(scale(), closeTo(1, 0.01));
       await tester.pumpWidget(const SizedBox());
     });

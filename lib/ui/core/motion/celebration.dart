@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../data/services/sound_effects.dart';
+
 import '../parts/ribbon.dart';
 import '../theme/tokens.dart';
 import 'celebration_fx.dart';
@@ -107,8 +109,19 @@ class _CelebrationViewState extends State<CelebrationView> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _still = calmMotion(context);
+    if (_end == null) _sound();
     _end ??= Timer(widget.spec.maxDuration, () => _finish(skipped: false));
   }
+
+  /// The prototype's sound as the moment opens: `SFX.badge` for a session
+  /// or habit badge, `SFX.win` for a medal, a trophy or the streak, and
+  /// `SFX.right` as First Case flies to the cabinet.
+  void _sound() => switch (widget.spec.layout ?? widget.spec.moment) {
+    'session_badge' || 'habit_badge' => AuraSound.badge(),
+    'stop_badge' || 'land_badge' || 'streak_moment' => AuraSound.celebrate(),
+    'first_badge' => AuraSound.right(),
+    _ => null,
+  };
 
   void _finish({required bool skipped}) {
     if (_done) return;
