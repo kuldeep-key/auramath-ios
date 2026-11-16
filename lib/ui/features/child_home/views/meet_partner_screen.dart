@@ -41,8 +41,11 @@ class MeetPartnerScreen extends StatefulWidget {
 }
 
 class _MeetPartnerScreenState extends State<MeetPartnerScreen> {
-  late final List<String> _lines;
+  List<String> _lines = const [];
+  bool _said = false;
 
+  /// Runs again whenever something the screen reads changes (the voice,
+  /// the text size): the lines are read each time, and said only once.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -50,7 +53,10 @@ class _MeetPartnerScreenState extends State<MeetPartnerScreen> {
     _lines = widget.served.isNotEmpty
         ? widget.served
         : [l.kidMeetLine1, l.kidMeetLine2, l.kidMeetLine3, l.kidMeetLine4];
-    if (widget.readAloud) widget.onSay(_lines.join(' '));
+    if (widget.readAloud && !_said) {
+      _said = true;
+      widget.onSay(_lines.join(' '));
+    }
   }
 
   @override

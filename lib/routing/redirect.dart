@@ -11,6 +11,7 @@ String? redirectFor({
   required bool removed,
   required bool grownUpsUnlocked,
   required String? childId,
+  bool settingUp = false,
 }) {
   final loc = uri.path;
   // `auramath://auth/verify?m=…`: the platform reads "auth" as the host,
@@ -56,6 +57,19 @@ String? redirectFor({
       return null;
 
     case Role.parent:
+      // Setup signs the grown-up in, then saves the child and goes to Ready
+      // itself (finishSetup). The sign-in re-checks every page below the
+      // setup screens too, Open included: sent to the picker from there,
+      // the picker picked the one new child at once, and Ready, the
+      // hand-over and the passcode were skipped.
+      if (settingUp &&
+          (loc == Paths.open ||
+              loc == Paths.welcome ||
+              loc == Paths.signIn ||
+              loc == Paths.signInCheckEmail ||
+              loc == Paths.verify)) {
+        return null;
+      }
       if (loc == Paths.open ||
           loc == Paths.welcome ||
           loc == Paths.signIn ||

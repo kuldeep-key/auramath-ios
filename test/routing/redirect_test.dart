@@ -9,12 +9,14 @@ String? go(
   bool removed = false,
   bool unlocked = false,
   String? childId,
+  bool settingUp = false,
 }) => redirectFor(
   uri: Uri.parse(loc),
   role: role,
   removed: removed,
   grownUpsUnlocked: unlocked,
   childId: childId,
+  settingUp: settingUp,
 );
 
 void main() {
@@ -125,6 +127,27 @@ void main() {
     test('setup after sign-in is open', () {
       expect(go(Paths.setupReady, role: Role.parent), isNull);
       expect(go(Paths.setupJoinCode, role: Role.parent), isNull);
+    });
+  });
+
+  group('setup signing in', () {
+    test('stays on the sign-in screens while setup saves the child', () {
+      for (final loc in [
+        Paths.open,
+        Paths.welcome,
+        Paths.signIn,
+        Paths.signInCheckEmail,
+        Paths.verify,
+      ]) {
+        expect(
+          go(loc, role: Role.parent, settingUp: true),
+          isNull,
+          reason: loc,
+        );
+      }
+    });
+    test('a plain sign-in still goes on to the picker', () {
+      expect(go(Paths.signIn, role: Role.parent), Paths.kids);
     });
   });
 }

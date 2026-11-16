@@ -30,6 +30,8 @@ GoRouter buildRouter(Deps deps, {String? initialLocation}) => GoRouter(
     removed: deps.account.removed,
     grownUpsUnlocked: deps.account.grownUpsUnlocked,
     childId: deps.account.childId,
+    // "I agree" given on Data and the child not saved yet: setup is signing in
+    settingUp: deps.account.draft.agreed,
   ),
   errorBuilder: (context, state) => _NotFound(state.uri.toString()),
   routes: [
