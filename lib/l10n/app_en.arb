@@ -787,8 +787,8 @@
   "@kidQuickStory": {"description": "DRAFT, for Julia (LES-16): after Quick sums, on to today's story problem."},
   "kidQuickHome": "Back home",
   "@kidQuickHome": {"description": "DRAFT, for Julia (LES-16): after Quick sums, back to Home."},
-  "kidTodayTitle": "What shall we do today?",
-  "@kidTodayTitle": {"description": "DRAFT, for Julia (LES-14, Figma A3 / 4.2): Choose today's title."},
+  "kidTodayTitle": "Which one first?",
+  "@kidTodayTitle": {"description": "DRAFT, for Julia (LES-14, prototype A3, 16 Nov; Figma A3 / 4.2 had 'What shall we do today?'): Choose today's title."},
   "kidTodayStory": "A story problem",
   "@kidTodayStory": {"description": "DRAFT, for Julia (LES-14): today's case, at the child's level."},
   "kidTodayQuick": "Quick sums",
@@ -872,6 +872,74 @@
   "@kidChooseThis": {
     "description": "DRAFT (ACC-12, TTR-01): saves the look, tutor, voice or world picked."
   },
+  "kidThisIsMe": "This is me!",
+  "@kidThisIsMe": {
+    "description": "DRAFT, for Key (ACC-12; prototype LookPick, 16 Nov): saves the look picked."
+  },
+  "kidThisIsMyTutor": "This is my teacher!",
+  "@kidThisIsMyTutor": {
+    "description": "DRAFT, for Key (TTR-01; prototype TutorPick, 16 Nov): saves the tutor picked."
+  },
+  "kidMyLookNote": "Change how you look",
+  "@kidMyLookNote": {
+    "description": "DRAFT, for Key (JRN-02; prototype Me, 16 Nov): under My look."
+  },
+  "kidMyTutorNote": "Pick who teaches you",
+  "@kidMyTutorNote": {
+    "description": "DRAFT, for Key (JRN-02; prototype Me, 16 Nov): under My tutor."
+  },
+  "kidMyVoiceNote": "How your teacher sounds",
+  "@kidMyVoiceNote": {
+    "description": "DRAFT, for Key (TTR-06; prototype Me, 16 Nov): under My tutor's voice."
+  },
+  "kidMyWorldNote": "Where your cases happen",
+  "@kidMyWorldNote": {
+    "description": "DRAFT, for Key (REW-22; prototype Me, 16 Nov): under My world."
+  },
+  "kidTapYourPicture": "Tap your picture.",
+  "@kidTapYourPicture": {
+    "description": "DRAFT, for Key (DEV-01; prototype A1, 16 Nov): under Who's learning today?"
+  },
+  "kidErrTitle": "That didn't work",
+  "@kidErrTitle": {
+    "description": "DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): something failed on the child's side. Nothing red, no error code."
+  },
+  "kidErrLine": "Let's have another go.",
+  "@kidErrLine": {
+    "description": "DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): under That didn't work."
+  },
+  "kidErrRetry": "Have another go",
+  "@kidErrRetry": {
+    "description": "DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): tries the read again."
+  },
+  "kidReadyForACase": "Ready for a case?",
+  "@kidReadyForACase": {
+    "description": "DRAFT, for Key (SES-07; prototype WelcomeBack, 16 Nov): back on a later day with no case waiting."
+  },
+  "kidGoHome": "Go home",
+  "@kidGoHome": {
+    "description": "DRAFT, for Key (prototype ErrChild, 16 Nov): back to the child's Home."
+  },
+  "pairReadyToPlay": "Hi! Ready to play?",
+  "@pairReadyToPlay": {
+    "description": "DRAFT, for Key (ACC-01; prototype Open, 16 Nov): the ribbon on a fresh phone."
+  },
+  "pairPlay": "Play",
+  "@pairPlay": {
+    "description": "DRAFT, for Key (DEV-02; prototype Open, 16 Nov): a child pairs this phone."
+  },
+  "pairParentsAndCarers": "Parents and carers",
+  "@pairParentsAndCarers": {
+    "description": "DRAFT, for Key (ACC-01; prototype Open, 16 Nov): a grown-up sets up."
+  },
+  "pairSetUpSignIn": "Already set up? Sign in",
+  "@pairSetUpSignIn": {
+    "description": "DRAFT, for Key (ACC-01; prototype Open, 16 Nov): a grown-up signs in."
+  },
+  "pairFamilyArea": "Family area",
+  "@pairFamilyArea": {
+    "description": "DRAFT, for Key (DEV-01; prototype A1, 16 Nov): the grown-ups' way in, behind the passcode."
+  },
   "kidComingSoon": "Coming soon",
   "@kidComingSoon": {
     "description": "DRAFT (REW-22): a greyed world tile; no name, placeholder art."
@@ -911,7 +979,81 @@
   "kidCabinetEmpty": "Your badges will live here.",
   "@kidCabinetEmpty": {
     "description": "DRAFT (REW-12): the cabinet with nothing earned yet. No outline, no count, no 'next to earn'."
+  },  "kidTodaysBadge": "Today's badge",
+  "@kidTodaysBadge": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the heading over the session badge (Y3)."
   },
+  "kidNewMedal": "A new medal!",
+  "@kidNewMedal": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the ribbon over a stop medal (LevelUp, REW-08)."
+  },
+  "kidTrailGoesOn": "Your trail goes on. Time to try a new skill!",
+  "@kidTrailGoesOn": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the line under a stop medal (LevelUp)."
+  },
+  "kidNewBadge": "A new badge!",
+  "@kidNewBadge": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the ribbon over a habit badge (Habit, REW-10)."
+  },
+  "kidHabitBarBuilder": "You draw the bars yourself.",
+  "@kidHabitBarBuilder": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Bar builder's line (Habit, B2)."
+  },
+  "kidHabitCarefulReader": "You read the question with care.",
+  "@kidHabitCarefulReader": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Careful reader's line (Habit, B2)."
+  },
+  "kidHabitLearnItDoIt": "You learn a step, then do it on your own.",
+  "@kidHabitLearnItDoIt": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Learn it, do it's line (Habit, B2)."
+  },
+  "kidHabitDoubleChecker": "You check your work and fix it.",
+  "@kidHabitDoubleChecker": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Double checker's line (Habit, B2)."
+  },
+  "kidLandTrophy": "A land trophy!",
+  "@kidLandTrophy": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the ribbon over a land trophy (LandTrophy, REW-09)."
+  },
+  "kidEveryStop": "Every stop, all yours.",
+  "@kidEveryStop": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the line under a land trophy (LandTrophy)."
+  },
+  "kidIntoYourBadges": "Into your badges!",
+  "@kidIntoYourBadges": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: First Case flying into the cabinet (first_badge moment)."
+  },
+  "kidCameBack": "You came back!",
+  "@kidCameBack": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the streak moment's ribbon (Streak, REW-05); no number."
+  },
+  "kidKeepComingBack": "Detectives who keep coming back get really good.",
+  "@kidKeepComingBack": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the streak moment's line (Streak, REW-05); never the child's name, no number."
+  },
+  "kidMedalFor": "Your medal for {stop}.",
+  "@kidMedalFor": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: a stop medal's line in the cabinet (B2).",
+    "placeholders": {"stop": {"type": "String"}}
+  },
+  "kidFirstCaseLine": "Your first case, cracked.",
+  "@kidFirstCaseLine": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: First Case's line in the cabinet (B2)."
+  },
+  "kidWalkedAll": "You walked all of {land}.",
+  "@kidWalkedAll": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: a land trophy's line in the cabinet (B2).",
+    "placeholders": {"land": {"type": "String"}}
+  },
+  "kidNotNow": "Not now",
+  "@kidNotNow": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: OtherPhone's way home instead of carrying on (DEV-05)."
+  },
+  "kidBackHome": "Back home",
+  "@kidBackHome": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the cabinet's button home (B1)."
+  },
+
   "kidTrailExplored": "Explored",
   "@kidTrailExplored": {
     "description": "catalogue.yaml ui_words explored (Key's word)."
@@ -935,5 +1077,38 @@
   "kidSidePathBack": "Back to your case",
   "@kidSidePathBack": {
     "description": "DRAFT (JRN-04): the way back on the side path."
+  },
+  "kidTrailLookBack": "Look back",
+  "@kidTrailLookBack": {
+    "description": "DRAFT (JRN-03, prototype K2): the sign at the bottom of the Orchard path that shows the older stops again."
+  },
+  "kidTrailOf": "{name}'s trail",
+  "@kidTrailOf": {
+    "description": "DRAFT (JRN-03, prototype K2): under the land's name at the top of the Orchard path. Read on screen, never spoken by the tutor.",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "timeUpCallItADay": "Call it a day",
+  "@timeUpCallItADay": {
+    "description": "DRAFT (SES-01, prototype TU): stop for today at the sitting's cap; nothing is lost."
+  },
+  "timeUpBodyFinish": "Good detective work. Finish this one, or call it a day?",
+  "@timeUpBodyFinish": {
+    "description": "DRAFT (SES-01, prototype TU): the time-up line when a case is open on screen. No clock, no count (SES-02)."
+  },
+  "lostInternetTitle": "Lost the internet",
+  "@lostInternetTitle": {
+    "description": "DRAFT (SES-04, prototype LostNet): the ribbon while the lesson waits for the internet."
+  },
+  "lostInternetBody": "Your drawing is safe. We'll carry on when it's back.",
+  "@lostInternetBody": {
+    "description": "DRAFT (SES-04, prototype LostNet)."
+  },
+  "kidCheckAgain": "Check again",
+  "@kidCheckAgain": {
+    "description": "DRAFT (PLAT-09, prototype NeedNet and LostNet): look for the internet again."
+  },
+  "lessonNeedInternetAsk": "Ask your family to check the Wi-Fi. Then tap Check again.",
+  "@lessonNeedInternetAsk": {
+    "description": "DRAFT (PLAT-09, prototype NeedNet)."
   }
 }

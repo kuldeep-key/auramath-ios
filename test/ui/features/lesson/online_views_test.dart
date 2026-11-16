@@ -15,7 +15,7 @@ void main() {
     await tester.pumpWidget(
       shotApp(NeedInternetView(onRetry: () => retried++, onGoHome: () {})),
     );
-    await tester.tap(find.text('Try again'));
+    await tester.tap(find.text('Check again'));
     expect(retried, 1);
   });
 
@@ -27,6 +27,26 @@ void main() {
         body: LostInternetPause(onRetry: () {}, onGoHome: () {}),
       ),
     );
-    expect(find.text('Lost the internet. Your work is saved.'), findsOneWidget);
+    expect(find.text('Lost the internet'), findsOneWidget);
+    expect(find.text('Check again'), findsOneWidget);
+  });
+
+  testWidgets("time's up (TU) fits every size: Call it a day, or finish "
+      'first while a case is open', (tester) async {
+    var stopped = 0, finished = 0;
+    await shotAllSizes(
+      tester,
+      'lesson_time_up',
+      Scaffold(body: TimeUpView(onStop: () {})),
+    );
+    expect(find.text('Call it a day'), findsOneWidget);
+    expect(find.text('Finish this one'), findsNothing);
+    await tester.pumpWidget(
+      shotApp(TimeUpView(onStop: () => stopped++, onFinish: () => finished++)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Finish this one'));
+    await tester.tap(find.text('Call it a day'));
+    expect((finished, stopped), (1, 1));
   });
 }

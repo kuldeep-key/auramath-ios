@@ -3646,10 +3646,10 @@ abstract class AppLocalizations {
   /// **'Back home'**
   String get kidQuickHome;
 
-  /// DRAFT, for Julia (LES-14, Figma A3 / 4.2): Choose today's title.
+  /// DRAFT, for Julia (LES-14, prototype A3, 16 Nov; Figma A3 / 4.2 had 'What shall we do today?'): Choose today's title.
   ///
   /// In en, this message translates to:
-  /// **'What shall we do today?'**
+  /// **'Which one first?'**
   String get kidTodayTitle;
 
   /// DRAFT, for Julia (LES-14): today's case, at the child's level.
@@ -3814,6 +3814,108 @@ abstract class AppLocalizations {
   /// **'Choose this one'**
   String get kidChooseThis;
 
+  /// DRAFT, for Key (ACC-12; prototype LookPick, 16 Nov): saves the look picked.
+  ///
+  /// In en, this message translates to:
+  /// **'This is me!'**
+  String get kidThisIsMe;
+
+  /// DRAFT, for Key (TTR-01; prototype TutorPick, 16 Nov): saves the tutor picked.
+  ///
+  /// In en, this message translates to:
+  /// **'This is my teacher!'**
+  String get kidThisIsMyTutor;
+
+  /// DRAFT, for Key (JRN-02; prototype Me, 16 Nov): under My look.
+  ///
+  /// In en, this message translates to:
+  /// **'Change how you look'**
+  String get kidMyLookNote;
+
+  /// DRAFT, for Key (JRN-02; prototype Me, 16 Nov): under My tutor.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick who teaches you'**
+  String get kidMyTutorNote;
+
+  /// DRAFT, for Key (TTR-06; prototype Me, 16 Nov): under My tutor's voice.
+  ///
+  /// In en, this message translates to:
+  /// **'How your teacher sounds'**
+  String get kidMyVoiceNote;
+
+  /// DRAFT, for Key (REW-22; prototype Me, 16 Nov): under My world.
+  ///
+  /// In en, this message translates to:
+  /// **'Where your cases happen'**
+  String get kidMyWorldNote;
+
+  /// DRAFT, for Key (DEV-01; prototype A1, 16 Nov): under Who's learning today?
+  ///
+  /// In en, this message translates to:
+  /// **'Tap your picture.'**
+  String get kidTapYourPicture;
+
+  /// DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): something failed on the child's side. Nothing red, no error code.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t work'**
+  String get kidErrTitle;
+
+  /// DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): under That didn't work.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s have another go.'**
+  String get kidErrLine;
+
+  /// DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): tries the read again.
+  ///
+  /// In en, this message translates to:
+  /// **'Have another go'**
+  String get kidErrRetry;
+
+  /// DRAFT, for Key (SES-07; prototype WelcomeBack, 16 Nov): back on a later day with no case waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for a case?'**
+  String get kidReadyForACase;
+
+  /// DRAFT, for Key (prototype ErrChild, 16 Nov): back to the child's Home.
+  ///
+  /// In en, this message translates to:
+  /// **'Go home'**
+  String get kidGoHome;
+
+  /// DRAFT, for Key (ACC-01; prototype Open, 16 Nov): the ribbon on a fresh phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! Ready to play?'**
+  String get pairReadyToPlay;
+
+  /// DRAFT, for Key (DEV-02; prototype Open, 16 Nov): a child pairs this phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get pairPlay;
+
+  /// DRAFT, for Key (ACC-01; prototype Open, 16 Nov): a grown-up sets up.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents and carers'**
+  String get pairParentsAndCarers;
+
+  /// DRAFT, for Key (ACC-01; prototype Open, 16 Nov): a grown-up signs in.
+  ///
+  /// In en, this message translates to:
+  /// **'Already set up? Sign in'**
+  String get pairSetUpSignIn;
+
+  /// DRAFT, for Key (DEV-01; prototype A1, 16 Nov): the grown-ups' way in, behind the passcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Family area'**
+  String get pairFamilyArea;
+
   /// DRAFT (REW-22): a greyed world tile; no name, placeholder art.
   ///
   /// In en, this message translates to:
@@ -3874,6 +3976,114 @@ abstract class AppLocalizations {
   /// **'Your badges will live here.'**
   String get kidCabinetEmpty;
 
+  /// DRAFT (prototype 16 Nov) for Julia: the heading over the session badge (Y3).
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s badge'**
+  String get kidTodaysBadge;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the ribbon over a stop medal (LevelUp, REW-08).
+  ///
+  /// In en, this message translates to:
+  /// **'A new medal!'**
+  String get kidNewMedal;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the line under a stop medal (LevelUp).
+  ///
+  /// In en, this message translates to:
+  /// **'Your trail goes on. Time to try a new skill!'**
+  String get kidTrailGoesOn;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the ribbon over a habit badge (Habit, REW-10).
+  ///
+  /// In en, this message translates to:
+  /// **'A new badge!'**
+  String get kidNewBadge;
+
+  /// DRAFT (prototype 16 Nov) for Julia: Bar builder's line (Habit, B2).
+  ///
+  /// In en, this message translates to:
+  /// **'You draw the bars yourself.'**
+  String get kidHabitBarBuilder;
+
+  /// DRAFT (prototype 16 Nov) for Julia: Careful reader's line (Habit, B2).
+  ///
+  /// In en, this message translates to:
+  /// **'You read the question with care.'**
+  String get kidHabitCarefulReader;
+
+  /// DRAFT (prototype 16 Nov) for Julia: Learn it, do it's line (Habit, B2).
+  ///
+  /// In en, this message translates to:
+  /// **'You learn a step, then do it on your own.'**
+  String get kidHabitLearnItDoIt;
+
+  /// DRAFT (prototype 16 Nov) for Julia: Double checker's line (Habit, B2).
+  ///
+  /// In en, this message translates to:
+  /// **'You check your work and fix it.'**
+  String get kidHabitDoubleChecker;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the ribbon over a land trophy (LandTrophy, REW-09).
+  ///
+  /// In en, this message translates to:
+  /// **'A land trophy!'**
+  String get kidLandTrophy;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the line under a land trophy (LandTrophy).
+  ///
+  /// In en, this message translates to:
+  /// **'Every stop, all yours.'**
+  String get kidEveryStop;
+
+  /// DRAFT (prototype 16 Nov) for Julia: First Case flying into the cabinet (first_badge moment).
+  ///
+  /// In en, this message translates to:
+  /// **'Into your badges!'**
+  String get kidIntoYourBadges;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the streak moment's ribbon (Streak, REW-05); no number.
+  ///
+  /// In en, this message translates to:
+  /// **'You came back!'**
+  String get kidCameBack;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the streak moment's line (Streak, REW-05); never the child's name, no number.
+  ///
+  /// In en, this message translates to:
+  /// **'Detectives who keep coming back get really good.'**
+  String get kidKeepComingBack;
+
+  /// DRAFT (prototype 16 Nov) for Julia: a stop medal's line in the cabinet (B2).
+  ///
+  /// In en, this message translates to:
+  /// **'Your medal for {stop}.'**
+  String kidMedalFor(String stop);
+
+  /// DRAFT (prototype 16 Nov) for Julia: First Case's line in the cabinet (B2).
+  ///
+  /// In en, this message translates to:
+  /// **'Your first case, cracked.'**
+  String get kidFirstCaseLine;
+
+  /// DRAFT (prototype 16 Nov) for Julia: a land trophy's line in the cabinet (B2).
+  ///
+  /// In en, this message translates to:
+  /// **'You walked all of {land}.'**
+  String kidWalkedAll(String land);
+
+  /// DRAFT (prototype 16 Nov) for Julia: OtherPhone's way home instead of carrying on (DEV-05).
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get kidNotNow;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the cabinet's button home (B1).
+  ///
+  /// In en, this message translates to:
+  /// **'Back home'**
+  String get kidBackHome;
+
   /// catalogue.yaml ui_words explored (Key's word).
   ///
   /// In en, this message translates to:
@@ -3909,6 +4119,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to your case'**
   String get kidSidePathBack;
+
+  /// DRAFT (JRN-03, prototype K2): the sign at the bottom of the Orchard path that shows the older stops again.
+  ///
+  /// In en, this message translates to:
+  /// **'Look back'**
+  String get kidTrailLookBack;
+
+  /// DRAFT (JRN-03, prototype K2): under the land's name at the top of the Orchard path. Read on screen, never spoken by the tutor.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s trail'**
+  String kidTrailOf(String name);
+
+  /// DRAFT (SES-01, prototype TU): stop for today at the sitting's cap; nothing is lost.
+  ///
+  /// In en, this message translates to:
+  /// **'Call it a day'**
+  String get timeUpCallItADay;
+
+  /// DRAFT (SES-01, prototype TU): the time-up line when a case is open on screen. No clock, no count (SES-02).
+  ///
+  /// In en, this message translates to:
+  /// **'Good detective work. Finish this one, or call it a day?'**
+  String get timeUpBodyFinish;
+
+  /// DRAFT (SES-04, prototype LostNet): the ribbon while the lesson waits for the internet.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost the internet'**
+  String get lostInternetTitle;
+
+  /// DRAFT (SES-04, prototype LostNet).
+  ///
+  /// In en, this message translates to:
+  /// **'Your drawing is safe. We\'ll carry on when it\'s back.'**
+  String get lostInternetBody;
+
+  /// DRAFT (PLAT-09, prototype NeedNet and LostNet): look for the internet again.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get kidCheckAgain;
+
+  /// DRAFT (PLAT-09, prototype NeedNet).
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your family to check the Wi-Fi. Then tap Check again.'**
+  String get lessonNeedInternetAsk;
 }
 
 class _AppLocalizationsDelegate

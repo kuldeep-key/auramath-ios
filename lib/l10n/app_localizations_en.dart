@@ -2073,7 +2073,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidQuickHome => 'Back home';
 
   @override
-  String get kidTodayTitle => 'What shall we do today?';
+  String get kidTodayTitle => 'Which one first?';
 
   @override
   String get kidTodayStory => 'A story problem';
@@ -2175,6 +2175,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidChooseThis => 'Choose this one';
 
   @override
+  String get kidThisIsMe => 'This is me!';
+
+  @override
+  String get kidThisIsMyTutor => 'This is my teacher!';
+
+  @override
+  String get kidMyLookNote => 'Change how you look';
+
+  @override
+  String get kidMyTutorNote => 'Pick who teaches you';
+
+  @override
+  String get kidMyVoiceNote => 'How your teacher sounds';
+
+  @override
+  String get kidMyWorldNote => 'Where your cases happen';
+
+  @override
+  String get kidTapYourPicture => 'Tap your picture.';
+
+  @override
+  String get kidErrTitle => 'That didn\'t work';
+
+  @override
+  String get kidErrLine => 'Let\'s have another go.';
+
+  @override
+  String get kidErrRetry => 'Have another go';
+
+  @override
+  String get kidReadyForACase => 'Ready for a case?';
+
+  @override
+  String get kidGoHome => 'Go home';
+
+  @override
+  String get pairReadyToPlay => 'Hi! Ready to play?';
+
+  @override
+  String get pairPlay => 'Play';
+
+  @override
+  String get pairParentsAndCarers => 'Parents and carers';
+
+  @override
+  String get pairSetUpSignIn => 'Already set up? Sign in';
+
+  @override
+  String get pairFamilyArea => 'Family area';
+
+  @override
   String get kidComingSoon => 'Coming soon';
 
   @override
@@ -2206,6 +2257,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidCabinetEmpty => 'Your badges will live here.';
 
   @override
+  String get kidTodaysBadge => 'Today\'s badge';
+
+  @override
+  String get kidNewMedal => 'A new medal!';
+
+  @override
+  String get kidTrailGoesOn => 'Your trail goes on. Time to try a new skill!';
+
+  @override
+  String get kidNewBadge => 'A new badge!';
+
+  @override
+  String get kidHabitBarBuilder => 'You draw the bars yourself.';
+
+  @override
+  String get kidHabitCarefulReader => 'You read the question with care.';
+
+  @override
+  String get kidHabitLearnItDoIt => 'You learn a step, then do it on your own.';
+
+  @override
+  String get kidHabitDoubleChecker => 'You check your work and fix it.';
+
+  @override
+  String get kidLandTrophy => 'A land trophy!';
+
+  @override
+  String get kidEveryStop => 'Every stop, all yours.';
+
+  @override
+  String get kidIntoYourBadges => 'Into your badges!';
+
+  @override
+  String get kidCameBack => 'You came back!';
+
+  @override
+  String get kidKeepComingBack =>
+      'Detectives who keep coming back get really good.';
+
+  @override
+  String kidMedalFor(String stop) {
+    return 'Your medal for $stop.';
+  }
+
+  @override
+  String get kidFirstCaseLine => 'Your first case, cracked.';
+
+  @override
+  String kidWalkedAll(String land) {
+    return 'You walked all of $land.';
+  }
+
+  @override
+  String get kidNotNow => 'Not now';
+
+  @override
+  String get kidBackHome => 'Back home';
+
+  @override
   String get kidTrailExplored => 'Explored';
 
   @override
@@ -2222,4 +2332,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidSidePathBack => 'Back to your case';
+
+  @override
+  String get kidTrailLookBack => 'Look back';
+
+  @override
+  String kidTrailOf(String name) {
+    return '$name\'s trail';
+  }
+
+  @override
+  String get timeUpCallItADay => 'Call it a day';
+
+  @override
+  String get timeUpBodyFinish =>
+      'Good detective work. Finish this one, or call it a day?';
+
+  @override
+  String get lostInternetTitle => 'Lost the internet';
+
+  @override
+  String get lostInternetBody =>
+      'Your drawing is safe. We\'ll carry on when it\'s back.';
+
+  @override
+  String get kidCheckAgain => 'Check again';
+
+  @override
+  String get lessonNeedInternetAsk =>
+      'Ask your family to check the Wi-Fi. Then tap Check again.';
 }

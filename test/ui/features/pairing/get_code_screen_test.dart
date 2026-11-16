@@ -144,7 +144,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text("I'm a kid"));
+    await tester.tap(find.text('Play'));
     await tester.pumpAndSettle();
     await _type(tester, '482715');
     expect(deps.account.role, Role.device);

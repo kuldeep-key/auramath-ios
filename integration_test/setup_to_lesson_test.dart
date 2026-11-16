@@ -63,7 +63,7 @@ void main() {
     }
 
     // a fresh phone
-    await tap(find.text("I'm a grown-up"));
+    await tap(find.text('Parents and carers'));
     await tap(find.text('Get started'));
     await see(find.text("Your child's first name"));
     await tester.enterText(find.byType(TextField), 'Sam');

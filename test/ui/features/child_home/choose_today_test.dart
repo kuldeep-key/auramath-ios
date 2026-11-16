@@ -20,7 +20,9 @@ void main() {
     await shots(tester, 'child_home_choose_today', const ChooseTodayScreen());
     await tester.pumpWidget(shotApp(const ChooseTodayScreen()));
     await tester.pumpAndSettle();
-    expect(find.byType(AuraButton), findsNWidgets(2));
+    expect(find.byKey(const Key('todayStory')), findsOneWidget);
+    expect(find.byKey(const Key('todayQuick')), findsOneWidget);
+    expect(find.byType(AuraButton), findsNothing);
     final story = tester.getTopLeft(find.byKey(const Key('todayStory')));
     final quick = tester.getTopLeft(find.byKey(const Key('todayQuick')));
     expect(story.dy, lessThan(quick.dy), reason: 'the story problem first');

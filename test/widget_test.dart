@@ -21,7 +21,8 @@ void main() {
 
     await tester.pumpWidget(AuraApp(deps: deps));
     await tester.pumpAndSettle();
-    expect(find.text('Ready for a new case?'), findsOneWidget);
+    // Home's tutor greets on the ribbon (the prototype's Home)
+    expect(find.text('Your case is waiting.'), findsOneWidget);
 
     await tester.tap(find.text('Keep going'));
     await tester.pumpAndSettle();
@@ -40,7 +41,8 @@ void main() {
     expect(find.byKey(const Key('celebration')), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 1600));
     await tester.pumpAndSettle();
-    expect(find.text('Ready for a new case?'), findsOneWidget);
+    // Home's tutor greets on the ribbon (the prototype's Home)
+    expect(find.text('Your case is waiting.'), findsOneWidget);
   });
 
   testWidgets('Keep going reopens an unfinished case where it was left', (
