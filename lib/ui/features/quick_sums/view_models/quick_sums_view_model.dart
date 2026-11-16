@@ -76,11 +76,7 @@ class QuickSumsViewModel extends ChangeNotifier {
       if (_seq == 0) {
         _startedAt = _now();
         await _record([
-          SpecEvent('session_started', {
-            'launch_source': launchSource,
-            'content_versions': _sessions.identity.contentVersions,
-            'is_demo': _sessions.identity.isDemo,
-          }),
+          _sessions.started(launchSource, childId: childId),
           if (chosenToday case final c?) ...[
             SpecEvent('choice_selected', {
               'step_id': 'choose_today',

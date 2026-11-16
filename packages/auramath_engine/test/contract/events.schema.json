@@ -23,7 +23,8 @@
     },
     "session_id": {
       "type": "string",
-      "format": "uuid"
+      "format": "uuid",
+      "description": "The lesson session (SES-05). Events outside a lesson (trail_opened; read_aloud_played at Meet, Home and the pickers) wait on D-60, whose default gives them a visit id here instead (v0.5.4)"
     },
     "seq": {
       "type": "integer",
@@ -38,8 +39,13 @@
       "enum": [
         "avatar_chosen",
         "badge_awarded",
+        "badge_opened",
         "badge_shared",
+        "badge_shown",
+        "cabinet_opened",
+        "celebration_shown",
         "choice_selected",
+        "collectible_unlocked",
         "connectivity_changed",
         "easier_chosen",
         "easier_number_sentence_shown",
@@ -48,6 +54,7 @@
         "i_know_it_answered",
         "i_know_it_opened",
         "idle_prompt_shown",
+        "kept_mark_added",
         "number_sentence_entered",
         "object_moved",
         "object_placed",
@@ -71,6 +78,7 @@
         "step_committed",
         "step_entered",
         "streak_moment_shown",
+        "trail_opened",
         "undo_used",
         "value_entered",
         "word_meaning_opened",
@@ -717,6 +725,118 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "badge_shown"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/badge_shown"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "badge_opened"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/badge_opened"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "kept_mark_added"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/kept_mark_added"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "collectible_unlocked"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/collectible_unlocked"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "celebration_shown"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/celebration_shown"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "cabinet_opened"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/cabinet_opened"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "trail_opened"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/trail_opened"
+          }
+        }
+      }
     }
   ],
   "$defs": {
@@ -725,7 +845,8 @@
       "required": [
         "launch_source",
         "content_versions",
-        "is_demo"
+        "is_demo",
+        "look"
       ],
       "additionalProperties": false,
       "properties": {
@@ -749,6 +870,38 @@
         },
         "is_test": {
           "type": "boolean"
+        },
+        "look": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "JRN-07 (v0.5.4): what this session ran with; ids from avatar/looks.yaml, tutor/tutors.yaml (tutor and voice) and rewards/rules.yaml worlds",
+          "required": [
+            "avatar_id",
+            "tutor_id",
+            "voice_id",
+            "world"
+          ],
+          "properties": {
+            "avatar_id": {
+              "type": "string",
+              "pattern": "^[a-z0-9_-]{1,32}$"
+            },
+            "tutor_id": {
+              "type": "string",
+              "pattern": "^[a-z0-9_-]{1,32}$"
+            },
+            "world": {
+              "enum": [
+                "detective",
+                "space",
+                "wildlife"
+              ]
+            },
+            "voice_id": {
+              "type": "string",
+              "pattern": "^[a-z0-9_-]{1,32}$"
+            }
+          }
         }
       }
     },
@@ -1240,6 +1393,11 @@
         },
         "error_type": {
           "type": "string"
+        },
+        "problem_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
+          "description": "App copy only (D-55 A, closed 12 Nov; not yet in pack v0.5.4's file): the case the side lesson ran in"
         }
       }
     },
@@ -1256,6 +1414,11 @@
         },
         "completed": {
           "type": "boolean"
+        },
+        "problem_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
+          "description": "App copy only (D-55 A, closed 12 Nov; not yet in pack v0.5.4's file): the case the side lesson ran in"
         }
       }
     },
@@ -1344,15 +1507,21 @@
         "kind": {
           "enum": [
             "session",
-            "skill_mastered"
+            "skill_mastered",
+            "land",
+            "habit",
+            "secret"
           ]
         }
-      }
+      },
+      "description": "REW-01, REW-06, REW-09, REW-10, REW-14: the server decided the badge was earned. skill_mastered is a stop badge. When the child sees it is badge_shown (REW-11). The server always sets kind; it stays optional only so events logged before v0.5.0 remain valid."
     },
     "read_aloud_played": {
       "type": "object",
       "required": [
-        "target"
+        "target",
+        "trigger",
+        "stopped_early"
       ],
       "additionalProperties": false,
       "properties": {
@@ -1360,10 +1529,28 @@
           "enum": [
             "question",
             "hint",
-            "word"
+            "word",
+            "line"
           ]
+        },
+        "trigger": {
+          "enum": [
+            "auto",
+            "tap"
+          ],
+          "description": "TTR-03: auto when the tutor spoke the line as it appeared; tap when the child asked to hear it"
+        },
+        "stopped_early": {
+          "type": "boolean",
+          "description": "TTR-03: a child action stopped the line before it ended"
+        },
+        "line_id": {
+          "type": "string",
+          "pattern": "^line\\.[a-z0-9.-]{1,60}$",
+          "description": "TTR-03: the tutor line spoken (target line or hint); absent for the question and word meanings"
         }
-      }
+      },
+      "description": "NFR-06, NFR-08, TTR-03 (v0.5.4: tutor lines and how the line started)"
     },
     "connectivity_changed": {
       "type": "object",
@@ -1749,6 +1936,180 @@
           "pattern": "^[a-z0-9._-]+$"
         }
       }
+    },
+    "badge_shown": {
+      "type": "object",
+      "required": [
+        "badge_id",
+        "queued"
+      ],
+      "additionalProperties": false,
+      "description": "REW-11: the child saw the badge; this, not badge_awarded, drives the family note (REW-19)",
+      "properties": {
+        "badge_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+        },
+        "queued": {
+          "type": "boolean",
+          "description": "true if it waited from an earlier session"
+        },
+        "problem_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
+          "description": "App copy only (D-54, rewards spec 9: badge_shown.problem_id; not yet in pack v0.5.4's file): the case the badge was shown after"
+        }
+      }
+    },
+    "badge_opened": {
+      "type": "object",
+      "required": [
+        "badge_id",
+        "from"
+      ],
+      "additionalProperties": false,
+      "description": "REW-12, REW-20: the child tapped a badge",
+      "properties": {
+        "badge_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+        },
+        "from": {
+          "enum": [
+            "cabinet",
+            "casebook",
+            "celebration"
+          ]
+        },
+        "opened_case": {
+          "type": "boolean"
+        }
+      }
+    },
+    "kept_mark_added": {
+      "type": "object",
+      "required": [
+        "badge_id",
+        "mark",
+        "check_problem_id"
+      ],
+      "additionalProperties": false,
+      "description": "REW-08: a spaced check that scoring counted as passed; the last mark is Kept for good",
+      "properties": {
+        "badge_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+        },
+        "mark": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "check_problem_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+        }
+      }
+    },
+    "collectible_unlocked": {
+      "type": "object",
+      "required": [
+        "item_id",
+        "source_badge_id"
+      ],
+      "additionalProperties": false,
+      "description": "REW-13: never by chance, never bought",
+      "properties": {
+        "item_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+        },
+        "source_badge_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+        }
+      }
+    },
+    "celebration_shown": {
+      "type": "object",
+      "required": [
+        "moment",
+        "variant",
+        "world",
+        "ms",
+        "skipped",
+        "reduced_motion"
+      ],
+      "additionalProperties": false,
+      "description": "REW-16, REW-20",
+      "properties": {
+        "moment": {
+          "enum": [
+            "step_right",
+            "wrong_move",
+            "case_solved",
+            "session_badge",
+            "detour_return",
+            "warm_up_done",
+            "streak_moment",
+            "stop_badge",
+            "habit_badge",
+            "first_badge",
+            "kept_mark",
+            "kept_for_good",
+            "polish_cleared",
+            "land_badge",
+            "secret_badge",
+            "collectible_unlocked",
+            "mystery_clue_found",
+            "partner_taught",
+            "case_made"
+          ]
+        },
+        "variant": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "world": {
+          "enum": [
+            "detective",
+            "space",
+            "wildlife"
+          ]
+        },
+        "ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped": {
+          "type": "boolean"
+        },
+        "reduced_motion": {
+          "type": "boolean"
+        }
+      }
+    },
+    "cabinet_opened": {
+      "type": "object",
+      "required": [
+        "badges_shown"
+      ],
+      "additionalProperties": false,
+      "description": "REW-12, REW-20: the child opened the badge cabinet",
+      "properties": {
+        "badges_shown": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "trail_opened": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "JRN-03 (v0.5.4): the child opened the trail; no payload",
+      "properties": {}
     }
-  }
+  },
+  "$comment": "Spec pack v0.5.4 contracts/events.schema.json, plus three fields the pack's decisions add and its file doesn't have yet: problem_id on side_lesson_started, side_lesson_ended (D-55) and badge_shown (D-54). Search 'App copy only'."
 }

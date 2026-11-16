@@ -2,6 +2,7 @@
 /// randomness it was not given. Same inputs, same outputs.
 library;
 
+export 'src/app_events.dart';
 export 'src/codec.dart';
 export 'src/contract.dart';
 export 'src/lesson.dart';

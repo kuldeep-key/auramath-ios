@@ -1,0 +1,93 @@
+# The tutors a child can choose: who teaches the child (tutor/spec.md, TTR-01 to TTR-08).
+# How the tutor teaches (hints, lines, side lessons, timers) is tutor/policy.yaml, which this file never changes.
+# Key designs and owns the tutors, their names, looks and voices; Julia may give feedback (D-59, as for rewards).
+# Switching a tutor or a voice on or off, or changing a default voice, is an edit here (PLAT-03, PLAT-06). A new tutor or voice
+# also needs its art and audio delivered to the app (ADR-0006). tools/validate.py checks this file: ids, the default and enabled
+# lists, kinds, costumes for every world, default voices in the voice set, the animation states; it warns while an enabled
+# tutor has no name or a voice has no service voice yet.
+
+version: 0.1.0
+updated: 2026-11-12
+status: provisional
+decision: D-59
+
+default: teacher_1                 # the tutor of any child who has not chosen one (for example, set up before tutors shipped)
+enabled: [teacher_1, teacher_2, robot]   # the picker shows enabled tutors only; with one enabled, the picker is skipped (TTR-01)
+
+choice:                            # TTR-01, TTR-06
+  who_chooses: child               # at first run, with the grown-up there; later on the Me screen; a grown-up can also change it in the Family area (ACC-14)
+  surprise_me: true                # picks one enabled tutor at random; the child sees who it picked and can pick again
+  where_changed: [me_screen, family_area]
+  takes_effect: immediately        # the Me screen and the Family area are outside a lesson, so a change never lands mid-lesson
+  same_in_every_world: true        # TTR-07: a world changes the tutor's costume, never the tutor or the voice
+
+voices:                            # TTR-02, TTR-06 (Ashutosh, 12 Nov 4:05 pm, PM-1112-V): Key picks a default voice per tutor;
+                                   # children and grown-ups can switch to any enabled voice. Vishal proposes the set from his samples;
+                                   # service_voice is the voice service's own id (ADR-0006), null until picked.
+  enabled: [voice_a, voice_b, voice_c]
+  set:
+    - {id: voice_a, service_voice: null}
+    - {id: voice_b, service_voice: null}
+    - {id: voice_c, service_voice: null}
+  who_switches: [child, grown_up]  # the child on the Me screen (My tutor > Voice); a grown-up in the Family area, with read-aloud (PAR-05)
+  any_voice_for_any_tutor: true
+  switching_tutor_resets_voice: true   # a new tutor starts with its own default voice; the child can switch again
+  voice_switched_off: falls_back_to_tutor_default   # if a chosen voice leaves voices.enabled
+  one_voice_at_a_time: true        # whichever voice is chosen speaks every line until it is changed
+
+tutors:                            # names are null until Key names them with Apoorv (open-questions.md)
+  - id: teacher_1
+    kind: grown_up_teacher
+    name: null
+    default_voice: voice_a
+    costume: {detective: art.tutor.teacher_1.detective, space: null, wildlife: null}
+  - id: teacher_2
+    kind: grown_up_teacher
+    name: null
+    default_voice: voice_b
+    costume: {detective: art.tutor.teacher_2.detective, space: null, wildlife: null}
+  - id: robot
+    kind: robot
+    name: null
+    default_voice: voice_c
+    costume: {detective: art.tutor.robot.detective, space: null, wildlife: null}
+
+character_rules:                   # TTR-08; Apoorv designs to these, Key reviews before a tutor is enabled
+  kinds_allowed: [grown_up_teacher, robot]   # never a child, a baby, a pet or a cuddly creature: a teacher, not a friend (AI-07, PRD v4.1 section 3)
+  no_real_person_or_brand: true    # no real person's likeness or name, no character from a film, game or book
+  no_companion_styling: true       # no hearts, no romantic or "best friend" styling, no pleading or sad faces to keep a child playing
+  never_red: true                  # NFR-03
+  look_range_across_tutors: true   # the tutors differ in look and in default voice; none is labelled by gender (PRV-07 applies to the child; tutors are simply characters)
+  says_it_is_ai: AI-07             # the tutor introduces itself as a computer helper, an AI, at Meet and at natural breaks
+
+voice:                             # TTR-02, TTR-03
+  service: adr/0006-read-aloud-audio-and-tutor-language.md   # Kuldeep chooses how audio is made; each voice in the set must sound the same everywhere
+  one_voice_at_a_time: true        # every line the tutor speaks uses the child's current voice (the tutor's default unless switched): question, step prompts, hints, show me how, praise, the detour bridge, Meet and the AI reminders
+  never_says_childs_name: true     # NFR-08: tutor lines never contain the child's name, in audio or in the speech bubble; a screen title may show it
+  no_child_audio: true             # NFR-06: nothing is recorded from the child
+  speaks_automatically: true       # when a tutor line or the question appears, if read-aloud is on for this child (content/app-config.yaml flags.read_aloud_default_on_ages, PAR-05)
+  hear_again: [tap_tutor, speaker_button]   # NFR-06, NFR-08: the speaker buttons stay
+  stops_when: [any_child_action]   # a tap, drag or typed digit stops the line at once; nothing waits for the voice
+  never_blocks_input: true
+  quiet_timers_start: after_line   # tutor/policy.yaml quiet.timer_starts (TUT-07): the timers start when the line on the board ends or is stopped;
+                                   # the ladder's own lines (25, 40 and 60 s) don't restart them
+  when_voice_cannot_play: speech_bubble_and_phone_voice_on_tap   # TTR-02: blocked (D-50), down or not yet made; the lesson carries on
+  sound_off: journey_20            # NFR-06: "Sound on" or "I'll read it myself"; with sound off the tutor's line shows in its speech bubble
+
+animation:                         # TTR-04
+  states:
+    idle: "at rest; a slow blink at most; no motion while a step accepts input"
+    talking: "only while the tutor's audio plays; stops when the audio stops"
+    thinking: "a small cue after content/app-config.yaml ai.waiting_cue_after_ms (NFR-05); never a blocking spinner"
+    cheering: "in the celebrations rewards/rules.yaml celebrations.tutor_state gives as cheering (case solved, warm-up done, habit badge, partner taught)"
+    encourage: "with the line after a wrong move or a hint, and walking the child back from a side lesson; warm and calm, never sad, never shaking its head"
+  still_while_child_works: true    # when a step accepts input and no line plays, the tutor shows idle with no motion (tutor/spec.md section 3)
+  reduced_motion: still_pose_per_state   # with the phone's reduced-motion setting, each state is a still picture
+  never_flashes: true              # never more than three flashes a second (WCAG 2.3.1, as REW-16)
+
+placement:                         # TTR-05; sizes are provisional, Apoorv may change them here
+  lesson_screens: {size_pt_max: 64, position: corner, never_covers: [board, number_pad, question_strip, help_me, i_know_it, see_the_question]}
+  home: large
+  meet: large
+  end_of_session: medium
+  celebrations: as rewards/rules.yaml celebrations

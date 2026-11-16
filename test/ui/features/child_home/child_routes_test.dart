@@ -140,7 +140,10 @@ void main() {
       tester,
       Paths.badges,
       saved: const [
-        SpecEvent('badge_awarded', {'badge_id': 'tree'}),
+        SpecEvent('problem_completed', {
+          'problem_id': 'lemon',
+          'outcome': 'solved_alone',
+        }),
       ],
     );
     expect(find.text('Tree Detective'), findsOneWidget);

@@ -94,7 +94,13 @@ void main() {
       }
     }
     // two questions in 99 characters (Julia's Figma 15.2 words), and
-    // three sentences in the case partner's hello (AI-07 draft)
-    expect(over, {'line.hint.longer-or-shorter-bar', 'line.intro.hello'});
+    // three sentences in the case partner's hello (AI-07 draft), and the
+    // tutor's introduction, long and short (v0.5.4 drafts, AI-07)
+    expect(over, {
+      'line.hint.longer-or-shorter-bar',
+      'line.intro.hello',
+      'line.tutor.intro',
+      'line.tutor.intro-short',
+    });
   });
 }

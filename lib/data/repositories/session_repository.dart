@@ -45,6 +45,31 @@ class SessionRepository {
   final Api _api;
   final Identity identity;
 
+  /// What the child's sessions run with (JRN-07): their look, tutor,
+  /// voice and world as the look repository last knew them; the journey's
+  /// defaults until it says.
+  SessionLook Function(String? childId) lookFor = (_) => defaultLook;
+
+  static const defaultLook = (
+    avatarId: 'look_01',
+    tutorId: 'teacher_1',
+    voiceId: 'voice_a',
+    world: 'detective',
+  );
+
+  /// `session_started` for [childId]'s new session (SES-05): [launchSource],
+  /// this launch's content versions plus [versions], and the look.
+  SpecEvent started(
+    String launchSource, {
+    String? childId,
+    Map<String, String> versions = const {},
+  }) => sessionStarted(
+    launchSource: launchSource,
+    contentVersions: {...identity.contentVersions, ...versions},
+    isDemo: identity.isDemo,
+    look: lookFor(childId),
+  );
+
   /// This phone as events name it now (AUR-34): pairing changes it from
   /// the install's id to the paired device's, without a restart. Else
   /// [identity]'s.

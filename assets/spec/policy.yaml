@@ -1,7 +1,7 @@
 # Tutor policy: when help appears, how it escalates, and the rules lines must follow.
 # All values are provisional content (PLAT-03). Changing them needs no app release.
-version: 0.4.0
-updated: 2026-11-02
+version: 0.5.4
+updated: 2026-11-12
 status: provisional
 
 quiet:                          # TUT-07, decision D-06. Order and lines follow Figma journey 16
@@ -14,7 +14,10 @@ quiet:                          # TUT-07, decision D-06. Order and lines follow 
   still_there_line: line.quiet.want-a-hand
   still_there_options: [help_me, easier_one, still_thinking]   # Figma 16.3
   then: first_hint              # Figma 16.4
-  timer_starts: board_shown     # not while the child reads the question on M0 (reading time is kept apart, SKL-09)
+  timer_starts: board_shown_and_tutor_line_ended   # not while the child reads the question on M0 (reading time is kept apart, SKL-09);
+                                # v0.5.4 (D-59): nor while the tutor is speaking a line on the board; the timer starts when the line ends
+                                # or the child stops it (TTR-03, tutor/tutors.yaml voice.quiet_timers_start); the ladder's own
+                                # lines (glow, watch me, want a hand) don't restart it
   timer_restarts_on: [any_child_action, still_thinking]
   counts_as_help: [demo, still_there]   # scored as with_hints; the pulse and the glow are nudges, not help (D-05)
   sources: [SR-C-2OCT, FLOW-16]
@@ -141,16 +144,7 @@ story_generation:               # CON-08 (v4, D-34): the generator writes proble
   expected_values: computed_by_code   # the unknown and the total are computed by the CON-01 verifier from A, D and relation; any value the model supplies is checked against them
   checks: [numbers_in_level_range, regrouping_as_level_requires, expected_values_consistent, age_word_list, safe_content, no_brands, names_from_fixed_list_only, no_duplicates]
   on_fail: regenerate_once_then_code_generator
-  age_word_list:                # CON-08. DRAFT for Julia (CON-09): words a hint the generator writes may use, ages 6 to 10
-    id: draft-2026-11-10
-    status: draft
-    approved: false             # Julia validates it (CON-09); with flags.real_families on an unapproved list is refused (CON-04)
-    note: >
-      Key's draft from Julia's hint lines, the NSW Stage 1 and 2 maths vocabulary and the template's own
-      words: function words, comparison and bar-model words, adding and taking away. The kind's object
-      names and unit are allowed on top (services/problem_gen.py). Hints are served only while every word
-      is on the list; add or strike words here.
-    words: [a, an, the, and, or, but, so, if, then, than, that, this, these, those, it, its, is, are, was, were, be, been, am, do, does, did, has, have, had, can, could, will, would, should, may, might, must, not, "no", "yes", there, here, i, you, we, they, he, she, me, us, them, my, your, our, their, his, her, one, ones, both, each, every, all, some, any, more, most, less, least, other, another, same, what, which, who, where, when, why, how, much, many, tall, taller, tallest, short, shorter, shortest, long, longer, longest, big, bigger, small, smaller, high, higher, low, lower, heavy, heavier, heaviest, light, lighter, lightest, height, weight, size, length, far, near, close, equal, different, difference, gap, between, add, added, adding, plus, take, taking, away, subtract, minus, total, altogether, together, sum, sums, number, numbers, count, counting, answer, find, found, work, out, check, again, first, next, last, before, after, part, parts, whole, half, double, tens, hundreds, ten, hundred, column, columns, carry, regroup, trade, swap, bar, bars, model, draw, drew, drawing, picture, line, lines, box, boxes, label, end, ends, start, top, bottom, side, left, right, up, down, across, over, under, above, below, beside, middle, inside, outside, story, question, problem, case, word, words, read, look, see, show, shows, tell, tells, say, says, mean, means, know, think, try, put, make, made, use, move, moves, stack, go, goes, get, gets, give, gives, need, needs, want, help, keep, takes, finds, ask, asks, grow, grows, reach, reaches, stand, stands, weigh, weighs, measure, measured, tree, trees, plant, plants, thing, things, cm, centimetres, metre, metres, gram, grams, kilogram, kilograms, now, still, yet, already, just, only, also, too, very, at, by, for, in, of, to, with, from, "on", "off", into, onto, about, around, good, nearly, new, pick, choose, two, three, four, five, six, seven, eight, nine, grown, hand, let's, watch, solve, solved, solving, cases, maths, math, colour, colours, way, tried, something, sentence, write, type, tap, drag]
+  age_word_list: content/age-word-list.yaml   # CON-13 (v0.5.3): Key drafts and owns it from public sources plus Julia's own wording; Julia sees it in use in the CON-09 samples
   word_list_sent_as: word_list_id   # the server sends a word-list id and short_lines on/off to the generator, never the child's age (PRV-01)
   short_lines_for_ages: [6, 7]  # TUT-14 (v4): Julia, 26 Oct, shorter words for 6-year-olds
 
@@ -184,26 +178,12 @@ case_partner_intro:             # AI-07 (P0, R1), flags.case_partner_intro. DRAF
     - line.intro.help-you-think
   reminder: line.intro.reminder   # "it repeats this at natural breaks"
   reminder_at: [session_start_after_first, side_lesson_ended]   # draft: the natural breaks, for Julia and Apoorv
-  never: [calls_itself_a_friend, claims_feelings, guilt_to_keep_playing]   # enforced by lines.forbidden_phrases
-  sources: [MARKET-1027, KUSH-1027]
-
-lines:
-  rules:
-    - Never state the answer to the current step before the child has attempted it (TUT-02).
-    - Hints use comparison words and add no number that is not already in the question (ASK-J51; see review_note).
-    - Praise on the child's screen is short and simple, and names the problem in plain words ("You solved the Tree Word Problem!"). What the child did step by step goes to the parent note, not the child's screen (TUT-12; Julia, Figma comments 9 Oct).
-  forbidden_phrases:            # legacy RWD-18; lint in evals/tutor-lines
-    - "great job"
-    - "well done"
-    - "good job"
-    - "nice try"
-    - "oops"
-    - "try again"
-    - "not quite"
-    - "wrong"
-    - "correct"
-    # AI-07 (P0): the case partner never calls itself a friend, never claims feelings and never uses
-    # guilt to keep the child playing. The three the PRD names, then close variants (drafted, Julia sees them)
+  never: [calls_itself_a_friend, claims_feelings, guilt_to_keep_playing]   # enforced by never_phrases
+  # AI-07 (P0): the case partner never calls itself a friend, never claims feelings and never uses guilt to
+  # keep the child playing. The three the PRD names, then close variants (drafted, Julia sees them). Kept here,
+  # not in lines.forbidden_phrases, because the pack checks reward names against that list and a reward may
+  # say "friend" (the secret badge Hidden friend, REW-14). The service bans both lists in tutor lines.
+  never_phrases:
     - "friend"
     - "friends"
     - "best friend"
@@ -219,6 +199,24 @@ lines:
     - "i'll be lonely"
     - "don't leave me"
     - "don't go"
+  sources: [MARKET-1027, KUSH-1027]
+
+lines:
+  rules:
+    - Never state the answer to the current step before the child has attempted it (TUT-02).
+    - Never compare people's bodies, body shapes or weights, or any animal's weight; heights of people and animals are fine, and weight comparisons use objects. Applies to library lines and to lines the AI phrases (v0.5.3).
+    - Hints use comparison words and add no number that is not already in the question (ASK-J51; see review_note).
+    - Praise on the child's screen is short and simple, and names the problem in plain words ("You solved the Tree Word Problem!"). What the child did step by step goes to the parent note, not the child's screen (TUT-12; Julia, Figma comments 9 Oct).
+  forbidden_phrases:            # legacy RWD-18; lint in evals/tutor-lines
+    - "great job"
+    - "well done"
+    - "good job"
+    - "nice try"
+    - "oops"
+    - "try again"
+    - "not quite"
+    - "wrong"
+    - "correct"
   # Lines sourced to ASK-J42 and ASK-J47 are Julia's own words (2 Oct slides). Lines sourced to FLOW-*
   # are as written on the Figma screens. Lines marked drafted are ours. All need Julia's approval.
   pack:                         # approved: false until Julia approves the pack (CON-04)
@@ -234,7 +232,7 @@ lines:
     - {id: line.hint.now-b,                   text: "Good! Now, what is the height of the {b}?",            source: FLOW-7-11, approved: false, variants: {mass: "Good! Now, how heavy is the {b}?"}}
     - {id: line.hint.taller-or-shorter,       text: "Is the {b} taller or shorter than the {a}?",           source: FLOW-7-11, approved: false, variants: {mass: "Is the {b} heavier or lighter than the {a}?"}}
     - {id: line.hint.D-tall-or-relation,      text: "Is the {b} {D} {unit} tall, or {D} {unit} {b_word} than the {a}?", source: FLOW-12-15, approved: false, drafted: true, variants: {mass: "Does the {b} weigh {D} {unit}, or {D} {unit} {b_word} than the {a}?"}}
-    - {id: line.hint.grown-up-and-you,        text: "Think of a grown-up and you. Who is taller?",          source: ASK-J13, approved: false, drafted: true, variants: {mass: "Think of a grown-up and you. Who is heavier?"}}
+    - {id: line.hint.grown-up-and-you,        text: "Think of a grown-up and you. Who is taller?",          source: ASK-J13, approved: false, drafted: true, variants: {mass: "Think of a full bag and an empty bag. Which is heavier?"}}   # v0.5.3: never compare a person's weight
     - {id: line.hint.longer-or-shorter-bar,   text: "Is the {b} taller than the {a}? Would a taller {kind} have a longer bar or a shorter bar?", source: FLOW-12-15, approved: false, note: "Second sentence is given as Julia's words in the Figma 15.2 note (2 Oct), with {kind} for 'tree'; Julia sees it in her check (CON-09)", variants: {mass: "Is the {b} heavier than the {a}? Would a heavier one have a longer bar or a shorter bar?"}}
     - {id: line.check.again,                  text: "Check your sum again.",                                source: ASK-J17, approved: false}
     - {id: line.hint.which-is-it,             text: "Which {kind} does 'it' mean: the {a} or the {b}?",     source: VIF-S8-1009, approved: false, note: "Julia's words, slide 8: Which tree does \"It\" mean? Lemon or Fig? Used in lesson stories, which all name things with 'the' (the building story is a worked example only)", variants: {mass: "Which one does 'it' mean: the {a} or the {b}?"}}
@@ -258,6 +256,16 @@ lines:
     - {id: line.intro.grown-up-sees,          text: "Your grown-up can see your work.",                           source: KUSH-1027, approved: false, drafted: true, note: "DRAFT for Julia (AI-07)"}
     - {id: line.intro.help-you-think,         text: "I'm here to help you think. You do the solving!",             source: KUSH-1027, approved: false, drafted: true, note: "DRAFT for Julia (AI-07)"}
     - {id: line.intro.reminder,               text: "Remember, I'm a computer helper. Your grown-up can see your work.", source: KUSH-1027, approved: false, drafted: true, note: "DRAFT for Julia (AI-07): said again at natural breaks"}
+    # v0.5.4 (D-59, PM-1112-T): the tutor's own lines (tutor/spec.md section 5.6). Drafted by Key; Julia sees them in her check (CON-09).
+    # {child_role}, {task_word} and {tutor_name} come from the child's world and tutor; spoken audio never has the child's name (NFR-08).
+    - {id: line.tutor.intro,                  text: "Hi there! I'm {tutor_name}. I'm a computer helper, an AI. Julia's team wrote my rules. I can make mistakes, so you are the {child_role}. Your family can see your work.", source: PM-1112-T, approved: false, drafted: true, note: "AI-07 first meeting, at Meet with the grown-up there; from the Figma Meet screen, with 'your family' (PAR-14)"}
+    - {id: line.tutor.intro-short,            text: "Hi! I'm {tutor_name}. I'm an AI, a computer helper. Julia's team wrote my rules. I can make mistakes. You are the {child_role}, and your family can see your work.", source: PM-1112-T, approved: false, drafted: true, note: "The short version for ages 6 and 7 (TUT-14)"}
+    - {id: line.tutor.ai-reminder,            text: "Remember, I'm a computer helper. You are the {child_role}.", source: PM-1112-T, approved: false, drafted: true, note: "AI-07 reminder at natural breaks: case closed, session end"}
+    - {id: line.tutor.hello,                  text: "Hi! I'm {tutor_name}.",                                source: PM-1112-T, approved: false, drafted: true, note: "The voice sample on each tutor tile (TTR-01)"}
+    - {id: line.home.greeting,                text: "Your {task_word} is waiting.",                          source: FIGMA-1104, approved: false, drafted: true, note: "Figma Home 'Your case is waiting'; spoken by the tutor without the child's name"}
+    - {id: line.pick.world,                   text: "Pick your world.",                                     source: PM-1112-T, approved: false, drafted: true}
+    - {id: line.pick.look,                    text: "Who do you want to be?",                               source: PM-1112-T, approved: false, drafted: true}
+    - {id: line.pick.tutor,                   text: "Who will teach you?",                                  source: PM-1112-T, approved: false, drafted: true}
   # Lines drawn on Figma screens that are not in the pack yet. Each needs a pack line (and Julia's
   # approval) or a design change before it can be built (TUT-11). Listed for Apoorv; not loaded by the app.
   figma_lines_to_reconcile:
