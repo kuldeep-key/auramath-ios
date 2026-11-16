@@ -1,6 +1,8 @@
 // The prototype's timings, frame by frame: what shows at each point of an
 // animation (motion on, unlike the rest of the suite).
 import 'package:auramath/ui/core/motion/motion.dart';
+import 'package:auramath/ui/features/lesson/view_models/place_value.dart';
+import 'package:auramath/ui/features/lesson/views/side_lesson_view.dart';
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -92,5 +94,41 @@ void main() {
     await tester.pump(const Duration(milliseconds: 220));
     expect(fade(), 1);
     await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('T1\'s written sum fills in as the blocks are worked: the '
+      'broken ten struck with its new tens, then the answer, place by '
+      'place, each digit popping in over 350 ms', (tester) async {
+    final sum = PlaceValue(left: 186, right: 107, subtract: true);
+    Future<void> show() => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: WrittenSum(sum: sum)),
+      ),
+    );
+    await show();
+    expect(find.text('9'), findsNothing);
+    sum.act(); // break a ten
+    await show();
+    expect(find.text('7'), findsNWidgets(2), reason: '8 struck, 7 above; 107');
+    sum.act(); // take the ones: 16 - 7
+    await show();
+    final nine = find.text('9');
+    expect(nine, findsOneWidget);
+    double shown() => tester
+        .widget<Opacity>(
+          find.ancestor(of: nine, matching: find.byType(Opacity)).first,
+        )
+        .opacity;
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(shown(), lessThan(1));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(shown(), 1);
+    while (sum.step != PlaceStep.done) {
+      sum.act();
+    }
+    await show();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('9'), findsOneWidget);
+    expect(find.text('7'), findsNWidgets(3), reason: 'and 79\'s tens');
   });
 }
