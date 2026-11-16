@@ -454,6 +454,17 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   bool showHand = false;
   bool stillThere = false;
 
+  /// "Can you draw the story out?" (the prototype's W1) is up: an answer
+  /// sheet's draw_it, before the board. Only the screen; the engine's step
+  /// is already the board's.
+  bool drawItOffer = false;
+
+  /// "Let's draw" on W1.
+  void drawItTaken() {
+    drawItOffer = false;
+    notifyListeners();
+  }
+
   /// [stillThere] is open because the child has been on one step for policy
   /// `no_progress_minutes`, moving or not: too hard, so offer a way out
   /// (TUT-10). Once per step.
@@ -1563,6 +1574,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
           knowPrompt = KnowPrompt.checkPart;
         case DrawIt():
           knowPrompt = null;
+          drawItOffer = true;
         case SuggestShowMeHow():
           _coach('cmp.showMeHow', const {});
         case SwitchProblem(:final problemId):

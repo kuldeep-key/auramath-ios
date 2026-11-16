@@ -108,4 +108,64 @@ void main() {
     await _save(tester, 'Rate');
     await tester.pumpWidget(const SizedBox());
   });
+
+  for (final (name, inputs) in const [
+    ('W1', <LessonInput>[Started(), KnowIt(256), KnowIt(300)]),
+    (
+      'T1',
+      <LessonInput>[
+        Started(),
+        BarADrawn(),
+        BarBPlaced(),
+        BarBSized(Relation.shorter),
+        PieceDropped(Piece.gap, Target.gapSlot),
+        PieceDropped(Piece.total, Target.totalSlot),
+        OpChosen(Op.subtract),
+        NumberEntered(81),
+      ],
+    ),
+  ]) {
+    testWidgets('$name beside the prototype', (tester) async {
+      if (_on) await tester.runAsync(loadAppFonts);
+      tester.view.physicalSize = const Size(369, 828);
+      tester.view.devicePixelRatio = 1;
+      tester.view.padding = const FakeViewPadding(top: 44);
+      addTearDown(tester.view.reset);
+      final (sessions, _, _) =
+          await tester.runAsync(memorySessions) ?? (throw StateError('no db'));
+      final vm = LessonViewModel(
+        pack: samplePack(),
+        problemId: 'lemon',
+        sessionId: 's1',
+        sessions: sessions,
+        voice: FakeVoice(),
+        openSession: sessions.open,
+        sitting: Sitting(capMs: 30 * 60 * 1000),
+        tickEvery: null,
+      );
+      addTearDown(vm.dispose);
+      await tester.runAsync(vm.start);
+      await tester.runAsync(() async {
+        for (final i in inputs) {
+          await vm.send(i);
+        }
+      });
+      await tester.pumpWidget(
+        RepaintBoundary(
+          key: const ValueKey('protoShot'),
+          child: MaterialApp(
+            theme: buildAuraTheme(),
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: LessonFlow(vm: vm, onHome: () {}, onFinished: (_) {}),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 2));
+      await _save(tester, name);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
 }

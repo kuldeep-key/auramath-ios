@@ -1,6 +1,7 @@
 // The prototype's timings, frame by frame: what shows at each point of an
 // animation (motion on, unlike the rest of the suite).
 import 'package:auramath/ui/core/motion/motion.dart';
+import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -49,6 +50,47 @@ void main() {
     await tester.pump(const Duration(milliseconds: 210));
     expect(litWord(tester), 'The');
     expect(t.voice.said, hasLength(2), reason: 'and the story is read');
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('W1: a second wrong answer fades in "Can you draw the story '
+      'out?" over 420 ms; Let\'s draw opens the board, nothing revealed', (
+    tester,
+  ) async {
+    AuraMotion.still = true;
+    final t = await pumpLesson(tester);
+    await t.send(const [Started(), KnowIt(256), KnowIt(300)]);
+    expect(find.byKey(const Key('drawIt')), findsOneWidget);
+    expect(find.text('Can you draw the story out?'), findsOneWidget);
+    expect(find.text("Let's do it together."), findsOneWidget);
+    expect(find.textContaining('265'), findsNothing, reason: 'never shown');
+    await t.tap(find.byKey(const Key('letsDraw')));
+    expect(find.byKey(const Key('drawIt')), findsNothing);
+    expect(find.byKey(const Key('slotA')), findsOneWidget);
+
+    AuraMotion.still = false;
+    final m = await pumpLessonMoving(tester);
+    await tester.runAsync(() async {
+      for (final i in const [Started(), KnowIt(256), KnowIt(300)]) {
+        await m.vm.send(i);
+      }
+    });
+    await tester.pump();
+    double fade() => tester
+        .widget<Opacity>(
+          find
+              .ancestor(
+                of: find.byKey(const Key('drawIt')),
+                matching: find.byType(Opacity),
+              )
+              .first,
+        )
+        .opacity;
+    expect(fade(), 0);
+    await tester.pump(const Duration(milliseconds: 210));
+    expect(fade(), inInclusiveRange(.5, .99));
+    await tester.pump(const Duration(milliseconds: 220));
+    expect(fade(), 1);
     await tester.pumpWidget(const SizedBox());
   });
 }

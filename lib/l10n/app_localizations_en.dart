@@ -1871,6 +1871,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lessonRateSkip => 'Skip';
 
   @override
+  String get lessonDrawStoryOut => 'Can you draw the story out?';
+
+  @override
+  String get lessonDrawTogether => 'Let\'s do it together.';
+
+  @override
+  String get lessonLetsDraw => 'Let\'s draw';
+
+  @override
   String get lessonFamilySees => 'Your family will see this too.';
 
   @override

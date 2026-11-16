@@ -3292,6 +3292,24 @@ abstract class AppLocalizations {
   /// **'Skip'**
   String get lessonRateSkip;
 
+  /// Policy line.quiet.draw-story (ASK-J42, not yet approved): W1's title when the library has no line.
+  ///
+  /// In en, this message translates to:
+  /// **'Can you draw the story out?'**
+  String get lessonDrawStoryOut;
+
+  /// DRAFT (prototype W1, 16 Nov): under 'Can you draw the story out?'.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s do it together.'**
+  String get lessonDrawTogether;
+
+  /// DRAFT (prototype W1): the button that opens the board.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s draw'**
+  String get lessonLetsDraw;
+
   /// DRAFT (prototype Y2, 16 Nov, AI-07 reminder at a natural break): under the praise on case cracked.
   ///
   /// In en, this message translates to:
