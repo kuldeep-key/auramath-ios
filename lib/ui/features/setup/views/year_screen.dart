@@ -47,9 +47,13 @@ class YearScreen extends StatefulWidget {
 }
 
 class _YearScreenState extends State<YearScreen> {
-  late final int? _usual = widget.draft.age == null
+  /// The age when this screen opened. Setup clears the draft once the
+  /// child is saved, while this screen can still be under the next ones
+  /// and rebuild, so it is never read from the draft again.
+  late final int? _age = widget.draft.age;
+  late final int? _usual = _age == null
       ? null
-      : (widget.draft.age! - 5).clamp(0, setupYears.last);
+      : (_age - 5).clamp(0, setupYears.last);
   late String? _year =
       widget.draft.schoolYear ?? (_usual == null ? null : yearValue(_usual));
 
@@ -78,7 +82,7 @@ class _YearScreenState extends State<YearScreen> {
             ChoiceTile(
               label: label,
               flag: _usual != null && id == yearValue(_usual)
-                  ? l.setupYearUsual(widget.draft.age!)
+                  ? l.setupYearUsual(_age!)
                   : null,
               selected: _year == id,
               onTap: () => setState(() => _year = id),
