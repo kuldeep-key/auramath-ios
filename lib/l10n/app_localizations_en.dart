@@ -2186,4 +2186,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidSidePathBack => 'Back to your case';
+
+  @override
+  String get kidTrailLookBack => 'Look back';
+
+  @override
+  String kidTrailOf(String name) {
+    return '$name\'s trail';
+  }
 }

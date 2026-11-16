@@ -454,12 +454,15 @@ List<RouteBase> childRoutes(Deps deps) {
           );
         },
         builder: (t) => switch (t.lands) {
-          final lands? when lands.isNotEmpty => PathScreen(
-            lands: lands,
-            world: t.world,
-            lookId:
-                deps.looks.cached(deps.account.childId)?.avatarId ??
-                lookIdFor(progress.cachedAvatar),
+          final lands? when lands.isNotEmpty => named(
+            (name) => PathScreen(
+              lands: lands,
+              world: t.world,
+              childName: name,
+              lookId:
+                  deps.looks.cached(deps.account.childId)?.avatarId ??
+                  lookIdFor(progress.cachedAvatar),
+            ),
           ),
           _ when t.served?.atTop ?? t.local.atTop => const TrailTopScreen(),
           _ => TrailScreen(here: t.local.here, served: t.served),

@@ -3837,6 +3837,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to your case'**
   String get kidSidePathBack;
+
+  /// DRAFT (JRN-03, prototype K2): the sign at the bottom of the Orchard path that shows the older stops again.
+  ///
+  /// In en, this message translates to:
+  /// **'Look back'**
+  String get kidTrailLookBack;
+
+  /// DRAFT (JRN-03, prototype K2): under the land's name at the top of the Orchard path. Read on screen, never spoken by the tutor.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s trail'**
+  String kidTrailOf(String name);
 }
 
 class _AppLocalizationsDelegate

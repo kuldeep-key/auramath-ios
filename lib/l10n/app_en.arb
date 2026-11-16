@@ -911,5 +911,14 @@
   "kidSidePathBack": "Back to your case",
   "@kidSidePathBack": {
     "description": "DRAFT (JRN-04): the way back on the side path."
+  },
+  "kidTrailLookBack": "Look back",
+  "@kidTrailLookBack": {
+    "description": "DRAFT (JRN-03, prototype K2): the sign at the bottom of the Orchard path that shows the older stops again."
+  },
+  "kidTrailOf": "{name}'s trail",
+  "@kidTrailOf": {
+    "description": "DRAFT (JRN-03, prototype K2): under the land's name at the top of the Orchard path. Read on screen, never spoken by the tutor.",
+    "placeholders": {"name": {"type": "String"}}
   }
 }
