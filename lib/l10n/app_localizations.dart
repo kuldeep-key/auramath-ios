@@ -3514,6 +3514,12 @@ abstract class AppLocalizations {
   /// **'Take it back'**
   String get lessonTakeBack;
 
+  /// DRAFT (prototype 16 Nov): the word on the question strip's eye button (LES-02).
+  ///
+  /// In en, this message translates to:
+  /// **'See'**
+  String get lessonSee;
+
   /// What a screen reader says on the eye button that opens the whole question (LES-02). Figma: Prototype parts › Question strip.
   ///
   /// In en, this message translates to:

@@ -12,6 +12,7 @@ import '../ui/features/lesson/view_models/lesson_view_model.dart';
 import '../ui/features/lesson/views/lesson_flow.dart';
 import 'paths.dart';
 import '../ui/core/motion/screen_motion.dart';
+import '../ui/core/parts/journey_art.dart';
 
 List<RouteBase> lessonRoutes(Deps deps) => [
   GoRoute(
@@ -221,7 +222,28 @@ class _LessonRouteState extends State<_LessonRoute> {
   }
 
   @override
-  Widget build(BuildContext context) => LessonFlow(
+  Widget build(BuildContext context) => TutorScope(
+    // the child's tutor talks in the lesson header (TTR-05)
+    tutorId: _tutor.id,
+    kind: _tutor.kind,
+    child: _flow(context),
+  );
+
+  /// The child's chosen tutor, else tutors.yaml's default.
+  ({String id, String kind}) get _tutor {
+    final deps = widget.deps;
+    final config = deps.journey;
+    final id = deps.looks.cached(deps.account.childId)?.tutorId;
+    final t =
+        config.pickable.where((t) => t.id == id).firstOrNull ??
+        config.tutorById(config.defaultTutor);
+    return (
+      id: t?.id ?? config.defaultTutor,
+      kind: t?.kind ?? 'grown_up_teacher',
+    );
+  }
+
+  Widget _flow(BuildContext context) => LessonFlow(
     vm: _vm,
     onHome: () => context.go(Paths.home),
     // past the cap, a finished problem ends the sitting instead of starting

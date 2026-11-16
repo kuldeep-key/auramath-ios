@@ -260,3 +260,29 @@ class _TutorFigureState extends State<TutorFigure>
     return art;
   }
 }
+
+/// The child's tutor for the screens below it: the lesson header's tutor
+/// button draws this one. Without a scope, `teacher_1` (tutors.yaml
+/// `default`).
+class TutorScope extends InheritedWidget {
+  const TutorScope({
+    super.key,
+    required this.tutorId,
+    this.kind = 'grown_up_teacher',
+    this.world = 'detective',
+    required super.child,
+  });
+
+  final String tutorId;
+  final String kind;
+  final String world;
+
+  static const fallback = TutorScope(tutorId: 'teacher_1', child: SizedBox());
+
+  static TutorScope of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<TutorScope>() ?? fallback;
+
+  @override
+  bool updateShouldNotify(TutorScope old) =>
+      old.tutorId != tutorId || old.kind != kind || old.world != world;
+}

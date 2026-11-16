@@ -2003,6 +2003,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lessonTakeBack => 'Take it back';
 
   @override
+  String get lessonSee => 'See';
+
+  @override
   String get lessonSeeQuestion => 'See the question';
 
   @override
