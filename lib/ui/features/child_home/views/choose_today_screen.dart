@@ -3,10 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
-import '../../../core/parts/aura_button.dart';
-import '../../../core/parts/ribbon.dart';
-import 'play_icon_button.dart';
-import 'play_moment.dart';
+import '../../../core/motion/motion.dart';
+import '../../../core/parts/aura_page.dart';
+import '../../../core/parts/lesson_header.dart';
+import '../../../core/parts/speak_button.dart';
+import '../../../core/theme/tokens.dart';
 
 /// Choose today (LES-14): exactly two choices, the story problem or Quick
 /// sums; either starts in one tap. The selector's suggestion comes first
@@ -15,6 +16,8 @@ import 'play_moment.dart';
 /// its time here. After the starting check it shows inside the lesson,
 /// which handles the choice ([onStory], [onQuick]).
 /// Figma: A3 (journey 4.2); its "Taking away" is part of Quick sums.
+/// Drawn as the prototype's A3 (16 Nov): the lesson's header, then two
+/// big tiles, the first blue, the second white, popping in 100 ms apart.
 /// Behind the flag `quick_sums`.
 class ChooseTodayScreen extends StatefulWidget {
   const ChooseTodayScreen({
@@ -54,40 +57,112 @@ class _ChooseTodayScreenState extends State<ChooseTodayScreen> {
       context.go(Uri(path: path, queryParameters: {'ms': '$ms'}).toString());
     }
 
-    final story = AuraButton(
-      key: const Key('todayStory'),
-      label: l.kidTodayStory,
-      icon: Icons.search_rounded,
-      color: widget.suggestQuickSums
-          ? AuraButtonColor.white
-          : AuraButtonColor.blue,
-      onPressed: () => go(Paths.lessonNext, widget.onStory),
+    final title = l.kidTodayTitle;
+    final first = _TodayTile(
+      key: Key(widget.suggestQuickSums ? 'todayQuick' : 'todayStory'),
+      label: widget.suggestQuickSums ? l.kidTodayQuick : l.kidTodayStory,
+      art: widget.suggestQuickSums ? '➕➖' : '🍋🌳',
+      blue: true,
+      onTap: widget.suggestQuickSums
+          ? () => go(Paths.quickSums, widget.onQuick)
+          : () => go(Paths.lessonNext, widget.onStory),
     );
-    final quick = AuraButton(
-      key: const Key('todayQuick'),
-      label: l.kidTodayQuick,
-      icon: Icons.bolt_rounded,
-      color: widget.suggestQuickSums
-          ? AuraButtonColor.blue
-          : AuraButtonColor.white,
-      onPressed: () => go(Paths.quickSums, widget.onQuick),
+    final second = _TodayTile(
+      key: Key(widget.suggestQuickSums ? 'todayStory' : 'todayQuick'),
+      label: widget.suggestQuickSums ? l.kidTodayStory : l.kidTodayQuick,
+      art: widget.suggestQuickSums ? '🍋🌳' : '➕➖',
+      blue: false,
+      delay: const Duration(milliseconds: 100),
+      onTap: widget.suggestQuickSums
+          ? () => go(Paths.lessonNext, widget.onStory)
+          : () => go(Paths.quickSums, widget.onQuick),
     );
-    return PlayMoment(
-      top: Align(
-        alignment: Alignment.centerLeft,
-        child: PlayIconButton(
-          icon: Icons.home_outlined,
-          tooltip: l.kidHome,
-          onPressed: widget.onHome ?? () => context.go(Paths.home),
+    return AuraPage(
+      top: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: LessonHeader(
+          line: title,
+          onSpeak: () => ReadAloud.maybeOf(context)?.say(title),
+          onHome: widget.onHome ?? () => context.go(Paths.home),
         ),
       ),
-      content: [
-        const Portrait(size: 160),
-        Ribbon(text: l.kidTodayTitle),
-      ],
-      bottom: ButtonStack(
-        widget.suggestQuickSums ? [quick, story] : [story, quick],
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 12,
+        children: [first, second],
       ),
     );
   }
+}
+
+/// A choice on A3 (the prototype's `.tile`): radius 22, a navy edge and
+/// 6 pt lip, the picture over the words; [blue] is the suggestion.
+class _TodayTile extends StatelessWidget {
+  const _TodayTile({
+    super.key,
+    required this.label,
+    required this.art,
+    required this.blue,
+    required this.onTap,
+    this.delay = Duration.zero,
+  });
+
+  final String label;
+  final String art;
+  final bool blue;
+  final VoidCallback onTap;
+  final Duration delay;
+
+  @override
+  Widget build(BuildContext context) => Pop(
+    duration: const Duration(milliseconds: 500),
+    delay: delay,
+    child: Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: () {
+          AuraHaptics.tap();
+          onTap();
+        },
+        child: PressScale(
+          child: Container(
+            constraints: BoxConstraints(minHeight: blue ? 190 : 150),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: blue
+                  ? const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [AuraColors.tileBlueTop, AuraColors.blue],
+                    )
+                  : null,
+              color: blue ? null : AuraColors.white,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: AuraColors.navy, width: 3),
+              boxShadow: const [
+                BoxShadow(color: AuraColors.navy, offset: Offset(0, 6)),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: 8,
+              children: [
+                Text(art, style: TextStyle(fontSize: blue ? 70 : 54)),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: AuraText.button.copyWith(
+                    color: blue ? AuraColors.white : AuraColors.navy,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
