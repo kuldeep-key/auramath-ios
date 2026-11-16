@@ -1045,13 +1045,13 @@ abstract class AppLocalizations {
   /// No description provided for @guForgotBody.
   ///
   /// In en, this message translates to:
-  /// **'We will email a sign-in link to {email}.'**
+  /// **'Sign in again and set a new one. We will email a link to {email}.'**
   String guForgotBody(String email);
 
   /// No description provided for @guForgotSend.
   ///
   /// In en, this message translates to:
-  /// **'Send the link'**
+  /// **'Email me a sign-in link'**
   String get guForgotSend;
 
   /// No description provided for @guForgotSentTitle.
@@ -1375,13 +1375,13 @@ abstract class AppLocalizations {
   /// No description provided for @guFamilyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Family and phones'**
+  /// **'Phones and family'**
   String get guFamilyTitle;
 
   /// No description provided for @guGrownUps.
   ///
   /// In en, this message translates to:
-  /// **'Grown-ups'**
+  /// **'Family members'**
   String get guGrownUps;
 
   /// No description provided for @guChildren.
@@ -1513,25 +1513,25 @@ abstract class AppLocalizations {
   /// No description provided for @guInviteGrownUp.
   ///
   /// In en, this message translates to:
-  /// **'Invite a grown-up'**
+  /// **'Invite a family member'**
   String get guInviteGrownUp;
 
   /// No description provided for @guAddPhone.
   ///
   /// In en, this message translates to:
-  /// **'Add a child\'s phone'**
+  /// **'Join a child\'s phone'**
   String get guAddPhone;
 
   /// No description provided for @guInviteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Invite a grown-up'**
+  /// **'Invite a family member'**
   String get guInviteTitle;
 
   /// No description provided for @guInviteBody.
   ///
   /// In en, this message translates to:
-  /// **'They can see the book and change settings.'**
+  /// **'They can see the notes and change settings. They set their own passcode.'**
   String get guInviteBody;
 
   /// No description provided for @guInviteEmail.
@@ -1561,8 +1561,14 @@ abstract class AppLocalizations {
   /// No description provided for @guInviteSentBody.
   ///
   /// In en, this message translates to:
-  /// **'We emailed a link to {email}.'**
+  /// **'{email} has an email with a link. It works for 7 days. You will see them here once they join.'**
   String guInviteSentBody(String email);
+
+  /// No description provided for @guInviteSentDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get guInviteSentDone;
 
   /// No description provided for @guCodeTitle.
   ///
@@ -1585,19 +1591,19 @@ abstract class AppLocalizations {
   /// No description provided for @guCodeLeft.
   ///
   /// In en, this message translates to:
-  /// **'Works once. {time} left.'**
+  /// **'Works once, for {time}. Five tries.'**
   String guCodeLeft(String time);
 
   /// No description provided for @guCodeExpired.
   ///
   /// In en, this message translates to:
-  /// **'This code has stopped working.'**
+  /// **'That code has expired. Codes last 10 minutes. Show a new one when you are both ready.'**
   String get guCodeExpired;
 
   /// No description provided for @guCodeAgain.
   ///
   /// In en, this message translates to:
-  /// **'Get a new code'**
+  /// **'Show a new code'**
   String get guCodeAgain;
 
   /// No description provided for @guCodeTypeOn.
@@ -1621,7 +1627,7 @@ abstract class AppLocalizations {
   /// No description provided for @guRemoveBody.
   ///
   /// In en, this message translates to:
-  /// **'It signs out straight away. Progress stays safe in the family account.'**
+  /// **'It signs out straight away and keeps nothing. Progress stays safe in the family account.'**
   String get guRemoveBody;
 
   /// No description provided for @guRemoveButton.
@@ -1645,7 +1651,7 @@ abstract class AppLocalizations {
   /// No description provided for @guRemovedBody.
   ///
   /// In en, this message translates to:
-  /// **'That phone is signed out. Join a new phone with a code any time.'**
+  /// **'That phone is signed out. On it, your child sees \"This phone was removed\". Join a new phone with a code any time.'**
   String get guRemovedBody;
 
   /// No description provided for @guRemoveGrownUpTitle.
@@ -1735,7 +1741,7 @@ abstract class AppLocalizations {
   /// No description provided for @guAddChildBody.
   ///
   /// In en, this message translates to:
-  /// **'You agree for them, as their grown-up. Only a first name.'**
+  /// **'You agree for them, as their parent or guardian. Only a first name.'**
   String get guAddChildBody;
 
   /// No description provided for @guAddChildName.
@@ -1771,14 +1777,26 @@ abstract class AppLocalizations {
   /// No description provided for @guAddChildAgree.
   ///
   /// In en, this message translates to:
-  /// **'I agree, continue'**
+  /// **'Continue'**
   String get guAddChildAgree;
+
+  /// No description provided for @guAddChildConsent.
+  ///
+  /// In en, this message translates to:
+  /// **'I am this child\'s parent or guardian. I agree to the same terms for them.'**
+  String get guAddChildConsent;
 
   /// No description provided for @guRightsTitle.
   ///
   /// In en, this message translates to:
   /// **'Your data and rights'**
   String get guRightsTitle;
+
+  /// No description provided for @guRightsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything we hold is stored in Australia and belongs to your family.'**
+  String get guRightsBody;
 
   /// No description provided for @guStoredTitle.
   ///
@@ -1819,7 +1837,7 @@ abstract class AppLocalizations {
   /// No description provided for @guDownloadBody.
   ///
   /// In en, this message translates to:
-  /// **'A file with all of your family\'s data'**
+  /// **'A file with every child\'s data, ready within a day'**
   String get guDownloadBody;
 
   /// No description provided for @guExportPending.
@@ -1861,26 +1879,140 @@ abstract class AppLocalizations {
   /// No description provided for @guDeleteAccountBody.
   ///
   /// In en, this message translates to:
-  /// **'Everything, for every child, straight away'**
+  /// **'Everyone, everything, straight away'**
   String get guDeleteAccountBody;
 
   /// No description provided for @guDeleteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete your family account?'**
+  /// **'Delete the family account?'**
   String get guDeleteTitle;
 
   /// No description provided for @guDeleteBody.
   ///
   /// In en, this message translates to:
-  /// **'This deletes everything we keep: every child\'s lessons and progress, the other grown-ups\' access and every joined phone. It happens straight away and can\'t be undone. Download everything first if you want a copy.'**
+  /// **'This cannot be undone.'**
   String get guDeleteBody;
+
+  /// No description provided for @guDeleteChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Every child'**
+  String get guDeleteChildren;
+
+  /// No description provided for @guDeleteChildrenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Their details, cases and badges'**
+  String get guDeleteChildrenBody;
+
+  /// No description provided for @guDeleteSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Every session and tap'**
+  String get guDeleteSessions;
+
+  /// No description provided for @guDeleteSessionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole learning record'**
+  String get guDeleteSessionsBody;
+
+  /// No description provided for @guDeleteNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Every note and email'**
+  String get guDeleteNotes;
+
+  /// No description provided for @guDeleteNotesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We keep nothing to send'**
+  String get guDeleteNotesBody;
+
+  /// No description provided for @guDeletePhones.
+  ///
+  /// In en, this message translates to:
+  /// **'Every phone and family member'**
+  String get guDeletePhones;
+
+  /// No description provided for @guDeletePhonesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All signed out, now'**
+  String get guDeletePhonesBody;
+
+  /// No description provided for @guDeleteNow.
+  ///
+  /// In en, this message translates to:
+  /// **'It happens straight away, not in 30 days. If you want a copy first, download everything before you delete.'**
+  String get guDeleteNow;
+
+  /// No description provided for @guDeleteDownloadFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Download everything first'**
+  String get guDeleteDownloadFirst;
 
   /// No description provided for @guDeleteButton.
   ///
   /// In en, this message translates to:
   /// **'Delete everything'**
   String get guDeleteButton;
+
+  /// No description provided for @guDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE to confirm'**
+  String get guDeleteConfirmTitle;
+
+  /// No description provided for @guDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One last check that it is you, and that you mean it.'**
+  String get guDeleteConfirmBody;
+
+  /// No description provided for @guDeleteConfirmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE'**
+  String get guDeleteConfirmLabel;
+
+  /// No description provided for @guDeleteConfirmWord.
+  ///
+  /// In en, this message translates to:
+  /// **'DELETE'**
+  String get guDeleteConfirmWord;
+
+  /// No description provided for @guDeleteConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the family account'**
+  String get guDeleteConfirmButton;
+
+  /// No description provided for @guDeleteKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep my account'**
+  String get guDeleteKeep;
+
+  /// No description provided for @guDeletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get guDeletedTitle;
+
+  /// No description provided for @guDeletedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family account is gone and every phone is signed out. Thank you for trying Auramath.'**
+  String get guDeletedBody;
+
+  /// No description provided for @guClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get guClose;
 
   /// No description provided for @guConsentLink.
   ///
@@ -1963,31 +2095,31 @@ abstract class AppLocalizations {
   /// No description provided for @guNotifyTitle.
   ///
   /// In en, this message translates to:
-  /// **'A note after each session?'**
+  /// **'An email after each session'**
   String get guNotifyTitle;
 
   /// No description provided for @guNotifyBody.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll email you what {name} did and what\'s next. Nothing else.'**
-  String guNotifyBody(String name);
+  /// **'A short note: what was practised, how much help was needed, something to try tonight.'**
+  String get guNotifyBody;
 
   /// No description provided for @guNotifyCard.
   ///
   /// In en, this message translates to:
-  /// **'An email after each session'**
+  /// **'Sent to your email'**
   String get guNotifyCard;
 
   /// No description provided for @guNotifyCardBody.
   ///
   /// In en, this message translates to:
-  /// **'One short note, after the session ends.'**
-  String get guNotifyCardBody;
+  /// **'Within a few minutes of {name} finishing.'**
+  String guNotifyCardBody(String name);
 
   /// No description provided for @guNotifyYes.
   ///
   /// In en, this message translates to:
-  /// **'Yes please'**
+  /// **'Continue'**
   String get guNotifyYes;
 
   /// No description provided for @guNotifyNo.
@@ -1996,17 +2128,29 @@ abstract class AppLocalizations {
   /// **'Not now'**
   String get guNotifyNo;
 
+  /// No description provided for @guNotifyCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Email me after each session'**
+  String get guNotifyCheck;
+
   /// No description provided for @guSignOutTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign out on this phone?'**
+  /// **'Sign out of this phone?'**
   String get guSignOutTitle;
 
   /// No description provided for @guSignOutBody.
   ///
   /// In en, this message translates to:
-  /// **'Progress stays safe in your family account.'**
+  /// **'Nothing about your children stays on this phone. Sign in again any time with Apple, Google or an email link.'**
   String get guSignOutBody;
+
+  /// No description provided for @guSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed out'**
+  String get guSignedOut;
 
   /// No description provided for @guBookTitle.
   ///
@@ -2259,6 +2403,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name, age and school year'**
   String get guLearningEditBody;
+
+  /// No description provided for @guChildDoing.
+  ///
+  /// In en, this message translates to:
+  /// **'How {name} is doing'**
+  String guChildDoing(String name);
+
+  /// No description provided for @guChildWorkingOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Working on'**
+  String get guChildWorkingOn;
+
+  /// No description provided for @guChildNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get guChildNow;
+
+  /// No description provided for @guChildJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s journey'**
+  String guChildJourney(String name);
+
+  /// No description provided for @guChildDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get guChildDetails;
+
+  /// No description provided for @guChildFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get guChildFirstName;
+
+  /// No description provided for @guChildAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get guChildAge;
+
+  /// No description provided for @guChildYear.
+  ///
+  /// In en, this message translates to:
+  /// **'School year'**
+  String get guChildYear;
+
+  /// No description provided for @guChildNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get guChildNotSet;
+
+  /// No description provided for @guChildPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Change {name}\'s picture'**
+  String guChildPicture(String name);
+
+  /// No description provided for @guLearningMovedUpPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved up a level'**
+  String get guLearningMovedUpPlain;
+
+  /// No description provided for @guLearningChangedPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to a new level'**
+  String get guLearningChangedPlain;
 
   /// No description provided for @guEditTitle.
   ///

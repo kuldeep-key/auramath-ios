@@ -7,8 +7,6 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
-import '../../../core/theme/tokens.dart';
-import '../../setup/views/year_screen.dart' show yearLabel;
 import 'parts.dart';
 
 typedef _Family = ({
@@ -19,8 +17,9 @@ typedef _Family = ({
   List<Browser> browsers,
 });
 
-/// Family (652:213): the grown-ups and invitations, the children, and the
-/// joined phones, each removable. Invite a grown-up, add a child's phone.
+/// Family (652:213), the prototype's Phones and family: the grown-ups and
+/// invitations, the joined phones and the signed-in browsers, each
+/// removable. The children live on the Family area (GHome). Invite a grown-up, add a child's phone.
 /// A child opens where they are. Removing a grown-up, cancelling an
 /// invite and the signed-in list follow the server's rules (FamilyRules)
 /// and have no Figma frame yet.
@@ -99,13 +98,8 @@ class FamilyScreen extends StatelessWidget {
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 6),
-              Semantics(
-                header: true,
-                child: Text(l.guFamilyTitle, style: AuraText.heading),
-              ),
-              const SizedBox(height: 4),
-              SectionLabel(l.guGrownUps),
+              AuraHeading(title: l.guFamilyTitle),
+              PartLabel(l.guGrownUps, top: 0),
               GuCard(
                 child: Column(
                   children: [
@@ -119,26 +113,7 @@ class FamilyScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              SectionLabel(l.guChildren),
-              GuCard(
-                child: Column(
-                  children: [
-                    if (f.children.isEmpty)
-                      KvRow(label: l.guNoChildrenRow, divider: false),
-                    for (final (i, c) in f.children.indexed)
-                      KvRow(
-                        label: c.name,
-                        value: c.schoolYear == null
-                            ? null
-                            : yearLabel(l, c.schoolYear!),
-                        divider: i < f.children.length - 1,
-                        hint: l.guOpenChildHint,
-                        onTap: () => push(Paths.learning(c.id)),
-                      ),
-                  ],
-                ),
-              ),
-              SectionLabel(l.guPhones),
+              PartLabel(l.guPhones),
               GuCard(
                 child: Column(
                   children: [
@@ -157,7 +132,7 @@ class FamilyScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              SectionLabel(l.guSignedIn),
+              PartLabel(l.guSignedIn),
               GuCard(
                 child: Column(
                   children: [

@@ -556,11 +556,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String guForgotBody(String email) {
-    return 'We will email a sign-in link to $email.';
+    return 'Sign in again and set a new one. We will email a link to $email.';
   }
 
   @override
-  String get guForgotSend => 'Send the link';
+  String get guForgotSend => 'Email me a sign-in link';
 
   @override
   String get guForgotSentTitle => 'Check your email';
@@ -750,10 +750,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guSignOut => 'Sign out';
 
   @override
-  String get guFamilyTitle => 'Family and phones';
+  String get guFamilyTitle => 'Phones and family';
 
   @override
-  String get guGrownUps => 'Grown-ups';
+  String get guGrownUps => 'Family members';
 
   @override
   String get guChildren => 'Children';
@@ -831,16 +831,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guOpenChildHint => 'Shows where they are';
 
   @override
-  String get guInviteGrownUp => 'Invite a grown-up';
+  String get guInviteGrownUp => 'Invite a family member';
 
   @override
-  String get guAddPhone => 'Add a child\'s phone';
+  String get guAddPhone => 'Join a child\'s phone';
 
   @override
-  String get guInviteTitle => 'Invite a grown-up';
+  String get guInviteTitle => 'Invite a family member';
 
   @override
-  String get guInviteBody => 'They can see the book and change settings.';
+  String get guInviteBody =>
+      'They can see the notes and change settings. They set their own passcode.';
 
   @override
   String get guInviteEmail => 'Their email';
@@ -856,8 +857,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String guInviteSentBody(String email) {
-    return 'We emailed a link to $email.';
+    return '$email has an email with a link. It works for 7 days. You will see them here once they join.';
   }
+
+  @override
+  String get guInviteSentDone => 'Done';
 
   @override
   String get guCodeTitle => 'Here is a code';
@@ -870,14 +874,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String guCodeLeft(String time) {
-    return 'Works once. $time left.';
+    return 'Works once, for $time. Five tries.';
   }
 
   @override
-  String get guCodeExpired => 'This code has stopped working.';
+  String get guCodeExpired =>
+      'That code has expired. Codes last 10 minutes. Show a new one when you are both ready.';
 
   @override
-  String get guCodeAgain => 'Get a new code';
+  String get guCodeAgain => 'Show a new code';
 
   @override
   String guCodeTypeOn(String name) {
@@ -894,7 +899,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guRemoveBody =>
-      'It signs out straight away. Progress stays safe in the family account.';
+      'It signs out straight away and keeps nothing. Progress stays safe in the family account.';
 
   @override
   String get guRemoveButton => 'Remove phone';
@@ -907,7 +912,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guRemovedBody =>
-      'That phone is signed out. Join a new phone with a code any time.';
+      'That phone is signed out. On it, your child sees \"This phone was removed\". Join a new phone with a code any time.';
 
   @override
   String guRemoveGrownUpTitle(String email) {
@@ -963,7 +968,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guAddChildBody =>
-      'You agree for them, as their grown-up. Only a first name.';
+      'You agree for them, as their parent or guardian. Only a first name.';
 
   @override
   String get guAddChildName => 'First name';
@@ -982,10 +987,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Type Kindergarten or a year from 1 to 5.';
 
   @override
-  String get guAddChildAgree => 'I agree, continue';
+  String get guAddChildAgree => 'Continue';
+
+  @override
+  String get guAddChildConsent =>
+      'I am this child\'s parent or guardian. I agree to the same terms for them.';
 
   @override
   String get guRightsTitle => 'Your data and rights';
+
+  @override
+  String get guRightsBody =>
+      'Everything we hold is stored in Australia and belongs to your family.';
 
   @override
   String get guStoredTitle => 'What we keep';
@@ -1007,7 +1020,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guDownload => 'Download everything';
 
   @override
-  String get guDownloadBody => 'A file with all of your family\'s data';
+  String get guDownloadBody =>
+      'A file with every child\'s data, ready within a day';
 
   @override
   String get guExportPending => 'Getting it ready…';
@@ -1031,18 +1045,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guDeleteAccount => 'Delete the family account';
 
   @override
-  String get guDeleteAccountBody =>
-      'Everything, for every child, straight away';
+  String get guDeleteAccountBody => 'Everyone, everything, straight away';
 
   @override
-  String get guDeleteTitle => 'Delete your family account?';
+  String get guDeleteTitle => 'Delete the family account?';
 
   @override
-  String get guDeleteBody =>
-      'This deletes everything we keep: every child\'s lessons and progress, the other grown-ups\' access and every joined phone. It happens straight away and can\'t be undone. Download everything first if you want a copy.';
+  String get guDeleteBody => 'This cannot be undone.';
+
+  @override
+  String get guDeleteChildren => 'Every child';
+
+  @override
+  String get guDeleteChildrenBody => 'Their details, cases and badges';
+
+  @override
+  String get guDeleteSessions => 'Every session and tap';
+
+  @override
+  String get guDeleteSessionsBody => 'The whole learning record';
+
+  @override
+  String get guDeleteNotes => 'Every note and email';
+
+  @override
+  String get guDeleteNotesBody => 'We keep nothing to send';
+
+  @override
+  String get guDeletePhones => 'Every phone and family member';
+
+  @override
+  String get guDeletePhonesBody => 'All signed out, now';
+
+  @override
+  String get guDeleteNow =>
+      'It happens straight away, not in 30 days. If you want a copy first, download everything before you delete.';
+
+  @override
+  String get guDeleteDownloadFirst => 'Download everything first';
 
   @override
   String get guDeleteButton => 'Delete everything';
+
+  @override
+  String get guDeleteConfirmTitle => 'Type DELETE to confirm';
+
+  @override
+  String get guDeleteConfirmBody =>
+      'One last check that it is you, and that you mean it.';
+
+  @override
+  String get guDeleteConfirmLabel => 'Type DELETE';
+
+  @override
+  String get guDeleteConfirmWord => 'DELETE';
+
+  @override
+  String get guDeleteConfirmButton => 'Delete the family account';
+
+  @override
+  String get guDeleteKeep => 'Keep my account';
+
+  @override
+  String get guDeletedTitle => 'Deleted';
+
+  @override
+  String get guDeletedBody =>
+      'Your family account is gone and every phone is signed out. Thank you for trying Auramath.';
+
+  @override
+  String get guClose => 'Close';
 
   @override
   String get guConsentLink => 'Withdraw your consent';
@@ -1087,30 +1159,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guAgainButton => 'I agree';
 
   @override
-  String get guNotifyTitle => 'A note after each session?';
+  String get guNotifyTitle => 'An email after each session';
 
   @override
-  String guNotifyBody(String name) {
-    return 'We\'ll email you what $name did and what\'s next. Nothing else.';
+  String get guNotifyBody =>
+      'A short note: what was practised, how much help was needed, something to try tonight.';
+
+  @override
+  String get guNotifyCard => 'Sent to your email';
+
+  @override
+  String guNotifyCardBody(String name) {
+    return 'Within a few minutes of $name finishing.';
   }
 
   @override
-  String get guNotifyCard => 'An email after each session';
-
-  @override
-  String get guNotifyCardBody => 'One short note, after the session ends.';
-
-  @override
-  String get guNotifyYes => 'Yes please';
+  String get guNotifyYes => 'Continue';
 
   @override
   String get guNotifyNo => 'Not now';
 
   @override
-  String get guSignOutTitle => 'Sign out on this phone?';
+  String get guNotifyCheck => 'Email me after each session';
 
   @override
-  String get guSignOutBody => 'Progress stays safe in your family account.';
+  String get guSignOutTitle => 'Sign out of this phone?';
+
+  @override
+  String get guSignOutBody =>
+      'Nothing about your children stays on this phone. Sign in again any time with Apple, Google or an email link.';
+
+  @override
+  String get guSignedOut => 'Signed out';
 
   @override
   String guBookTitle(String name) {
@@ -1280,6 +1360,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guLearningEditBody => 'Name, age and school year';
+
+  @override
+  String guChildDoing(String name) {
+    return 'How $name is doing';
+  }
+
+  @override
+  String get guChildWorkingOn => 'Working on';
+
+  @override
+  String get guChildNow => 'Now';
+
+  @override
+  String guChildJourney(String name) {
+    return '$name\'s journey';
+  }
+
+  @override
+  String get guChildDetails => 'Details';
+
+  @override
+  String get guChildFirstName => 'First name';
+
+  @override
+  String get guChildAge => 'Age';
+
+  @override
+  String get guChildYear => 'School year';
+
+  @override
+  String get guChildNotSet => 'Not set';
+
+  @override
+  String guChildPicture(String name) {
+    return 'Change $name\'s picture';
+  }
+
+  @override
+  String get guLearningMovedUpPlain => 'Moved up a level';
+
+  @override
+  String get guLearningChangedPlain => 'Moved to a new level';
 
   @override
   String guEditTitle(String name) {

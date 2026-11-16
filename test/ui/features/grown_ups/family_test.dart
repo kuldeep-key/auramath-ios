@@ -14,14 +14,15 @@ void main() {
   group('Family', () {
     Widget screen(Gu g) => FamilyScreen(family: g.deps.family, repo: g.repo);
 
-    testWidgets('at every size: grown-ups, children, phones', (tester) async {
+    testWidgets('at every size: grown-ups, phones', (tester) async {
       final g = await Gu.make(tester);
       await shotAllSizes(tester, 'grown_ups_family', screen(g));
       expect(find.text('priya@gmail.com (you)'), findsOneWidget);
       expect(find.text('Owner'), findsOneWidget);
       expect(find.text('raj@example.com (invited)'), findsOneWidget);
       expect(find.text('Cancel'), findsOneWidget);
-      expect(find.text('Year 2'), findsOneWidget);
+      // the children are on the Family area, not here (the prototype)
+      expect(find.text('Year 2'), findsNothing);
       expect(find.text("Aarav's iPhone"), findsOneWidget);
       expect(find.text('iPhone'), findsOneWidget);
       expect(find.text('This phone'), findsOneWidget);
@@ -122,15 +123,6 @@ void main() {
       );
     });
 
-    testWidgets('a child opens where they are', (tester) async {
-      final g = await Gu.make(tester);
-      await tester.pumpWidget(shotApp(screen(g)));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Maya'));
-      await tester.pumpAndSettle();
-      expect(find.text('went to ${Paths.learning('child-2')}'), findsOneWidget);
-    });
-
     testWidgets('Remove opens the confirmation for that phone', (tester) async {
       final g = await Gu.make(tester);
       await tester.pumpWidget(shotApp(screen(g)));
@@ -224,7 +216,7 @@ void main() {
         'grown_ups_new_code',
         NewCodeScreen(family: g.deps.family, repo: g.repo),
       );
-      expect(find.textContaining('left.'), findsOneWidget);
+      expect(find.textContaining('Five tries.'), findsOneWidget);
       expect(find.text("Type it on your child's phone"), findsOneWidget);
     });
 
@@ -240,8 +232,8 @@ void main() {
       await tester.pumpAndSettle();
       now = now.add(const Duration(minutes: 11));
       await tester.pump(const Duration(seconds: 1));
-      expect(find.text('This code has stopped working.'), findsOneWidget);
-      await tester.tap(find.text('Get a new code'));
+      expect(find.textContaining('That code has expired.'), findsOneWidget);
+      await tester.tap(find.text('Show a new code'));
       await tester.pumpAndSettle();
       expect(
         g.calls.where((c) => c == 'POST /api/devices/pairing'),

@@ -8,6 +8,7 @@ import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/aura_text_field.dart';
 import '../../setup/views/year_screen.dart' show yearIdFrom;
+import '../../setup/views/setup_parts.dart' show ConsentCheck;
 import 'parts.dart';
 
 /// AddChild (667:87): a first name, and the school year if the grown-up
@@ -26,6 +27,9 @@ class _AddChildScreenState extends State<AddChildScreen> {
   final _name = TextEditingController();
   final _year = TextEditingController();
   bool _busy = false;
+
+  /// The prototype's tick: "I am this child's parent or guardian".
+  bool _agreed = false;
   String? _nameError;
   String? _yearError;
   Object? _error;
@@ -75,7 +79,6 @@ class _AddChildScreenState extends State<AddChildScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AuraHeading(title: l.guAddChildTitle, subtitle: l.guAddChildBody),
-          const Spacer(),
           AuraTextField(
             label: l.guAddChildName,
             controller: _name,
@@ -92,17 +95,22 @@ class _AddChildScreenState extends State<AddChildScreen> {
             capitalization: TextCapitalization.sentences,
             onSubmitted: (_) => _add(),
           ),
+          const SizedBox(height: 14),
+          ConsentCheck(
+            value: _agreed,
+            label: l.guAddChildConsent,
+            onChanged: (v) => setState(() => _agreed = v),
+          ),
           if (_error != null) ...[
             const SizedBox(height: 12),
             ErrorNote(_error!),
           ],
-          const Spacer(),
         ],
       ),
       bottom: AuraButton(
         label: l.guAddChildAgree,
         color: AuraButtonColor.blue,
-        onPressed: _busy ? null : _add,
+        onPressed: _busy || !_agreed ? null : _add,
       ),
     );
   }

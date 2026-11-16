@@ -121,37 +121,11 @@ class _RightsScreenState extends State<RightsScreen> {
           };
     final stored = [l.guStored1, l.guStored2, l.guStored3, l.guStored4];
     return AuraPage(
-      top: const AuraTopBar(fallback: Paths.settings),
+      top: const AuraTopBar(fallback: Paths.grownUps),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 6),
-          Semantics(
-            header: true,
-            child: Text(l.guRightsTitle, style: AuraText.heading),
-          ),
-          const SizedBox(height: 10),
-          GuCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l.guStoredTitle, style: AuraText.option),
-                const SizedBox(height: 6),
-                for (final s in stored)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('•  ', style: AuraText.small),
-                        Expanded(child: Text(s, style: AuraText.small)),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
+          AuraHeading(title: l.guRightsTitle, subtitle: l.guRightsBody),
           Semantics(
             liveRegion: true,
             child: NavRow(
@@ -184,7 +158,7 @@ class _RightsScreenState extends State<RightsScreen> {
               if (consent == null) return const SizedBox.shrink();
               if (consent.consented) {
                 return NavRow(
-                  icon: Icons.pause_circle_outline_rounded,
+                  icon: Icons.pause_circle_rounded,
                   label: l.guConsentLink,
                   detail: l.guConsentLinkBody,
                   chevron: false,
@@ -214,7 +188,7 @@ class _RightsScreenState extends State<RightsScreen> {
                     const SizedBox(height: 12),
                   ],
                   NavRow(
-                    icon: Icons.play_circle_outline_rounded,
+                    icon: Icons.play_circle_rounded,
                     label: l.guConsentAgainLink,
                     detail: l.guConsentAgainLinkBody,
                     chevron: false,
@@ -226,12 +200,33 @@ class _RightsScreenState extends State<RightsScreen> {
           ),
           const SizedBox(height: 12),
           NavRow(
-            icon: Icons.delete_outline_rounded,
+            icon: Icons.delete_forever_rounded,
             iconColor: AuraColors.coral,
             label: l.guDeleteAccount,
             detail: l.guDeleteAccountBody,
             chevron: false,
             onTap: () => context.push(widget.deletePath),
+          ),
+          const SizedBox(height: 16),
+          GuCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l.guStoredTitle, style: AuraText.option),
+                const SizedBox(height: 6),
+                for (final s in stored)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('•  ', style: AuraText.small),
+                        Expanded(child: Text(s, style: AuraText.small)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),

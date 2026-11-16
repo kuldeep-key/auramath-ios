@@ -26,6 +26,16 @@ Future<void> _tapReal(WidgetTester tester, Finder f) async {
   await tester.pumpAndSettle();
 }
 
+/// Lets real-time work (files, the outbox) finish until [f] shows.
+Future<void> _until(WidgetTester tester, Finder f) async {
+  for (var i = 0; i < 40 && f.evaluate().isEmpty; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 25)),
+    );
+    await tester.pumpAndSettle();
+  }
+}
+
 void main() {
   group('AddChild', () {
     Widget screen(Gu g) => AddChildScreen(family: g.deps.family);
@@ -48,9 +58,11 @@ void main() {
         ..on('POST /api/parent/consent', {'consented': true}, status: 201)
         ..on('POST /api/children', {'id': 'child-3', 'displayName': 'Zoe'});
       await tester.pumpWidget(shotApp(screen(g)));
+      await tester.tap(find.textContaining('I am this child'));
+      await tester.pump();
       await tester.enterText(find.byType(TextField).first, ' Zoe ');
       await tester.enterText(find.byType(TextField).last, 'Year 3');
-      await tester.tap(find.text('I agree, continue'));
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
       expect(g.bodyOf('POST /api/parent/consent'), {'noticeVersion': 'v1'});
       expect(g.bodyOf('POST /api/children'), {
@@ -73,11 +85,17 @@ void main() {
           'error': 'synthetic names only until legal review clears',
         }, status: 400);
       await tester.pumpWidget(shotApp(screen(g)));
-      await tester.tap(find.text('I agree, continue'));
+      // Continue waits for the tick
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      expect(find.text('Type a first name.'), findsNothing);
+      await tester.tap(find.textContaining('I am this child'));
+      await tester.pump();
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
       expect(find.text('Type a first name.'), findsOneWidget);
       await tester.enterText(find.byType(TextField).first, 'Zoë');
-      await tester.tap(find.text('I agree, continue'));
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
       expect(
         find.text('synthetic names only until legal review clears'),
@@ -92,17 +110,18 @@ void main() {
     testWidgets('at every size: an email, not a push', (tester) async {
       final g = await Gu.make(tester);
       await shotAllSizes(tester, 'grown_ups_notify', screen(g));
+      // the title, and the card's line is the tick's
       expect(find.text('An email after each session'), findsOneWidget);
+      expect(find.text('Email me after each session'), findsOneWidget);
     });
 
-    testWidgets('Yes please turns on the email after each session', (
-      tester,
-    ) async {
+    testWidgets('Continue with the tick turns on the email after each '
+        'session', (tester) async {
       final g = await Gu.make(tester);
       g.server.on('PUT /api/family/settings/reports', null, status: 204);
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Yes please'));
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
       expect(g.bodyOf('PUT /api/family/settings/reports'), {
         'frequency': 'each',
@@ -110,11 +129,13 @@ void main() {
       expect(find.text('went to ${Paths.grownUps}'), findsOneWidget);
     });
 
-    testWidgets('Not now changes nothing', (tester) async {
+    testWidgets('Continue with the tick off changes nothing', (tester) async {
       final g = await Gu.make(tester);
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Not now'));
+      await tester.tap(find.text('Email me after each session'));
+      await tester.pump();
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
       expect(g.calls, isNot(contains('PUT /api/family/settings/reports')));
     });
@@ -146,6 +167,7 @@ void main() {
         ),
       );
       await _tapReal(tester, find.text('Sign out'));
+      await _until(tester, find.text('went to ${Paths.open}'));
       expect(g.deps.account.role, Role.none);
       expect(g.deps.account.childId, isNull);
       expect(await tester.runAsync(g.deps.outbox.all), isEmpty);
@@ -277,12 +299,25 @@ void main() {
         sessions: g.deps.sessions,
       );
       await shotAllSizes(tester, 'grown_ups_delete_account', delete);
-      expect(find.textContaining("can't be undone"), findsOneWidget);
-      await _tapReal(tester, find.text('Delete everything'));
+      expect(find.text('This cannot be undone.'), findsOneWidget);
+      // DeleteWhat, then DeleteConfirm: nothing goes until DELETE is typed
+      await tester.tap(find.text('Delete everything'));
+      await tester.pumpAndSettle();
+      expect(find.text('Type DELETE to confirm'), findsOneWidget);
+      await tester.tap(find.text('Delete the family account'));
+      await tester.pumpAndSettle();
+      expect(g.calls, isNot(contains('POST /api/parent/erase')));
+      await tester.enterText(find.byType(TextField), 'delete');
+      await tester.pumpAndSettle();
+      await _tapReal(tester, find.text('Delete the family account'));
       expect(g.calls, contains('POST /api/parent/erase'));
-      expect(g.deps.account.role, Role.none);
       expect(await tester.runAsync(g.deps.outbox.all), isEmpty);
       expect(g.documents.listSync(), isEmpty); // DEV-06
+      // Deleted, then Close signs this phone out and goes to Open
+      await _until(tester, find.text('Deleted'));
+      expect(find.text('Deleted'), findsOneWidget);
+      await _tapReal(tester, find.text('Close'));
+      expect(g.deps.account.role, Role.none);
       expect(find.text('went to ${Paths.open}'), findsOneWidget);
     });
 
@@ -301,6 +336,10 @@ void main() {
         ),
       );
       await tester.tap(find.text('Delete everything'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'DELETE');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete the family account'));
       await tester.pumpAndSettle();
       expect(find.text('down'), findsOneWidget);
       expect(g.deps.account.role, Role.parent);

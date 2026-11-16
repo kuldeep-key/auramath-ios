@@ -27,7 +27,10 @@ void main() {
       final g = await Gu.make(tester);
       await shotAllSizes(tester, 'grown_ups_forgot', screen(g));
       expect(
-        find.text('We will email a sign-in link to p•••@gmail.com.'),
+        find.text(
+          'Sign in again and set a new one. We will email a link to '
+          'p•••@gmail.com.',
+        ),
         findsOneWidget,
       );
     });
@@ -39,7 +42,7 @@ void main() {
       g.server.on('POST /api/auth/email-link', {'ok': true}, status: 202);
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Send the link'));
+      await tester.tap(find.text('Email me a sign-in link'));
       await tester.pumpAndSettle();
       expect(g.bodyOf('POST /api/auth/email-link'), {
         'email': 'priya@gmail.com',
@@ -55,7 +58,7 @@ void main() {
       }, status: 429);
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Send the link'));
+      await tester.tap(find.text('Email me a sign-in link'));
       await tester.pumpAndSettle();
       expect(find.text('already sent. Try again in 40s.'), findsOneWidget);
       expect(find.text('Check your email'), findsNothing);
