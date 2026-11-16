@@ -353,6 +353,13 @@ List<RouteBase> childRoutes(Deps deps) {
           (name) => WelcomeBackScreen(
             name: name,
             caseWaiting: progress.caseWaiting,
+            figure: TutorFigure(
+              tutorId: tutorNow().id,
+              kind: tutorNow().kind,
+              world: worldNow(),
+              size: 180,
+              state: TutorState.talking,
+            ),
             chooseToday: deps.flags.on('quick_sums'),
           ),
         ),
@@ -481,6 +488,7 @@ List<RouteBase> childRoutes(Deps deps) {
             prompt: deps.pack.policyLines['line.pick.look'] ?? l.kidMyLook,
             firstRun: first,
             surprise: true,
+            chooseLabel: l.kidThisIsMe,
             current:
                 deps.looks.cached(deps.account.childId)?.avatarId ??
                 (progress.cachedAvatar == null
@@ -557,7 +565,8 @@ List<RouteBase> childRoutes(Deps deps) {
             prompt: deps.pack.policyLines['line.pick.tutor'] ?? l.kidMyTutor,
             firstRun: first,
             surprise: true,
-            tile: 110,
+            aspect: 0.8,
+            chooseLabel: l.kidThisIsMyTutor,
             current: first ? null : tutorNow().id,
             choices: tutorChoices(l, deps.journey, worldNow()),
             onHear: (tutor) => speak(
@@ -623,6 +632,7 @@ List<RouteBase> childRoutes(Deps deps) {
             current: worldNow(),
             choices: worldChoices(deps.journey),
             disabled: deps.journey.comingSoonWorlds,
+            chooseLabel: l.kidLetsGo,
             disabledLabel: l.kidComingSoon,
             onChoose: (world) async {
               final id = deps.account.childId;
@@ -665,7 +675,8 @@ List<RouteBase> childRoutes(Deps deps) {
             tutorId: tutor.id,
             kind: tutor.kind,
             world: worldNow(),
-            size: 140,
+            size: 190,
+            state: TutorState.talking,
           ),
           onSay: (text) => speak(
             text,

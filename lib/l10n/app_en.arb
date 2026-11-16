@@ -763,8 +763,8 @@
   "@kidQuickStory": {"description": "DRAFT, for Julia (LES-16): after Quick sums, on to today's story problem."},
   "kidQuickHome": "Back home",
   "@kidQuickHome": {"description": "DRAFT, for Julia (LES-16): after Quick sums, back to Home."},
-  "kidTodayTitle": "What shall we do today?",
-  "@kidTodayTitle": {"description": "DRAFT, for Julia (LES-14, Figma A3 / 4.2): Choose today's title."},
+  "kidTodayTitle": "Which one first?",
+  "@kidTodayTitle": {"description": "DRAFT, for Julia (LES-14, prototype A3, 16 Nov; Figma A3 / 4.2 had 'What shall we do today?'): Choose today's title."},
   "kidTodayStory": "A story problem",
   "@kidTodayStory": {"description": "DRAFT, for Julia (LES-14): today's case, at the child's level."},
   "kidTodayQuick": "Quick sums",
@@ -847,6 +847,74 @@
   "kidChooseThis": "Choose this one",
   "@kidChooseThis": {
     "description": "DRAFT (ACC-12, TTR-01): saves the look, tutor, voice or world picked."
+  },
+  "kidThisIsMe": "This is me!",
+  "@kidThisIsMe": {
+    "description": "DRAFT, for Key (ACC-12; prototype LookPick, 16 Nov): saves the look picked."
+  },
+  "kidThisIsMyTutor": "This is my teacher!",
+  "@kidThisIsMyTutor": {
+    "description": "DRAFT, for Key (TTR-01; prototype TutorPick, 16 Nov): saves the tutor picked."
+  },
+  "kidMyLookNote": "Change how you look",
+  "@kidMyLookNote": {
+    "description": "DRAFT, for Key (JRN-02; prototype Me, 16 Nov): under My look."
+  },
+  "kidMyTutorNote": "Pick who teaches you",
+  "@kidMyTutorNote": {
+    "description": "DRAFT, for Key (JRN-02; prototype Me, 16 Nov): under My tutor."
+  },
+  "kidMyVoiceNote": "How your teacher sounds",
+  "@kidMyVoiceNote": {
+    "description": "DRAFT, for Key (TTR-06; prototype Me, 16 Nov): under My tutor's voice."
+  },
+  "kidMyWorldNote": "Where your cases happen",
+  "@kidMyWorldNote": {
+    "description": "DRAFT, for Key (REW-22; prototype Me, 16 Nov): under My world."
+  },
+  "kidTapYourPicture": "Tap your picture.",
+  "@kidTapYourPicture": {
+    "description": "DRAFT, for Key (DEV-01; prototype A1, 16 Nov): under Who's learning today?"
+  },
+  "kidErrTitle": "That didn't work",
+  "@kidErrTitle": {
+    "description": "DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): something failed on the child's side. Nothing red, no error code."
+  },
+  "kidErrLine": "Let's have another go.",
+  "@kidErrLine": {
+    "description": "DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): under That didn't work."
+  },
+  "kidErrRetry": "Have another go",
+  "@kidErrRetry": {
+    "description": "DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): tries the read again."
+  },
+  "kidReadyForACase": "Ready for a case?",
+  "@kidReadyForACase": {
+    "description": "DRAFT, for Key (SES-07; prototype WelcomeBack, 16 Nov): back on a later day with no case waiting."
+  },
+  "kidGoHome": "Go home",
+  "@kidGoHome": {
+    "description": "DRAFT, for Key (prototype ErrChild, 16 Nov): back to the child's Home."
+  },
+  "pairReadyToPlay": "Hi! Ready to play?",
+  "@pairReadyToPlay": {
+    "description": "DRAFT, for Key (ACC-01; prototype Open, 16 Nov): the ribbon on a fresh phone."
+  },
+  "pairPlay": "Play",
+  "@pairPlay": {
+    "description": "DRAFT, for Key (DEV-02; prototype Open, 16 Nov): a child pairs this phone."
+  },
+  "pairParentsAndCarers": "Parents and carers",
+  "@pairParentsAndCarers": {
+    "description": "DRAFT, for Key (ACC-01; prototype Open, 16 Nov): a grown-up sets up."
+  },
+  "pairSetUpSignIn": "Already set up? Sign in",
+  "@pairSetUpSignIn": {
+    "description": "DRAFT, for Key (ACC-01; prototype Open, 16 Nov): a grown-up signs in."
+  },
+  "pairFamilyArea": "Family area",
+  "@pairFamilyArea": {
+    "description": "DRAFT, for Key (DEV-01; prototype A1, 16 Nov): the grown-ups' way in, behind the passcode."
   },
   "kidComingSoon": "Coming soon",
   "@kidComingSoon": {

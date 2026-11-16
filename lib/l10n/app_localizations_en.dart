@@ -2037,7 +2037,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidQuickHome => 'Back home';
 
   @override
-  String get kidTodayTitle => 'What shall we do today?';
+  String get kidTodayTitle => 'Which one first?';
 
   @override
   String get kidTodayStory => 'A story problem';
@@ -2137,6 +2137,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidChooseThis => 'Choose this one';
+
+  @override
+  String get kidThisIsMe => 'This is me!';
+
+  @override
+  String get kidThisIsMyTutor => 'This is my teacher!';
+
+  @override
+  String get kidMyLookNote => 'Change how you look';
+
+  @override
+  String get kidMyTutorNote => 'Pick who teaches you';
+
+  @override
+  String get kidMyVoiceNote => 'How your teacher sounds';
+
+  @override
+  String get kidMyWorldNote => 'Where your cases happen';
+
+  @override
+  String get kidTapYourPicture => 'Tap your picture.';
+
+  @override
+  String get kidErrTitle => 'That didn\'t work';
+
+  @override
+  String get kidErrLine => 'Let\'s have another go.';
+
+  @override
+  String get kidErrRetry => 'Have another go';
+
+  @override
+  String get kidReadyForACase => 'Ready for a case?';
+
+  @override
+  String get kidGoHome => 'Go home';
+
+  @override
+  String get pairReadyToPlay => 'Hi! Ready to play?';
+
+  @override
+  String get pairPlay => 'Play';
+
+  @override
+  String get pairParentsAndCarers => 'Parents and carers';
+
+  @override
+  String get pairSetUpSignIn => 'Already set up? Sign in';
+
+  @override
+  String get pairFamilyArea => 'Family area';
 
   @override
   String get kidComingSoon => 'Coming soon';
