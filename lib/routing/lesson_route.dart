@@ -167,6 +167,8 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..fallbackAfterMs = deps.config.fallbackAfterMs
       ..clockPausesOffline = deps.config.clockPausesWhileOffline
       ..childId = deps.account.childId
+      ..tutorId = _tutor.id
+      ..tutorKind = _tutor.kind
       ..launchSource = deps.account.role == Role.parent
           ? 'parent_handover'
           : 'child_opened'

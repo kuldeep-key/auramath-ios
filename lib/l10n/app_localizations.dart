@@ -97,7 +97,7 @@ abstract class AppLocalizations {
   /// No description provided for @gotItLetsDraw.
   ///
   /// In en, this message translates to:
-  /// **'Got it, let\'s draw'**
+  /// **'Let\'s draw it'**
   String get gotItLetsDraw;
 
   /// No description provided for @hearItAgain.
@@ -3277,8 +3277,44 @@ abstract class AppLocalizations {
   /// DRAFT, for Julia and design (no Figma frame), AI-08: above three faces after a solved case, ages 7 and up. Optional; Next works without a face.
   ///
   /// In en, this message translates to:
-  /// **'How was this case?'**
+  /// **'How was that one?'**
   String get lessonRateAsk;
+
+  /// DRAFT (prototype Rate, 16 Nov, AI-08): under the three faces.
+  ///
+  /// In en, this message translates to:
+  /// **'Any answer is fine.'**
+  String get lessonRateAnyAnswer;
+
+  /// DRAFT (prototype Rate): the link under the faces; no face given.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get lessonRateSkip;
+
+  /// Policy line.quiet.draw-story (ASK-J42, not yet approved): W1's title when the library has no line.
+  ///
+  /// In en, this message translates to:
+  /// **'Can you draw the story out?'**
+  String get lessonDrawStoryOut;
+
+  /// DRAFT (prototype W1, 16 Nov): under 'Can you draw the story out?'.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s do it together.'**
+  String get lessonDrawTogether;
+
+  /// DRAFT (prototype W1): the button that opens the board.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s draw'**
+  String get lessonLetsDraw;
+
+  /// DRAFT (prototype Y2, 16 Nov, AI-07 reminder at a natural break): under the praise on case cracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family will see this too.'**
+  String get lessonFamilySees;
 
   /// DRAFT (AI-08): the happy face.
   ///
@@ -3565,13 +3601,43 @@ abstract class AppLocalizations {
   /// DRAFT, for Julia (LES-16): after the run of five. No score or count.
   ///
   /// In en, this message translates to:
-  /// **'Quick sums done!'**
+  /// **'Warmed up!'**
   String get kidQuickDone;
+
+  /// DRAFT (prototype QS3, 16 Nov): under 'Warmed up!' after the run.
+  ///
+  /// In en, this message translates to:
+  /// **'On to today.'**
+  String get kidQuickOnToday;
+
+  /// DRAFT (prototype QSgo): the end of the 3, 2, 1 count before the first sum.
+  ///
+  /// In en, this message translates to:
+  /// **'Go!'**
+  String get kidQuickGo;
+
+  /// DRAFT (prototype QS2 tiers): the meter reaches its first mark. No count or score.
+  ///
+  /// In en, this message translates to:
+  /// **'Charged up!'**
+  String get kidQuickTier1;
+
+  /// DRAFT (prototype QS2 tiers): the meter's second mark.
+  ///
+  /// In en, this message translates to:
+  /// **'On fire!'**
+  String get kidQuickTier2;
+
+  /// DRAFT (prototype QS2 tiers): the meter's third mark.
+  ///
+  /// In en, this message translates to:
+  /// **'Super charged!'**
+  String get kidQuickTier3;
 
   /// DRAFT, for Julia (LES-16): after Quick sums, on to today's story problem.
   ///
   /// In en, this message translates to:
-  /// **'A story problem'**
+  /// **'On to a case'**
   String get kidQuickStory;
 
   /// DRAFT, for Julia (LES-16): after Quick sums, back to Home.

@@ -50,6 +50,9 @@ class PlaceValue {
 
   final Set<PlaceStep> _done = {};
 
+  /// [s] has been done on the blocks.
+  bool did(PlaceStep s) => _done.contains(s);
+
   /// The child's action for the current step (a tap on the blocks, or the
   /// step's button). Anything else is ignored.
   void act() {

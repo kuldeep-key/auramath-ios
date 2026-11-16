@@ -78,7 +78,7 @@ void main() {
           find.descendant(of: find.byType(Keypad), matching: find.text(d)),
         );
       }
-      await tester.tap(find.byIcon(Icons.check_rounded));
+      await tester.tap(find.byKey(const Key('keypadCheck')));
       await Future<void>.delayed(const Duration(milliseconds: 20));
     });
     await tester.pump();

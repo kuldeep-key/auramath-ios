@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show Key;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../data/helpers.dart' show expectContract;
@@ -28,7 +29,7 @@ void main() {
       'easier, no hint', (tester) async {
     final t = await pumpLesson(tester);
     await t.send(toFindB);
-    await t.tap(find.byTooltip('Help me'));
+    await t.tap(find.byKey(const Key('sentenceHelp')));
     expect(find.text('A hint'), findsNothing);
     expect(find.text('Show me how'), findsOneWidget);
     expect(find.text('Something easier'), findsOneWidget);

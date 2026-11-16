@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get gotItLetsDraw => 'Got it, let\'s draw';
+  String get gotItLetsDraw => 'Let\'s draw it';
 
   @override
   String get hearItAgain => 'Hear it again';
@@ -1862,7 +1862,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lessonSeenBeforeBack => 'Back to my case';
 
   @override
-  String get lessonRateAsk => 'How was this case?';
+  String get lessonRateAsk => 'How was that one?';
+
+  @override
+  String get lessonRateAnyAnswer => 'Any answer is fine.';
+
+  @override
+  String get lessonRateSkip => 'Skip';
+
+  @override
+  String get lessonDrawStoryOut => 'Can you draw the story out?';
+
+  @override
+  String get lessonDrawTogether => 'Let\'s do it together.';
+
+  @override
+  String get lessonLetsDraw => 'Let\'s draw';
+
+  @override
+  String get lessonFamilySees => 'Your family will see this too.';
 
   @override
   String get lessonRateEasy => 'Easy';
@@ -2031,10 +2049,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Ask a grown-up to set your detective for you.';
 
   @override
-  String get kidQuickDone => 'Quick sums done!';
+  String get kidQuickDone => 'Warmed up!';
 
   @override
-  String get kidQuickStory => 'A story problem';
+  String get kidQuickOnToday => 'On to today.';
+
+  @override
+  String get kidQuickGo => 'Go!';
+
+  @override
+  String get kidQuickTier1 => 'Charged up!';
+
+  @override
+  String get kidQuickTier2 => 'On fire!';
+
+  @override
+  String get kidQuickTier3 => 'Super charged!';
+
+  @override
+  String get kidQuickStory => 'On to a case';
 
   @override
   String get kidQuickHome => 'Back home';

@@ -4,27 +4,74 @@ import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
 /// One bar of the model: rounded on top, square-ish at the base, with an
-/// inset shade along the bottom. Figma: Prototype parts › Bar.
+/// inset shade along the bottom and the prototype's soft light stripe
+/// (`.bar::after`: 8 wide, 12 in, white at 35 %). Figma: Prototype parts › Bar.
 class Bar extends StatelessWidget {
-  const Bar({super.key, required this.color, this.child});
+  const Bar({
+    super.key,
+    required this.color,
+    this.child,
+    this.across = false,
+    this.childAlignment = Alignment.center,
+  });
 
   final Color color;
   final Widget? child;
+
+  /// Lying across (a weight story): rounded on the right, the stripe along.
+  final bool across;
+
+  /// Where [child] sits: the prototype puts B's "? cm" near the top.
+  final Alignment childAlignment;
+
+  static const _stripe = Color(0x59FFFFFF);
 
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
       color: color,
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(AuraRadii.barTop),
-        bottom: Radius.circular(AuraRadii.barBottom),
-      ),
+      borderRadius: across
+          ? const BorderRadius.horizontal(
+              left: Radius.circular(AuraRadii.barBottom),
+              right: Radius.circular(AuraRadii.barTop),
+            )
+          : const BorderRadius.vertical(
+              top: Radius.circular(AuraRadii.barTop),
+              bottom: Radius.circular(AuraRadii.barBottom),
+            ),
     ),
     foregroundDecoration: const BoxDecoration(
       border: Border(bottom: BorderSide(color: AuraColors.barShade, width: 6)),
     ),
-    alignment: Alignment.center,
-    child: child,
+    child: LayoutBuilder(
+      builder: (context, box) {
+        // the stripe only where there's room for it
+        final stripe = across
+            ? box.maxWidth > 40 && box.maxHeight > 24
+            : box.maxHeight > 36 && box.maxWidth > 28;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            if (stripe)
+              Positioned(
+                left: across ? 10 : 12,
+                top: 10,
+                right: across ? 16 : null,
+                bottom: across ? null : 16,
+                width: across ? null : 8,
+                height: across ? 8 : null,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: _stripe,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+            if (child case final c?) Align(alignment: childAlignment, child: c),
+          ],
+        );
+      },
+    ),
   );
 }
 
