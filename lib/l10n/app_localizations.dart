@@ -2206,6 +2206,24 @@ abstract class AppLocalizations {
   /// **'{name}\'s notes'**
   String guNotesTitle(String name);
 
+  /// No description provided for @guNotesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What each session email said. Nothing is scored or graded.'**
+  String get guNotesBody;
+
+  /// No description provided for @guNotesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet'**
+  String get guNotesEmpty;
+
+  /// No description provided for @guNotesEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The first one arrives a few minutes after {name}\'s first session.'**
+  String guNotesEmptyBody(String name);
+
   /// No description provided for @guNotesNone.
   ///
   /// In en, this message translates to:

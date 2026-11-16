@@ -1228,6 +1228,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get guNotesBody =>
+      'What each session email said. Nothing is scored or graded.';
+
+  @override
+  String get guNotesEmpty => 'No notes yet';
+
+  @override
+  String guNotesEmptyBody(String name) {
+    return 'The first one arrives a few minutes after $name\'s first session.';
+  }
+
+  @override
   String guNotesNone(String name) {
     return 'No notes yet. One comes after each of $name\'s sessions.';
   }

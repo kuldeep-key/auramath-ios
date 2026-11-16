@@ -184,18 +184,22 @@ class ConsentCheck extends StatelessWidget {
           children: [
             SizedBox.square(
               dimension: 28,
-              child: Checkbox(
-                value: value,
-                onChanged: (v) => onChanged(v ?? false),
-                activeColor: AuraColors.blue,
-                side: const BorderSide(color: AuraColors.mute, width: 2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: const VisualDensity(
-                  horizontal: VisualDensity.minimumDensity,
-                  vertical: VisualDensity.minimumDensity,
+              // Material's box is 18 pt: grown to the prototype's 28
+              child: Transform.scale(
+                scale: 28 / 20,
+                child: Checkbox(
+                  value: value,
+                  onChanged: (v) => onChanged(v ?? false),
+                  activeColor: AuraColors.blue,
+                  side: const BorderSide(color: AuraColors.mute, width: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: const VisualDensity(
+                    horizontal: VisualDensity.minimumDensity,
+                    vertical: VisualDensity.minimumDensity,
+                  ),
                 ),
               ),
             ),
