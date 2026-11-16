@@ -60,7 +60,7 @@ void main() {
       await tap(find.byKey(const Key('keypadCheck')));
     }
 
-    await tap(find.text("Got it, let's draw"));
+    await tap(find.text("Let's draw it"));
     expect(find.text('Drag a bar up here.'), findsOneWidget);
     await tap(find.byKey(const Key('slotA')));
     await tap(find.byKey(const Key('piece')));

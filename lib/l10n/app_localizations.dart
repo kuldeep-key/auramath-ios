@@ -97,7 +97,7 @@ abstract class AppLocalizations {
   /// No description provided for @gotItLetsDraw.
   ///
   /// In en, this message translates to:
-  /// **'Got it, let\'s draw'**
+  /// **'Let\'s draw it'**
   String get gotItLetsDraw;
 
   /// No description provided for @hearItAgain.

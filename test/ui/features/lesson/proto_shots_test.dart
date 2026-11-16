@@ -76,9 +76,11 @@ void main() {
       await settle();
     }
 
-    await settle();
+    // the prototype's M0 shot catches the read-along on its 2nd word
+    await tester.pump(const Duration(milliseconds: 450 + 200 + 330 + 100));
     await _save(tester, 'M0');
-    await tester.tap(find.text("Got it, let's draw"));
+    await settle();
+    await tester.tap(find.text("Let's draw it"));
     await settle();
     await _save(tester, 'M1-D1');
     await send(const BarADrawn());
