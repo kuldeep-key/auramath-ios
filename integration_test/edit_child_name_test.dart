@@ -44,6 +44,9 @@ void main() {
           for (final e in find.byType(Text).evaluate())
             ?(e.widget as Text).data,
         ];
+        // the app reports errors itself; say it where the runner shows it
+        // ignore: avoid_print
+        print('E2E never saw $f; on screen: $shown');
         fail('never saw $f; on screen: $shown');
       }
 

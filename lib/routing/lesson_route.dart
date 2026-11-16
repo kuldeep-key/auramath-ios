@@ -181,7 +181,10 @@ class _LessonRouteState extends State<_LessonRoute> {
       for (final step in const ['name_quantities', 'number_sentence'])
         if (flags.on(step)) step,
     }, addingUp: flags.on('adding_up_option'));
+    // each child's own day's time, not the phone's (SES-01)
+    await widget.deps.sitting.forChild(deps.account.childId);
     widget.deps.sitting.useMinutes(prefs.minutes);
+    if (!mounted) return;
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
   }
 

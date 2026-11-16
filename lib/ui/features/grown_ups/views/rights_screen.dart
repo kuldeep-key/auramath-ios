@@ -47,8 +47,14 @@ class _RightsScreenState extends State<RightsScreen> {
   /// Opens a consent confirmation, then reads the consent again.
   Future<void> _consentStep(String path) async {
     await context.push(path);
-    if (mounted) setState(() => _consent = widget.family.consent());
+    if (mounted) _rereadConsent();
   }
+
+  /// Reads the consent again. The block must not return the Future:
+  /// setState refuses a callback that does.
+  void _rereadConsent() => setState(() {
+    _consent = widget.family.consent();
+  });
 
   @override
   void dispose() {
@@ -150,8 +156,7 @@ class _RightsScreenState extends State<RightsScreen> {
                   ApiException(
                     '${l.guConsentError}: ${ErrorNote.message(snap.error!)}',
                   ),
-                  onRetry: () =>
-                      setState(() => _consent = widget.family.consent()),
+                  onRetry: _rereadConsent,
                 );
               }
               final consent = snap.data;
