@@ -62,20 +62,6 @@ List<RouteBase> childRoutes(Deps deps) {
   final moments = HomeMomentsSource(rewards: rewards);
   final celebrations = CelebrationRepository(deps.store, deps.visits);
 
-  /// The reward celebrations for the child learning now, in their world,
-  /// with their look beside the session badge.
-  RewardMoments momentsFor() {
-    final id = deps.account.childId;
-    final look = deps.looks.cached(id);
-    return RewardMoments(
-      celebrations: celebrations,
-      config: deps.journey,
-      childId: id,
-      world: look?.world ?? deps.journey.defaultWorld,
-      lookId: look?.avatarId ?? lookIdFor(progress.cachedAvatar),
-    );
-  }
-
   /// REW-01: the session badge the server holds as not yet shown, read
   /// once per launch for each child.
   ServerBadge? pendingBadge;
@@ -110,6 +96,23 @@ List<RouteBase> childRoutes(Deps deps) {
     return (
       id: t?.id ?? config.defaultTutor,
       kind: t?.kind ?? 'grown_up_teacher',
+    );
+  }
+
+  /// The reward celebrations for the child learning now, in their world,
+  /// with their look beside the session badge.
+  RewardMoments momentsFor() {
+    final id = deps.account.childId;
+    final look = deps.looks.cached(id);
+    return RewardMoments(
+      celebrations: celebrations,
+      config: deps.journey,
+      childId: id,
+      world: look?.world ?? deps.journey.defaultWorld,
+      lookId: look?.avatarId ?? lookIdFor(progress.cachedAvatar),
+      // the tutor cheers beside a badge (Y3, Habit, LandTrophy)
+      tutorId: tutorNow().id,
+      tutorKind: tutorNow().kind,
     );
   }
 
@@ -202,7 +205,7 @@ List<RouteBase> childRoutes(Deps deps) {
   /// order the server sent them: what waited longest first, and from one
   /// case the smaller first (Ashutosh, daily catch-up 16 Nov).
   final bigShown = <String>{};
-  Future<List<CelebrationSpec>> bigBadge() async {
+  Future<List<CelebrationSpec>> bigBadge(AppLocalizations l) async {
     final session = deps.sessions.lastStop.value?.sessionId;
     if (session == null) return const [];
     // the case's last batch, and its answer, first
@@ -212,12 +215,15 @@ List<RouteBase> childRoutes(Deps deps) {
         if (bigShown.add(a.badgeId)) a,
     ];
     final r = momentsFor();
-    return [for (final a in due) await r.bigBadge(a)];
+    return [for (final a in due) await r.bigBadge(a, l: l)];
   }
 
   /// The end of the session just stopped, in rules.yaml's order
   /// (`end_of_session_order`): the streak moment, then the session badge.
-  Future<List<CelebrationSpec>> endOfSession(AppLocalizations l) async {
+  Future<List<CelebrationSpec>> endOfSession(
+    AppLocalizations l, {
+    String? reminder,
+  }) async {
     final m = await moments.next(
       lastStop: deps.sessions.lastStop.value,
       childId: deps.account.childId,
@@ -242,16 +248,21 @@ List<RouteBase> childRoutes(Deps deps) {
         if (moment == 'streak_moment' && m.streak)
           await r.streak(l)
         else if (moment == 'session_badge' && badge != null)
-          await r.sessionBadge((
-            // none served yet: shown, not logged as a badge
-            badgeId: badge.served?.id ?? '',
-            kind: 'session',
-            name:
-                badge.served?.name ?? HomeMomentCard.draftName(l, badge.reason),
-            forWhat: null,
-            draftName: badge.served == null,
-            subtitle: badge.served?.says,
-          )),
+          await r.sessionBadge(
+            (
+              // none served yet: shown, not logged as a badge
+              badgeId: badge.served?.id ?? '',
+              kind: 'session',
+              name:
+                  badge.served?.name ??
+                  HomeMomentCard.draftName(l, badge.reason),
+              forWhat: null,
+              draftName: badge.served == null,
+              subtitle: badge.served?.says,
+            ),
+            l: l,
+            reminder: reminder,
+          ),
     ];
   }
 
@@ -282,7 +293,11 @@ List<RouteBase> childRoutes(Deps deps) {
             // the end of the session, in rules.yaml's order: REW-05's
             // streak moment (behind streak_moment), then REW-01's badge of
             // the session that just stopped, whatever way it stopped
-            load: () => endOfSession(AppLocalizations.of(context)!),
+            load: () => endOfSession(
+              AppLocalizations.of(context)!,
+              // Y3: the tutor's AI reminder, once, at the session's end
+              reminder: tutorLine(context, 'line.tutor.ai-reminder'),
+            ),
             onShown: (spec, r) => momentsFor().shown(spec, r),
             child: ListenableBuilder(
               listenable: Listenable.merge([deps.flags, deps.looks]),
@@ -334,7 +349,12 @@ List<RouteBase> childRoutes(Deps deps) {
           hold: true,
           load: () async => [
             if (pendingBadge case final b?)
-              await momentsFor().sessionBadge(b, queued: true),
+              await momentsFor().sessionBadge(
+                b,
+                queued: true,
+                l: AppLocalizations.of(context)!,
+                reminder: tutorLine(context, 'line.tutor.ai-reminder'),
+              ),
           ],
           onShown: (spec, r) {
             pendingBadge = null;
@@ -415,6 +435,8 @@ List<RouteBase> childRoutes(Deps deps) {
           earned: c.earned,
           badges: {...deps.pack.badges, ...levelBadges},
           world: c.world,
+          tutorId: tutorNow().id,
+          tutorKind: tutorNow().kind,
           onOpen: (badge) => deps.visits.record(deps.account.childId, [
             badgeOpened(badge, from: BadgeOpenedFrom.cabinet),
           ]),
@@ -431,7 +453,7 @@ List<RouteBase> childRoutes(Deps deps) {
         return MotionPage(
           key: state.pageKey,
           arrive: Arrive.zoom,
-          child: BadgeScreen(id: id, badge: badgeInfo(id)!),
+          child: BadgeScreen(id: id, badge: badgeInfo(id)!, world: worldNow()),
         );
       },
     ),
@@ -693,7 +715,7 @@ List<RouteBase> childRoutes(Deps deps) {
           deps.pack.problems.containsKey(state.uri.queryParameters['next'])
           ? null
           : Paths.home,
-      pageBuilder: (_, state) => MotionPage(
+      pageBuilder: (context, state) => MotionPage(
         key: state.pageKey,
         arrive: Arrive.zoom,
         child: Loaded(
@@ -711,7 +733,7 @@ List<RouteBase> childRoutes(Deps deps) {
             // big badges due at this case, one after another; then
             // Y4, Streak and Up ("Try a new skill"), then the next case
             hold: true,
-            load: bigBadge,
+            load: () => bigBadge(AppLocalizations.of(context)!),
             onShown: (spec, r) => momentsFor().shown(spec, r),
             child: AfterCaseScreen(
               after: (

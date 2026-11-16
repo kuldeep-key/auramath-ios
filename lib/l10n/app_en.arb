@@ -887,7 +887,81 @@
   "kidCabinetEmpty": "Your badges will live here.",
   "@kidCabinetEmpty": {
     "description": "DRAFT (REW-12): the cabinet with nothing earned yet. No outline, no count, no 'next to earn'."
+  },  "kidTodaysBadge": "Today's badge",
+  "@kidTodaysBadge": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the heading over the session badge (Y3)."
   },
+  "kidNewMedal": "A new medal!",
+  "@kidNewMedal": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the ribbon over a stop medal (LevelUp, REW-08)."
+  },
+  "kidTrailGoesOn": "Your trail goes on. Time to try a new skill!",
+  "@kidTrailGoesOn": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the line under a stop medal (LevelUp)."
+  },
+  "kidNewBadge": "A new badge!",
+  "@kidNewBadge": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the ribbon over a habit badge (Habit, REW-10)."
+  },
+  "kidHabitBarBuilder": "You draw the bars yourself.",
+  "@kidHabitBarBuilder": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Bar builder's line (Habit, B2)."
+  },
+  "kidHabitCarefulReader": "You read the question with care.",
+  "@kidHabitCarefulReader": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Careful reader's line (Habit, B2)."
+  },
+  "kidHabitLearnItDoIt": "You learn a step, then do it on your own.",
+  "@kidHabitLearnItDoIt": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Learn it, do it's line (Habit, B2)."
+  },
+  "kidHabitDoubleChecker": "You check your work and fix it.",
+  "@kidHabitDoubleChecker": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Double checker's line (Habit, B2)."
+  },
+  "kidLandTrophy": "A land trophy!",
+  "@kidLandTrophy": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the ribbon over a land trophy (LandTrophy, REW-09)."
+  },
+  "kidEveryStop": "Every stop, all yours.",
+  "@kidEveryStop": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the line under a land trophy (LandTrophy)."
+  },
+  "kidIntoYourBadges": "Into your badges!",
+  "@kidIntoYourBadges": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: First Case flying into the cabinet (first_badge moment)."
+  },
+  "kidCameBack": "You came back!",
+  "@kidCameBack": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the streak moment's ribbon (Streak, REW-05); no number."
+  },
+  "kidKeepComingBack": "Detectives who keep coming back get really good.",
+  "@kidKeepComingBack": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the streak moment's line (Streak, REW-05); never the child's name, no number."
+  },
+  "kidMedalFor": "Your medal for {stop}.",
+  "@kidMedalFor": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: a stop medal's line in the cabinet (B2).",
+    "placeholders": {"stop": {"type": "String"}}
+  },
+  "kidFirstCaseLine": "Your first case, cracked.",
+  "@kidFirstCaseLine": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: First Case's line in the cabinet (B2)."
+  },
+  "kidWalkedAll": "You walked all of {land}.",
+  "@kidWalkedAll": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: a land trophy's line in the cabinet (B2).",
+    "placeholders": {"land": {"type": "String"}}
+  },
+  "kidNotNow": "Not now",
+  "@kidNotNow": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: OtherPhone's way home instead of carrying on (DEV-05)."
+  },
+  "kidBackHome": "Back home",
+  "@kidBackHome": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the cabinet's button home (B1)."
+  },
+
   "kidTrailExplored": "Explored",
   "@kidTrailExplored": {
     "description": "catalogue.yaml ui_words explored (Key's word)."

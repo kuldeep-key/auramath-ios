@@ -266,6 +266,25 @@ lines:
     - {id: line.pick.world,                   text: "Pick your world.",                                     source: PM-1112-T, approved: false, drafted: true}
     - {id: line.pick.look,                    text: "Who do you want to be?",                               source: PM-1112-T, approved: false, drafted: true}
     - {id: line.pick.tutor,                   text: "Who will teach you?",                                  source: PM-1112-T, approved: false, drafted: true}
+    # the rewards screens from the 16 Nov prototype (Y3, LevelUp, Habit, LandTrophy, Streak, B1); DRAFT until Julia checks them
+    - {id: line.reward.todays-badge, text: "Today's badge", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): the heading over the session badge (Y3)"}
+    - {id: line.reward.new-medal, text: "A new medal!", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): the ribbon over a stop medal (LevelUp, REW-08)"}
+    - {id: line.reward.trail-goes-on, text: "Your trail goes on. Time to try a new skill!", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): the line under a stop medal (LevelUp)"}
+    - {id: line.reward.new-badge, text: "A new badge!", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): the ribbon over a habit badge (Habit, REW-10)"}
+    - {id: line.reward.habit.bar-builder, text: "You draw the bars yourself.", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): Bar builder's line (Habit, B2)"}
+    - {id: line.reward.habit.careful-reader, text: "You read the question with care.", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): Careful reader's line (Habit, B2)"}
+    - {id: line.reward.habit.learn-it-do-it, text: "You learn a step, then do it on your own.", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): Learn it, do it's line (Habit, B2)"}
+    - {id: line.reward.habit.double-checker, text: "You check your work and fix it.", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): Double checker's line (Habit, B2)"}
+    - {id: line.reward.land-trophy, text: "A land trophy!", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): the ribbon over a land trophy (LandTrophy, REW-09)"}
+    - {id: line.reward.every-stop, text: "Every stop, all yours.", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): the line under a land trophy (LandTrophy)"}
+    - {id: line.reward.into-badges, text: "Into your badges!", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): First Case flying into the cabinet (first_badge moment)"}
+    - {id: line.reward.came-back, text: "You came back!", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): the streak moment's ribbon (Streak, REW-05); no number"}
+    - {id: line.reward.keep-coming-back, text: "Detectives who keep coming back get really good.", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): the streak moment's line (Streak, REW-05); never the child's name, no number"}
+    - {id: line.reward.back-home, text: "Back home", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): the cabinet's button home (B1)"}
+    - {id: line.reward.medal-for, text: "Your medal for {stop}.", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): a stop medal's line in the cabinet (B2)"}
+    - {id: line.reward.first-case, text: "Your first case, cracked.", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): First Case's line in the cabinet (B2)"}
+    - {id: line.reward.walked-all, text: "You walked all of {land}.", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): a land trophy's line in the cabinet (B2)"}
+    - {id: line.other-phone.not-now, text: "Not now", source: PROTO-1116, approved: false, drafted: true, note: "DRAFT (prototype 16 Nov): OtherPhone's way home (DEV-05)"}
   # Lines drawn on Figma screens that are not in the pack yet. Each needs a pack line (and Julia's
   # approval) or a design change before it can be built (TUT-11). Listed for Apoorv; not loaded by the app.
   figma_lines_to_reconcile:

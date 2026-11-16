@@ -2170,6 +2170,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidCabinetEmpty => 'Your badges will live here.';
 
   @override
+  String get kidTodaysBadge => 'Today\'s badge';
+
+  @override
+  String get kidNewMedal => 'A new medal!';
+
+  @override
+  String get kidTrailGoesOn => 'Your trail goes on. Time to try a new skill!';
+
+  @override
+  String get kidNewBadge => 'A new badge!';
+
+  @override
+  String get kidHabitBarBuilder => 'You draw the bars yourself.';
+
+  @override
+  String get kidHabitCarefulReader => 'You read the question with care.';
+
+  @override
+  String get kidHabitLearnItDoIt => 'You learn a step, then do it on your own.';
+
+  @override
+  String get kidHabitDoubleChecker => 'You check your work and fix it.';
+
+  @override
+  String get kidLandTrophy => 'A land trophy!';
+
+  @override
+  String get kidEveryStop => 'Every stop, all yours.';
+
+  @override
+  String get kidIntoYourBadges => 'Into your badges!';
+
+  @override
+  String get kidCameBack => 'You came back!';
+
+  @override
+  String get kidKeepComingBack =>
+      'Detectives who keep coming back get really good.';
+
+  @override
+  String kidMedalFor(String stop) {
+    return 'Your medal for $stop.';
+  }
+
+  @override
+  String get kidFirstCaseLine => 'Your first case, cracked.';
+
+  @override
+  String kidWalkedAll(String land) {
+    return 'You walked all of $land.';
+  }
+
+  @override
+  String get kidNotNow => 'Not now';
+
+  @override
+  String get kidBackHome => 'Back home';
+
+  @override
   String get kidTrailExplored => 'Explored';
 
   @override

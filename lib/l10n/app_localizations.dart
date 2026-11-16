@@ -3802,6 +3802,114 @@ abstract class AppLocalizations {
   /// **'Your badges will live here.'**
   String get kidCabinetEmpty;
 
+  /// DRAFT (prototype 16 Nov) for Julia: the heading over the session badge (Y3).
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s badge'**
+  String get kidTodaysBadge;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the ribbon over a stop medal (LevelUp, REW-08).
+  ///
+  /// In en, this message translates to:
+  /// **'A new medal!'**
+  String get kidNewMedal;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the line under a stop medal (LevelUp).
+  ///
+  /// In en, this message translates to:
+  /// **'Your trail goes on. Time to try a new skill!'**
+  String get kidTrailGoesOn;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the ribbon over a habit badge (Habit, REW-10).
+  ///
+  /// In en, this message translates to:
+  /// **'A new badge!'**
+  String get kidNewBadge;
+
+  /// DRAFT (prototype 16 Nov) for Julia: Bar builder's line (Habit, B2).
+  ///
+  /// In en, this message translates to:
+  /// **'You draw the bars yourself.'**
+  String get kidHabitBarBuilder;
+
+  /// DRAFT (prototype 16 Nov) for Julia: Careful reader's line (Habit, B2).
+  ///
+  /// In en, this message translates to:
+  /// **'You read the question with care.'**
+  String get kidHabitCarefulReader;
+
+  /// DRAFT (prototype 16 Nov) for Julia: Learn it, do it's line (Habit, B2).
+  ///
+  /// In en, this message translates to:
+  /// **'You learn a step, then do it on your own.'**
+  String get kidHabitLearnItDoIt;
+
+  /// DRAFT (prototype 16 Nov) for Julia: Double checker's line (Habit, B2).
+  ///
+  /// In en, this message translates to:
+  /// **'You check your work and fix it.'**
+  String get kidHabitDoubleChecker;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the ribbon over a land trophy (LandTrophy, REW-09).
+  ///
+  /// In en, this message translates to:
+  /// **'A land trophy!'**
+  String get kidLandTrophy;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the line under a land trophy (LandTrophy).
+  ///
+  /// In en, this message translates to:
+  /// **'Every stop, all yours.'**
+  String get kidEveryStop;
+
+  /// DRAFT (prototype 16 Nov) for Julia: First Case flying into the cabinet (first_badge moment).
+  ///
+  /// In en, this message translates to:
+  /// **'Into your badges!'**
+  String get kidIntoYourBadges;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the streak moment's ribbon (Streak, REW-05); no number.
+  ///
+  /// In en, this message translates to:
+  /// **'You came back!'**
+  String get kidCameBack;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the streak moment's line (Streak, REW-05); never the child's name, no number.
+  ///
+  /// In en, this message translates to:
+  /// **'Detectives who keep coming back get really good.'**
+  String get kidKeepComingBack;
+
+  /// DRAFT (prototype 16 Nov) for Julia: a stop medal's line in the cabinet (B2).
+  ///
+  /// In en, this message translates to:
+  /// **'Your medal for {stop}.'**
+  String kidMedalFor(String stop);
+
+  /// DRAFT (prototype 16 Nov) for Julia: First Case's line in the cabinet (B2).
+  ///
+  /// In en, this message translates to:
+  /// **'Your first case, cracked.'**
+  String get kidFirstCaseLine;
+
+  /// DRAFT (prototype 16 Nov) for Julia: a land trophy's line in the cabinet (B2).
+  ///
+  /// In en, this message translates to:
+  /// **'You walked all of {land}.'**
+  String kidWalkedAll(String land);
+
+  /// DRAFT (prototype 16 Nov) for Julia: OtherPhone's way home instead of carrying on (DEV-05).
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get kidNotNow;
+
+  /// DRAFT (prototype 16 Nov) for Julia: the cabinet's button home (B1).
+  ///
+  /// In en, this message translates to:
+  /// **'Back home'**
+  String get kidBackHome;
+
   /// catalogue.yaml ui_words explored (Key's word).
   ///
   /// In en, this message translates to:
