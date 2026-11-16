@@ -111,6 +111,7 @@ void main() {
 
   for (final (name, inputs) in const [
     ('W1', <LessonInput>[Started(), KnowIt(256), KnowIt(300)]),
+    ('H2', <LessonInput>[Started(), ShowMeHowTaken()]),
     (
       'T1',
       <LessonInput>[

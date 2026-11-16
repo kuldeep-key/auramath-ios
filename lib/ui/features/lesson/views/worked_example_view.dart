@@ -188,7 +188,8 @@ class _Bars extends StatelessWidget {
       );
 
       final barB = step == 0
-          ? Container(width: barWidth, height: 6, color: AuraColors.blue)
+          // the prototype's H2·1: B not drawn yet (height 0)
+          ? const SizedBox(width: barWidth)
           : _GrowBox(
               key: ValueKey(step == 1),
               grow: step == 1,
