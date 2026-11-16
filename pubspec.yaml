@@ -51,6 +51,7 @@ flutter:
     - assets/spec/
     # Apoorv's art by spec art key (D-59): drop-in, no code change
     - assets/art/
+    - assets/proto/
 
   fonts:
     - family: Nunito

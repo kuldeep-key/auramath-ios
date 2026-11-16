@@ -25,6 +25,9 @@ abstract final class ArtAssets {
     }
   }
 
+  /// Whether the build holds the asset at [path].
+  static bool has(String path) => _have.contains(path);
+
   /// The file for [key], if the build has it.
   static String? pathOf(String? key) {
     if (key == null) return null;
@@ -88,20 +91,59 @@ class LookPortrait extends StatelessWidget {
     required this.lookId,
     required this.size,
     this.world = 'detective',
+    this.framed = true,
   });
 
   final String lookId;
   final String world;
   final double size;
 
+  /// The navy ring around the portrait (off on the look picker's tiles).
+  final bool framed;
+
   static int indexOf(String lookId) {
     final n = int.tryParse(lookId.replaceFirst('look_', '')) ?? 1;
     return (n - 1).clamp(0, lookPlaceholders.length - 1);
   }
 
+  /// The prototype's portrait for [lookId] in [world]
+  /// (`assets/proto/look_01_detective.jpg` ...), drawn until Apoorv's art.
+  static String? protoOf(String lookId, String world) =>
+      ArtAssets.has('assets/proto/${lookId}_$world.jpg')
+      ? 'assets/proto/${lookId}_$world.jpg'
+      : null;
+
   @override
   Widget build(BuildContext context) {
     final p = lookPlaceholders[indexOf(lookId)];
+    final proto = protoOf(lookId, world);
+    // the prototype's `.avatar`: a round portrait on the yellow disc, a
+    // navy ring (4 pt; 3 pt when small); [framed] false is the LookPick
+    // tile's bare circle
+    if (ArtAssets.pathOf('art.look.$lookId.$world') == null && proto != null) {
+      return ExcludeSemantics(
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AuraColors.yellow,
+            border: framed
+                ? Border.all(color: AuraColors.navy, width: size < 60 ? 3 : 4)
+                : null,
+          ),
+          child: ClipOval(
+            child: Image.asset(
+              proto,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => const SizedBox(),
+            ),
+          ),
+        ),
+      );
+    }
     return ArtOr(
       artKey: 'art.look.$lookId.$world',
       size: size,
