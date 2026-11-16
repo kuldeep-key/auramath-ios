@@ -167,8 +167,8 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..fallbackAfterMs = deps.config.fallbackAfterMs
       ..clockPausesOffline = deps.config.clockPausesWhileOffline
       ..childId = deps.account.childId
-      ..tutorId = _tutor().id
-      ..tutorKind = _tutor().kind
+      ..tutorId = _tutor.id
+      ..tutorKind = _tutor.kind
       ..launchSource = deps.account.role == Role.parent
           ? 'parent_handover'
           : 'child_opened'
@@ -183,21 +183,6 @@ class _LessonRouteState extends State<_LessonRoute> {
     }, addingUp: flags.on('adding_up_option'));
     widget.deps.sitting.useMinutes(prefs.minutes);
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
-  }
-
-  /// The child's tutor now, as Home shows it (TTR-01): the default until
-  /// they choose; one switched off falls back to it.
-  ({String id, String kind}) _tutor() {
-    final deps = widget.deps;
-    final config = deps.journey;
-    final id = deps.looks.cached(deps.account.childId)?.tutorId;
-    final t =
-        config.pickable.where((t) => t.id == id).firstOrNull ??
-        config.tutorById(config.defaultTutor);
-    return (
-      id: t?.id ?? config.defaultTutor,
-      kind: t?.kind ?? 'grown_up_teacher',
-    );
   }
 
   /// The child's age, which sets read-aloud's default; null when it can't

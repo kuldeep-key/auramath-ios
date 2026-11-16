@@ -127,6 +127,7 @@ class _BoardViewState extends State<BoardView> {
                       StripChip(
                         label: '${p.diff} ${rel.toLowerCase()}',
                         lit: s.bFound,
+                        kind: StripChipKind.gap,
                       ),
                     ],
                     onSeeQuestion: vm.seeQuestion,
