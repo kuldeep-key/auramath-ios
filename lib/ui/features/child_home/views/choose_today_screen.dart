@@ -117,6 +117,7 @@ class _TodayTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Pop(
     duration: const Duration(milliseconds: 500),
+    curve: Curves.ease,
     delay: delay,
     child: Semantics(
       button: true,

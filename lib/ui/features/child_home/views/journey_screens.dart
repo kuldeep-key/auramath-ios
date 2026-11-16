@@ -115,6 +115,7 @@ class _JourneyPickerState extends State<JourneyPicker> {
       for (final (i, c) in widget.choices.indexed)
         Pop(
           duration: const Duration(milliseconds: 400),
+          curve: Curves.ease,
           delay: Duration(milliseconds: i * 50),
           child: Semantics(
             button: true,
@@ -135,6 +136,7 @@ class _JourneyPickerState extends State<JourneyPicker> {
       for (var i = 0; i < widget.disabled; i++)
         Pop(
           duration: const Duration(milliseconds: 500),
+          curve: Curves.ease,
           delay: Duration(milliseconds: (widget.choices.length + i) * 70),
           child: Semantics(
             label: widget.disabledLabel,

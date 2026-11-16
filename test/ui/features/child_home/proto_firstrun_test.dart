@@ -91,7 +91,8 @@ void main() {
     await tester.pump();
     expect(opacity(1), lessThan(0.05));
     await tester.pump(const Duration(milliseconds: 200));
-    expect(opacity(1), closeTo(0.5, 0.06));
+    // CSS `pop .4s both`: the default ease, so 0.80 at half time
+    expect(opacity(1), closeTo(Curves.ease.transform(.5), 0.03));
     expect(opacity(8), 0); // its 350 ms delay is still running
     await tester.pump(const Duration(milliseconds: 200));
     expect(opacity(1), 1);
