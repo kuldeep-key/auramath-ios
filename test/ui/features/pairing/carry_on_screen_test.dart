@@ -11,10 +11,19 @@ void main() {
       'pairing_carry_on',
       const CarryOnScreen(device: "Child's phone"),
     );
+    // PRV-07: the other phone's label is never shown
+    expect(find.textContaining("Child's phone"), findsNothing);
     expect(
-      find.text("You started this case on Child's phone. It moved with you."),
+      find.text('You started this case on another phone. It moved with you.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('Not now goes home', (tester) async {
+    await tester.pumpWidget(shotApp(const CarryOnScreen()));
+    await tester.tap(find.text('Not now'));
+    await tester.pumpAndSettle();
+    expect(find.text('went to ${Paths.home}'), findsOneWidget);
   });
 
   testWidgets('without a label says another phone', (tester) async {
