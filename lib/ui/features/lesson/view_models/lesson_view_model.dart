@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../data/repositories/session_repository.dart';
 import '../../../../data/services/api.dart';
+import '../../../../data/services/sound_effects.dart';
 import '../../../../data/services/voice.dart';
 import '../../../core/parts/standing_button.dart';
 import 'line_library.dart';
@@ -1000,8 +1001,16 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   }
 
   /// The grown-up's "Read aloud" (Settings): when off, nothing is spoken
-  /// unless the child taps a speak button.
-  bool readAloud = true;
+  /// unless the child taps a speak button. It is the app's sound setting:
+  /// the sound effects ([AuraSound]) follow it, so a child with the sound
+  /// off hears none.
+  bool get readAloud => _readAloud;
+  set readAloud(bool on) {
+    _readAloud = on;
+    AuraSound.soundOn.value = on;
+  }
+
+  bool _readAloud = true;
 
   /// The grown-up's "Bigger number pad" (Settings).
   bool biggerPad = false;
