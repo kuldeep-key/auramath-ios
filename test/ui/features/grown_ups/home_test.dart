@@ -4,6 +4,7 @@ import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/grown_ups/views/email_frequency_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/forgot_passcode_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/grown_up_home_screen.dart';
+import 'package:auramath/ui/features/grown_ups/views/parts.dart';
 import 'package:auramath/ui/features/grown_ups/views/recent_notes_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/settings_screen.dart';
 import 'package:flutter/material.dart';
@@ -186,22 +187,31 @@ void main() {
     testWidgets('at every size', (tester) async {
       final g = await Gu.make(tester);
       await shotAllSizes(tester, 'grown_ups_home', screen(g));
-      expect(find.text('1 session this week'), findsOneWidget);
-      expect(find.text('No sessions this week'), findsOneWidget);
+      expect(find.textContaining('1 session this week'), findsOneWidget);
+      expect(find.textContaining('No sessions this week'), findsOneWidget);
+      // the prototype's hub: This family's rows
+      for (final row in [
+        'Settings',
+        'Phones and family',
+        'Your data and rights',
+        'Sign out of this phone',
+        'Add a child',
+      ]) {
+        expect(find.text(row), findsOneWidget);
+      }
       expect(find.text('Back to Aarav'), findsOneWidget);
     });
 
-    testWidgets('progress is by email: no book, month or plan (D-39)', (
-      tester,
-    ) async {
+    testWidgets('a child opens where they are; progress is by email: no '
+        'book, month or plan (D-39)', (tester) async {
       final g = await Gu.make(tester);
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Maya'));
-      await tester.pumpAndSettle();
-      expect(find.textContaining('went to'), findsNothing);
       expect(find.textContaining('progress'), findsNothing);
       expect(find.text('Plan'), findsNothing);
+      await tester.tap(find.text('Maya'));
+      await tester.pumpAndSettle();
+      expect(find.text('went to ${Paths.learning('child-2')}'), findsOneWidget);
     });
 
     testWidgets('no Recent notes while recent_notes_in_app is off', (
@@ -243,14 +253,23 @@ void main() {
       expect(find.text('went to ${Paths.home}'), findsOneWidget);
     });
 
-    testWidgets('the gear opens Settings, Family opens Family', (tester) async {
-      final g = await Gu.make(tester);
-      await tester.pumpWidget(shotApp(screen(g)));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Settings'));
-      await tester.pumpAndSettle();
-      expect(find.text('went to ${Paths.settings}'), findsOneWidget);
-    });
+    for (final (row, path) in [
+      ('Settings', Paths.settings),
+      ('Phones and family', Paths.family),
+      ('Your data and rights', Paths.rights),
+      ('Sign out of this phone', Paths.signOut),
+    ]) {
+      testWidgets('$row opens $path', (tester) async {
+        final g = await Gu.make(tester);
+        await tester.pumpWidget(shotApp(screen(g)));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text(row));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(row));
+        await tester.pumpAndSettle();
+        expect(find.text('went to $path'), findsOneWidget);
+      });
+    }
 
     testWidgets('no children: says so and offers Add a child', (tester) async {
       final g = await Gu.make(tester);
@@ -276,9 +295,39 @@ void main() {
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
       expect(find.text('Lessons are paused'), findsOneWidget);
-      await tester.tap(find.text('Your data and rights'));
+      await tester.tap(find.text('Your data and rights').first);
       await tester.pumpAndSettle();
       expect(find.text('went to ${Paths.rights}'), findsOneWidget);
+    });
+
+    testWidgets("a child's new name shows here at once (childrenChanged)", (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.text('Aarav'), findsOneWidget);
+      g.server
+        ..on('PATCH /api/children/child-1', {
+          'id': 'child-1',
+          'displayName': 'Ari',
+        })
+        ..on('GET /api/children', {
+          'children': [
+            {'id': 'child-1', 'displayName': 'Ari', 'schoolYear': 'year_2'},
+            {'id': 'child-2', 'displayName': 'Maya', 'schoolYear': 'year_1'},
+          ],
+        });
+      // saved from another screen (Edit), with this one underneath
+      await tester.runAsync(
+        () => g.deps.family.editChild('child-1', {'displayName': 'Ari'}),
+      );
+      await tester.pump();
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pumpAndSettle();
+      expect(find.text('Ari'), findsOneWidget);
+      expect(find.text('Aarav'), findsNothing);
+      expect(find.text('Back to Ari'), findsOneWidget);
     });
 
     testWidgets('consent holds: no paused card', (tester) async {
@@ -361,7 +410,10 @@ void main() {
       expect(find.text('Membership'), findsNothing);
       expect(find.text("Aarav's plan"), findsNothing);
       expect(find.text('Number pad'), findsNothing); // ours only (D-41)
-      expect(find.text('Bigger number pad (accessibility)'), findsOneWidget);
+      expect(find.text('Bigger number pad'), findsOneWidget);
+      // the switches (`.sw`), and the family rows moved to the Family area
+      expect(find.byType(AuraSwitch), findsNWidgets(3));
+      expect(find.text('Sign out'), findsNothing);
     });
 
     testWidgets('a lesson setting changes on tap and is kept on this phone', (
@@ -371,9 +423,16 @@ void main() {
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
       expect(find.text('15 min'), findsOneWidget);
+      // Time each day opens the picker sheet (the prototype's `pick`)
       await tester.tap(find.text('Time each day'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('auraSheet')), findsOneWidget);
+      await tester.tap(find.text('20 minutes'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('auraSheet')), findsNothing);
       await tester.tap(find.text('Read aloud'));
       await tester.pumpAndSettle();
+      expect(find.text('Saved'), findsOneWidget);
       expect(find.text('20 min'), findsOneWidget);
       expect(g.store.values['lesson.minutes'], '20');
       expect(g.store.values['lesson.readAloud'], '0');
@@ -399,7 +458,14 @@ void main() {
       expect(g.bodyOf('PUT /api/family/settings/reports'), {
         'frequency': 'off',
       });
-      expect(find.text('Off'), findsWidgets);
+      final sw = find.descendant(
+        of: find.ancestor(
+          of: find.text('Report email'),
+          matching: find.byType(KvRow),
+        ),
+        matching: find.byType(AuraSwitch),
+      );
+      expect(tester.widget<AuraSwitch>(sw).value, isFalse);
     });
 
     testWidgets('report email off: turning it on asks first (Notify)', (
@@ -428,17 +494,6 @@ void main() {
       await tester.tap(find.text('How often'));
       await tester.pumpAndSettle();
       expect(find.text('went to ${Paths.emailFrequency}'), findsOneWidget);
-    });
-
-    testWidgets('Sign out opens its confirmation', (tester) async {
-      final g = await Gu.make(tester);
-      await tester.pumpWidget(shotApp(screen(g)));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Sign out'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Sign out'));
-      await tester.pumpAndSettle();
-      expect(find.text('went to ${Paths.signOut}'), findsOneWidget);
     });
   });
 }

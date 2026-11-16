@@ -937,7 +937,7 @@ abstract class AppLocalizations {
   /// No description provided for @guPassTitle.
   ///
   /// In en, this message translates to:
-  /// **'Grown-ups only'**
+  /// **'Family area'**
   String get guPassTitle;
 
   /// No description provided for @guPassEnter.
@@ -955,55 +955,55 @@ abstract class AppLocalizations {
   /// No description provided for @guPassWrong.
   ///
   /// In en, this message translates to:
-  /// **'That\'s not the passcode. Try again.'**
+  /// **'That is not it. Try again.'**
   String get guPassWrong;
 
   /// No description provided for @guPassLocked.
   ///
   /// In en, this message translates to:
-  /// **'Too many tries. Try again after {time}.'**
+  /// **'Too many tries. Wait until {time}, or sign in again.'**
   String guPassLocked(String time);
 
   /// No description provided for @guPassLockedSoon.
   ///
   /// In en, this message translates to:
-  /// **'Too many tries. Wait a few minutes and try again.'**
+  /// **'Too many tries. Wait a little, or sign in again.'**
   String get guPassLockedSoon;
 
   /// No description provided for @guPassChooseTitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose a passcode'**
+  /// **'Lock the Family area'**
   String get guPassChooseTitle;
 
   /// No description provided for @guPassNewTitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose a new passcode'**
+  /// **'Set a new passcode'**
   String get guPassNewTitle;
 
   /// No description provided for @guPassChooseBody.
   ///
   /// In en, this message translates to:
-  /// **'{n} digits, so only grown-ups can open this area.'**
+  /// **'{n} digits only you know.'**
   String guPassChooseBody(int n);
 
   /// No description provided for @guPassConfirmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Type it again'**
+  /// **'Lock the Family area'**
   String get guPassConfirmTitle;
 
   /// No description provided for @guPassConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'To be sure it\'s right.'**
+  /// **'Type it once more to be sure.'**
   String get guPassConfirmBody;
 
   /// No description provided for @guPassMismatch.
   ///
   /// In en, this message translates to:
-  /// **'Those didn\'t match. Choose a passcode again.'**
+  /// **'Those did not match. Start again.'**
   String get guPassMismatch;
 
   /// No description provided for @guPassShort.
@@ -1029,6 +1029,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use Face ID'**
   String get guUseFaceId;
+
+  /// No description provided for @guFaceFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID did not work. Use your passcode instead.'**
+  String get guFaceFail;
 
   /// No description provided for @guForgotTitle.
   ///
@@ -1081,8 +1087,74 @@ abstract class AppLocalizations {
   /// No description provided for @guHomeHi.
   ///
   /// In en, this message translates to:
-  /// **'Hi there'**
+  /// **'Family area'**
   String get guHomeHi;
+
+  /// No description provided for @guHomeChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Children'**
+  String get guHomeChildren;
+
+  /// No description provided for @guHomeThisFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'This family'**
+  String get guHomeThisFamily;
+
+  /// No description provided for @guHomeAddChildDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Their own details and consent'**
+  String get guHomeAddChildDetail;
+
+  /// No description provided for @guHomeSettingsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Time per day, read-aloud, emails'**
+  String get guHomeSettingsDetail;
+
+  /// No description provided for @guHomePhones.
+  ///
+  /// In en, this message translates to:
+  /// **'Phones and family'**
+  String get guHomePhones;
+
+  /// No description provided for @guHomePhonesDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Join, remove, invite'**
+  String get guHomePhonesDetail;
+
+  /// No description provided for @guHomeRightsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Download or delete everything'**
+  String get guHomeRightsDetail;
+
+  /// No description provided for @guHomeSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of this phone'**
+  String get guHomeSignOut;
+
+  /// No description provided for @guHomeNotesDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'What each session\'s email said'**
+  String get guHomeNotesDetail;
+
+  /// No description provided for @guHomeAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'{age}, {year}'**
+  String guHomeAbout(int age, String year);
+
+  /// No description provided for @guHomeAge.
+  ///
+  /// In en, this message translates to:
+  /// **'{age}'**
+  String guHomeAge(int age);
 
   /// No description provided for @guHomeWeek.
   ///
@@ -1168,11 +1240,41 @@ abstract class AppLocalizations {
   /// **'Read aloud'**
   String get guSetReadAloud;
 
+  /// No description provided for @guSetReadAloudDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The teacher\'s voice. On for every age'**
+  String get guSetReadAloudDetail;
+
+  /// No description provided for @guSetTimeSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The app ends the session kindly at this point.'**
+  String get guSetTimeSheetBody;
+
+  /// No description provided for @guSetMinutesLong.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} minutes'**
+  String guSetMinutesLong(int n);
+
+  /// No description provided for @guSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get guSaved;
+
   /// No description provided for @guSetBigPad.
   ///
   /// In en, this message translates to:
-  /// **'Bigger number pad (accessibility)'**
+  /// **'Bigger number pad'**
   String get guSetBigPad;
+
+  /// No description provided for @guSetBigPadDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessibility: the lesson\'s keys grow'**
+  String get guSetBigPadDetail;
 
   /// No description provided for @guSetChangeHint.
   ///

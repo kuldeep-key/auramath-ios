@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,8 +6,10 @@ import '../../../../data/repositories/family_repository.dart';
 import '../../../../data/repositories/grown_up_repository.dart';
 import '../../../../data/services/api.dart';
 import '../../../../data/services/device_lock.dart';
+import '../../../../data/services/sound_effects.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/code_boxes.dart';
 import '../../../core/parts/keypad.dart';
@@ -43,12 +43,9 @@ class PasscodeScreen extends StatefulWidget {
   State<PasscodeScreen> createState() => _PasscodeScreenState();
 }
 
-class _PasscodeScreenState extends State<PasscodeScreen>
-    with SingleTickerProviderStateMixin {
-  late final _shake = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 450),
-  );
+class _PasscodeScreenState extends State<PasscodeScreen> {
+  /// Goes up on each wrong passcode: the boxes shake (`.codebox.shake`).
+  int _shake = 0;
 
   int? _length;
   Object? _loadError;
@@ -67,14 +64,7 @@ class _PasscodeScreenState extends State<PasscodeScreen>
   @override
   void initState() {
     super.initState();
-    _shake.value = 0; // made now, not first in dispose
     _load();
-  }
-
-  @override
-  void dispose() {
-    _shake.dispose();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -103,7 +93,12 @@ class _PasscodeScreenState extends State<PasscodeScreen>
       : _l.guPassLocked(TimeOfDay.fromDateTime(_lockedUntil!).format(context));
 
   Future<void> _faceId() async {
-    if (await widget.deviceLock.unlock(_l.guFaceIdReason)) _open();
+    if (await widget.deviceLock.unlock(_l.guFaceIdReason)) {
+      _open();
+    } else if (mounted) {
+      // the prototype's FaceFail, said where the passcode is typed
+      setState(() => _message = _l.guFaceFail);
+    }
   }
 
   void _open() {
@@ -118,7 +113,17 @@ class _PasscodeScreenState extends State<PasscodeScreen>
       _typed = v;
       if (v.isNotEmpty) _message = null;
     });
-    if (v.length == _length) _submit(v);
+    if (v.length == _length) _full(v);
+  }
+
+  /// The prototype's bindCode: a full code waits 250 ms, so the last
+  /// digit shows, then it is checked.
+  static const fullPause = Duration(milliseconds: 250);
+
+  Future<void> _full(String v) async {
+    final pad = _pad;
+    await Future<void>.delayed(fullPause);
+    if (mounted && pad == _pad && _typed == v) await _submit(v);
   }
 
   void _checked(String _) {
@@ -134,8 +139,10 @@ class _PasscodeScreenState extends State<PasscodeScreen>
       _pad++;
       _message = message;
     });
-    if (shake && !MediaQuery.of(context).disableAnimations) {
-      _shake.forward(from: 0);
+    if (shake) {
+      AuraHaptics.wrong();
+      AuraSound.wrong();
+      setState(() => _shake++);
     }
   }
 
@@ -220,43 +227,45 @@ class _PasscodeScreenState extends State<PasscodeScreen>
           else if (length == null)
             const Spinner()
           else ...[
-            const SizedBox(height: 22),
-            AnimatedBuilder(
-              animation: _shake,
-              builder: (context, child) => Transform.translate(
-                offset: Offset(
-                  math.sin(_shake.value * math.pi * 6) *
-                      10 *
-                      (1 - _shake.value),
-                  0,
-                ),
-                child: child,
-              ),
-              // a fixed height: CodeBoxes' LayoutBuilder has no intrinsic
-              // size, which AuraPage's body asks for
-              child: SizedBox(
-                height: 60,
-                child: CodeBoxes(length: length, value: _typed, obscure: true),
+            // a fixed height: CodeBoxes has no intrinsic size, which
+            // AuraPage's body asks for
+            SizedBox(
+              height: 60,
+              child: CodeBoxes(
+                length: length,
+                value: _typed,
+                obscure: true,
+                shake: _shake,
               ),
             ),
-            const SizedBox(height: 16),
-            if (_busy) const Spinner(),
-            if (_message != null)
-              Semantics(
-                liveRegion: true,
-                child: Text(
-                  _message!,
-                  textAlign: TextAlign.center,
-                  style: AuraText.body,
+            const SizedBox(height: 14),
+            if (_busy) const Center(child: Spinner()),
+            // `#gpm`: the line under the boxes keeps its 22 pt
+            SizedBox(
+              width: double.infinity,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 22),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    _message ?? '',
+                    textAlign: TextAlign.center,
+                    style: AuraText.subtitle,
+                  ),
                 ),
               ),
+            ),
             if (_mode == _Mode.enter) ...[
-              AuraLink(
-                label: l.guPassForgot,
-                onPressed: () => context.push(Paths.forgotPasscode),
+              Center(
+                child: AuraLink(
+                  label: l.guPassForgot,
+                  onPressed: () => context.push(Paths.forgotPasscode),
+                ),
               ),
               if (widget.account.useFaceId)
-                AuraLink(label: l.guUseFaceId, onPressed: _faceId),
+                Center(
+                  child: AuraLink(label: l.guUseFaceId, onPressed: _faceId),
+                ),
             ],
           ],
         ],

@@ -1,4 +1,5 @@
 import 'package:auramath/routing/paths.dart';
+import 'package:auramath/ui/core/parts/code_boxes.dart';
 import 'package:auramath/ui/features/grown_ups/views/passcode_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,6 +21,8 @@ void main() {
       await tester.tap(find.text(d).last);
       await tester.pump();
     }
+    // a full code waits 250 ms before it is checked (bindCode)
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
   }
 
@@ -32,7 +35,7 @@ void main() {
   testWidgets('GPass at every size', (tester) async {
     final g = await Gu.make(tester);
     await shotAllSizes(tester, 'grown_ups_pass', screen(g));
-    expect(find.text('Grown-ups only'), findsOneWidget);
+    expect(find.text('Family area'), findsOneWidget);
     expect(find.text('Forgot passcode?'), findsOneWidget);
   });
 
@@ -55,8 +58,11 @@ void main() {
     await tester.pumpWidget(shotApp(screen(g)));
     await tester.pumpAndSettle();
     await type(tester, '9999');
-    expect(find.text("That's not the passcode. Try again."), findsOneWidget);
+    expect(find.text('That is not it. Try again.'), findsOneWidget);
     expect(g.deps.account.grownUpsUnlocked, isFalse);
+    // the boxes shake (`.codebox.shake`) and clear
+    final boxes = tester.widget<CodeBoxes>(find.byType(CodeBoxes));
+    expect((boxes.shake, boxes.value), (1, ''));
   });
 
   testWidgets('too many tries shows the wait', (tester) async {
@@ -90,9 +96,9 @@ void main() {
       ..on('PUT /api/family/passcode', null, status: 204);
     await tester.pumpWidget(shotApp(screen(g)));
     await tester.pumpAndSettle();
-    expect(find.text('Choose a passcode'), findsOneWidget);
+    expect(find.text('Lock the Family area'), findsOneWidget);
     await type(tester, '2468');
-    expect(find.text('Type it again'), findsOneWidget);
+    expect(find.text('Type it once more to be sure.'), findsOneWidget);
     await type(tester, '2468');
     expect(g.bodyOf('PUT /api/family/passcode'), {'passcode': '2468'});
     expect(find.text('went to ${Paths.grownUps}'), findsOneWidget);
@@ -107,7 +113,7 @@ void main() {
     g.server.on('POST /api/family/passcode/reset', null, status: 204);
     await tester.pumpWidget(shotApp(screen(g)));
     await tester.pumpAndSettle();
-    expect(find.text('Choose a new passcode'), findsOneWidget);
+    expect(find.text('Set a new passcode'), findsOneWidget);
     await type(tester, '1357');
     await type(tester, '1357');
     expect(g.bodyOf('POST /api/family/passcode/reset'), {'passcode': '1357'});

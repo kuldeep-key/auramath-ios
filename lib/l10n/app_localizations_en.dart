@@ -493,7 +493,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guOff => 'Off';
 
   @override
-  String get guPassTitle => 'Grown-ups only';
+  String get guPassTitle => 'Family area';
 
   @override
   String get guPassEnter => 'Enter your passcode.';
@@ -502,36 +502,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guPassForgot => 'Forgot passcode?';
 
   @override
-  String get guPassWrong => 'That\'s not the passcode. Try again.';
+  String get guPassWrong => 'That is not it. Try again.';
 
   @override
   String guPassLocked(String time) {
-    return 'Too many tries. Try again after $time.';
+    return 'Too many tries. Wait until $time, or sign in again.';
   }
 
   @override
   String get guPassLockedSoon =>
-      'Too many tries. Wait a few minutes and try again.';
+      'Too many tries. Wait a little, or sign in again.';
 
   @override
-  String get guPassChooseTitle => 'Choose a passcode';
+  String get guPassChooseTitle => 'Lock the Family area';
 
   @override
-  String get guPassNewTitle => 'Choose a new passcode';
+  String get guPassNewTitle => 'Set a new passcode';
 
   @override
   String guPassChooseBody(int n) {
-    return '$n digits, so only grown-ups can open this area.';
+    return '$n digits only you know.';
   }
 
   @override
-  String get guPassConfirmTitle => 'Type it again';
+  String get guPassConfirmTitle => 'Lock the Family area';
 
   @override
-  String get guPassConfirmBody => 'To be sure it\'s right.';
+  String get guPassConfirmBody => 'Type it once more to be sure.';
 
   @override
-  String get guPassMismatch => 'Those didn\'t match. Choose a passcode again.';
+  String get guPassMismatch => 'Those did not match. Start again.';
 
   @override
   String guPassShort(int n) {
@@ -547,6 +547,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guUseFaceId => 'Use Face ID';
+
+  @override
+  String get guFaceFail => 'Face ID did not work. Use your passcode instead.';
 
   @override
   String get guForgotTitle => 'Forgot your passcode?';
@@ -579,7 +582,44 @@ class AppLocalizationsEn extends AppLocalizations {
       'Or sign in again here with Apple or Google, then choose a new passcode.';
 
   @override
-  String get guHomeHi => 'Hi there';
+  String get guHomeHi => 'Family area';
+
+  @override
+  String get guHomeChildren => 'Children';
+
+  @override
+  String get guHomeThisFamily => 'This family';
+
+  @override
+  String get guHomeAddChildDetail => 'Their own details and consent';
+
+  @override
+  String get guHomeSettingsDetail => 'Time per day, read-aloud, emails';
+
+  @override
+  String get guHomePhones => 'Phones and family';
+
+  @override
+  String get guHomePhonesDetail => 'Join, remove, invite';
+
+  @override
+  String get guHomeRightsDetail => 'Download or delete everything';
+
+  @override
+  String get guHomeSignOut => 'Sign out of this phone';
+
+  @override
+  String get guHomeNotesDetail => 'What each session\'s email said';
+
+  @override
+  String guHomeAbout(int age, String year) {
+    return '$age, $year';
+  }
+
+  @override
+  String guHomeAge(int age) {
+    return '$age';
+  }
 
   @override
   String guHomeWeek(int count) {
@@ -638,7 +678,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guSetReadAloud => 'Read aloud';
 
   @override
-  String get guSetBigPad => 'Bigger number pad (accessibility)';
+  String get guSetReadAloudDetail => 'The teacher\'s voice. On for every age';
+
+  @override
+  String get guSetTimeSheetBody =>
+      'The app ends the session kindly at this point.';
+
+  @override
+  String guSetMinutesLong(int n) {
+    return '$n minutes';
+  }
+
+  @override
+  String get guSaved => 'Saved';
+
+  @override
+  String get guSetBigPad => 'Bigger number pad';
+
+  @override
+  String get guSetBigPadDetail => 'Accessibility: the lesson\'s keys grow';
 
   @override
   String get guSetChangeHint => 'Changes the setting';
