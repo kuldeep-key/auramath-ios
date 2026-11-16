@@ -731,6 +731,8 @@
   "@lessonStarRow": {"description": "DRAFT (TUT-17): what a screen reader says for each row in the stars lesson, by its place (1 or 2).", "placeholders": {"n": {"type": "int"}}},
   "lessonTakeBack": "Take it back",
   "@lessonTakeBack": {"description": "DRAFT, for Julia (LES-07, LES-15): what a screen reader says on a piece dropped in the wrong place; a tap puts it back in the tray, free."},
+  "lessonSee": "See",
+  "@lessonSee": {"description": "DRAFT (prototype 16 Nov): the word on the question strip's eye button (LES-02)."},
   "lessonSeeQuestion": "See the question",
   "@lessonSeeQuestion": {"description": "What a screen reader says on the eye button that opens the whole question (LES-02). Figma: Prototype parts › Question strip."},
   "lessonQuestionBack": "Back to my work",

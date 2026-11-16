@@ -79,8 +79,10 @@ abstract final class AuraDurations {
   /// `shake`: a standing button, 600 ms, twice.
   static const shake = Duration(milliseconds: 600);
 
-  /// `wordIn`: each word of a line, 350 ms, [wordStagger] after the last.
-  static const wordIn = Duration(milliseconds: 350);
+  /// `wordIn`: each word of a line, 320 ms on [AuraCurves.spring] (the
+  /// prototype's `.bubble .w` override of `wordIn .35s`), [wordStagger]
+  /// after the last.
+  static const wordIn = Duration(milliseconds: 320);
   static const wordStagger = Duration(milliseconds: 45);
 }
 

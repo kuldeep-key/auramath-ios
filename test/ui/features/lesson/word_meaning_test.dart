@@ -43,6 +43,8 @@ void main() {
     await shotAllSizes(tester, 'lesson_question_words', flow());
     await tester.pumpWidget(shotApp(flow()));
     await tester.pumpAndSettle();
+    // the question card scrolls on a short screen
+    await tester.ensureVisible(find.byKey(const Key('word-taller')));
     await tester.tap(find.byKey(const Key('word-taller')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('wordMeaning')), findsOneWidget);
