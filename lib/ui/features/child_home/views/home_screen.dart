@@ -9,11 +9,15 @@ import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/avatar.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
+import '../../../core/parts/journey_art.dart';
+import 'journey_screens.dart';
 import 'play_icon_button.dart';
 
-/// The child's home: their detective, the next case, the trail and the
-/// badges. Figma: Home (649:2).
-class HomeScreen extends StatelessWidget {
+/// The child's home (JRN-02): their look and name small at the top (tap:
+/// the Me screen), the Family area lock, their tutor large with its spoken
+/// greeting (never the child's name, NFR-08), Keep going, and the Trail and
+/// Badges tiles while their switches are on. Figma: Home (649:2).
+class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.name,
@@ -23,7 +27,27 @@ class HomeScreen extends StatelessWidget {
     this.play = Paths.lessonNext,
     this.moment,
     this.avatar,
+    this.lookId,
+    this.world = 'detective',
+    this.tutorId,
+    this.tutorKind = 'grown_up_teacher',
+    this.greeting,
+    this.onGreet,
   });
+
+  /// The child's look (`look_01` to `look_08`); with none, the avatar.
+  final String? lookId;
+  final String world;
+
+  /// The child's tutor and its greeting (`line.home.greeting`, filled);
+  /// none: the detective portrait, as before tutors.
+  final String? tutorId;
+  final String tutorKind;
+  final String? greeting;
+
+  /// Speaks the greeting: as Home opens ([tapped] false), and when the
+  /// child taps the tutor (TTR-03).
+  final void Function({required bool tapped})? onGreet;
 
   /// The detective the child picked (ACC-12); the portrait until then. The
   /// small one opens the picker.
@@ -49,8 +73,35 @@ class HomeScreen extends StatelessWidget {
   final Widget? moment;
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.greeting != null) widget.onGreet?.call(tapped: false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final HomeScreen(
+      :avatar,
+      :name,
+      :grownUps,
+      :trail,
+      :badges,
+      :play,
+      :moment,
+      :lookId,
+      :world,
+      :tutorId,
+      :greeting,
+    ) = widget;
+    Widget me(double size) => lookId == null
+        ? AvatarDisc(avatar: avatar, size: size)
+        : LookPortrait(lookId: lookId, world: world, size: size);
     return AuraPage(
       play: true,
       say: l.readyForNewCase,
@@ -59,17 +110,16 @@ class HomeScreen extends StatelessWidget {
         child: Row(
           children: [
             Tooltip(
-              message: l.kidPickAvatar,
+              message: lookId == null ? l.kidPickAvatar : l.kidMe,
               child: Semantics(
                 button: true,
                 child: GestureDetector(
                   key: const Key('pickAvatar'),
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => context.push(Paths.avatar),
-                  child: SizedBox.square(
-                    dimension: 56,
-                    child: AvatarDisc(avatar: avatar, size: 52),
-                  ),
+                  // JRN-02: their own look opens the Me screen
+                  onTap: () =>
+                      context.push(lookId == null ? Paths.avatar : Paths.me),
+                  child: SizedBox.square(dimension: 56, child: me(52)),
                 ),
               ),
             ),
@@ -93,9 +143,17 @@ class HomeScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         spacing: moment == null ? 32 : 16,
         children: [
-          Float(
-            child: AvatarDisc(avatar: avatar, size: moment == null ? 210 : 120),
-          ),
+          if (tutorId != null && greeting != null)
+            TutorSays(
+              tutorId: tutorId,
+              tutorKind: widget.tutorKind,
+              world: world,
+              line: greeting,
+              size: moment == null ? 170 : 110,
+              onTap: () => widget.onGreet?.call(tapped: true),
+            )
+          else
+            Float(child: me(moment == null ? 210 : 120)),
           ?moment,
           Ribbon(text: l.readyForNewCase),
         ],

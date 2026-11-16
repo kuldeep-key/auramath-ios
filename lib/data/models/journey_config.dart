@@ -226,6 +226,30 @@ class JourneyConfig {
   Duration maxFor(String moment) =>
       Duration(milliseconds: celebrationMs[moment] ?? 1500);
 
+  /// A tutor line (`line.tutor.*`, `line.home.greeting`) with its slots
+  /// filled: `{tutor_name}` from tutors.yaml (while Key hasn't named the
+  /// tutor, [unnamed], e.g. "your tutor"), `{child_role}` and `{task_word}`
+  /// from [world]'s skin (catalogue.yaml). Nothing else is filled, so the
+  /// child's name is never in a line the tutor speaks (NFR-08); a slot
+  /// left over is dropped with its word.
+  String tutorLine(
+    String line, {
+    required String? tutorId,
+    required String? world,
+    required String unnamed,
+  }) {
+    final words = wordsOf(world);
+    final slots = {
+      'tutor_name': tutorById(tutorId)?.name ?? unnamed,
+      'child_role': words.role,
+      'task_word': words.task,
+    };
+    return line
+        .replaceAllMapped(RegExp(r'\{(\w+)\}'), (m) => slots[m[1]] ?? '')
+        .replaceAll(RegExp(r'\s{2,}'), ' ')
+        .trim();
+  }
+
   /// The world picker shows only while two or more worlds are enabled
   /// (JRN-01: skipped while one is).
   bool get pickWorld => enabledWorlds.length > 1;

@@ -126,7 +126,7 @@ class _Stop extends StatelessWidget {
       'earned' => l.kidTrailEarned,
       'explored' => l.kidTrailExplored,
       'current' => l.kidYouAreHere,
-      'next' => l.kidTrailNext,
+      'next' => l.kidNextStop,
       _ => null,
     };
     final marker = ArtOr(

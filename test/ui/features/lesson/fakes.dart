@@ -32,6 +32,15 @@ class FakeVoice implements Voice {
     if (!holdLines) speaking.value = false;
   }
 
+  /// Lines said in a voice of their own, as `voiceId: text`.
+  final List<String> saidIn = [];
+
+  @override
+  Future<void> sayIn(String text, String? voiceId) async {
+    saidIn.add('$voiceId: $text');
+    await say(text);
+  }
+
   @override
   Future<void> stop() async {
     stops++;

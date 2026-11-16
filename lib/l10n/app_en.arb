@@ -880,10 +880,6 @@
   "@kidSaveFailed": {
     "description": "DRAFT (ACC-12, TTR-01): a look, tutor or world couldn't be saved."
   },
-  "kidMeetStart": "Let's start",
-  "@kidMeetStart": {
-    "description": "DRAFT (AI-07, JRN-01): Meet's button, with the grown-up there."
-  },
   "kidBadgeCabinet": "My badges",
   "@kidBadgeCabinet": {
     "description": "DRAFT (REW-12): the cabinet's title. Earned badges only; never a count."
@@ -891,10 +887,6 @@
   "kidCabinetEmpty": "Your badges will live here.",
   "@kidCabinetEmpty": {
     "description": "DRAFT (REW-12): the cabinet with nothing earned yet. No outline, no count, no 'next to earn'."
-  },
-  "kidTrailNext": "Next stop",
-  "@kidTrailNext": {
-    "description": "DRAFT (JRN-03): the next stop's tag on the path."
   },
   "kidTrailExplored": "Explored",
   "@kidTrailExplored": {

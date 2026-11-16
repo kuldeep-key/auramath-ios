@@ -2170,9 +2170,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidCabinetEmpty => 'Your badges will live here.';
 
   @override
-  String get kidTrailNext => 'Next stop';
-
-  @override
   String get kidTrailExplored => 'Explored';
 
   @override

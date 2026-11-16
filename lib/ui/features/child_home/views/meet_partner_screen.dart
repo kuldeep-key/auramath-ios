@@ -19,7 +19,11 @@ class MeetPartnerScreen extends StatefulWidget {
     required this.onSay,
     required this.onStart,
     this.readAloud = true,
+    this.figure,
   });
+
+  /// The child's tutor (TTR-01); the detective portrait without one.
+  final Widget? figure;
 
   /// The lines the content serves; empty: the bundled drafts.
   final List<String> served;
@@ -85,7 +89,7 @@ class _MeetPartnerScreenState extends State<MeetPartnerScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         spacing: 14,
         children: [
-          const Float(child: Portrait(size: 120)),
+          Float(child: widget.figure ?? const Portrait(size: 120)),
           Semantics(
             header: true,
             child: Text(

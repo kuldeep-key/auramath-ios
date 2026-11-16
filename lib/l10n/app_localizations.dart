@@ -3352,7 +3352,7 @@ abstract class AppLocalizations {
   /// **'Your grown-up can see your work.'**
   String get kidMeetLine4;
 
-  /// DRAFT (AI-07, JRN-01): Meet's button, with the grown-up there.
+  /// DRAFT (AI-07): ends the first-meeting scene and opens the first lesson.
   ///
   /// In en, this message translates to:
   /// **'Let\'s start'**
@@ -3801,12 +3801,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your badges will live here.'**
   String get kidCabinetEmpty;
-
-  /// DRAFT (JRN-03): the next stop's tag on the path.
-  ///
-  /// In en, this message translates to:
-  /// **'Next stop'**
-  String get kidTrailNext;
 
   /// catalogue.yaml ui_words explored (Key's word).
   ///

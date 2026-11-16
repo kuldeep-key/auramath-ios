@@ -18,6 +18,9 @@ class _Phone implements Voice {
   Future<void> say(String text) async => said.add(text);
 
   @override
+  Future<void> sayIn(String text, String? voiceId) => say(text);
+
+  @override
   Future<void> stop() async {}
 
   @override

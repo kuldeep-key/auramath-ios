@@ -21,9 +21,10 @@ import 'views/check_screen.dart';
 import 'views/choose_today_screen.dart';
 import 'views/home_moments.dart';
 import 'views/home_screen.dart';
+import 'views/journey_screens.dart';
+import '../../core/parts/journey_art.dart';
 import 'views/meet_partner_screen.dart';
 import 'views/path_screen.dart';
-import 'views/pick_avatar_screen.dart';
 import 'views/loaded.dart';
 import 'views/trail_screen.dart';
 import 'views/trail_top_screen.dart';
@@ -88,6 +89,112 @@ List<RouteBase> childRoutes(Deps deps) {
     if (p.sessionId case final s?) moments.markShown(s);
     pendingBadge = p.badge;
     return true;
+  }
+
+  /// The Homes that have greeted the child (one greeting a visit).
+  final greeted = <LocalKey>{};
+
+  /// The child's world now; Detective until the server says.
+  String worldNow() =>
+      deps.looks.cached(deps.account.childId)?.world ??
+      deps.journey.defaultWorld;
+
+  /// The child's tutor now (TTR-01: the default until they choose; one
+  /// switched off falls back to it).
+  ({String id, String kind}) tutorNow() {
+    final config = deps.journey;
+    final id = deps.looks.cached(deps.account.childId)?.tutorId;
+    final t =
+        config.pickable.where((t) => t.id == id).firstOrNull ??
+        config.tutorById(config.defaultTutor);
+    return (
+      id: t?.id ?? config.defaultTutor,
+      kind: t?.kind ?? 'grown_up_teacher',
+    );
+  }
+
+  /// Policy line [lineId] in the child's tutor's words: its slots filled
+  /// from tutors.yaml and the world's skin, never with the child's name.
+  String tutorLine(BuildContext context, String lineId, {String? tutorId}) {
+    final l = AppLocalizations.of(context)!;
+    final unnamed = l.kidTutorPlaceholderName;
+    return deps.journey.tutorLine(
+      deps.pack.policyLines[lineId] ?? '',
+      tutorId: tutorId ?? tutorNow().id,
+      world: worldNow(),
+      unnamed: unnamed.substring(0, 1).toLowerCase() + unnamed.substring(1),
+    );
+  }
+
+  /// The tutor speaks [text] outside a lesson (TTR-03): as it appears if
+  /// read-aloud is on, or when the child asks; in [voiceId] this once (a
+  /// hello sample), else the child's own voice. Logged as
+  /// `read_aloud_played` under the visit (D-60), the line's id only.
+  void speak(
+    String text,
+    String lineId, {
+    required bool tapped,
+    String? voiceId,
+  }) {
+    if (text.isEmpty || (!tapped && !deps.flags.on('read_aloud'))) return;
+    if (voiceId == null) {
+      deps.voice.say(text);
+    } else {
+      deps.voice.sayIn(text, voiceId);
+    }
+    unawaited(
+      deps.visits.record(deps.account.childId, [
+        readAloudPlayed(
+          target: 'line',
+          trigger: tapped ? ReadTrigger.tap : ReadTrigger.auto,
+          stoppedEarly: false,
+          lineId: lineId,
+        ),
+      ]),
+    );
+  }
+
+  /// JRN-01: the first-run step this child still has to answer, read once
+  /// per launch for each child (GET look `needsFirstRun`): its screen, or
+  /// null when first run is done. A step the journey skips (one world, or
+  /// one tutor, enabled) is marked done without asking.
+  final lookAsked = <String>{};
+  Future<String?> firstRunAt() async {
+    final id = deps.account.childId;
+    if (id == null) return null;
+    final look = lookAsked.add(id)
+        ? await deps.looks.read(id, avatar: progress.cachedAvatar)
+        : deps.looks.cached(id);
+    for (final step in firstRunSteps) {
+      if (!(look?.needsFirstRun.contains(step) ?? false)) continue;
+      switch (step) {
+        case 'world' when !deps.journey.pickWorld:
+        case 'tutor' when !deps.journey.pickTutor:
+          await deps.looks.stepDone(id, step);
+        case 'world':
+          return '${Paths.pickWorld}?first=1';
+        case 'look':
+          return '${Paths.avatar}?first=1';
+        case 'tutor':
+          return '${Paths.pickTutor}?first=1';
+        case 'meet':
+          return '${Paths.meetPartner}?first=1';
+      }
+    }
+    return null;
+  }
+
+  /// A choice saved on a picker: in first run, its step is done and Home
+  /// opens the next one; else back where the child came from.
+  Future<void> chosen(BuildContext context, String step, bool first) async {
+    final id = deps.account.childId;
+    if (first && id != null) await deps.looks.stepDone(id, step);
+    if (!context.mounted) return;
+    if (first || !context.canPop()) {
+      context.go(Paths.home);
+    } else {
+      context.pop();
+    }
   }
 
   /// REW-11: the session's big badge, if one came with the case just
@@ -155,11 +262,14 @@ List<RouteBase> childRoutes(Deps deps) {
       path: Paths.home,
       // REW-01: a badge waiting from a session that ended with the app
       // closed or offline, before anything else; then Welcome back (SES-07)
-      redirect: (_, _) async => await pendingBadgeDue()
-          ? Paths.badgeWaiting
-          : await progress.welcomeBackDue()
-          ? Paths.welcomeBack
-          : null,
+      // JRN-01: first, the first-run step still to answer
+      redirect: (_, _) async =>
+          await firstRunAt() ??
+          (await pendingBadgeDue()
+              ? Paths.badgeWaiting
+              : await progress.welcomeBackDue()
+              ? Paths.welcomeBack
+              : null),
       pageBuilder: (context, s) => MotionPage(
         key: s.pageKey,
         arrive: Arrive.fade,
@@ -171,8 +281,27 @@ List<RouteBase> childRoutes(Deps deps) {
             load: () => endOfSession(AppLocalizations.of(context)!),
             onShown: (spec, r) => momentsFor().shown(spec, r),
             child: ListenableBuilder(
-              listenable: deps.flags,
-              builder: (_, _) => HomeScreen(
+              listenable: Listenable.merge([deps.flags, deps.looks]),
+              builder: (context, _) => HomeScreen(
+                // AVT-02, JRN-02: the look and the tutor, as they are now
+                lookId:
+                    deps.looks.cached(deps.account.childId)?.avatarId ??
+                    (progress.cachedAvatar == null
+                        ? null
+                        : lookIdFor(progress.cachedAvatar)),
+                world: worldNow(),
+                tutorId: tutorNow().id,
+                tutorKind: tutorNow().kind,
+                greeting: tutorLine(context, 'line.home.greeting'),
+                // spoken once as this Home opens, again on a tap
+                onGreet: ({required tapped}) {
+                  if (!tapped && !greeted.add(s.pageKey)) return;
+                  speak(
+                    tutorLine(context, 'line.home.greeting'),
+                    'line.home.greeting',
+                    tapped: tapped,
+                  );
+                },
                 name: name,
                 grownUps: deps.account.role == Role.device
                     ? Paths.signIn
@@ -336,30 +465,170 @@ List<RouteBase> childRoutes(Deps deps) {
     GoRoute(path: Paths.trailTop, builder: (_, _) => const TrailTopScreen()),
     GoRoute(
       path: Paths.avatar,
-      pageBuilder: (_, s) => MotionPage(
+      pageBuilder: (context, s) {
+        final first = s.uri.queryParameters['first'] == '1';
+        final l = AppLocalizations.of(context)!;
+        return MotionPage(
+          key: s.pageKey,
+          arrive: Arrive.rise,
+          // ACC-12, AVT-01: the eight looks and Surprise me, in first run
+          // and on the Me screen; never labelled or sorted by gender
+          child: JourneyPicker(
+            prompt: deps.pack.policyLines['line.pick.look'] ?? l.kidMyLook,
+            firstRun: first,
+            surprise: true,
+            current:
+                deps.looks.cached(deps.account.childId)?.avatarId ??
+                (progress.cachedAvatar == null
+                    ? null
+                    : lookIdFor(progress.cachedAvatar)),
+            choices: lookChoices(l, deps.journey, worldNow()),
+            // BE-20's 403: this phone may not set it; a grown-up does
+            failedText: (e) => e is ApiException && e.status == 403
+                ? l.kidPickAvatarAskGrownUp
+                : null,
+            onChoose: (look) async {
+              final id = deps.account.childId;
+              if (id == null) return;
+              try {
+                await deps.looks.save(id, avatarId: look);
+              } on ApiException catch (e) {
+                if (e.status != 404) rethrow;
+                // a server before looks: the avatar route, which takes
+                // look ids too (contract 4); a grown-up's phone edits the
+                // child as ever
+                if (deps.account.role == Role.device) {
+                  await deps.family.setAvatar(id, look);
+                } else {
+                  await deps.family.editChild(id, {'avatar': look});
+                }
+              }
+              progress.avatarPicked(look);
+              // DAT-03, ACC-12
+              await deps.sessions.recordAfterLesson(
+                id,
+                SpecEvent('avatar_chosen', {'avatar_id': look}),
+              );
+              if (context.mounted) await chosen(context, 'look', first);
+            },
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: Paths.me,
+      pageBuilder: (context, s) => MotionPage(
         key: s.pageKey,
         arrive: Arrive.rise,
-        child: PickAvatarScreen(
-          current: progress.cachedAvatar,
-          // ACC-12: the child's own phone uses its device token's route
-          // (BE-20); a grown-up's phone edits the child as ever
-          onSave: (avatar) async {
-            final id = deps.account.childId;
-            if (id == null) return;
-            if (deps.account.role == Role.device) {
-              await deps.family.setAvatar(id, avatar);
-            } else {
-              await deps.family.editChild(id, {'avatar': avatar});
-            }
-            progress.avatarPicked(avatar);
-            // DAT-03, ACC-12
-            await deps.sessions.recordAfterLesson(
-              id,
-              SpecEvent('avatar_chosen', {'avatar_id': avatar}),
-            );
-          },
+        child: named(
+          (name) => ListenableBuilder(
+            listenable: deps.looks,
+            builder: (_, _) => MeScreen(
+              name: name,
+              lookId:
+                  deps.looks.cached(deps.account.childId)?.avatarId ??
+                  lookIdFor(progress.cachedAvatar),
+              tutorId: tutorNow().id,
+              tutorKind: tutorNow().kind,
+              world: worldNow(),
+              // JRN-02: My world only with the worlds switch on and two or
+              // more worlds enabled
+              showWorld: deps.flags.on('worlds') && deps.journey.pickWorld,
+            ),
+          ),
         ),
       ),
+    ),
+    GoRoute(
+      path: Paths.pickTutor,
+      pageBuilder: (context, s) {
+        final first = s.uri.queryParameters['first'] == '1';
+        final l = AppLocalizations.of(context)!;
+        return MotionPage(
+          key: s.pageKey,
+          arrive: Arrive.rise,
+          // TTR-01, TTR-06: the enabled tutors, each saying hello in its
+          // own voice, and Surprise me
+          child: JourneyPicker(
+            prompt: deps.pack.policyLines['line.pick.tutor'] ?? l.kidMyTutor,
+            firstRun: first,
+            surprise: true,
+            tile: 110,
+            current: first ? null : tutorNow().id,
+            choices: tutorChoices(l, deps.journey, worldNow()),
+            onHear: (tutor) => speak(
+              tutorLine(context, 'line.tutor.hello', tutorId: tutor),
+              'line.tutor.hello',
+              tapped: true,
+              voiceId: deps.journey.voiceFor(tutor),
+            ),
+            onChoose: (tutor) async {
+              final id = deps.account.childId;
+              if (id == null) return;
+              // a new tutor starts with its own default voice
+              await deps.looks.save(id, tutorId: tutor);
+              if (context.mounted) await chosen(context, 'tutor', first);
+            },
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: Paths.pickVoice,
+      pageBuilder: (context, s) {
+        final l = AppLocalizations.of(context)!;
+        return MotionPage(
+          key: s.pageKey,
+          arrive: Arrive.rise,
+          // TTR-06: any enabled voice for the tutor, each heard first
+          child: JourneyPicker(
+            prompt: l.kidMyVoice,
+            current:
+                deps.looks.cached(deps.account.childId)?.voiceId ??
+                deps.journey.voiceFor(tutorNow().id),
+            choices: voiceChoices(l, deps.journey),
+            onHear: (voice) => speak(
+              tutorLine(context, 'line.tutor.hello'),
+              'line.tutor.hello',
+              tapped: true,
+              voiceId: voice,
+            ),
+            onChoose: (voice) async {
+              final id = deps.account.childId;
+              if (id == null) return;
+              await deps.looks.save(id, voiceId: voice);
+              if (context.mounted) await chosen(context, 'voice', false);
+            },
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: Paths.pickWorld,
+      pageBuilder: (context, s) {
+        final first = s.uri.queryParameters['first'] == '1';
+        final l = AppLocalizations.of(context)!;
+        return MotionPage(
+          key: s.pageKey,
+          arrive: Arrive.rise,
+          // REW-22: the enabled worlds, then greyed Coming soon tiles with
+          // no names; a change applies from the next session (REW-17)
+          child: JourneyPicker(
+            prompt: deps.pack.policyLines['line.pick.world'] ?? l.kidMyWorld,
+            firstRun: first,
+            current: worldNow(),
+            choices: worldChoices(deps.journey),
+            disabled: deps.journey.comingSoonWorlds,
+            disabledLabel: l.kidComingSoon,
+            onChoose: (world) async {
+              final id = deps.account.childId;
+              if (id == null) return;
+              await deps.looks.save(id, world: world);
+              if (context.mounted) await chosen(context, 'world', first);
+            },
+          ),
+        );
+      },
     ),
     GoRoute(path: Paths.check, builder: (_, _) => const CheckScreen()),
     GoRoute(
@@ -376,17 +645,43 @@ List<RouteBase> childRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.meetPartner,
-      builder: (context, _) => MeetPartnerScreen(
-        served: PartnerIntroRepository.lines(deps.pack.policyLines, const []),
-        readAloud: deps.flags.on('read_aloud'),
-        onSay: deps.voice.say,
-        onStart: () async {
-          await PartnerIntroRepository(
-            deps.store,
-          ).markMet(deps.account.childId);
-          if (context.mounted) context.go(Paths.lessonNext);
-        },
-      ),
+      builder: (context, s) {
+        final first = s.uri.queryParameters['first'] == '1';
+        final tutor = tutorNow();
+        // AI-07, TTR-01: the child's tutor introduces itself
+        // (line.tutor.intro), its name from tutors.yaml and the child's
+        // role from the world; never the child's name (NFR-08)
+        final intro = tutorLine(context, 'line.tutor.intro');
+        return MeetPartnerScreen(
+          served: intro.isEmpty
+              ? PartnerIntroRepository.lines(deps.pack.policyLines, const [])
+              : [intro],
+          readAloud: deps.flags.on('read_aloud'),
+          figure: TutorFigure(
+            tutorId: tutor.id,
+            kind: tutor.kind,
+            world: worldNow(),
+            size: 140,
+          ),
+          onSay: (text) => speak(
+            text,
+            intro.isEmpty ? 'line.intro.hello' : 'line.tutor.intro',
+            tapped: true,
+          ),
+          onStart: () async {
+            await PartnerIntroRepository(
+              deps.store,
+            ).markMet(deps.account.childId);
+            if (!context.mounted) return;
+            // JRN-01: first run goes on to Home; before a lesson, the lesson
+            if (first) {
+              await chosen(context, 'meet', true);
+            } else {
+              context.go(Paths.lessonNext);
+            }
+          },
+        );
+      },
     ),
     GoRoute(
       path: Paths.afterCase,

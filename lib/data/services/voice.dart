@@ -15,6 +15,10 @@ import 'api.dart';
 /// is off, slow or refuses a line.
 abstract interface class Voice {
   Future<void> say(String text);
+
+  /// Says [text] in [voiceId] this once (a tutor's or voice's hello on the
+  /// pickers, TTR-01, TTR-06); the child's own voice stays as it is.
+  Future<void> sayIn(String text, String? voiceId);
   Future<void> stop();
 
   /// Lines the child is about to hear: a voice that takes time to make a
@@ -103,6 +107,10 @@ class DeviceVoice implements Voice {
       resting.value = true;
     }
   }
+
+  /// The phone has one voice.
+  @override
+  Future<void> sayIn(String text, String? voiceId) => say(text);
 
   @override
   Future<void> stop() => _tts.stop();
@@ -230,6 +238,17 @@ class CloudVoice implements Voice {
       }
     } finally {
       if (turn == _turn) speaking.value = false;
+    }
+  }
+
+  @override
+  Future<void> sayIn(String text, String? voiceId) async {
+    final mine = this.voiceId;
+    this.voiceId = voiceId;
+    try {
+      await say(text);
+    } finally {
+      this.voiceId = mine;
     }
   }
 
