@@ -65,7 +65,7 @@ class PhoneRemovedScreen extends StatelessWidget {
           AuraHeading(title: l.guRemovedTitle, subtitle: l.guRemovedBody),
           const SizedBox(height: 22),
           const Icon(
-            Icons.check_circle_outline_rounded,
+            Icons.check_circle_rounded,
             size: 96,
             color: AuraColors.green,
           ),

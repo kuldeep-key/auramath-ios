@@ -8,11 +8,13 @@ import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
+import '../../setup/views/setup_parts.dart' show ConsentCheck;
 import 'parts.dart';
 
-/// Notify (659:52): the report EMAIL after each session (PAR-01/06), not
-/// a push notification; there is no push service. "Not now" changes
-/// nothing.
+/// Notify (659:52, the prototype's Notify): the report EMAIL after each
+/// session (PAR-01/06), not a push notification; there is no push
+/// service. Continue with the tick on turns it on; with the tick off it
+/// changes nothing.
 class NotifyScreen extends StatefulWidget {
   const NotifyScreen({super.key, required this.family, required this.repo});
 
@@ -27,7 +29,14 @@ class _NotifyScreenState extends State<NotifyScreen> {
   bool _busy = false;
   Object? _error;
 
+  /// "Email me after each session", ticked to begin with.
+  bool _on = true;
+
   Future<void> _yes() async {
+    if (!_on) {
+      popOr(context, Paths.grownUps);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -53,10 +62,7 @@ class _NotifyScreenState extends State<NotifyScreen> {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AuraHeading(
-              title: l.guNotifyTitle,
-              subtitle: l.guNotifyBody(childName(context, children)),
-            ),
+            AuraHeading(title: l.guNotifyTitle, subtitle: l.guNotifyBody),
             const SizedBox(height: 8),
             GuCard(
               child: Row(
@@ -70,9 +76,9 @@ class _NotifyScreenState extends State<NotifyScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
-                      Icons.mail_outline_rounded,
-                      size: 20,
-                      color: AuraColors.mute,
+                      Icons.mail_rounded,
+                      size: 22,
+                      color: AuraColors.yellowInk,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -81,12 +87,21 @@ class _NotifyScreenState extends State<NotifyScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(l.guNotifyCard, style: AuraText.infoTitle),
-                        Text(l.guNotifyCardBody, style: AuraText.caption),
+                        Text(
+                          l.guNotifyCardBody(childName(context, children)),
+                          style: AuraText.optionDetail,
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 14),
+            ConsentCheck(
+              value: _on,
+              label: l.guNotifyCheck,
+              onChanged: (v) => setState(() => _on = v),
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
@@ -101,11 +116,6 @@ class _NotifyScreenState extends State<NotifyScreen> {
               label: l.guNotifyYes,
               color: AuraButtonColor.blue,
               onPressed: _busy ? null : _yes,
-            ),
-            const SizedBox(height: 12),
-            AuraLink(
-              label: l.guNotifyNo,
-              onPressed: _busy ? null : () => popOr(context, Paths.grownUps),
             ),
           ],
         ),

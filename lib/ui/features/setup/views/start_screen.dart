@@ -65,6 +65,7 @@ class _StartScreenState extends State<StartScreen> {
             const SizedBox(height: 12),
           ],
           _NotSureTile(
+            name: childName(context, draft.name),
             onTap: () {
               draft
                 ..startingPoint = 'not_sure'
@@ -90,11 +91,13 @@ class _StartScreenState extends State<StartScreen> {
   }
 }
 
-/// "I'm not sure · Help me figure it out": a way on, not a choice, so it
-/// has a help icon and no tick.
+/// "I'm not sure · We'll start from Aarav's age": a way on, not a choice,
+/// so it has a help icon, no tick, and a dashed edge (`border-style:
+/// dashed`).
 class _NotSureTile extends StatelessWidget {
-  const _NotSureTile({required this.onTap});
+  const _NotSureTile({required this.name, required this.onTap});
 
+  final String name;
   final VoidCallback onTap;
 
   @override
@@ -108,35 +111,63 @@ class _NotSureTile extends StatelessWidget {
         child: InkWell(
           borderRadius: radius,
           onTap: onTap,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 56),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AuraColors.white,
-              borderRadius: radius,
-              border: Border.all(color: AuraColors.line, width: 2),
-              boxShadow: const [
-                BoxShadow(color: AuraColors.line, offset: Offset(0, 4)),
-              ],
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.help_outline_rounded, color: AuraColors.blue),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(l.setupNotSure, style: AuraText.option),
-                      Text(l.setupNotSureDetail, style: AuraText.optionDetail),
-                    ],
+          child: CustomPaint(
+            painter: const _DashedEdge(radius: AuraRadii.button),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 56),
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Icon(Icons.help_rounded, color: AuraColors.blue),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l.setupNotSure, style: AuraText.option),
+                        Text(
+                          l.setupNotSureFromAge(name),
+                          style: AuraText.optionDetail,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+/// A 2 pt dashed line edge with a 4 pt lip under it, as the other options.
+class _DashedEdge extends CustomPainter {
+  const _DashedEdge({required this.radius});
+
+  final double radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = RRect.fromRectAndRadius(
+      (Offset.zero & size).deflate(1),
+      Radius.circular(radius),
+    );
+    final paint = Paint()
+      ..color = AuraColors.line
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawRRect(r.shift(const Offset(0, 4)), paint..strokeWidth = 2);
+    canvas.drawRRect(r, Paint()..color = AuraColors.white);
+    final path = Path()..addRRect(r);
+    for (final metric in path.computeMetrics()) {
+      for (var d = 0.0; d < metric.length; d += 10) {
+        canvas.drawPath(metric.extractPath(d, d + 6), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedEdge old) => old.radius != radius;
 }

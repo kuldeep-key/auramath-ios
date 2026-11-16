@@ -31,26 +31,40 @@ class ReadyScreen extends StatelessWidget {
           body: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Burst(child: KidAvatar(size: 150, asset: kidBoy)),
-              const SizedBox(height: 50),
+              const Burst(child: KidAvatar(size: 140, asset: kidBoy)),
+              const SizedBox(height: 12),
               Semantics(
                 header: true,
-                child: Text(l.setupReadyTitle, style: AuraText.heading),
+                child: Text(
+                  l.setupReadyTitle(name),
+                  textAlign: TextAlign.center,
+                  style: AuraText.heading,
+                ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 12),
               Text(
                 l.setupReadyBody(name),
                 textAlign: TextAlign.center,
                 style: AuraText.subtitle,
               ),
               const SizedBox(height: 12),
-              // ACC-06; wording to agree with Julia (not in Figma)
-              Text(
-                l.setupReadyNoHelp(name),
-                textAlign: TextAlign.center,
-                style: AuraText.cardLine,
+              // ACC-06 (no help with the sums) and AI-07 (meet the case
+              // partner together), as the prototype's Ready
+              InfoCard(
+                rows: [
+                  (
+                    Icons.front_hand_rounded,
+                    l.setupReadyNoHelp,
+                    l.setupReadyNoHelpDetail(name),
+                  ),
+                  (
+                    Icons.smart_toy_rounded,
+                    l.setupReadyMeet,
+                    l.setupReadyMeetDetail(name),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 4),
             ],
           ),
           bottom: Column(

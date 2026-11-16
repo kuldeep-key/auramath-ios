@@ -117,7 +117,11 @@ class _JoinCodeScreenState extends State<JoinCodeScreen> {
               opacity: expired ? 0.4 : 1,
               child: SizedBox(
                 height: codeBoxesHeight,
-                child: CodeBoxes(length: code.code.length, value: code.code),
+                child: CodeBoxes(
+                  length: code.code.length,
+                  value: code.code,
+                  cursor: false,
+                ),
               ),
             ),
             const SizedBox(height: 14),
@@ -144,18 +148,31 @@ class _JoinCodeScreenState extends State<JoinCodeScreen> {
           ),
         ],
       ),
-      bottom: AuraButton(
-        label: _error != null && code == null
-            ? l.setupTryAgain
-            : l.setupNewCode,
-        color: AuraButtonColor.white,
-        onPressed: _loading ? null : _newCode,
+      bottom: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AuraButton(
+            label: _error != null && code == null
+                ? l.setupTryAgain
+                : l.setupNewCode,
+            color: AuraButtonColor.white,
+            onPressed: _loading ? null : _newCode,
+          ),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: AuraLink(
+              label: l.setupJoinDone,
+              onPressed: () => context.go(Paths.kids),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// "Works once, for 9:59", the time in bold.
+/// "Works once, for 9:59. Five tries.", the time in bold.
 class _WorksFor extends StatelessWidget {
   const _WorksFor({required this.left});
 

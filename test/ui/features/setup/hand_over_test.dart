@@ -20,7 +20,7 @@ void main() {
       await precacheAssets(tester, [kidBoy]);
       await shotAllSizes(tester, 'setup_ready', screen);
       // ACC-06: the grown-up is asked not to help
-      expect(find.textContaining('try on their own'), findsOneWidget);
+      expect(find.text("Please don't help with the sums"), findsOneWidget);
     });
 
     testWidgets('Hand over opens Lock with the child', (tester) async {
@@ -97,6 +97,11 @@ void main() {
       for (final d in digits.split('')) {
         await tapAndWait(tester, find.text(d));
       }
+      // the prototype's 250 ms on a full code, then the toast and the
+      // 600 ms before handing over
+      await tester.pump(const Duration(milliseconds: 300));
+      await settle(tester);
+      await tester.pump(const Duration(seconds: 3));
     }
 
     testWidgets('fits every size', (tester) async {
@@ -121,9 +126,9 @@ void main() {
         PasscodeScreen(deps: deps, childId: child, name: 'Aarav'),
       );
       await settle(tester);
-      expect(find.text('Choose a passcode'), findsOneWidget);
+      expect(find.text('Lock the Family area'), findsOneWidget);
       await type(tester, '0123');
-      expect(find.text('Type it again'), findsOneWidget);
+      expect(find.text('Type it once more to be sure.'), findsOneWidget);
       await type(tester, '0123');
       expect(server.calls.last.$2, {'passcode': '0123'});
       expect(deps.account.childId, child);
@@ -140,11 +145,8 @@ void main() {
       await settle(tester);
       await type(tester, '1234');
       await type(tester, '4321');
-      expect(
-        find.text("Those didn't match. Choose a passcode again."),
-        findsOneWidget,
-      );
-      expect(find.text('Choose a passcode'), findsOneWidget);
+      expect(find.text('Those did not match. Start again.'), findsOneWidget);
+      expect(find.text('Lock the Family area'), findsOneWidget);
       expect(called(server), ['GET /api/family/passcode']);
     });
 
@@ -191,7 +193,7 @@ void main() {
       expect(find.text('down'), findsOneWidget);
       server.on('GET /api/family/passcode', {'set': false, 'length': 4});
       await tapAndWait(tester, find.text('Try again'));
-      expect(find.text('Choose a passcode'), findsOneWidget);
+      expect(find.text('Lock the Family area'), findsOneWidget);
     });
   });
 
@@ -228,7 +230,7 @@ void main() {
       await show(tester, screen);
       await settle(tester);
       expect(called(server), ['GET /api/devices', 'POST /api/devices/pairing']);
-      expect(find.text('Works once, for 9:59'), findsOneWidget);
+      expect(find.text('Works once, for 9:59. Five tries.'), findsOneWidget);
       expect(find.text("Join Aarav's phone"), findsOneWidget);
     });
 

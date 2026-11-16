@@ -63,8 +63,11 @@ void main() {
     ) async {
       final (deps, server) = await ready(tester);
       await show(tester, SavePlaceScreen(deps: deps));
-      expect(find.text("Save Aarav's place"), findsOneWidget);
-      await tapAndWait(tester, find.text('Continue with Apple'));
+      expect(
+        find.text('Sign in or create your family account'),
+        findsOneWidget,
+      );
+      await tapAndWait(tester, find.text('Sign in with Apple'));
 
       expect(called(server), [
         'GET /api/auth/config',
@@ -95,22 +98,20 @@ void main() {
         find.byType(SignInWithAppleButton),
       );
       expect(apple.style, SignInWithAppleButtonStyle.black);
-      expect(apple.text, 'Continue with Apple');
+      expect(apple.text, 'Sign in with Apple');
       final google = find.byKey(const Key('googleSignIn'));
-      final shape = tester.widget<Material>(google).shape! as StadiumBorder;
+      final shape =
+          tester.widget<Material>(google).shape! as RoundedRectangleBorder;
       expect(tester.widget<Material>(google).color, const Color(0xFFFFFFFF));
       expect(shape.side.color, const Color(0xFF747775));
       final label = tester.widget<Text>(
-        find.descendant(
-          of: google,
-          matching: find.text('Continue with Google'),
-        ),
+        find.descendant(of: google, matching: find.text('Sign in with Google')),
       );
       expect(label.style!.fontFamily, 'Roboto');
       expect(label.style!.fontWeight, FontWeight.w500);
       expect(label.style!.color, const Color(0xFF1F1F1F));
       expect(
-        find.bySemanticsLabel('Continue with Google'),
+        find.bySemanticsLabel('Sign in with Google'),
         findsOneWidget,
         reason: 'one named button',
       );
@@ -120,7 +121,7 @@ void main() {
       final (deps, server) = await ready(tester);
       server.on('GET /api/auth/config', {'appleSignIn': false});
       await show(tester, SavePlaceScreen(deps: deps));
-      await tapAndWait(tester, find.text('Continue with Apple'));
+      await tapAndWait(tester, find.text('Sign in with Apple'));
       expect(
         find.text("Apple sign-in isn't switched on for this server yet."),
         findsOneWidget,
@@ -132,7 +133,7 @@ void main() {
       final (deps, server) = await ready(tester);
       server.on('GET /api/auth/config', {'googleClientId': ''});
       await show(tester, SavePlaceScreen(deps: deps));
-      await tapAndWait(tester, find.text('Continue with Google'));
+      await tapAndWait(tester, find.text('Sign in with Google'));
       expect(
         find.text("Google sign-in isn't switched on for this server yet"),
         findsOneWidget,
@@ -147,7 +148,7 @@ void main() {
         'error': 'synthetic names only until legal review clears',
       }, status: 400);
       await show(tester, SavePlaceScreen(deps: deps));
-      await tapAndWait(tester, find.text('Continue with Google'));
+      await tapAndWait(tester, find.text('Sign in with Google'));
       expect(
         find.text('synthetic names only until legal review clears'),
         findsOneWidget,
@@ -161,9 +162,9 @@ void main() {
     ) async {
       final (deps, server) = await ready(tester);
       await show(tester, SavePlaceScreen(deps: deps));
-      await tapAndWait(tester, find.text('Use my email'));
+      // the email field shows at once, under "or" (the prototype's SignIn)
       await tester.enterText(find.byType(TextField), 'sam@example.com');
-      await tapAndWait(tester, find.text('Email me a link'));
+      await tapAndWait(tester, find.text('Email me a sign-in link'));
       expect(server.calls.last.$2, {'email': 'sam@example.com'});
       expect(
         find.text(
@@ -179,9 +180,9 @@ void main() {
         'error': 'this deployment cannot send email',
       }, status: 501);
       await show(tester, SavePlaceScreen(deps: deps));
-      await tapAndWait(tester, find.text('Use my email'));
+      // the email field shows at once, under "or" (the prototype's SignIn)
       await tester.enterText(find.byType(TextField), 'sam@example.com');
-      await tapAndWait(tester, find.text('Email me a link'));
+      await tapAndWait(tester, find.text('Email me a sign-in link'));
       expect(find.text('this deployment cannot send email'), findsOneWidget);
     });
   });
@@ -196,7 +197,7 @@ void main() {
     testWidgets('Google signs in and goes to the children', (tester) async {
       final (deps, server) = await ready(tester);
       await show(tester, SignInScreen(deps: deps));
-      await tapAndWait(tester, find.text('Continue with Google'));
+      await tapAndWait(tester, find.text('Sign in with Google'));
       expect(called(server), ['GET /api/auth/config', 'POST /api/auth/google']);
       expect(find.text('went to /kids'), findsOneWidget);
     });
@@ -204,7 +205,7 @@ void main() {
     testWidgets('an address is needed before sending', (tester) async {
       final (deps, server) = await ready(tester);
       await show(tester, SignInScreen(deps: deps));
-      await tapAndWait(tester, find.text('Email me a link'));
+      await tapAndWait(tester, find.text('Email me a sign-in link'));
       expect(
         find.text('Type the email address to send the link to.'),
         findsOneWidget,

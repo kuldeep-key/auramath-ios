@@ -9,14 +9,20 @@ import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/theme/tokens.dart';
+import '../../setup/views/year_screen.dart' show yearLabel;
 import 'parts.dart';
 
-/// PHome (658:84): the family's children, Family, and back to the child.
-/// Progress goes to the grown-up by email (D-39), so the book, month and
-/// plan screens aren't linked from here. Once consent is withdrawn, a card
-/// says lessons are paused and links to Rights (no Figma frame yet).
-/// With `recent_notes_in_app` on, each child links to their last five
-/// notes (PAR-12).
+/// GHome, the prototype's Family area (PRD §10.5): one hub behind the
+/// passcode. The children (each opens where they are, ChildDetail), Add a
+/// child, then This family: Settings, Phones and family, Your data and
+/// rights, Sign out of this phone. Progress goes to the grown-up by email
+/// (D-39), so nothing here grades the child. Once consent is withdrawn, a
+/// card says lessons are paused and links to Rights. With
+/// `recent_notes_in_app` on, each child links to their last five notes
+/// (PAR-12).
+///
+/// The children are read again whenever this phone changes one
+/// ([FamilyRepository.childrenChanged]), so a new name shows here at once.
 class GrownUpHomeScreen extends StatelessWidget {
   const GrownUpHomeScreen({
     super.key,
@@ -36,17 +42,9 @@ class GrownUpHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final top = AuraTopBar(
-      close: true,
-      onBack: () => context.go(Paths.kids),
-      trailing: IconButton(
-        tooltip: l.guSettingsTitle,
-        icon: const Icon(Icons.settings_outlined, color: AuraColors.ink),
-        onPressed: () => context.push(Paths.settings),
-      ),
-    );
     return Loaded<({List<Child> children, bool consented})>(
       load: family.family,
+      refresh: family.childrenChanged,
       builder: (context, f, reload) {
         final children = f.children;
         Future<void> push(String path) async {
@@ -59,16 +57,14 @@ class GrownUpHomeScreen extends StatelessWidget {
             .followedBy(children)
             .firstOrNull;
         return AuraPage(
-          top: top,
+          top: _HubBar(
+            title: l.guHomeHi,
+            onClose: () => context.go(Paths.kids),
+          ),
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 4),
-              Semantics(
-                header: true,
-                child: Text(l.guHomeHi, style: AuraText.heading),
-              ),
-              const SizedBox(height: 10),
+              PartLabel(l.guHomeChildren, top: 4),
               if (!f.consented && children.isNotEmpty) ...[
                 GuCard(
                   child: Semantics(
@@ -90,36 +86,60 @@ class GrownUpHomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
               ],
-              if (children.isEmpty)
-                GuCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(l.guHomeNoChildren, style: AuraText.option),
-                      const SizedBox(height: 4),
-                      Text(l.guHomeNoChildrenBody, style: AuraText.cardLine),
-                      const SizedBox(height: 8),
-                      AuraLink(
-                        label: l.guAddChild,
-                        onPressed: () => push(Paths.addChild),
-                      ),
-                    ],
-                  ),
+              if (children.isEmpty) ...[
+                // the prototype's EmptyChildren
+                EmptyNote(
+                  icon: Icons.child_care_rounded,
+                  title: l.guHomeNoChildren,
+                  body: l.guHomeNoChildrenBody,
                 ),
+                const SizedBox(height: 12),
+              ],
               for (final c in children) ...[
                 _ChildCard(
+                  key: ValueKey('${c.id}/${c.name}'),
                   child: c,
                   lessons: () => repo.lessons(c.id),
+                  onOpen: () => push(Paths.learning(c.id)),
                   onNotes: recentNotes ? () => push(Paths.notes(c.id)) : null,
                 ),
                 const SizedBox(height: 12),
               ],
-              const SizedBox(height: 4),
-              AuraButton(
-                label: l.guHomeFamily,
-                icon: Icons.group_outlined,
-                color: AuraButtonColor.white,
-                onPressed: () => push(Paths.family),
+              NavRow(
+                icon: Icons.person_add_rounded,
+                label: l.guAddChild,
+                detail: l.guHomeAddChildDetail,
+                chevron: false,
+                onTap: () => push(Paths.addChild),
+              ),
+              PartLabel(l.guHomeThisFamily, top: 22),
+              NavRow(
+                icon: Icons.tune_rounded,
+                label: l.guSettingsTitle,
+                detail: l.guHomeSettingsDetail,
+                onTap: () => push(Paths.settings),
+              ),
+              const SizedBox(height: 12),
+              NavRow(
+                icon: Icons.devices_rounded,
+                label: l.guHomePhones,
+                detail: l.guHomePhonesDetail,
+                onTap: () => push(Paths.family),
+              ),
+              const SizedBox(height: 12),
+              NavRow(
+                icon: Icons.shield_rounded,
+                label: l.guRightsLink,
+                detail: l.guHomeRightsDetail,
+                onTap: () => push(Paths.rights),
+              ),
+              const SizedBox(height: 12),
+              NavRow(
+                icon: Icons.logout_rounded,
+                iconColor: AuraColors.mute,
+                label: l.guHomeSignOut,
+                chevron: false,
+                onTap: () => push(Paths.signOut),
               ),
             ],
           ),
@@ -140,12 +160,51 @@ class GrownUpHomeScreen extends StatelessWidget {
   }
 }
 
-/// A child: avatar, name, this week's sessions.
+/// ✕ and the area's name beside it, Bold 18 (the prototype's GHome top).
+class _HubBar extends StatelessWidget {
+  const _HubBar({required this.title, required this.onClose});
+
+  final String title;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: 48,
+    child: Row(
+      children: [
+        IconButton(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          padding: EdgeInsets.zero,
+          alignment: Alignment.centerLeft,
+          tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+          icon: const Icon(Icons.close_rounded, color: AuraColors.ink),
+          onPressed: onClose,
+        ),
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(title, style: AuraText.barTitle),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// A child: portrait, name, "8, Year 3 · 2 sessions this week", chevron;
+/// the whole card opens where they are.
 class _ChildCard extends StatefulWidget {
-  const _ChildCard({required this.child, required this.lessons, this.onNotes});
+  const _ChildCard({
+    super.key,
+    required this.child,
+    required this.lessons,
+    required this.onOpen,
+    this.onNotes,
+  });
 
   final Child child;
   final Future<List<Lesson>> Function() lessons;
+  final VoidCallback onOpen;
 
   /// Recent notes (PAR-12), when the flag is on.
   final VoidCallback? onNotes;
@@ -161,7 +220,18 @@ class _ChildCardState extends State<_ChildCard> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final child = widget.child;
+    final age = child.age;
+    final year = child.schoolYear == null
+        ? null
+        : yearLabel(l, child.schoolYear!);
+    final about = age != null && year != null
+        ? l.guHomeAbout(age, year)
+        : age != null
+        ? l.guHomeAge(age)
+        : year;
     return GuCard(
+      onTap: widget.onOpen,
+      label: child.name,
       child: Row(
         children: [
           ChildAvatar(name: child.name, avatar: child.avatar),
@@ -171,25 +241,32 @@ class _ChildCardState extends State<_ChildCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(child.name, style: AuraText.option),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 FutureBuilder<List<Lesson>>(
                   future: _lessons,
-                  builder: (context, snap) => Text(
-                    snap.hasError
+                  builder: (context, snap) {
+                    final week = snap.hasError
                         ? l.guProgressError
                         : snap.hasData
                         ? l.guHomeWeek(
                             tally(snap.data!, weekStart(DateTime.now())).count,
                           )
-                        : '',
-                    style: AuraText.cardLine,
-                  ),
+                        : null;
+                    return Text(
+                      [?about, ?week].join(' · '),
+                      style: AuraText.optionDetail.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontVariations: const [FontVariation('wght', 700)],
+                      ),
+                    );
+                  },
                 ),
                 if (widget.onNotes != null)
                   AuraLink(label: l.guNotesLink, onPressed: widget.onNotes),
               ],
             ),
           ),
+          const Icon(Icons.chevron_right_rounded, color: AuraColors.ink),
         ],
       ),
     );

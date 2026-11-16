@@ -706,10 +706,10 @@ abstract class AppLocalizations {
   /// **'Type your code'**
   String get pairTypeCode;
 
-  /// No description provided for @pairCodeWhere.
+  /// DRAFT (DEV-02, prototype GetCode) for Julia: was 'Your grown-up has it on their phone.'
   ///
   /// In en, this message translates to:
-  /// **'Your grown-up has it on their phone.'**
+  /// **'Your family has it on their phone.'**
   String get pairCodeWhere;
 
   /// No description provided for @pairAskForNewCode.
@@ -760,16 +760,22 @@ abstract class AppLocalizations {
   /// **'Ask your grown-up for a new one.'**
   String get pairCodeWrongBody;
 
-  /// No description provided for @pairTooMany.
+  /// DRAFT (DEV-02, prototype GetCode·CodeWrong) for Julia: under the code boxes after a wrong code; no count of tries left (the server keeps it).
   ///
   /// In en, this message translates to:
-  /// **'Too many tries'**
+  /// **'That code didn\'t work.'**
+  String get pairCodeDidntWork;
+
+  /// DRAFT (DEV-02, prototype CodeTooMany ribbon) for Julia: was 'Too many tries'.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s get a new code'**
   String get pairTooMany;
 
-  /// No description provided for @pairTooManyBody.
+  /// DRAFT (DEV-02, prototype CodeTooMany) for Julia: the prototype's line, with the wait the server's 429 asks for.
   ///
   /// In en, this message translates to:
-  /// **'Wait a few minutes, then ask your grown-up for a new code.'**
+  /// **'That code has stopped working. Wait a few minutes, then ask your family for a new one.'**
   String get pairTooManyBody;
 
   /// No description provided for @pairNewCode.
@@ -832,10 +838,10 @@ abstract class AppLocalizations {
   /// **'This phone was removed'**
   String get pairRemoved;
 
-  /// No description provided for @pairRemovedBody.
+  /// DRAFT (DEV-03, DEV-06, prototype PhoneRemoved) for Julia: was 'Your progress is safe. Ask your grown-up for a new code.'
   ///
   /// In en, this message translates to:
-  /// **'Your progress is safe. Ask your grown-up for a new code.'**
+  /// **'Your family took this phone off. Your cases are safe. Ask for a new code to join again.'**
   String get pairRemovedBody;
 
   /// No description provided for @pairWhosLearning.
@@ -931,7 +937,7 @@ abstract class AppLocalizations {
   /// No description provided for @guPassTitle.
   ///
   /// In en, this message translates to:
-  /// **'Grown-ups only'**
+  /// **'Family area'**
   String get guPassTitle;
 
   /// No description provided for @guPassEnter.
@@ -949,55 +955,55 @@ abstract class AppLocalizations {
   /// No description provided for @guPassWrong.
   ///
   /// In en, this message translates to:
-  /// **'That\'s not the passcode. Try again.'**
+  /// **'That is not it. Try again.'**
   String get guPassWrong;
 
   /// No description provided for @guPassLocked.
   ///
   /// In en, this message translates to:
-  /// **'Too many tries. Try again after {time}.'**
+  /// **'Too many tries. Wait until {time}, or sign in again.'**
   String guPassLocked(String time);
 
   /// No description provided for @guPassLockedSoon.
   ///
   /// In en, this message translates to:
-  /// **'Too many tries. Wait a few minutes and try again.'**
+  /// **'Too many tries. Wait a little, or sign in again.'**
   String get guPassLockedSoon;
 
   /// No description provided for @guPassChooseTitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose a passcode'**
+  /// **'Lock the Family area'**
   String get guPassChooseTitle;
 
   /// No description provided for @guPassNewTitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose a new passcode'**
+  /// **'Set a new passcode'**
   String get guPassNewTitle;
 
   /// No description provided for @guPassChooseBody.
   ///
   /// In en, this message translates to:
-  /// **'{n} digits, so only grown-ups can open this area.'**
+  /// **'{n} digits only you know.'**
   String guPassChooseBody(int n);
 
   /// No description provided for @guPassConfirmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Type it again'**
+  /// **'Lock the Family area'**
   String get guPassConfirmTitle;
 
   /// No description provided for @guPassConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'To be sure it\'s right.'**
+  /// **'Type it once more to be sure.'**
   String get guPassConfirmBody;
 
   /// No description provided for @guPassMismatch.
   ///
   /// In en, this message translates to:
-  /// **'Those didn\'t match. Choose a passcode again.'**
+  /// **'Those did not match. Start again.'**
   String get guPassMismatch;
 
   /// No description provided for @guPassShort.
@@ -1024,6 +1030,12 @@ abstract class AppLocalizations {
   /// **'Use Face ID'**
   String get guUseFaceId;
 
+  /// No description provided for @guFaceFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID did not work. Use your passcode instead.'**
+  String get guFaceFail;
+
   /// No description provided for @guForgotTitle.
   ///
   /// In en, this message translates to:
@@ -1033,13 +1045,13 @@ abstract class AppLocalizations {
   /// No description provided for @guForgotBody.
   ///
   /// In en, this message translates to:
-  /// **'We will email a sign-in link to {email}.'**
+  /// **'Sign in again and set a new one. We will email a link to {email}.'**
   String guForgotBody(String email);
 
   /// No description provided for @guForgotSend.
   ///
   /// In en, this message translates to:
-  /// **'Send the link'**
+  /// **'Email me a sign-in link'**
   String get guForgotSend;
 
   /// No description provided for @guForgotSentTitle.
@@ -1075,8 +1087,74 @@ abstract class AppLocalizations {
   /// No description provided for @guHomeHi.
   ///
   /// In en, this message translates to:
-  /// **'Hi there'**
+  /// **'Family area'**
   String get guHomeHi;
+
+  /// No description provided for @guHomeChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Children'**
+  String get guHomeChildren;
+
+  /// No description provided for @guHomeThisFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'This family'**
+  String get guHomeThisFamily;
+
+  /// No description provided for @guHomeAddChildDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Their own details and consent'**
+  String get guHomeAddChildDetail;
+
+  /// No description provided for @guHomeSettingsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Time per day, read-aloud, emails'**
+  String get guHomeSettingsDetail;
+
+  /// No description provided for @guHomePhones.
+  ///
+  /// In en, this message translates to:
+  /// **'Phones and family'**
+  String get guHomePhones;
+
+  /// No description provided for @guHomePhonesDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Join, remove, invite'**
+  String get guHomePhonesDetail;
+
+  /// No description provided for @guHomeRightsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Download or delete everything'**
+  String get guHomeRightsDetail;
+
+  /// No description provided for @guHomeSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of this phone'**
+  String get guHomeSignOut;
+
+  /// No description provided for @guHomeNotesDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'What each session\'s email said'**
+  String get guHomeNotesDetail;
+
+  /// No description provided for @guHomeAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'{age}, {year}'**
+  String guHomeAbout(int age, String year);
+
+  /// No description provided for @guHomeAge.
+  ///
+  /// In en, this message translates to:
+  /// **'{age}'**
+  String guHomeAge(int age);
 
   /// No description provided for @guHomeWeek.
   ///
@@ -1162,11 +1240,41 @@ abstract class AppLocalizations {
   /// **'Read aloud'**
   String get guSetReadAloud;
 
+  /// No description provided for @guSetReadAloudDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The teacher\'s voice. On for every age'**
+  String get guSetReadAloudDetail;
+
+  /// No description provided for @guSetTimeSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The app ends the session kindly at this point.'**
+  String get guSetTimeSheetBody;
+
+  /// No description provided for @guSetMinutesLong.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} minutes'**
+  String guSetMinutesLong(int n);
+
+  /// No description provided for @guSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get guSaved;
+
   /// No description provided for @guSetBigPad.
   ///
   /// In en, this message translates to:
-  /// **'Bigger number pad (accessibility)'**
+  /// **'Bigger number pad'**
   String get guSetBigPad;
+
+  /// No description provided for @guSetBigPadDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessibility: the lesson\'s keys grow'**
+  String get guSetBigPadDetail;
 
   /// No description provided for @guSetChangeHint.
   ///
@@ -1267,13 +1375,13 @@ abstract class AppLocalizations {
   /// No description provided for @guFamilyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Family and phones'**
+  /// **'Phones and family'**
   String get guFamilyTitle;
 
   /// No description provided for @guGrownUps.
   ///
   /// In en, this message translates to:
-  /// **'Grown-ups'**
+  /// **'Family members'**
   String get guGrownUps;
 
   /// No description provided for @guChildren.
@@ -1405,25 +1513,25 @@ abstract class AppLocalizations {
   /// No description provided for @guInviteGrownUp.
   ///
   /// In en, this message translates to:
-  /// **'Invite a grown-up'**
+  /// **'Invite a family member'**
   String get guInviteGrownUp;
 
   /// No description provided for @guAddPhone.
   ///
   /// In en, this message translates to:
-  /// **'Add a child\'s phone'**
+  /// **'Join a child\'s phone'**
   String get guAddPhone;
 
   /// No description provided for @guInviteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Invite a grown-up'**
+  /// **'Invite a family member'**
   String get guInviteTitle;
 
   /// No description provided for @guInviteBody.
   ///
   /// In en, this message translates to:
-  /// **'They can see the book and change settings.'**
+  /// **'They can see the notes and change settings. They set their own passcode.'**
   String get guInviteBody;
 
   /// No description provided for @guInviteEmail.
@@ -1453,8 +1561,14 @@ abstract class AppLocalizations {
   /// No description provided for @guInviteSentBody.
   ///
   /// In en, this message translates to:
-  /// **'We emailed a link to {email}.'**
+  /// **'{email} has an email with a link. It works for 7 days. You will see them here once they join.'**
   String guInviteSentBody(String email);
+
+  /// No description provided for @guInviteSentDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get guInviteSentDone;
 
   /// No description provided for @guCodeTitle.
   ///
@@ -1477,19 +1591,19 @@ abstract class AppLocalizations {
   /// No description provided for @guCodeLeft.
   ///
   /// In en, this message translates to:
-  /// **'Works once. {time} left.'**
+  /// **'Works once, for {time}. Five tries.'**
   String guCodeLeft(String time);
 
   /// No description provided for @guCodeExpired.
   ///
   /// In en, this message translates to:
-  /// **'This code has stopped working.'**
+  /// **'That code has expired. Codes last 10 minutes. Show a new one when you are both ready.'**
   String get guCodeExpired;
 
   /// No description provided for @guCodeAgain.
   ///
   /// In en, this message translates to:
-  /// **'Get a new code'**
+  /// **'Show a new code'**
   String get guCodeAgain;
 
   /// No description provided for @guCodeTypeOn.
@@ -1513,7 +1627,7 @@ abstract class AppLocalizations {
   /// No description provided for @guRemoveBody.
   ///
   /// In en, this message translates to:
-  /// **'It signs out straight away. Progress stays safe in the family account.'**
+  /// **'It signs out straight away and keeps nothing. Progress stays safe in the family account.'**
   String get guRemoveBody;
 
   /// No description provided for @guRemoveButton.
@@ -1537,7 +1651,7 @@ abstract class AppLocalizations {
   /// No description provided for @guRemovedBody.
   ///
   /// In en, this message translates to:
-  /// **'That phone is signed out. Join a new phone with a code any time.'**
+  /// **'That phone is signed out. On it, your child sees \"This phone was removed\". Join a new phone with a code any time.'**
   String get guRemovedBody;
 
   /// No description provided for @guRemoveGrownUpTitle.
@@ -1627,7 +1741,7 @@ abstract class AppLocalizations {
   /// No description provided for @guAddChildBody.
   ///
   /// In en, this message translates to:
-  /// **'You agree for them, as their grown-up. Only a first name.'**
+  /// **'You agree for them, as their parent or guardian. Only a first name.'**
   String get guAddChildBody;
 
   /// No description provided for @guAddChildName.
@@ -1663,14 +1777,26 @@ abstract class AppLocalizations {
   /// No description provided for @guAddChildAgree.
   ///
   /// In en, this message translates to:
-  /// **'I agree, continue'**
+  /// **'Continue'**
   String get guAddChildAgree;
+
+  /// No description provided for @guAddChildConsent.
+  ///
+  /// In en, this message translates to:
+  /// **'I am this child\'s parent or guardian. I agree to the same terms for them.'**
+  String get guAddChildConsent;
 
   /// No description provided for @guRightsTitle.
   ///
   /// In en, this message translates to:
   /// **'Your data and rights'**
   String get guRightsTitle;
+
+  /// No description provided for @guRightsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything we hold is stored in Australia and belongs to your family.'**
+  String get guRightsBody;
 
   /// No description provided for @guStoredTitle.
   ///
@@ -1711,7 +1837,7 @@ abstract class AppLocalizations {
   /// No description provided for @guDownloadBody.
   ///
   /// In en, this message translates to:
-  /// **'A file with all of your family\'s data'**
+  /// **'A file with every child\'s data, ready within a day'**
   String get guDownloadBody;
 
   /// No description provided for @guExportPending.
@@ -1753,26 +1879,140 @@ abstract class AppLocalizations {
   /// No description provided for @guDeleteAccountBody.
   ///
   /// In en, this message translates to:
-  /// **'Everything, for every child, straight away'**
+  /// **'Everyone, everything, straight away'**
   String get guDeleteAccountBody;
 
   /// No description provided for @guDeleteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete your family account?'**
+  /// **'Delete the family account?'**
   String get guDeleteTitle;
 
   /// No description provided for @guDeleteBody.
   ///
   /// In en, this message translates to:
-  /// **'This deletes everything we keep: every child\'s lessons and progress, the other grown-ups\' access and every joined phone. It happens straight away and can\'t be undone. Download everything first if you want a copy.'**
+  /// **'This cannot be undone.'**
   String get guDeleteBody;
+
+  /// No description provided for @guDeleteChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Every child'**
+  String get guDeleteChildren;
+
+  /// No description provided for @guDeleteChildrenBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Their details, cases and badges'**
+  String get guDeleteChildrenBody;
+
+  /// No description provided for @guDeleteSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Every session and tap'**
+  String get guDeleteSessions;
+
+  /// No description provided for @guDeleteSessionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole learning record'**
+  String get guDeleteSessionsBody;
+
+  /// No description provided for @guDeleteNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Every note and email'**
+  String get guDeleteNotes;
+
+  /// No description provided for @guDeleteNotesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We keep nothing to send'**
+  String get guDeleteNotesBody;
+
+  /// No description provided for @guDeletePhones.
+  ///
+  /// In en, this message translates to:
+  /// **'Every phone and family member'**
+  String get guDeletePhones;
+
+  /// No description provided for @guDeletePhonesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All signed out, now'**
+  String get guDeletePhonesBody;
+
+  /// No description provided for @guDeleteNow.
+  ///
+  /// In en, this message translates to:
+  /// **'It happens straight away, not in 30 days. If you want a copy first, download everything before you delete.'**
+  String get guDeleteNow;
+
+  /// No description provided for @guDeleteDownloadFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Download everything first'**
+  String get guDeleteDownloadFirst;
 
   /// No description provided for @guDeleteButton.
   ///
   /// In en, this message translates to:
   /// **'Delete everything'**
   String get guDeleteButton;
+
+  /// No description provided for @guDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE to confirm'**
+  String get guDeleteConfirmTitle;
+
+  /// No description provided for @guDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One last check that it is you, and that you mean it.'**
+  String get guDeleteConfirmBody;
+
+  /// No description provided for @guDeleteConfirmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE'**
+  String get guDeleteConfirmLabel;
+
+  /// No description provided for @guDeleteConfirmWord.
+  ///
+  /// In en, this message translates to:
+  /// **'DELETE'**
+  String get guDeleteConfirmWord;
+
+  /// No description provided for @guDeleteConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the family account'**
+  String get guDeleteConfirmButton;
+
+  /// No description provided for @guDeleteKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep my account'**
+  String get guDeleteKeep;
+
+  /// No description provided for @guDeletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get guDeletedTitle;
+
+  /// No description provided for @guDeletedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family account is gone and every phone is signed out. Thank you for trying Auramath.'**
+  String get guDeletedBody;
+
+  /// No description provided for @guClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get guClose;
 
   /// No description provided for @guConsentLink.
   ///
@@ -1855,31 +2095,31 @@ abstract class AppLocalizations {
   /// No description provided for @guNotifyTitle.
   ///
   /// In en, this message translates to:
-  /// **'A note after each session?'**
+  /// **'An email after each session'**
   String get guNotifyTitle;
 
   /// No description provided for @guNotifyBody.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll email you what {name} did and what\'s next. Nothing else.'**
-  String guNotifyBody(String name);
+  /// **'A short note: what was practised, how much help was needed, something to try tonight.'**
+  String get guNotifyBody;
 
   /// No description provided for @guNotifyCard.
   ///
   /// In en, this message translates to:
-  /// **'An email after each session'**
+  /// **'Sent to your email'**
   String get guNotifyCard;
 
   /// No description provided for @guNotifyCardBody.
   ///
   /// In en, this message translates to:
-  /// **'One short note, after the session ends.'**
-  String get guNotifyCardBody;
+  /// **'Within a few minutes of {name} finishing.'**
+  String guNotifyCardBody(String name);
 
   /// No description provided for @guNotifyYes.
   ///
   /// In en, this message translates to:
-  /// **'Yes please'**
+  /// **'Continue'**
   String get guNotifyYes;
 
   /// No description provided for @guNotifyNo.
@@ -1888,17 +2128,29 @@ abstract class AppLocalizations {
   /// **'Not now'**
   String get guNotifyNo;
 
+  /// No description provided for @guNotifyCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Email me after each session'**
+  String get guNotifyCheck;
+
   /// No description provided for @guSignOutTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign out on this phone?'**
+  /// **'Sign out of this phone?'**
   String get guSignOutTitle;
 
   /// No description provided for @guSignOutBody.
   ///
   /// In en, this message translates to:
-  /// **'Progress stays safe in your family account.'**
+  /// **'Nothing about your children stays on this phone. Sign in again any time with Apple, Google or an email link.'**
   String get guSignOutBody;
+
+  /// No description provided for @guSignedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed out'**
+  String get guSignedOut;
 
   /// No description provided for @guBookTitle.
   ///
@@ -1953,6 +2205,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}\'s notes'**
   String guNotesTitle(String name);
+
+  /// No description provided for @guNotesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What each session email said. Nothing is scored or graded.'**
+  String get guNotesBody;
+
+  /// No description provided for @guNotesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet'**
+  String get guNotesEmpty;
+
+  /// No description provided for @guNotesEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The first one arrives a few minutes after {name}\'s first session.'**
+  String guNotesEmptyBody(String name);
 
   /// No description provided for @guNotesNone.
   ///
@@ -2151,6 +2421,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name, age and school year'**
   String get guLearningEditBody;
+
+  /// No description provided for @guChildDoing.
+  ///
+  /// In en, this message translates to:
+  /// **'How {name} is doing'**
+  String guChildDoing(String name);
+
+  /// No description provided for @guChildWorkingOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Working on'**
+  String get guChildWorkingOn;
+
+  /// No description provided for @guChildNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get guChildNow;
+
+  /// No description provided for @guChildJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s journey'**
+  String guChildJourney(String name);
+
+  /// No description provided for @guChildDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get guChildDetails;
+
+  /// No description provided for @guChildFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get guChildFirstName;
+
+  /// No description provided for @guChildAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get guChildAge;
+
+  /// No description provided for @guChildYear.
+  ///
+  /// In en, this message translates to:
+  /// **'School year'**
+  String get guChildYear;
+
+  /// No description provided for @guChildNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get guChildNotSet;
+
+  /// No description provided for @guChildPicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Change {name}\'s picture'**
+  String guChildPicture(String name);
+
+  /// No description provided for @guLearningMovedUpPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved up a level'**
+  String get guLearningMovedUpPlain;
+
+  /// No description provided for @guLearningChangedPlain.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to a new level'**
+  String get guLearningChangedPlain;
 
   /// No description provided for @guEditTitle.
   ///
@@ -2617,7 +2959,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupWelcomeBody.
   ///
   /// In en, this message translates to:
-  /// **'Bar-model word problems for ages 6 to 10, read aloud and drawn by your child.'**
+  /// **'Bar-model word problems for ages 6 to 10, read aloud and drawn by your child. Made with Julia Fong\'s method.'**
   String get setupWelcomeBody;
 
   /// No description provided for @setupGetStarted.
@@ -2643,6 +2985,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only the first name. No surname.'**
   String get setupNameSubtitle;
+
+  /// No description provided for @setupNameNote.
+  ///
+  /// In en, this message translates to:
+  /// **'We use it to say hello. It never goes to the AI.'**
+  String get setupNameNote;
 
   /// No description provided for @setupNameLabel.
   ///
@@ -2689,13 +3037,13 @@ abstract class AppLocalizations {
   /// No description provided for @setupStartTitle.
   ///
   /// In en, this message translates to:
-  /// **'What can {name} already do?'**
+  /// **'What is {name} confident in?'**
   String setupStartTitle(String name);
 
   /// No description provided for @setupStartSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Pick everything that feels easy. In school order.'**
+  /// **'Select all likely areas your child is confident in. In school order.'**
   String get setupStartSubtitle;
 
   /// No description provided for @setupCanCount100.
@@ -2713,7 +3061,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupCanSub100.
   ///
   /// In en, this message translates to:
-  /// **'Subtracting to 100'**
+  /// **'Taking away to 100'**
   String get setupCanSub100;
 
   /// No description provided for @setupCanAdd1000.
@@ -2725,7 +3073,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupCanSub1000.
   ///
   /// In en, this message translates to:
-  /// **'Subtracting to 1000'**
+  /// **'Taking away to 1000'**
   String get setupCanSub1000;
 
   /// No description provided for @setupCanWordProblems.
@@ -2746,6 +3094,12 @@ abstract class AppLocalizations {
   /// **'Help me figure it out'**
   String get setupNotSureDetail;
 
+  /// No description provided for @setupNotSureFromAge.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll start from {name}\'s age and find out'**
+  String setupNotSureFromAge(String name);
+
   /// No description provided for @setupNotSureTitle.
   ///
   /// In en, this message translates to:
@@ -2755,13 +3109,13 @@ abstract class AppLocalizations {
   /// No description provided for @setupNotSureBody.
   ///
   /// In en, this message translates to:
-  /// **'{name} starts at a typical {year} level. The first sums find the real one, and we\'ll email you what we found.'**
-  String setupNotSureBody(String name, String year);
+  /// **'{name} starts where most {age}-year-olds do. A few quick sums find the real starting point. We email you what we found after the first session.'**
+  String setupNotSureBody(String name, int age);
 
   /// No description provided for @setupNotSureBodyNoYear.
   ///
   /// In en, this message translates to:
-  /// **'{name} starts at a level typical for their age. The first sums find the real one, and we\'ll email you what we found.'**
+  /// **'{name} starts where most children their age do. A few quick sums find the real starting point. We email you what we found after the first session.'**
   String setupNotSureBodyNoYear(String name);
 
   /// No description provided for @setupQuickSums.
@@ -2785,7 +3139,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupEmailAfterDetail.
   ///
   /// In en, this message translates to:
-  /// **'Telling you where {name} is.'**
+  /// **'Telling you where {name} is, in plain words.'**
   String setupEmailAfterDetail(String name);
 
   /// No description provided for @setupGoalTitle.
@@ -2793,6 +3147,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What would help most?'**
   String get setupGoalTitle;
+
+  /// No description provided for @setupGoalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the one that fits best.'**
+  String get setupGoalSubtitle;
 
   /// No description provided for @setupGoalConfidence.
   ///
@@ -2848,11 +3208,35 @@ abstract class AppLocalizations {
   /// **'Do well in the school curriculum'**
   String get setupGoalSchool;
 
+  /// No description provided for @setupGoalSchoolDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep pace with the NSW syllabus'**
+  String get setupGoalSchoolDetail;
+
+  /// No description provided for @setupGoalNotSure.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sure yet'**
+  String get setupGoalNotSure;
+
+  /// No description provided for @setupGoalNotSureDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'That is fine too'**
+  String get setupGoalNotSureDetail;
+
   /// No description provided for @setupDataTitle.
   ///
   /// In en, this message translates to:
-  /// **'{name}\'s details stay safe'**
+  /// **'What we hold about {name}'**
   String setupDataTitle(String name);
+
+  /// No description provided for @setupDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'And who sees it.'**
+  String get setupDataSubtitle;
 
   /// No description provided for @setupDataStored.
   ///
@@ -2865,6 +3249,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On servers in Australia.'**
   String get setupDataStoredDetail;
+
+  /// No description provided for @setupDataTaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Every tap in a lesson'**
+  String get setupDataTaps;
+
+  /// No description provided for @setupDataTapsDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'So the tutor can see how the sum went. Never typed words.'**
+  String get setupDataTapsDetail;
 
   /// No description provided for @setupDataNoAi.
   ///
@@ -2881,13 +3277,13 @@ abstract class AppLocalizations {
   /// No description provided for @setupDataFirstName.
   ///
   /// In en, this message translates to:
-  /// **'Only a first name'**
+  /// **'First name, age, school year'**
   String get setupDataFirstName;
 
   /// No description provided for @setupDataFirstNameDetail.
   ///
   /// In en, this message translates to:
-  /// **'Your child never types personal details.'**
+  /// **'And what was practised. No gender, no birthday.'**
   String get setupDataFirstNameDetail;
 
   /// DRAFT (ACC-10) for Legal and Julia: the processors, under D-15/D-50. Not final wording.
@@ -2917,14 +3313,74 @@ abstract class AppLocalizations {
   /// No description provided for @setupDataDelete.
   ///
   /// In en, this message translates to:
-  /// **'Delete it any time'**
+  /// **'Download or delete it any time'**
   String get setupDataDelete;
 
   /// No description provided for @setupDataDeleteDetail.
   ///
   /// In en, this message translates to:
-  /// **'From Settings, in one step.'**
+  /// **'From the Family area, in one step, for the whole family.'**
   String get setupDataDeleteDetail;
+
+  /// No description provided for @setupDataWho.
+  ///
+  /// In en, this message translates to:
+  /// **'Who else sees anything'**
+  String get setupDataWho;
+
+  /// No description provided for @setupDataAi.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI that runs the lesson'**
+  String get setupDataAi;
+
+  /// No description provided for @setupDataAiDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini, on Google Cloud in Sydney. It sees the problem and the taps, never a name, age or anything about your family.'**
+  String get setupDataAiDetail;
+
+  /// No description provided for @setupDataVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'The voice that reads aloud'**
+  String get setupDataVoice;
+
+  /// No description provided for @setupDataVoiceDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Cloud\'s voice, in Sydney. It gets the words on screen, nothing about your child.'**
+  String get setupDataVoiceDetail;
+
+  /// No description provided for @setupDataEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'The email service'**
+  String get setupDataEmail;
+
+  /// No description provided for @setupDataEmailDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends your sign-in emails and notes to your address only.'**
+  String get setupDataEmailDetail;
+
+  /// No description provided for @setupDataJuliaName.
+  ///
+  /// In en, this message translates to:
+  /// **'Julia Fong'**
+  String get setupDataJuliaName;
+
+  /// No description provided for @setupDataJuliaWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Gets a weekly summary of her families\' progress, by first name only.'**
+  String get setupDataJuliaWeekly;
+
+  /// No description provided for @setupDataConsent.
+  ///
+  /// In en, this message translates to:
+  /// **'I am {name}\'s parent or guardian. I agree to this for {name}.'**
+  String setupDataConsent(String name);
 
   /// No description provided for @setupAgree.
   ///
@@ -2953,13 +3409,13 @@ abstract class AppLocalizations {
   /// No description provided for @setupContinueApple.
   ///
   /// In en, this message translates to:
-  /// **'Continue with Apple'**
+  /// **'Sign in with Apple'**
   String get setupContinueApple;
 
   /// No description provided for @setupContinueGoogle.
   ///
   /// In en, this message translates to:
-  /// **'Continue with Google'**
+  /// **'Sign in with Google'**
   String get setupContinueGoogle;
 
   /// No description provided for @setupUseEmail.
@@ -2971,14 +3427,26 @@ abstract class AppLocalizations {
   /// No description provided for @setupEmailLabel.
   ///
   /// In en, this message translates to:
-  /// **'Email address'**
+  /// **'Your email'**
   String get setupEmailLabel;
 
   /// No description provided for @setupEmailMeLink.
   ///
   /// In en, this message translates to:
-  /// **'Email me a link'**
+  /// **'Email me a sign-in link'**
   String get setupEmailMeLink;
+
+  /// No description provided for @setupOr.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get setupOr;
+
+  /// No description provided for @setupTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing you agree to the terms and privacy notice.'**
+  String get setupTerms;
 
   /// No description provided for @setupEmailInvalid.
   ///
@@ -3001,13 +3469,13 @@ abstract class AppLocalizations {
   /// No description provided for @setupSignInTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome back'**
+  /// **'Sign in or create your family account'**
   String get setupSignInTitle;
 
   /// No description provided for @setupSignInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sign in to your family account.'**
+  /// **'One grown-up account. Your child never signs in.'**
   String get setupSignInSubtitle;
 
   /// No description provided for @setupCheckTitle.
@@ -3019,8 +3487,32 @@ abstract class AppLocalizations {
   /// No description provided for @setupCheckBody.
   ///
   /// In en, this message translates to:
-  /// **'Tap the link we sent to sign in on this phone.'**
+  /// **'Tap the link we sent to your email. It works once, for 15 minutes.'**
   String get setupCheckBody;
+
+  /// No description provided for @setupCheckBodyTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the link we sent to {email}. It works once, for 15 minutes.'**
+  String setupCheckBodyTo(String email);
+
+  /// No description provided for @setupSendAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Send it again'**
+  String get setupSendAgain;
+
+  /// No description provided for @setupSentAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent again. Check your spam folder too.'**
+  String get setupSentAgain;
+
+  /// No description provided for @setupWrongEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Not your email?'**
+  String get setupWrongEmail;
 
   /// No description provided for @setupTappedLink.
   ///
@@ -3064,6 +3556,12 @@ abstract class AppLocalizations {
   /// **'Signing you in…'**
   String get setupVerifying;
 
+  /// No description provided for @setupSignedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in'**
+  String get setupSignedIn;
+
   /// No description provided for @setupLinkMissing.
   ///
   /// In en, this message translates to:
@@ -3079,20 +3577,38 @@ abstract class AppLocalizations {
   /// No description provided for @setupReadyTitle.
   ///
   /// In en, this message translates to:
-  /// **'All set!'**
-  String get setupReadyTitle;
+  /// **'{name}\'s work is ready.'**
+  String setupReadyTitle(String name);
 
   /// No description provided for @setupReadyBody.
   ///
   /// In en, this message translates to:
-  /// **'{name} starts with a short warm-up, then a story case.'**
+  /// **'{name}\'s turn: let them have a go at today\'s tutor-set work. We will send you an update of their progress from today.'**
   String setupReadyBody(String name);
 
   /// No description provided for @setupReadyNoHelp.
   ///
   /// In en, this message translates to:
-  /// **'Please let {name} try on their own. Getting stuck is part of it, and the help is built in.'**
-  String setupReadyNoHelp(String name);
+  /// **'Please don\'t help with the sums'**
+  String get setupReadyNoHelp;
+
+  /// No description provided for @setupReadyNoHelpDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The tutor needs to see what {name} can do alone. Sit nearby if you like.'**
+  String setupReadyNoHelpDetail(String name);
+
+  /// No description provided for @setupReadyMeet.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet the case partner together'**
+  String get setupReadyMeet;
+
+  /// No description provided for @setupReadyMeetDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'It will tell {name} it is a computer helper, an AI, with you there.'**
+  String setupReadyMeetDetail(String name);
 
   /// No description provided for @setupHandOver.
   ///
@@ -3145,32 +3661,50 @@ abstract class AppLocalizations {
   /// No description provided for @setupPassTitle.
   ///
   /// In en, this message translates to:
-  /// **'Choose a passcode'**
+  /// **'Lock the Family area'**
   String get setupPassTitle;
 
   /// No description provided for @setupPassBody.
   ///
   /// In en, this message translates to:
-  /// **'{n} digits, so only grown-ups can open the grown-up area.'**
-  String setupPassBody(int n);
+  /// **'{digits} only you know. {name} never sees this part.'**
+  String setupPassBody(String digits, String name);
+
+  /// No description provided for @setupPassDigits.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{One digit} other{{n} digits}}'**
+  String setupPassDigits(int n);
+
+  /// No description provided for @setupPassFour.
+  ///
+  /// In en, this message translates to:
+  /// **'Four digits'**
+  String get setupPassFour;
 
   /// No description provided for @setupPassAgainTitle.
   ///
   /// In en, this message translates to:
-  /// **'Type it again'**
+  /// **'Lock the Family area'**
   String get setupPassAgainTitle;
 
   /// No description provided for @setupPassAgainBody.
   ///
   /// In en, this message translates to:
-  /// **'The same {n} digits, to be sure.'**
-  String setupPassAgainBody(int n);
+  /// **'Type it once more to be sure.'**
+  String get setupPassAgainBody;
 
   /// No description provided for @setupPassMismatch.
   ///
   /// In en, this message translates to:
-  /// **'Those didn\'t match. Choose a passcode again.'**
+  /// **'Those did not match. Start again.'**
   String get setupPassMismatch;
+
+  /// No description provided for @setupPassSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Passcode set'**
+  String get setupPassSet;
 
   /// No description provided for @setupPassShort.
   ///
@@ -3205,13 +3739,13 @@ abstract class AppLocalizations {
   /// No description provided for @setupWorksOnce.
   ///
   /// In en, this message translates to:
-  /// **'Works once, for {time}'**
+  /// **'Works once, for {time}. Five tries.'**
   String setupWorksOnce(String time);
 
   /// No description provided for @setupCodeExpired.
   ///
   /// In en, this message translates to:
-  /// **'This code has run out. Show a new code.'**
+  /// **'That code has expired. Codes last 10 minutes. Show a new one when you are both ready.'**
   String get setupCodeExpired;
 
   /// No description provided for @setupProgressFollows.
@@ -3225,6 +3759,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lessons carry on from any phone in the family.'**
   String get setupProgressFollowsDetail;
+
+  /// No description provided for @setupJoinDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get setupJoinDone;
 
   /// No description provided for @setupNewCode.
   ///

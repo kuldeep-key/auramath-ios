@@ -112,7 +112,7 @@ class InfoCard extends StatelessWidget {
                     color: AuraColors.yellowTint,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, size: 18, color: AuraColors.mute),
+                  child: Icon(icon, size: 22, color: AuraColors.yellowInk),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -120,7 +120,7 @@ class InfoCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(title, style: AuraText.infoTitle),
-                      Text(detail, style: AuraText.caption),
+                      Text(detail, style: AuraText.optionDetail),
                     ],
                   ),
                 ),
@@ -155,6 +155,86 @@ class IconTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
       ),
       child: Icon(icon, size: 64, color: color),
+    ),
+  );
+}
+
+/// The prototype's `.consent`: a 28 pt blue tick box and its words, the
+/// whole row tappable (44 pt at least).
+class ConsentCheck extends StatelessWidget {
+  const ConsentCheck({
+    super.key,
+    required this.value,
+    required this.label,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final String label;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) => MergeSemantics(
+    child: InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => onChanged(!value),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44),
+        child: Row(
+          children: [
+            SizedBox.square(
+              dimension: 28,
+              // Material's box is 18 pt: grown to the prototype's 28
+              child: Transform.scale(
+                scale: 28 / 20,
+                child: Checkbox(
+                  value: value,
+                  onChanged: (v) => onChanged(v ?? false),
+                  activeColor: AuraColors.blue,
+                  side: const BorderSide(color: AuraColors.mute, width: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: const VisualDensity(
+                    horizontal: VisualDensity.minimumDensity,
+                    vertical: VisualDensity.minimumDensity,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(label, style: consentStyle)),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// Bold 16 / 21.6, ink (`.consent`).
+final consentStyle = AuraText.body.copyWith(
+  fontSize: 16,
+  height: 1.35,
+  fontWeight: FontWeight.w700,
+  fontVariations: const [FontVariation('wght', 700)],
+);
+
+/// The lock on a soft blue tile, over the passcode boxes (96 pt, radius
+/// 26, the icon 56).
+class LockTile extends StatelessWidget {
+  const LockTile({super.key});
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Container(
+      width: 96,
+      height: 96,
+      decoration: BoxDecoration(
+        color: AuraColors.blueTint,
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: const Icon(Icons.lock_rounded, size: 56, color: AuraColors.blue),
     ),
   );
 }

@@ -18,10 +18,15 @@ void main() {
     ) async {
       final g = await Gu.make(tester);
       await shotAllSizes(tester, 'grown_ups_learning', screen(g, 'child-1'));
-      expect(find.text('Where Aarav is'), findsOneWidget);
-      expect(find.text('Comparing amounts'), findsOneWidget);
-      expect(find.text('Level 4'), findsOneWidget);
-      expect(find.text('Moved up to level 4'), findsNWidgets(2));
+      // the prototype's ChildDetail: the name, how they are doing, the
+      // journey in words, the details
+      expect(find.text('How Aarav is doing'.toUpperCase()), findsOneWidget);
+      expect(find.text('Comparing amounts'), findsNWidgets(2));
+      // JRN-06: no level number
+      expect(find.textContaining('Level'), findsNothing);
+      expect(find.textContaining('level 4'), findsNothing);
+      expect(find.text('Moved up a level'), findsNWidgets(2));
+      expect(find.text('First name'), findsOneWidget);
       expect(
         find.text('Went back a level to build confidence'),
         findsOneWidget,
@@ -53,12 +58,42 @@ void main() {
       final g = await Gu.make(tester);
       await tester.pumpWidget(shotApp(screen(g, 'child-1')));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text("Change Aarav's details"));
+      await tester.pumpAndSettle();
       await tester.tap(find.text("Change Aarav's details"));
       await tester.pumpAndSettle();
       expect(
         find.text('went to ${Paths.editChild('child-1')}'),
         findsOneWidget,
       );
+    });
+
+    testWidgets("a child's new name shows here at once (childrenChanged)", (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(screen(g, 'child-1')));
+      await tester.pumpAndSettle();
+      expect(find.text("Change Aarav's details"), findsOneWidget);
+      g.server
+        ..on('PATCH /api/children/child-1', {
+          'id': 'child-1',
+          'displayName': 'Ari',
+        })
+        ..on('GET /api/children', {
+          'children': [
+            {'id': 'child-1', 'displayName': 'Ari', 'schoolYear': 'year_2'},
+            {'id': 'child-2', 'displayName': 'Maya', 'schoolYear': 'year_1'},
+          ],
+        });
+      await tester.runAsync(
+        () => g.deps.family.editChild('child-1', {'displayName': 'Ari'}),
+      );
+      await tester.pump();
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pumpAndSettle();
+      expect(find.text("Change Ari's details"), findsOneWidget);
+      expect(find.textContaining('Aarav'), findsNothing);
     });
 
     test('levels and reasons read plainly; an unknown reason is neutral', () {

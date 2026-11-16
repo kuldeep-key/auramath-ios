@@ -7,6 +7,7 @@ import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/aura_text_field.dart';
+import '../../../core/theme/tokens.dart';
 import 'setup_parts.dart';
 
 /// Name (643:24): the child's first name, kept in the draft.
@@ -44,7 +45,7 @@ class _NameScreenState extends State<NameScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuraHeading(title: l.setupNameTitle, subtitle: l.setupNameSubtitle),
+          AuraHeading(title: l.setupNameTitle),
           // Figma centres the field; under the title it stays in view when
           // the keyboard is up.
           AuraTextField(
@@ -55,6 +56,8 @@ class _NameScreenState extends State<NameScreen> {
             autofillHints: const [AutofillHints.givenName],
             onSubmitted: (_) => _continue(),
           ),
+          const SizedBox(height: 12),
+          Text(l.setupNameNote, style: AuraText.caption),
         ],
       ),
       bottom: AuraButton(

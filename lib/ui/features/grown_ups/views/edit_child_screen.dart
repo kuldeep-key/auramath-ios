@@ -11,7 +11,7 @@ import '../../../core/parts/aura_text_field.dart';
 import '../../../core/parts/avatar.dart';
 import '../../../core/parts/choice_tile.dart';
 import '../../../core/theme/tokens.dart';
-import '../../setup/views/age_screen.dart' show AgeChip, setupAges;
+import '../../setup/views/age_screen.dart' show AgeChips, setupAges;
 import '../../setup/views/year_screen.dart'
     show setupYears, yearLabel, yearValue;
 import 'parts.dart';
@@ -148,17 +148,10 @@ class _EditChildState extends State<_EditChild> {
             ErrorNote(_error!),
           ],
           SectionLabel(l.guEditAge),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (final age in ages)
-                AgeChip(
-                  age: age,
-                  selected: age == _age,
-                  onTap: () => setState(() => _age = age),
-                ),
-            ],
+          AgeChips(
+            ages: ages,
+            selected: _age,
+            onPick: (age) => setState(() => _age = age),
           ),
           const SizedBox(height: 8),
           SectionLabel(l.guEditYear),
