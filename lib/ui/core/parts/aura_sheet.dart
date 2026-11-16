@@ -27,8 +27,8 @@ class AuraSheetRoute<T> extends PopupRoute<T> {
   final WidgetBuilder builder;
   final bool modal;
 
-  static const openDuration = Duration(milliseconds: 420);
-  static const closeDuration = Duration(milliseconds: 250);
+  static const openDuration = AuraDurations.sheetUp;
+  static const closeDuration = AuraDurations.sheetDown;
 
   /// The scrim: navy at 35 %.
   static const scrim = Color(0x590F2A73);
@@ -57,7 +57,8 @@ class AuraSheetRoute<T> extends PopupRoute<T> {
   static double scrimAt(double t, {required bool closing}) {
     if (closing) return Curves.ease.flipped.transform(t);
     final open = openDuration.inMilliseconds;
-    return Curves.ease.transform((t * open / 250).clamp(0.0, 1.0));
+    final fade = AuraDurations.fade.inMilliseconds;
+    return Curves.ease.transform((t * open / fade).clamp(0.0, 1.0));
   }
 
   @override

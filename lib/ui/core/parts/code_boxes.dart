@@ -52,7 +52,7 @@ class CodeBoxes extends StatelessWidget {
         ? '${value.length} of $length digits'
         : value.split('').join(' '),
     excludeSemantics: true,
-    child: Shake(
+    child: CodeShake(
       trigger: shake,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -103,41 +103,36 @@ class CodeBoxes extends StatelessWidget {
   }
 }
 
-/// The prototype's `shake` (400 ms, ease): 8 pt left at a quarter, 8 pt
+/// The code boxes' `shake` (`.codebox.shake`, 400 ms, ease, once; the
+/// lesson's [Shake] is 600 ms twice and tilts): 8 pt left at a quarter, 8 pt
 /// right at three quarters, home at the end. Plays each time [trigger]
 /// changes; still under calm motion.
-class Shake extends StatefulWidget {
-  const Shake({super.key, required this.trigger, required this.child});
+class CodeShake extends StatefulWidget {
+  const CodeShake({super.key, required this.trigger, required this.child});
 
   final int trigger;
   final Widget child;
 
   static const duration = Duration(milliseconds: 400);
 
-  static const _frames = [(0.0, 0.0), (0.25, -8.0), (0.75, 8.0), (1.0, 0.0)];
-
-  /// Where the row is at [t] (0..1). As in CSS, `ease` runs within each
-  /// pair of keyframes, not across the whole.
-  static double offsetAt(double t) {
-    for (var i = 1; i < _frames.length; i++) {
-      final (t1, v1) = _frames[i];
-      if (t <= t1) {
-        final (t0, v0) = _frames[i - 1];
-        return v0 + (v1 - v0) * Curves.ease.transform((t - t0) / (t1 - t0));
-      }
-    }
-    return 0;
-  }
+  /// Where the row is at [t] (0..1): CSS `ease` within each pair of
+  /// keyframes.
+  static double offsetAt(double t) =>
+      cssFrames(t, const [(0, 0), (0.25, -8), (0.75, 8), (1, 0)]);
 
   @override
-  State<Shake> createState() => _ShakeState();
+  State<CodeShake> createState() => _CodeShakeState();
 }
 
-class _ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
-  late final _c = AnimationController(vsync: this, duration: Shake.duration);
+class _CodeShakeState extends State<CodeShake>
+    with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(
+    vsync: this,
+    duration: CodeShake.duration,
+  );
 
   @override
-  void didUpdateWidget(Shake old) {
+  void didUpdateWidget(CodeShake old) {
     super.didUpdateWidget(old);
     if (old.trigger != widget.trigger && !calmMotion(context)) {
       _c.forward(from: 0);
@@ -155,7 +150,7 @@ class _ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
     animation: _c,
     child: widget.child,
     builder: (context, child) => Transform.translate(
-      offset: Offset(_c.isAnimating ? Shake.offsetAt(_c.value) : 0, 0),
+      offset: Offset(_c.isAnimating ? CodeShake.offsetAt(_c.value) : 0, 0),
       child: child,
     ),
   );

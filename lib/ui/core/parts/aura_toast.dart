@@ -15,9 +15,9 @@ import '../theme/tokens.dart';
 /// It sits on the root overlay, so it stays while the screen under it
 /// changes. A newer toast replaces an older one.
 abstract final class AuraToast {
-  static const inDuration = Duration(milliseconds: 400);
-  static const outDuration = Duration(milliseconds: 300);
-  static const hold = Duration(milliseconds: 2600);
+  static const inDuration = AuraDurations.toastIn;
+  static const outDuration = AuraDurations.toastOut;
+  static const hold = AuraDurations.toastStays;
 
   static OverlayEntry? _current;
 

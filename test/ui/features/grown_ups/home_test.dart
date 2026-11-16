@@ -75,8 +75,8 @@ void main() {
       ..on('POST /api/auth/google', {'token': 'fresh-google'});
 
     for (final (button, token) in [
-      ('Continue with Apple', 'fresh-apple'),
-      ('Continue with Google', 'fresh-google'),
+      ('Sign in with Apple', 'fresh-apple'),
+      ('Sign in with Google', 'fresh-google'),
     ]) {
       testWidgets('$button signs in again, then GPass resets', (tester) async {
         final g = await Gu.make(tester);
@@ -106,8 +106,8 @@ void main() {
       });
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Continue with Apple'));
-      await tester.tap(find.text('Continue with Apple'));
+      await tester.ensureVisible(find.text('Sign in with Apple'));
+      await tester.tap(find.text('Sign in with Apple'));
       await tester.pumpAndSettle();
       expect(
         find.text("Apple sign-in isn't switched on for this server yet."),
