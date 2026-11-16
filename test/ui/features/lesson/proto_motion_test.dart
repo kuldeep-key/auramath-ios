@@ -1,5 +1,7 @@
 // The prototype's timings, frame by frame: what shows at each point of an
 // animation (motion on, unlike the rest of the suite).
+import 'package:auramath/data/services/sound_effects.dart';
+import 'package:auramath/ui/core/motion/fx_burst.dart';
 import 'package:auramath/ui/core/motion/motion.dart';
 import 'package:auramath/ui/features/lesson/view_models/place_value.dart';
 import 'package:auramath/ui/features/lesson/views/side_lesson_view.dart';
@@ -130,5 +132,50 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('9'), findsOneWidget);
     expect(find.text('7'), findsNWidgets(3), reason: 'and 79\'s tens');
+  });
+
+  testWidgets('the board\'s sounds: snap as a bar lands, snap and right with '
+      'the step\'s 300 ms celebration for the gap, boing on a wrong drop, '
+      'win on case cracked', (tester) async {
+    AuraMotion.still = true;
+    final rec = RecordingSfxPlayer();
+    AuraSound.player = rec;
+    addTearDown(() => AuraSound.player = const SilentSfxPlayer());
+    final t = await pumpLesson(tester);
+    await t.send(const [Started()]);
+    rec.played.clear();
+    await t.send(const [BarADrawn()]);
+    expect(rec.played, [Sfx.snap]);
+    await t.send(const [BarBPlaced(), BarBSized(Relation.shorter)]);
+    rec.played.clear();
+    await t.send(const [PieceDropped(Piece.gap, Target.barB)]);
+    expect(rec.played, [Sfx.boing], reason: 'a wrong move');
+    rec.played.clear();
+    await t.send(const [Undo(), PieceDropped(Piece.gap, Target.gapSlot)]);
+    expect(rec.played, [Sfx.snap, Sfx.right]);
+    expect(find.byType(FxBurst), findsOneWidget);
+    rec.played.clear();
+    for (final i in const [
+      PieceDropped(Piece.total, Target.totalSlot),
+      OpChosen(Op.subtract),
+      NumberEntered(79),
+      NumberEntered(265),
+    ]) {
+      await t.send([i]);
+    }
+    expect(rec.played.last, Sfx.win);
+    expect(rec.played.where((s) => s == Sfx.right), hasLength(3));
+  });
+
+  test('a celebration never plays the same version twice running', () {
+    for (final m in FxMoment.values) {
+      var last = m.pick();
+      for (var i = 0; i < 50; i++) {
+        final next = m.pick();
+        expect(next, isNot(last));
+        expect(m.versions, contains(next));
+        last = next;
+      }
+    }
   });
 }
