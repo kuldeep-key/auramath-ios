@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:auramath/data/models/journey_config.dart';
 
 import 'package:auramath/data/repositories/account_repository.dart';
 import 'package:auramath/data/repositories/family_repository.dart';
@@ -111,8 +114,21 @@ Future<(Deps, FakeServer)> testDeps({
       store: store,
       flags: Flags(client, store, defaults: flags),
       timeZone: () async => 'Australia/Sydney',
+      journey: bundledJourney(),
     ),
     server,
+  );
+}
+
+/// The journey's settings as the app bundles them (`assets/spec`).
+JourneyConfig bundledJourney() {
+  String read(String name) => File('assets/spec/$name').readAsStringSync();
+  return JourneyConfig.fromYaml(
+    tutors: read('tutors.yaml'),
+    looks: read('looks.yaml'),
+    catalogue: read('catalogue.yaml'),
+    rules: read('rules.yaml'),
+    journey: read('journey.yaml'),
   );
 }
 

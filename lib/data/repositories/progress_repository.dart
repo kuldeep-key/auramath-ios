@@ -92,9 +92,8 @@ class ProgressRepository {
   /// Detective for a case solved without help, Brave Asker with it (the
   /// engine's `Solved`). The server writes `badge_awarded` (D-54); this is
   /// what the phone can know, read from each solved case's outcome.
-  Future<List<String>> earnedBadges() async => {
-    for (final e in _solvedCases(await _events())) _caseBadge(e),
-  }.toList();
+  Future<List<String>> earnedBadges() async =>
+      {for (final e in _solvedCases(await _events())) _caseBadge(e)}.toList();
 
   /// Each `problem_completed` of a case the child solved: a case closed
   /// by "show me how" (TUT-05) scores with_hints but is not solved, so its

@@ -1,8 +1,11 @@
 import 'package:auramath_engine/auramath_engine.dart';
 
+import 'data/models/journey_config.dart';
 import 'data/repositories/account_repository.dart';
 import 'data/repositories/family_repository.dart';
+import 'data/repositories/look_repository.dart';
 import 'data/repositories/session_repository.dart';
+import 'data/repositories/visit_repository.dart';
 import 'data/services/flags.dart';
 import 'data/services/api_client.dart';
 import 'data/services/device_lock.dart';
@@ -28,7 +31,22 @@ class Deps {
     required this.flags,
     required this.timeZone,
     this.config = const AppConfig(sessionCapMinutes: 30),
-  });
+    JourneyConfig? journey,
+    LookRepository? looks,
+    VisitRepository? visits,
+  }) : journey = journey ?? looks?.config ?? const JourneyConfig(),
+       looks =
+           looks ?? LookRepository(client, journey ?? const JourneyConfig()),
+       visits =
+           visits ??
+           VisitRepository(
+             client,
+             deviceId: () => account.deviceRef,
+             appVersion: sessions.identity.appVersion,
+           ) {
+    // every session records the child's look, tutor, voice and world
+    sessions.lookFor = (childId) => this.looks.sessionLook(childId);
+  }
 
   final AccountRepository account;
   final FamilyRepository family;
@@ -57,4 +75,14 @@ class Deps {
 
   /// The phone's IANA time zone, e.g. `Australia/Sydney`.
   final Future<String> Function() timeZone;
+
+  /// The journey's settings: tutors, looks, worlds, first run, celebration
+  /// lengths (D-59, D-51).
+  final JourneyConfig journey;
+
+  /// The child's look, tutor, voice and world, as the server keeps them.
+  final LookRepository looks;
+
+  /// Events outside a lesson, under this app open's visit (D-60).
+  final VisitRepository visits;
 }
