@@ -197,18 +197,22 @@ List<RouteBase> childRoutes(Deps deps) {
     }
   }
 
-  /// REW-11: the session's big badge, if one came with the case just
-  /// solved (or waited from last session, `queued`), once.
-  final bigShownIn = <String>{};
+  /// REW-11: the big badges that came with the case just solved (or waited
+  /// from last session, `queued`), each once, one after another in the
+  /// order the server sent them: what waited longest first, and from one
+  /// case the smaller first (Ashutosh, daily catch-up 16 Nov).
+  final bigShown = <String>{};
   Future<List<CelebrationSpec>> bigBadge() async {
     final session = deps.sessions.lastStop.value?.sessionId;
-    if (session == null || bigShownIn.contains(session)) return const [];
+    if (session == null) return const [];
     // the case's last batch, and its answer, first
     await deps.sessions.syncNow();
-    final award = deps.sessions.awardsFor(session).firstOrNull;
-    if (award == null) return const [];
-    bigShownIn.add(session);
-    return [await momentsFor().bigBadge(award)];
+    final due = [
+      for (final a in deps.sessions.awardsFor(session))
+        if (bigShown.add(a.badgeId)) a,
+    ];
+    final r = momentsFor();
+    return [for (final a in due) await r.bigBadge(a)];
   }
 
   /// The end of the session just stopped, in rules.yaml's order
@@ -704,7 +708,7 @@ List<RouteBase> childRoutes(Deps deps) {
           // three_in_a_row, Up trail
           builder: (a) => Celebrate(
             // REW-11: after the case-solved moment (the lesson's own), the
-            // big badge earned in this case, one a session at most; then
+            // big badges due at this case, one after another; then
             // Y4, Streak and Up ("Try a new skill"), then the next case
             hold: true,
             load: bigBadge,
