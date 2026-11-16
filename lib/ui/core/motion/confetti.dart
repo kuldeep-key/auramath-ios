@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'motion.dart';
 
 /// The prototype's `confetti()`: [count] pieces thrown up from the middle
-/// that arc and fall over 170 frames (~2.8 s), then nothing. Fills its
+/// that arc and fall over 90 frames (1.5 s, the spec's limit for a case
+/// solved), then nothing. Fills its
 /// parent, deaf to taps; calm motion shows none.
 class Confetti extends StatefulWidget {
   const Confetti({super.key, this.count = 140, this.delay = Duration.zero});
@@ -19,7 +20,7 @@ class Confetti extends StatefulWidget {
 
 class _ConfettiState extends State<Confetti>
     with SingleTickerProviderStateMixin {
-  static const _frames = 170;
+  static const _frames = 90;
   static const _colours = [
     Color(0xFFFFC531),
     Color(0xFF2F6BFF),
