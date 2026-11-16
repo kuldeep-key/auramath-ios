@@ -367,7 +367,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pairTypeCode => 'Type your code';
 
   @override
-  String get pairCodeWhere => 'Your grown-up has it on their phone.';
+  String get pairCodeWhere => 'Your family has it on their phone.';
 
   @override
   String get pairAskForNewCode =>
@@ -398,11 +398,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pairCodeWrongBody => 'Ask your grown-up for a new one.';
 
   @override
-  String get pairTooMany => 'Too many tries';
+  String get pairCodeDidntWork => 'That code didn\'t work.';
+
+  @override
+  String get pairTooMany => 'Let\'s get a new code';
 
   @override
   String get pairTooManyBody =>
-      'Wait a few minutes, then ask your grown-up for a new code.';
+      'That code has stopped working. Wait a few minutes, then ask your family for a new one.';
 
   @override
   String get pairNewCode => 'Grown-up: new code';
@@ -439,7 +442,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pairRemovedBody =>
-      'Your progress is safe. Ask your grown-up for a new code.';
+      'Your family took this phone off. Your cases are safe. Ask for a new code to join again.';
 
   @override
   String get pairWhosLearning => 'Who\'s learning today?';
@@ -1887,9 +1890,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupPassTitle => 'Lock the Family area';
 
   @override
-  String setupPassBody(int n, String name) {
-    return '$n digits only you know. $name never sees this part.';
+  String setupPassBody(String digits, String name) {
+    return '$digits only you know. $name never sees this part.';
   }
+
+  @override
+  String setupPassDigits(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n digits',
+      one: 'One digit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get setupPassFour => 'Four digits';
 
   @override
   String get setupPassAgainTitle => 'Lock the Family area';
@@ -1931,7 +1948,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get setupCodeExpired => 'This code has run out. Show a new code.';
+  String get setupCodeExpired =>
+      'That code has expired. Codes last 10 minutes. Show a new one when you are both ready.';
 
   @override
   String setupProgressFollows(String name) {

@@ -706,10 +706,10 @@ abstract class AppLocalizations {
   /// **'Type your code'**
   String get pairTypeCode;
 
-  /// No description provided for @pairCodeWhere.
+  /// DRAFT (DEV-02, prototype GetCode) for Julia: was 'Your grown-up has it on their phone.'
   ///
   /// In en, this message translates to:
-  /// **'Your grown-up has it on their phone.'**
+  /// **'Your family has it on their phone.'**
   String get pairCodeWhere;
 
   /// No description provided for @pairAskForNewCode.
@@ -760,16 +760,22 @@ abstract class AppLocalizations {
   /// **'Ask your grown-up for a new one.'**
   String get pairCodeWrongBody;
 
-  /// No description provided for @pairTooMany.
+  /// DRAFT (DEV-02, prototype GetCode·CodeWrong) for Julia: under the code boxes after a wrong code; no count of tries left (the server keeps it).
   ///
   /// In en, this message translates to:
-  /// **'Too many tries'**
+  /// **'That code didn\'t work.'**
+  String get pairCodeDidntWork;
+
+  /// DRAFT (DEV-02, prototype CodeTooMany ribbon) for Julia: was 'Too many tries'.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s get a new code'**
   String get pairTooMany;
 
-  /// No description provided for @pairTooManyBody.
+  /// DRAFT (DEV-02, prototype CodeTooMany) for Julia: the prototype's line, with the wait the server's 429 asks for.
   ///
   /// In en, this message translates to:
-  /// **'Wait a few minutes, then ask your grown-up for a new code.'**
+  /// **'That code has stopped working. Wait a few minutes, then ask your family for a new one.'**
   String get pairTooManyBody;
 
   /// No description provided for @pairNewCode.
@@ -832,10 +838,10 @@ abstract class AppLocalizations {
   /// **'This phone was removed'**
   String get pairRemoved;
 
-  /// No description provided for @pairRemovedBody.
+  /// DRAFT (DEV-03, DEV-06, prototype PhoneRemoved) for Julia: was 'Your progress is safe. Ask your grown-up for a new code.'
   ///
   /// In en, this message translates to:
-  /// **'Your progress is safe. Ask your grown-up for a new code.'**
+  /// **'Your family took this phone off. Your cases are safe. Ask for a new code to join again.'**
   String get pairRemovedBody;
 
   /// No description provided for @pairWhosLearning.
@@ -3325,8 +3331,20 @@ abstract class AppLocalizations {
   /// No description provided for @setupPassBody.
   ///
   /// In en, this message translates to:
-  /// **'{n} digits only you know. {name} never sees this part.'**
-  String setupPassBody(int n, String name);
+  /// **'{digits} only you know. {name} never sees this part.'**
+  String setupPassBody(String digits, String name);
+
+  /// No description provided for @setupPassDigits.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{One digit} other{{n} digits}}'**
+  String setupPassDigits(int n);
+
+  /// No description provided for @setupPassFour.
+  ///
+  /// In en, this message translates to:
+  /// **'Four digits'**
+  String get setupPassFour;
 
   /// No description provided for @setupPassAgainTitle.
   ///
@@ -3391,7 +3409,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupCodeExpired.
   ///
   /// In en, this message translates to:
-  /// **'This code has run out. Show a new code.'**
+  /// **'That code has expired. Codes last 10 minutes. Show a new one when you are both ready.'**
   String get setupCodeExpired;
 
   /// No description provided for @setupProgressFollows.

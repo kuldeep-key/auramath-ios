@@ -6,8 +6,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../data/repositories/account_repository.dart';
 import '../../../../data/repositories/family_repository.dart';
 import '../../../../data/services/api.dart';
+import '../../../../data/services/sound_effects.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/code_boxes.dart';
 import '../../../core/parts/keypad.dart';
@@ -45,18 +47,27 @@ class _GetCodeScreenState extends State<GetCodeScreen> {
   /// The child came back from CodeWrong's "Grown-up: new code".
   bool _askNew = false;
 
+  /// A wrong code (the prototype's GetCode·CodeWrong): the boxes shake
+  /// and "That code didn't work." shows under them; the child types again
+  /// here. Too many tries still opens its own screen.
+  int _shake = 0;
+  bool _wrongNow = false;
+
   void _changed(String v) {
     if (v.isNotEmpty) _last = v;
     setState(() {
       _typed = v;
-      if (v.isNotEmpty) _error = null;
+      if (v.isNotEmpty) {
+        _error = null;
+        _wrongNow = false;
+      }
     });
   }
 
   Future<void> _check(String _) async {
     final code = _last;
     // a short code can't be right: don't spend one of the server's tries
-    if (code.length < _length) return _wrong(tooMany: false);
+    if (code.length < _length) return _wrongHere();
     await _redeem(code);
   }
 
@@ -77,9 +88,8 @@ class _GetCodeScreenState extends State<GetCodeScreen> {
         _busy = false;
         _typed = '';
       });
-      if (e.status == 400 || e.status == 429) {
-        return _wrong(tooMany: e.status == 429);
-      }
+      if (e.status == 400) return _wrongHere();
+      if (e.status == 429) return _wrong(tooMany: true);
       setState(() {
         _error = failureText(l, e);
         _retryCode = code;
@@ -106,6 +116,18 @@ class _GetCodeScreenState extends State<GetCodeScreen> {
               queryParameters: {'id': only.id, 'name': only.name},
             ).toString(),
     );
+  }
+
+  void _wrongHere() {
+    AuraHaptics.wrong();
+    AuraSound.wrong();
+    setState(() {
+      _typed = '';
+      _last = '';
+      _askNew = false;
+      _wrongNow = true;
+      _shake++;
+    });
   }
 
   Future<void> _wrong({required bool tooMany}) async {
@@ -140,19 +162,34 @@ class _GetCodeScreenState extends State<GetCodeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const AuraTopBar(light: true, fallback: Paths.open),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Ribbon(text: l.pairTypeCode),
-                    ),
-                    const SizedBox(height: 14),
+                    Center(child: Ribbon(text: l.pairTypeCode)),
+                    const SizedBox(height: 10),
                     Text(
                       l.pairCodeWhere,
                       textAlign: TextAlign.center,
-                      style: white,
+                      style: white.copyWith(fontSize: 19),
                     ),
                     const SizedBox(height: 18),
-                    CodeBoxes(length: _length, value: _typed, light: true),
-                    const SizedBox(height: 18),
+                    CodeBoxes(
+                      length: _length,
+                      value: _typed,
+                      light: true,
+                      shake: _shake,
+                    ),
+                    const SizedBox(height: 10),
+                    // `#gcm`: keeps its 24 pt even when empty
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 24),
+                      child: Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          _wrongNow ? l.pairCodeDidntWork : '',
+                          textAlign: TextAlign.center,
+                          style: white.copyWith(fontSize: 17),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                   ],
                 ),
                 body: Column(

@@ -62,7 +62,7 @@ void main() {
       'pairing_code_wrong_too_many',
       const CodeWrongScreen(tooMany: true),
     );
-    expect(find.text('Too many tries'), findsOneWidget);
+    expect(find.text("Let's get a new code"), findsOneWidget);
     expect(find.text('Try again'), findsNothing);
   });
 

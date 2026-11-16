@@ -18,7 +18,7 @@ class RemovedScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     return PlayMessage(
-      art: const EmojiArt('📱'),
+      art: const EmojiArt('📵'),
       title: l.pairRemoved,
       line: l.pairRemovedBody,
       buttons: [

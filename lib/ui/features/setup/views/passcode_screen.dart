@@ -182,7 +182,12 @@ class _PasscodeScreenState extends State<PasscodeScreen> {
                     title: again ? l.setupPassAgainTitle : l.setupPassTitle,
                     subtitle: again
                         ? l.setupPassAgainBody
-                        : l.setupPassBody(status.length, widget.name),
+                        : l.setupPassBody(
+                            status.length == 4
+                                ? l.setupPassFour
+                                : l.setupPassDigits(status.length),
+                            widget.name,
+                          ),
                   ),
                   const LockTile(),
                   const SizedBox(height: 14),
