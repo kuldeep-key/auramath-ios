@@ -208,6 +208,8 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// problems are the server's): `session_started`, `problem_shown`.
   Future<void> start() async {
     startError = null;
+    // one voice for the whole lesson: its first line chooses (CloudVoice)
+    if (_voice case final LessonVoice v) v.beginLesson();
     try {
       // a case carried on after time's up goes on in the server's
       // continuation of its session (SES-01); else a new session

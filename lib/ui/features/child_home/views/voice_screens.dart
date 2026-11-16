@@ -24,10 +24,18 @@ class SoundScreen extends StatelessWidget {
       tint: AuraColors.blueTint,
       title: l.kidSoundOff,
       body: l.kidSoundOffBody,
+      // the prototype's Sound: a still picture, no speaker (the sound is
+      // off), the speaker icon before "Sound is on now"
+      still: true,
+      speaker: false,
       buttons: [
         AuraButton(
           label: l.kidSoundOn,
-          icon: Icons.volume_up_rounded,
+          leading: const Icon(
+            Icons.volume_up_rounded,
+            size: 25.6,
+            color: AuraColors.white,
+          ),
           color: AuraButtonColor.blue,
           onPressed: () => _leave(context, 'sound_on'),
         ),
@@ -78,7 +86,15 @@ class _Notice extends StatelessWidget {
     required this.title,
     required this.body,
     required this.buttons,
+    this.still = false,
+    this.speaker = true,
   });
+
+  /// The picture holds still rather than floating.
+  final bool still;
+
+  /// A speaker to hear the screen's words.
+  final bool speaker;
 
   final IconData icon;
   final Color iconColor;
@@ -87,21 +103,21 @@ class _Notice extends StatelessWidget {
   final String body;
   final List<Widget> buttons;
 
+  Widget get picture => Container(
+    width: 120,
+    height: 120,
+    decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
+    child: Icon(icon, size: 64, color: iconColor),
+  );
+
   @override
   Widget build(BuildContext context) => AuraPage(
-    say: '$title $body',
+    say: speaker ? '$title $body' : null,
     body: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 18,
       children: [
-        Float(
-          child: Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
-            child: Icon(icon, size: 64, color: iconColor),
-          ),
-        ),
+        if (still) picture else Float(child: picture),
         Semantics(
           header: true,
           child: Text(
