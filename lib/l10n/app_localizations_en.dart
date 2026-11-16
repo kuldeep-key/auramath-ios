@@ -2040,10 +2040,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Ask a grown-up to set your detective for you.';
 
   @override
-  String get kidQuickDone => 'Quick sums done!';
+  String get kidQuickDone => 'Warmed up!';
 
   @override
-  String get kidQuickStory => 'A story problem';
+  String get kidQuickOnToday => 'On to today.';
+
+  @override
+  String get kidQuickGo => 'Go!';
+
+  @override
+  String get kidQuickTier1 => 'Charged up!';
+
+  @override
+  String get kidQuickTier2 => 'On fire!';
+
+  @override
+  String get kidQuickTier3 => 'Super charged!';
+
+  @override
+  String get kidQuickStory => 'On to a case';
 
   @override
   String get kidQuickHome => 'Back home';

@@ -53,6 +53,10 @@ void main() {
       tickEvery: null,
     );
     addTearDown(vm.dispose);
+    vm
+      ..selfRating = true
+      ..childAge = 8
+      ..showBadges = false;
     await tester.runAsync(vm.start);
     await tester.pumpWidget(
       RepaintBoundary(
@@ -99,6 +103,9 @@ void main() {
     await _save(tester, 'M1-D6');
     await send(const NumberEntered(265));
     await _save(tester, 'Y2');
+    await tester.tap(find.text('Next'));
+    await settle();
+    await _save(tester, 'Rate');
     await tester.pumpWidget(const SizedBox());
   });
 }

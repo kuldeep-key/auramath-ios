@@ -146,18 +146,22 @@ class _SolvedViewState extends State<SolvedView> {
                       ),
                     )
                   else
-                    AuraButton(
-                      label: _phase == _Phase.badge ? l.addToSash : l.next,
-                      // the server's next case may still be on its way
-                      onPressed: _phase == _Phase.solved
-                          ? (vm.offerRating || vm.showBadges
-                                ? _next
-                                : vm.nextProblemId == null
-                                ? null
-                                : _next)
-                          : vm.nextProblemId == null
-                          ? null
-                          : _finish,
+                    // full width, as the prototype's .btn
+                    SizedBox(
+                      width: double.infinity,
+                      child: AuraButton(
+                        label: _phase == _Phase.badge ? l.addToSash : l.next,
+                        // the server's next case may still be on its way
+                        onPressed: _phase == _Phase.solved
+                            ? (vm.offerRating || vm.showBadges
+                                  ? _next
+                                  : vm.nextProblemId == null
+                                  ? null
+                                  : _next)
+                            : vm.nextProblemId == null
+                            ? null
+                            : _finish,
+                      ),
                     ),
                 ],
               ),
