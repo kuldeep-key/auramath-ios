@@ -322,10 +322,15 @@ class Loaded<T> extends StatefulWidget {
     required this.load,
     required this.builder,
     this.fallback,
+    this.refresh,
   });
 
   final Future<T> Function() load;
   final String? fallback;
+
+  /// Loads again each time it fires: `FamilyRepository.childrenChanged`,
+  /// so a child's new name shows on every screen the grown-up goes back to.
+  final Listenable? refresh;
   final Widget Function(BuildContext context, T data, VoidCallback reload)
   builder;
 
@@ -335,6 +340,32 @@ class Loaded<T> extends StatefulWidget {
 
 class _LoadedState<T> extends State<Loaded<T>> {
   late Future<T> _future = widget.load();
+  (T,)? _last;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.refresh?.addListener(_refreshed);
+  }
+
+  @override
+  void didUpdateWidget(Loaded<T> old) {
+    super.didUpdateWidget(old);
+    if (old.refresh != widget.refresh) {
+      old.refresh?.removeListener(_refreshed);
+      widget.refresh?.addListener(_refreshed);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.refresh?.removeListener(_refreshed);
+    super.dispose();
+  }
+
+  void _refreshed() {
+    if (mounted) _reload();
+  }
 
   void _reload() => setState(() {
     _future = widget.load();
@@ -345,7 +376,13 @@ class _LoadedState<T> extends State<Loaded<T>> {
     future: _future,
     builder: (context, snap) {
       if (snap.connectionState == ConnectionState.done && !snap.hasError) {
+        _last = (snap.data as T,);
         return widget.builder(context, snap.data as T, _reload);
+      }
+      // loading again: the page stays as it was until the new data is in
+      final last = _last;
+      if (last != null && !snap.hasError) {
+        return widget.builder(context, last.$1, _reload);
       }
       final Widget state = snap.hasError
           ? Padding(
