@@ -554,7 +554,12 @@ class _Walker extends StatelessWidget {
         dimension: 54,
         child: FittedBox(
           fit: BoxFit.cover,
-          child: LookPortrait(lookId: lookId, world: world, size: 54),
+          child: LookPortrait(
+            lookId: lookId,
+            world: world,
+            size: 54,
+            framed: false,
+          ),
         ),
       ),
     );

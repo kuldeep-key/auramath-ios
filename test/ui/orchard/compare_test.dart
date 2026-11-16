@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:auramath/data/repositories/rewards_repository.dart';
+import 'package:auramath/ui/core/parts/journey_art.dart';
 import 'package:auramath/ui/features/child_home/views/path_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../features/child_home/helpers.dart';
@@ -32,6 +34,15 @@ void main() {
         ],
       },
     }).lands!;
+    await tester.runAsync(ArtAssets.load);
+    await tester.pumpWidget(const SizedBox());
+    final context = tester.element(find.byType(SizedBox));
+    await tester.runAsync(
+      () => precacheImage(
+        const AssetImage('assets/proto/look_01_detective.jpg'),
+        context,
+      ),
+    );
     await shots(
       tester,
       'compare_K2',
