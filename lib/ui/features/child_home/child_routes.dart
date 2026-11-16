@@ -22,6 +22,7 @@ import 'views/choose_today_screen.dart';
 import 'views/home_moments.dart';
 import 'views/home_screen.dart';
 import 'views/meet_partner_screen.dart';
+import 'views/path_screen.dart';
 import 'views/pick_avatar_screen.dart';
 import 'views/loaded.dart';
 import 'views/trail_screen.dart';
@@ -306,16 +307,30 @@ List<RouteBase> childRoutes(Deps deps) {
       builder: (_, _) => Loaded(
         // REW-04: the server's trail (every phone the same), else this
         // phone's
+        // phone's. From v0.5.4 it is drawn as a path (JRN-03); opening it
+        // logs trail_opened (D-60: under the visit)
         load: () async {
           final id = deps.account.childId;
+          unawaited(deps.visits.record(id, const [trailOpened]));
+          final read = id == null ? null : await rewards.read(id);
           return (
             local: await progress.trail(),
             served: id == null ? null : await rewards.trail(id),
+            lands: read?.lands,
+            world: read?.world ?? deps.journey.defaultWorld,
           );
         },
-        builder: (t) => (t.served?.atTop ?? t.local.atTop)
-            ? const TrailTopScreen()
-            : TrailScreen(here: t.local.here, served: t.served),
+        builder: (t) => switch (t.lands) {
+          final lands? when lands.isNotEmpty => PathScreen(
+            lands: lands,
+            world: t.world,
+            lookId:
+                deps.looks.cached(deps.account.childId)?.avatarId ??
+                lookIdFor(progress.cachedAvatar),
+          ),
+          _ when t.served?.atTop ?? t.local.atTop => const TrailTopScreen(),
+          _ => TrailScreen(here: t.local.here, served: t.served),
+        },
       ),
     ),
     GoRoute(path: Paths.trailTop, builder: (_, _) => const TrailTopScreen()),

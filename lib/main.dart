@@ -29,6 +29,7 @@ import 'data/services/pack_source.dart';
 import 'data/services/social_sign_in.dart';
 import 'data/services/voice.dart';
 import 'deps.dart';
+import 'ui/core/parts/journey_art.dart';
 import 'ui/features/lesson/view_models/sitting.dart';
 
 Future<void> main() async {
@@ -193,6 +194,8 @@ Future<void> main() async {
     player: FileClipPlayer(),
     fallback: DeviceVoice(),
   );
+  // which of Apoorv's art files this build holds (placeholders until then)
+  await ArtAssets.load();
   final looks = LookRepository(client, journey);
   // every line in the voice the child chose for their tutor (TTR-02)
   void voiceOfChild() => voice.voiceId = looks.cached(account.childId)?.voiceId;
