@@ -89,6 +89,8 @@ class _BarSenseViewState extends State<BarSenseView> {
             line: line,
             onSpeak: () => widget.vm.say(line),
             speaking: widget.vm.voice.speaking,
+            muted: !widget.vm.readAloud,
+            onSound: widget.vm.sound,
             onHome: widget.onHome,
             // JRN-04: a detour, out and back to the same step
             sidePath: (label: l.kidSidePath, back: l.kidSidePathBack),

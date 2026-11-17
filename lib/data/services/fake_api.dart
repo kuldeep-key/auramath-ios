@@ -189,11 +189,15 @@ class FakeApi implements Api {
   /// with (REW-11).
   List<Award> awards = const [];
 
+  /// How long each events upload takes: a slow connection.
+  Duration eventsDelay = Duration.zero;
+
   @override
   Future<EventsReply> sendEvents(
     String sessionId,
     List<LessonEvent> events,
   ) async {
+    if (eventsDelay > Duration.zero) await Future.delayed(eventsDelay);
     if (failNext > 0) {
       failNext--;
       throw const ApiException('offline');

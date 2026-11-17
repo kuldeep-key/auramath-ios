@@ -51,6 +51,9 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
   String _typed = '';
   late int _wobbles = widget.vm.wobbles;
 
+  /// Quick sums never read on their own: the speaker reads on a tap.
+  bool _muted = true;
+
   /// The count before the first sum: 0..3 is 3, 2, 1, Go!; null once done.
   int? _count;
   Timer? _beat;
@@ -216,6 +219,8 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
           child: LessonHeader(
             line: line,
             onSpeak: () => widget.onSay?.call(line),
+            muted: _muted,
+            onSound: (on) => setState(() => _muted = !on),
             onHome: _home,
           ),
         ),
@@ -291,6 +296,8 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
         LessonHeader(
           line: lines.last,
           onSpeak: () => widget.onSay?.call(lines.join(' ')),
+          muted: _muted,
+          onSound: (on) => setState(() => _muted = !on),
           onHome: _home,
         ),
         const SizedBox(height: 12),

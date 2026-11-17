@@ -195,6 +195,22 @@ void main() {
       await db.close();
     });
 
+    test("the last lesson's end is forgotten too, so the next family's "
+        'Home shows no badge moment', () async {
+      final db = await memoryOutbox();
+      final repo = SessionRepository(
+        db: db,
+        api: FakeApi(),
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      repo.lastStop.value = (sessionId: 's1', reason: 'finished');
+      await repo.forget();
+      expect(repo.lastStop.value, isNull);
+      repo.dispose();
+      await db.close();
+    });
+
     test('offline: throws and keeps the unsent work', () async {
       final db = await memoryOutbox();
       final api = FakeApi();

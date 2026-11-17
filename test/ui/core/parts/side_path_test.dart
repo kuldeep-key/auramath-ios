@@ -10,6 +10,8 @@ void main() {
       body: LessonHeader(
         line: 'Take one ten across.',
         onSpeak: () {},
+        muted: false,
+        onSound: (_) {},
         onHome: () {},
         sidePath: detour
             ? (label: 'Side path', back: 'Back to your case')

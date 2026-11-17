@@ -380,8 +380,9 @@ void main() {
       await vm.send(const EasierTaken());
       expect(vm.problem.id, 'g_easy');
       expect(vm.sessionId, isNot(first));
-      // the server goes one level below the one asked, and says so
-      expect(asked.last, (vm.sessionId, 'L4'));
+      // no level: the server goes one below the child's own, and says so
+      // (with a level it would serve that same level)
+      expect(asked.last, (vm.sessionId, null));
       final api = server;
       expect(api.askedEasier, [vm.sessionId]);
       final shown = api.received.lastWhere((e) => e.name == 'problem_shown');

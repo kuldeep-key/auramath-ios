@@ -67,6 +67,8 @@ class _StartingCheckViewState extends State<StartingCheckView> {
             line: _line(l),
             onSpeak: () => vm.say(_spoken(l), target: 'question'),
             speaking: vm.voice.speaking,
+            muted: !vm.readAloud,
+            onSound: vm.sound,
             onHome: widget.onHome,
           ),
           const Spacer(),

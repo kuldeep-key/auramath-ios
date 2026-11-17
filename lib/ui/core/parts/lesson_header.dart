@@ -8,11 +8,16 @@ import 'speech_bubble.dart';
 
 /// The tutor's speak button, the coach's line, and home: the prototype's
 /// `lhead`. Figma: Prototype parts › Lesson header.
+///
+/// The tutor is the lesson's sound switch: a tap mutes it, and a tap while
+/// muted turns the sound back on and reads the line.
 class LessonHeader extends StatelessWidget {
   const LessonHeader({
     super.key,
     required this.line,
     required this.onSpeak,
+    required this.muted,
+    required this.onSound,
     required this.onHome,
     this.big = false,
     this.speaking,
@@ -28,6 +33,12 @@ class LessonHeader extends StatelessWidget {
 
   final String line;
   final VoidCallback onSpeak;
+
+  /// Nothing is read aloud: the button shows the muted speaker.
+  final bool muted;
+
+  /// The sound turned on (true) or muted (false).
+  final ValueChanged<bool> onSound;
   final VoidCallback onHome;
 
   /// Big words while the voice is resting.
@@ -57,8 +68,19 @@ class LessonHeader extends StatelessWidget {
   Widget _row(BuildContext context) => Row(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
-      // the child's tutor: it talks while the line plays (TTR-03, TTR-05)
-      TutorSpeakButton(onTap: onSpeak, speaking: speaking),
+      // the child's tutor: it talks while the line plays (TTR-03, TTR-05),
+      // and is the lesson's mute (a tap mutes; muted, a tap reads again)
+      TutorSpeakButton(
+        speaking: speaking,
+        muted: muted,
+        label: muted ? 'Sound on' : 'Mute',
+        onTap: muted
+            ? () {
+                onSound(true);
+                onSpeak();
+              }
+            : () => onSound(false),
+      ),
       const SizedBox(width: 8),
       // a long line in large text (NFR-04) scrolls in the bubble rather
       // than pushing the board off the screen

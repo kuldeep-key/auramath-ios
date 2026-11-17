@@ -165,18 +165,26 @@ class _VoiceWatchState extends State<VoiceWatch> {
 /// child's tutor's head ([TutorScope]) on a white 60 pt square with a
 /// navy edge and lip. While a line plays the tutor talks and the square
 /// pulses (`speakPulse`); with the sound off a small navy speaker-off
-/// badge sits on its corner (`.tmute`). Tapping hears the line again.
+/// badge sits on its corner (`.tmute`). Tapping hears the line again; in
+/// a lesson header that passes [muted], it is the lesson's sound switch
+/// instead: a tap mutes, and a tap while muted turns the sound back on and
+/// reads the line.
 class TutorSpeakButton extends StatelessWidget {
   const TutorSpeakButton({
     super.key,
     required this.onTap,
     this.speaking,
     this.label = 'Say it again',
+    this.muted,
   });
 
   final VoidCallback onTap;
   final ValueListenable<bool>? speaking;
   final String label;
+
+  /// The lesson's own mute: the badge shows while it is on, as it does
+  /// while the app's sound is off ([AuraSound.soundOn]).
+  final bool? muted;
 
   static const size = 60.0;
 
@@ -209,7 +217,7 @@ class TutorSpeakButton extends StatelessWidget {
     );
     final mute = VoiceWatch(
       voice: AuraSound.soundOn,
-      builder: (context, on) => on
+      builder: (context, on) => on && muted != true
           ? const SizedBox.shrink()
           : Container(
               key: const Key('tutorMute'),

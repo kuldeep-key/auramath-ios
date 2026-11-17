@@ -41,6 +41,8 @@ void main() {
             LessonHeader(
               line: 'Now drag a bar for the fig tree.',
               onSpeak: () {},
+              muted: false,
+              onSound: (_) {},
               onHome: () {},
               speaking: speaking,
             ),

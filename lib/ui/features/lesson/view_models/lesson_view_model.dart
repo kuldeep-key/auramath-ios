@@ -142,8 +142,9 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// The level to ask for with the next problem ("something easier").
   String? _askLevel;
 
-  /// The next problem is "something easier" (CON-06): asked with `easier`,
-  /// one level below [_askLevel], and served as variant easier.
+  /// The next problem is "something easier" (CON-06): asked with `easier`
+  /// and no level, so the server goes one below the child's own and serves
+  /// it as variant easier.
   bool _askEasier = false;
 
   /// Null until the server opened the session.
@@ -164,7 +165,17 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
 
   /// The server opened this lesson's session (and sent its problem); until
   /// then nothing is drawn.
-  bool get ready => _sessionId != null && _p != null;
+  bool get ready => _sessionId != null && _p != null && !_carrying;
+
+  /// A carried-on case whose board isn't rebuilt yet: no input until it is.
+  bool _carrying = false;
+
+  /// [_state] rebuilt from a session's [events] through the engine, with
+  /// the side lesson it was on.
+  void _replayed(List<SpecEvent> events) {
+    _state = replay(_pack, _problem, inputsFrom(_pack, _problem, events));
+    sideLesson = _state.sideLesson;
+  }
 
   /// The session couldn't be opened: no connection, or the server said no.
   /// The lesson waits on a "need the internet" screen with Try again.
@@ -250,6 +261,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
       notifyListeners();
       return;
     }
+    _carrying = carryFrom != null && carryFrom != _sessionId;
     notifyListeners();
     _warmVoice(); // the problem is known now, from the pack or the server
     final events = [
@@ -507,7 +519,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     _warmVoice();
     final sessionId = _sessionId!;
     final (:events, :lastSeq) = await _sessions.resume(sessionId);
-    _state = replay(_pack, _problem, inputsFrom(_pack, _problem, events));
+    _replayed(events);
     _seq = lastSeq + 2;
     await _sessions.record(sessionId, lastSeq + 1, const [
       SpecEvent('session_resumed', {}),
@@ -663,7 +675,8 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
         _p == null ||
         !online ||
         endedByServer ||
-        _calledItADay) {
+        _calledItADay ||
+        _carrying) {
       return;
     }
     // TTR-03: any child action stops the tutor at once (stopped_early);
@@ -739,6 +752,9 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
           if (d is Wobble || d is ShakeHelp) d,
       ]);
       _held = held..fedBack = true;
+      // the cue and the fallback count from the step, not from the upload
+      // below (NFR-05)
+      _holdTimers(held);
     } else {
       _present(held);
     }
@@ -804,9 +820,21 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
         op: e.name == 'step_committed' ? op : null,
       );
     }
-    // the server is deciding this step's help, or a side lesson is open
-    if (due == null || _held != null || !_onBoard) return;
-    if (_state.sideLessons >= _pack.maxSideLessons) return;
+    if (due == null) return;
+    // the server is deciding this step's help: it opens once that's shown
+    if (_held != null) {
+      _repeatDue = (kind: due, problemId: _problem.id);
+      return;
+    }
+    await _openRepeat(due);
+  }
+
+  /// A repeat side lesson due while the server decided a step's help.
+  ({SideLesson kind, String problemId})? _repeatDue;
+
+  Future<void> _openRepeat(SideLesson due) async {
+    // a side lesson is open, or the session's are used up
+    if (!_onBoard || _state.sideLessons >= _pack.maxSideLessons) return;
     await send(SideLessonChosen(due));
   }
 
@@ -852,11 +880,6 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     Map<String, Object?> ask,
     _Held held,
   ) async {
-    held.cue = Timer(Duration(milliseconds: cueAfterMs), () {
-      if (!identical(_held, held) || _disposed) return;
-      thinking = true;
-      notifyListeners();
-    });
     Map<String, Object?>? reply;
     try {
       reply = await _sessions
@@ -874,12 +897,39 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     await _settle(reply == null ? null : aiChoice(reply));
   }
 
-  /// Shows the held step's help: the server's [ai] choice where it differs
-  /// from the rules' and this app can show it, else the rules' own.
+  /// The thinking cue at [cueAfterMs] and the rules' help at
+  /// [fallbackAfterMs], from when [held] was held.
+  void _holdTimers(_Held held) {
+    held.cue = Timer(Duration(milliseconds: cueAfterMs), () {
+      if (!identical(_held, held) || _disposed) return;
+      thinking = true;
+      notifyListeners();
+    });
+    held.fallback = Timer(Duration(milliseconds: fallbackAfterMs), () {
+      if (!identical(_held, held) || _disposed) return;
+      debugPrint('decision: none in $fallbackAfterMs ms; the rules\' help');
+      unawaited(_settle(null));
+    });
+  }
+
+  /// Shows the held step's help, then a repeat side lesson that came due
+  /// meanwhile, if the case is still on its board.
   Future<void> _settle(AiChoice? ai) async {
+    await _showHeld(ai);
+    final due = _repeatDue;
+    _repeatDue = null;
+    if (due != null && _p?.id == due.problemId && _held == null) {
+      await _openRepeat(due.kind);
+    }
+  }
+
+  /// The held step's help: the server's [ai] choice where it differs from
+  /// the rules' and this app can show it, else the rules' own.
+  Future<void> _showHeld(AiChoice? ai) async {
     final held = _held!;
     _held = null;
     held.cue?.cancel();
+    held.fallback?.cancel();
     thinking = false;
     final rules = held.r.decisions.any((d) => d is OpenSideLesson)
         ? 'side_lesson'
@@ -1024,6 +1074,14 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   }
 
   bool _readAloud = true;
+
+  /// The header's speaker: muting stops the line being read and reads
+  /// nothing more on its own until the sound is turned back on.
+  void sound(bool on) {
+    readAloud = on;
+    if (!on) _voice.stop();
+    notifyListeners();
+  }
 
   /// The grown-up's "Bigger number pad" (Settings).
   bool biggerPad = false;
@@ -1484,9 +1542,10 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// one a level easier than this one, from the server.
   void goTo(String problemId, {bool sameLevel = false}) {
     if (_nextProblem != null) {
-      // something easier: the server goes one level below this one (at the
-      // lowest, its smallest numbers) and says so (variant easier)
-      _askLevel = _problem.level;
+      // something easier: no level, so the server goes one below the
+      // child's own (at the lowest, its smallest numbers) and says so
+      // (variant easier). With a level it serves that level as it is.
+      _askLevel = sameLevel ? _problem.level : null;
       _askEasier = !sameLevel;
       _p = null;
     } else {
@@ -1663,6 +1722,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   void dispose() {
     _disposed = true;
     _held?.cue?.cancel();
+    _held?.fallback?.cancel();
     _doneRating();
     _sessions.online.removeListener(_onlineChanged);
     _sessions.ended.removeListener(_endedByServer);
@@ -1690,6 +1750,7 @@ class _Held {
   final LessonInput input;
   final LessonStep? entering;
   Timer? cue;
+  Timer? fallback;
 
   /// The wobble and Help me's shake already showed, while it waited.
   bool fedBack = false;

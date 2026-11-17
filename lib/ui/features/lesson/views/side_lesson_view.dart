@@ -103,6 +103,8 @@ class _SideLessonViewState extends State<SideLessonView> {
             line: lines.last,
             onSpeak: () => widget.vm.say(lines.join(' ')),
             speaking: widget.vm.voice.speaking,
+            muted: !widget.vm.readAloud,
+            onSound: widget.vm.sound,
             onHome: widget.onHome,
             // JRN-04: the case paused, a side path to the skill and back
             sidePath: (label: l.kidSidePath, back: l.kidSidePathBack),

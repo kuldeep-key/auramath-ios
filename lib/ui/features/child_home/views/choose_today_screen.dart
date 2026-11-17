@@ -48,6 +48,9 @@ class _ChooseTodayScreenState extends State<ChooseTodayScreen> {
   int _now() => widget._now?.call() ?? DateTime.now().millisecondsSinceEpoch;
   late final int _shownAt = _now();
 
+  /// The title isn't read on its own: the tutor reads it on a tap.
+  bool _muted = true;
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -83,6 +86,8 @@ class _ChooseTodayScreenState extends State<ChooseTodayScreen> {
         child: LessonHeader(
           line: title,
           onSpeak: () => ReadAloud.maybeOf(context)?.say(title),
+          muted: _muted,
+          onSound: (on) => setState(() => _muted = !on),
           onHome: widget.onHome ?? () => context.go(Paths.home),
         ),
       ),
