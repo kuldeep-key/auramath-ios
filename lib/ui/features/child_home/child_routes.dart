@@ -118,15 +118,20 @@ List<RouteBase> childRoutes(Deps deps) {
 
   /// Policy line [lineId] in the child's tutor's words: its slots filled
   /// from tutors.yaml and the world's skin, never with the child's name.
-  String tutorLine(BuildContext context, String lineId, {String? tutorId}) {
+  /// Null when the pack doesn't serve [lineId] (a build families use gets
+  /// approved lines only), so the screen shows its own words, not a blank.
+  String? tutorLine(BuildContext context, String lineId, {String? tutorId}) {
+    final raw = deps.pack.policyLines[lineId];
+    if (raw == null || raw.trim().isEmpty) return null;
     final l = AppLocalizations.of(context)!;
     final unnamed = l.kidTutorPlaceholderName;
-    return deps.journey.tutorLine(
-      deps.pack.policyLines[lineId] ?? '',
+    final line = deps.journey.tutorLine(
+      raw,
       tutorId: tutorId ?? tutorNow().id,
       world: worldNow(),
       unnamed: unnamed.substring(0, 1).toLowerCase() + unnamed.substring(1),
     );
+    return line.isEmpty ? null : line;
   }
 
   /// The tutor speaks [text] outside a lesson (TTR-03): as it appears if
@@ -134,12 +139,16 @@ List<RouteBase> childRoutes(Deps deps) {
   /// hello sample), else the child's own voice. Logged as
   /// `read_aloud_played` under the visit (D-60), the line's id only.
   void speak(
-    String text,
+    String? text,
     String lineId, {
     required bool tapped,
     String? voiceId,
   }) {
-    if (text.isEmpty || (!tapped && !deps.flags.on('read_aloud'))) return;
+    if (text == null ||
+        text.isEmpty ||
+        (!tapped && !deps.flags.on('read_aloud'))) {
+      return;
+    }
     if (voiceId == null) {
       deps.voice.say(text);
     } else {
@@ -692,7 +701,7 @@ List<RouteBase> childRoutes(Deps deps) {
         // role from the world; never the child's name (NFR-08)
         final intro = tutorLine(context, 'line.tutor.intro');
         return MeetPartnerScreen(
-          served: intro.isEmpty
+          served: intro == null
               ? PartnerIntroRepository.lines(deps.pack.policyLines, const [])
               : [intro],
           readAloud: deps.flags.on('read_aloud'),
@@ -705,7 +714,7 @@ List<RouteBase> childRoutes(Deps deps) {
           ),
           onSay: (text) => speak(
             text,
-            intro.isEmpty ? 'line.intro.hello' : 'line.tutor.intro',
+            intro == null ? 'line.intro.hello' : 'line.tutor.intro',
             tapped: true,
           ),
           onStart: () async {

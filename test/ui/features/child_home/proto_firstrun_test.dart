@@ -157,6 +157,26 @@ void main() {
     expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
   });
 
+  testWidgets('Home: a greeting the pack does not serve (not approved yet) '
+      'leaves the tutor large and the ribbon with our own words', (
+    tester,
+  ) async {
+    await show(
+      tester,
+      const HomeScreen(
+        name: 'Aarav',
+        grownUps: Paths.kids,
+        lookId: 'look_02',
+        tutorId: 'teacher_1',
+      ),
+    );
+    expect(
+      tester.widget<Ribbon>(find.byType(Ribbon)).text,
+      'Ready for a new case?',
+    );
+    expect(tester.widget<TutorFigure>(find.byType(TutorFigure)).size, 220);
+  });
+
   testWidgets("WelcomeBack: the tutor talking, Home on the right, Let's go", (
     tester,
   ) async {
