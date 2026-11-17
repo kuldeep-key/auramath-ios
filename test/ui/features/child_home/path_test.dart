@@ -99,6 +99,25 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets("the next stop opens below the title, and the child's stop "
+      'above Keep going, on every phone', (tester) async {
+    addTearDown(tester.view.reset);
+    for (final size in const [Size(390, 844), Size(375, 667), Size(430, 932)]) {
+      tester.view.physicalSize = size * 3;
+      tester.view.devicePixelRatio = 3;
+      PathScreen.seen.clear();
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(shotApp(screen(name: 'Aarav')));
+      await tester.pumpAndSettle();
+      final title = tester.getRect(find.text("Aarav's trail"));
+      final next = tester.getRect(find.byKey(const Key('stop2')));
+      final here = tester.getRect(find.byKey(const Key('stop1')));
+      final go = tester.getRect(find.text('Keep going'));
+      expect(next.top, greaterThan(title.bottom), reason: '$size: next stop');
+      expect(here.bottom, lessThan(go.top), reason: '$size: the child');
+    }
+  });
+
   testWidgets('tapping a stop reads its name', (tester) async {
     final said = <String>[];
     await show(tester, ReadAloud(say: said.add, child: screen()));
