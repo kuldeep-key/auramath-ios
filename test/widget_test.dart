@@ -116,7 +116,8 @@ void main() {
     }
     await tap(find.byKey(const Key('keypadCheck')));
     await tap(find.text('Next'));
-    await tap(find.text('Add to my sash'));
+    // D-51: no v4 badge after the case; the rewards come from the server
+    expect(find.text('Add to my sash'), findsNothing);
 
     // a paired phone that is online: Y4, then X1 with the lemon case the
     // engine chose next
