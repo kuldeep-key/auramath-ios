@@ -144,10 +144,10 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         spacing: moment == null ? 14 : 12,
         children: [
-          if (tutorId != null && greeting != null)
+          if (tutorId != null)
             Semantics(
               button: true,
-              label: greeting,
+              label: greeting ?? l.readyForNewCase,
               excludeSemantics: true,
               child: GestureDetector(
                 key: const Key('tutor'),
