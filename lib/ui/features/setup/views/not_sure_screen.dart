@@ -7,7 +7,6 @@ import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import 'setup_parts.dart';
-import 'year_screen.dart' show yearLabel;
 
 /// StartNotSure (643:145): what happens when the grown-up isn't sure.
 class NotSureScreen extends StatelessWidget {
@@ -19,7 +18,7 @@ class NotSureScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final name = childName(context, draft.name);
-    final year = draft.schoolYear;
+    final age = draft.age;
     return AuraPage(
       top: setupTopBar(SetupStep.notSure),
       body: Column(
@@ -28,9 +27,9 @@ class NotSureScreen extends StatelessWidget {
           AuraHeading(
             title: l.setupNotSureTitle,
             subtitle: sentence(
-              year == null
+              age == null
                   ? l.setupNotSureBodyNoYear(name)
-                  : l.setupNotSureBody(name, yearLabel(l, year)),
+                  : l.setupNotSureBody(name, age),
             ),
           ),
           InfoCard(

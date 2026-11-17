@@ -24,7 +24,9 @@ LessonEvent _e(String s, String name, Map<String, Object?> p, [int at = 0]) =>
       payload: p,
     );
 
-/// A session that showed [problem] and solved it at [at] for [badge].
+/// A session that showed [problem] and solved it at [at] for [badge]:
+/// with help for Brave Asker, else Tree Detective (the phone writes no
+/// badge_awarded, D-54).
 List<LessonEvent> _solved(
   String s,
   String problem, {
@@ -32,8 +34,10 @@ List<LessonEvent> _solved(
   String badge = 'tree',
 }) => [
   _e(s, 'problem_shown', {'problem_id': problem}, at),
-  _e(s, 'problem_completed', {'problem_id': problem}, at),
-  _e(s, 'badge_awarded', {'badge_id': badge}, at),
+  _e(s, 'problem_completed', {
+    'problem_id': problem,
+    'outcome': badge == 'asker' ? 'with_hints' : 'solved_alone',
+  }, at),
 ];
 
 /// A session left before it was solved (something easier, gone home).

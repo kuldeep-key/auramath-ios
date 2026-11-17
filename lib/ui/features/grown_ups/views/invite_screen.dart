@@ -7,6 +7,7 @@ import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/aura_text_field.dart';
+import '../../../core/theme/tokens.dart';
 import 'parts.dart';
 
 /// Invite (652:251): a second grown-up by email (ACC-08). Once sent, the
@@ -67,8 +68,17 @@ class _InviteScreenState extends State<InviteScreen> {
                 ? l.guInviteSentBody(_email.text.trim())
                 : l.guInviteBody,
           ),
+          // InviteSent: the read envelope, green (96 pt)
+          if (_sent)
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Icon(
+                Icons.mark_email_read_rounded,
+                size: 96,
+                color: AuraColors.green,
+              ),
+            ),
           if (!_sent) ...[
-            const Spacer(),
             AuraTextField(
               label: l.guInviteEmail,
               controller: _email,
@@ -77,7 +87,6 @@ class _InviteScreenState extends State<InviteScreen> {
               onSubmitted: (_) => _send(),
               error: _error,
             ),
-            const Spacer(),
           ],
         ],
       ),

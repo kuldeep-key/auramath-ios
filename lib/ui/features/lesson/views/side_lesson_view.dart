@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/keypad.dart';
 import '../../../core/parts/lesson_header.dart';
@@ -105,6 +106,8 @@ class _SideLessonViewState extends State<SideLessonView> {
             muted: !widget.vm.readAloud,
             onSound: widget.vm.sound,
             onHome: widget.onHome,
+            // JRN-04: the case paused, a side path to the skill and back
+            sidePath: (label: l.kidSidePath, back: l.kidSidePathBack),
           ),
           const SizedBox(height: 12),
           Row(
@@ -152,6 +155,8 @@ class _SideLessonViewState extends State<SideLessonView> {
                   const _CaseWaiting(),
                   const SizedBox(height: 10),
                   PlaceValueBoard(sum: _sum, onAct: _act),
+                  const SizedBox(height: 10),
+                  WrittenSum(sum: _sum),
                   const SizedBox(height: 14),
                   Semantics(
                     liveRegion: true,
@@ -187,6 +192,7 @@ class _SideLessonViewState extends State<SideLessonView> {
             ),
             const SizedBox(height: 8),
             Keypad(
+              ours: true,
               keyHeight: widget.vm.biggerPad ? 64 : 56,
               onChanged: (s) => setState(() => _typed = s),
               onCheck: _typedIn,
@@ -204,6 +210,171 @@ class _SideLessonViewState extends State<SideLessonView> {
               onPressed: _act,
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// The written sum under the blocks (Julia's slide 8, the prototype's
+/// `.wsum`): the child's numbers in columns, the sign and a navy rule, and
+/// the answer filling in, in blue, place by place as the blocks are worked;
+/// a broken ten is struck through with its new tens and the ones get their
+/// small 1 (a made ten carries a small 1 over the tens). Each new digit
+/// pops in (350 ms).
+class WrittenSum extends StatelessWidget {
+  const WrittenSum({super.key, required this.sum});
+
+  final PlaceValue sum;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = sum;
+    final take = s.subtract;
+    List<int> digits(int n) => [n ~/ 100 % 10, n ~/ 10 % 10, n % 10];
+    final a = digits(s.left), b = digits(s.right), ans = digits(s.answer);
+    final broke = take && s.did(PlaceStep.breakTen);
+    final carried = !take && s.did(PlaceStep.makeTen);
+    final done = s.step == PlaceStep.done;
+    final onesIn =
+        done ||
+        s.did(PlaceStep.takeOnes) ||
+        (s.did(PlaceStep.addOnes) && s.step != PlaceStep.makeTen);
+    final tensIn =
+        done ||
+        s.did(PlaceStep.takeTens) ||
+        // nothing to take from the tens: they're settled with the ones
+        (take && s.did(PlaceStep.takeOnes) && s.rightTens == 0) ||
+        (s.did(PlaceStep.addTens) && s.step != PlaceStep.makeHundred);
+    const big = TextStyle(
+      fontSize: 32,
+      fontWeight: FontWeight.w900,
+      height: 1.15,
+      fontFeatures: [FontFeature.tabularFigures()],
+    );
+    final ink = AuraText.title.merge(big);
+    final small = AuraText.title.copyWith(
+      fontSize: 16,
+      color: AuraColors.blueInk,
+    );
+    Widget cell(Widget? child, {double w = 44}) => SizedBox(
+      width: w,
+      child: Center(
+        child: child == null
+            ? const SizedBox()
+            : FittedBox(fit: BoxFit.scaleDown, child: child),
+      ),
+    );
+    Widget digit(String t, {TextStyle? style}) => Text(t, style: style ?? ink);
+    Widget popped(String t) => Pop(
+      key: ValueKey(t),
+      duration: const Duration(milliseconds: 350),
+      child: digit(t, style: ink.copyWith(color: AuraColors.blue)),
+    );
+    final hasH = s.left >= 100 || s.right >= 100 || s.answer >= 100;
+    return ExcludeSemantics(
+      child: Container(
+        key: const Key('writtenSum'),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: AuraColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AuraColors.line, width: 2),
+        ),
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    cell(null, w: 28),
+                    cell(hasH && a[0] > 0 ? digit('${a[0]}') : null),
+                    cell(
+                      broke
+                          ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${a[1]}',
+                                  style: ink.copyWith(
+                                    fontSize: 26,
+                                    color: AuraColors.mute,
+                                    decoration: TextDecoration.lineThrough,
+                                    decorationThickness: 3,
+                                  ),
+                                ),
+                                Text('${a[1] - 1}', style: small),
+                              ],
+                            )
+                          : carried
+                          ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('1', style: small),
+                                digit('${a[1]}'),
+                              ],
+                            )
+                          : digit(s.left >= 10 || hasH ? '${a[1]}' : ''),
+                    ),
+                    cell(
+                      broke
+                          ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('1', style: small),
+                                digit('${a[2]}'),
+                              ],
+                            )
+                          : digit('${a[2]}'),
+                    ),
+                  ],
+                ),
+                DecoratedBox(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: AuraColors.navy, width: 3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      cell(digit(take ? '−' : '+'), w: 28),
+                      cell(hasH && b[0] > 0 ? digit('${b[0]}') : null),
+                      cell(
+                        s.right >= 10 || (hasH && b[0] > 0)
+                            ? digit('${b[1]}')
+                            : null,
+                      ),
+                      cell(digit('${b[2]}')),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 40,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      cell(null, w: 28),
+                      cell(
+                        done && s.answer >= 100 ? popped('${ans[0]}') : null,
+                      ),
+                      cell(
+                        tensIn && s.answer >= 10 ? popped('${ans[1]}') : null,
+                      ),
+                      cell(onesIn ? popped('${ans[2]}') : null),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

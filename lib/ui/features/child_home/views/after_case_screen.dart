@@ -196,7 +196,12 @@ class _CaseClosed extends StatelessWidget {
 
   // ponytail: packs don't name their stories yet; every story this term is
   // two trees, so the title comes from this set until they do.
-  static const _treeStories = {'lemon-fig', 'mango-guava'};
+  static const _treeStories = {
+    'lemon-fig',
+    'mango-guava',
+    'orange-gum',
+    'apple-palm',
+  };
 }
 
 /// Y4's sash: the badge just earned, on the gold board.

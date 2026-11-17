@@ -9,13 +9,13 @@ void main() {
   testWidgets('fits every size', (tester) async {
     await loadPortraits(tester);
     await shotAllSizes(tester, 'pairing_open', const OpenScreen());
-    expect(find.text("Hi! Who's using Auramath?"), findsOneWidget);
+    expect(find.text('Hi! Ready to play?'), findsOneWidget);
   });
 
   for (final (tap, to) in [
-    ("I'm a kid", Paths.pair),
-    ("I'm a grown-up", Paths.welcome),
-    ('I already have an account', Paths.signIn),
+    ('Play', Paths.pair),
+    ('Parents and carers', Paths.welcome),
+    ('Already set up? Sign in', Paths.signIn),
   ]) {
     testWidgets('$tap goes to $to', (tester) async {
       await tester.pumpWidget(shotApp(const OpenScreen()));

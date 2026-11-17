@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
 /// One answer in a list of choices: white with a ring, or yellow with a
@@ -38,7 +39,12 @@ class ChoiceTile extends StatelessWidget {
         child: InkWell(
           borderRadius: radius,
           onTap: onTap,
-          child: Container(
+          // `.opt{transition:all .2s}`: picking eases to yellow
+          child: AnimatedContainer(
+            duration: calmMotion(context)
+                ? Duration.zero
+                : const Duration(milliseconds: 200),
+            curve: Curves.ease,
             constraints: const BoxConstraints(minHeight: 56),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

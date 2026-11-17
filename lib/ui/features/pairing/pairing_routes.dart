@@ -50,8 +50,12 @@ List<RouteBase> pairingRoutes(Deps deps) => [
   ),
   GoRoute(
     path: Paths.pairJoined,
-    builder: (_, s) =>
-        PhoneJoinedScreen(name: s.uri.queryParameters['name'] ?? ''),
+    // PhoneJoined zooms in (`t:'zoom'`)
+    pageBuilder: (_, s) => MotionPage(
+      key: s.pageKey,
+      arrive: Arrive.zoom,
+      child: PhoneJoinedScreen(name: s.uri.queryParameters['name'] ?? ''),
+    ),
   ),
   GoRoute(
     path: Paths.removed,

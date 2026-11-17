@@ -480,6 +480,13 @@ class Policy {
             in (y['lines'] as YamlMap?)?['forbidden_phrases'] as List? ??
                 const [])
           '$f',
+        // AI-07: from v0.5.3 the case partner's own list, kept apart so a
+        // reward name may say "friend" (REW-14); tutor lines avoid both
+        for (final f
+            in (y['case_partner_intro'] as YamlMap?)?['never_phrases']
+                    as List? ??
+                const [])
+          '$f',
       ],
       ageWordList: words is YamlMap
           ? AgeWordList(
@@ -528,11 +535,13 @@ class Policy {
   /// The policy file's own `version` (0.4.0 from spec pack v0.4).
   final String version;
 
-  /// `lines.forbidden_phrases` (TUT-12, AI-07): no child line may contain
-  /// one, in any case.
+  /// `lines.forbidden_phrases` (TUT-12) and `case_partner_intro.never_phrases`
+  /// (AI-07): no child line may contain one, in any case.
   final List<String> forbiddenPhrases;
 
-  /// `story_generation.age_word_list` (CON-08), from v0.4; null before.
+  /// `story_generation.age_word_list` (CON-08), inline in v0.4; null before,
+  /// and from v0.5.3, where it names its own file (content/age-word-list.yaml,
+  /// CON-13), which the server checks and the app doesn't read.
   final AgeWordList? ageWordList;
 
   /// `side_lessons.abandon_after_wrong_practice` (TUT-18, v0.4): this many

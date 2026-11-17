@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "gotItLetsDraw": "Got it, let's draw",
+  "gotItLetsDraw": "Let's draw it",
   "hearItAgain": "Hear it again",
   "todaysCase": "Here's today's case. Listen first.",
   "iKnowIt": "I know it",
@@ -126,7 +126,8 @@
   "pairImAGrownUp": "I'm a grown-up",
   "pairHaveAccount": "I already have an account",
   "pairTypeCode": "Type your code",
-  "pairCodeWhere": "Your grown-up has it on their phone.",
+  "pairCodeWhere": "Your family has it on their phone.",
+  "@pairCodeWhere": {"description": "DRAFT (DEV-02, prototype GetCode) for Julia: was 'Your grown-up has it on their phone.'"},
   "pairAskForNewCode": "Ask your grown-up to make a new code on their phone.",
   "pairChecking": "Checking your code",
   "pairOffline": "Can't reach the internet. Check the Wi-Fi, then try again.",
@@ -136,8 +137,12 @@
   "pairPhoneLabel": "Child's phone",
   "pairCodeWrong": "That code didn't work",
   "pairCodeWrongBody": "Ask your grown-up for a new one.",
-  "pairTooMany": "Too many tries",
-  "pairTooManyBody": "Wait a few minutes, then ask your grown-up for a new code.",
+  "pairCodeDidntWork": "That code didn't work.",
+  "@pairCodeDidntWork": {"description": "DRAFT (DEV-02, prototype GetCode·CodeWrong) for Julia: under the code boxes after a wrong code; no count of tries left (the server keeps it)."},
+  "pairTooMany": "Let's get a new code",
+  "@pairTooMany": {"description": "DRAFT (DEV-02, prototype CodeTooMany ribbon) for Julia: was 'Too many tries'."},
+  "pairTooManyBody": "That code has stopped working. Wait a few minutes, then ask your family for a new one.",
+  "@pairTooManyBody": {"description": "DRAFT (DEV-02, prototype CodeTooMany) for Julia: the prototype's line, with the wait the server's 429 asks for."},
   "pairNewCode": "Grown-up: new code",
   "pairWhichChild": "Which child is this phone for?",
   "pairNoChildren": "No children here yet. Ask your grown-up to add you on their phone.",
@@ -149,7 +154,8 @@
   "pairPhoneYours": "This phone is yours for lessons now.",
   "pairLetsGo": "Let's go",
   "pairRemoved": "This phone was removed",
-  "pairRemovedBody": "Your progress is safe. Ask your grown-up for a new code.",
+  "pairRemovedBody": "Your family took this phone off. Your cases are safe. Ask for a new code to join again.",
+  "@pairRemovedBody": {"description": "DRAFT (DEV-03, DEV-06, prototype PhoneRemoved) for Julia: was 'Your progress is safe. Ask your grown-up for a new code.'"},
   "pairWhosLearning": "Who's learning today?",
   "pairGrownUps": "Grown-ups",
   "pairNoKidsYet": "No children yet. Add one to start learning.",
@@ -167,30 +173,31 @@
   "guOn": "On",
   "guOff": "Off",
 
-  "guPassTitle": "Grown-ups only",
+  "guPassTitle": "Family area",
   "guPassEnter": "Enter your passcode.",
   "guPassForgot": "Forgot passcode?",
-  "guPassWrong": "That's not the passcode. Try again.",
-  "guPassLocked": "Too many tries. Try again after {time}.",
+  "guPassWrong": "That is not it. Try again.",
+  "guPassLocked": "Too many tries. Wait until {time}, or sign in again.",
   "@guPassLocked": {"placeholders": {"time": {"type": "String"}}},
-  "guPassLockedSoon": "Too many tries. Wait a few minutes and try again.",
-  "guPassChooseTitle": "Choose a passcode",
-  "guPassNewTitle": "Choose a new passcode",
-  "guPassChooseBody": "{n} digits, so only grown-ups can open this area.",
+  "guPassLockedSoon": "Too many tries. Wait a little, or sign in again.",
+  "guPassChooseTitle": "Lock the Family area",
+  "guPassNewTitle": "Set a new passcode",
+  "guPassChooseBody": "{n} digits only you know.",
   "@guPassChooseBody": {"placeholders": {"n": {"type": "int"}}},
-  "guPassConfirmTitle": "Type it again",
-  "guPassConfirmBody": "To be sure it's right.",
-  "guPassMismatch": "Those didn't match. Choose a passcode again.",
+  "guPassConfirmTitle": "Lock the Family area",
+  "guPassConfirmBody": "Type it once more to be sure.",
+  "guPassMismatch": "Those did not match. Start again.",
   "guPassShort": "Type all {n} digits.",
   "@guPassShort": {"placeholders": {"n": {"type": "int"}}},
   "guPassResetBlocked": "It has been more than 10 minutes since you signed in. Sign in again, then choose a new passcode.",
   "guFaceIdReason": "Open the grown-up area",
   "guUseFaceId": "Use Face ID",
+  "guFaceFail": "Face ID did not work. Use your passcode instead.",
 
   "guForgotTitle": "Forgot your passcode?",
-  "guForgotBody": "We will email a sign-in link to {email}.",
+  "guForgotBody": "Sign in again and set a new one. We will email a link to {email}.",
   "@guForgotBody": {"placeholders": {"email": {"type": "String"}}},
-  "guForgotSend": "Send the link",
+  "guForgotSend": "Email me a sign-in link",
   "guForgotSentTitle": "Check your email",
   "guForgotSentBody": "We sent a sign-in link to {email}. Open it on this phone, then come back to choose a new passcode.",
   "@guForgotSentBody": {"placeholders": {"email": {"type": "String"}}},
@@ -198,7 +205,20 @@
   "guForgotNoEmail": "This account has no email address to send a link to.",
   "guForgotOr": "Or sign in again here with Apple or Google, then choose a new passcode.",
 
-  "guHomeHi": "Hi there",
+  "guHomeHi": "Family area",
+  "guHomeChildren": "Children",
+  "guHomeThisFamily": "This family",
+  "guHomeAddChildDetail": "Their own details and consent",
+  "guHomeSettingsDetail": "Time per day, read-aloud, emails",
+  "guHomePhones": "Phones and family",
+  "guHomePhonesDetail": "Join, remove, invite",
+  "guHomeRightsDetail": "Download or delete everything",
+  "guHomeSignOut": "Sign out of this phone",
+  "guHomeNotesDetail": "What each session's email said",
+  "guHomeAbout": "{age}, {year}",
+  "@guHomeAbout": {"placeholders": {"age": {"type": "int"}, "year": {"type": "String"}}},
+  "guHomeAge": "{age}",
+  "@guHomeAge": {"placeholders": {"age": {"type": "int"}}},
   "guHomeWeek": "{count, plural, =0{No sessions this week} =1{1 session this week} other{{count} sessions this week}}",
   "@guHomeWeek": {"placeholders": {"count": {"type": "int"}}},
   "guProgressError": "Couldn't load progress",
@@ -217,7 +237,13 @@
   "guSetMinutes": "{n} min",
   "@guSetMinutes": {"placeholders": {"n": {"type": "int"}}},
   "guSetReadAloud": "Read aloud",
-  "guSetBigPad": "Bigger number pad (accessibility)",
+  "guSetReadAloudDetail": "The teacher's voice. On for every age",
+  "guSetTimeSheetBody": "The app ends the session kindly at this point.",
+  "guSetMinutesLong": "{n} minutes",
+  "@guSetMinutesLong": {"placeholders": {"n": {"type": "int"}}},
+  "guSaved": "Saved",
+  "guSetBigPad": "Bigger number pad",
+  "guSetBigPadDetail": "Accessibility: the lesson's keys grow",
   "guSetChangeHint": "Changes the setting",
   "guFamilyAndPhones": "Family and phones",
   "guChildPlan": "{name}'s plan",
@@ -236,8 +262,8 @@
   "guRightsLink": "Your data and rights",
   "guSignOut": "Sign out",
 
-  "guFamilyTitle": "Family and phones",
-  "guGrownUps": "Grown-ups",
+  "guFamilyTitle": "Phones and family",
+  "guGrownUps": "Family members",
   "guChildren": "Children",
   "guPhones": "Phones",
   "guYou": "{email} (you)",
@@ -265,36 +291,37 @@
   "guSignOutBrowserLabel": "Sign out {label}",
   "@guSignOutBrowserLabel": {"placeholders": {"label": {"type": "String"}}},
   "guOpenChildHint": "Shows where they are",
-  "guInviteGrownUp": "Invite a grown-up",
-  "guAddPhone": "Add a child's phone",
+  "guInviteGrownUp": "Invite a family member",
+  "guAddPhone": "Join a child's phone",
 
-  "guInviteTitle": "Invite a grown-up",
-  "guInviteBody": "They can see the book and change settings.",
+  "guInviteTitle": "Invite a family member",
+  "guInviteBody": "They can see the notes and change settings. They set their own passcode.",
   "guInviteEmail": "Their email",
   "guInviteSend": "Send invite",
   "guInviteBadEmail": "That doesn't look like an email address.",
   "guInviteSentTitle": "Invite sent",
-  "guInviteSentBody": "We emailed a link to {email}.",
+  "guInviteSentBody": "{email} has an email with a link. It works for 7 days. You will see them here once they join.",
   "@guInviteSentBody": {"placeholders": {"email": {"type": "String"}}},
+  "guInviteSentDone": "Done",
 
   "guCodeTitle": "Here is a code",
   "guCodeNewTitle": "Here is a new code",
   "guCodeNewBody": "The old one stopped working.",
-  "guCodeLeft": "Works once. {time} left.",
+  "guCodeLeft": "Works once, for {time}. Five tries.",
   "@guCodeLeft": {"placeholders": {"time": {"type": "String"}}},
-  "guCodeExpired": "This code has stopped working.",
-  "guCodeAgain": "Get a new code",
+  "guCodeExpired": "That code has expired. Codes last 10 minutes. Show a new one when you are both ready.",
+  "guCodeAgain": "Show a new code",
   "guCodeTypeOn": "Type it on {name}'s phone",
   "@guCodeTypeOn": {"placeholders": {"name": {"type": "String"}}},
   "guCodeTypeOnChild": "Type it on your child's phone",
 
   "guRemoveTitle": "Remove {label}?",
   "@guRemoveTitle": {"placeholders": {"label": {"type": "String"}}},
-  "guRemoveBody": "It signs out straight away. Progress stays safe in the family account.",
+  "guRemoveBody": "It signs out straight away and keeps nothing. Progress stays safe in the family account.",
   "guRemoveButton": "Remove phone",
   "guRemoveGone": "That phone isn't in your family any more.",
   "guRemovedTitle": "Phone removed",
-  "guRemovedBody": "That phone is signed out. Join a new phone with a code any time.",
+  "guRemovedBody": "That phone is signed out. On it, your child sees \"This phone was removed\". Join a new phone with a code any time.",
 
   "guRemoveGrownUpTitle": "Remove {email}?",
   "@guRemoveGrownUpTitle": {"placeholders": {"email": {"type": "String"}}},
@@ -314,22 +341,24 @@
   "guBrowserGone": "That browser is already signed out.",
 
   "guAddChildTitle": "Add a child",
-  "guAddChildBody": "You agree for them, as their grown-up. Only a first name.",
+  "guAddChildBody": "You agree for them, as their parent or guardian. Only a first name.",
   "guAddChildName": "First name",
   "guAddChildNameNeeded": "Type a first name.",
   "guAddChildYear": "School year (optional)",
   "guAddChildYearHint": "For example, Year 2",
   "guAddChildYearUnknown": "Type Kindergarten or a year from 1 to 5.",
-  "guAddChildAgree": "I agree, continue",
+  "guAddChildAgree": "Continue",
+  "guAddChildConsent": "I am this child's parent or guardian. I agree to the same terms for them.",
 
   "guRightsTitle": "Your data and rights",
+  "guRightsBody": "Everything we hold is stored in Australia and belongs to your family.",
   "guStoredTitle": "What we keep",
   "guStored1": "Your email, and other grown-ups' emails",
   "guStored2": "Each child's first name, and their age, school year and goal if you gave them",
   "guStored3": "Every step of every lesson",
   "guStored4": "The names of joined phones",
   "guDownload": "Download everything",
-  "guDownloadBody": "A file with all of your family's data",
+  "guDownloadBody": "A file with every child's data, ready within a day",
   "guExportPending": "Getting it ready…",
   "guExportReady": "Ready. Tap to save it on this phone.",
   "guExportSaved": "Saved on this phone as {file}",
@@ -337,10 +366,29 @@
   "guExportFailed": "The export failed. Tap to try again.",
   "guExportExpired": "That export has expired. Tap to start another.",
   "guDeleteAccount": "Delete the family account",
-  "guDeleteAccountBody": "Everything, for every child, straight away",
-  "guDeleteTitle": "Delete your family account?",
-  "guDeleteBody": "This deletes everything we keep: every child's lessons and progress, the other grown-ups' access and every joined phone. It happens straight away and can't be undone. Download everything first if you want a copy.",
+  "guDeleteAccountBody": "Everyone, everything, straight away",
+  "guDeleteTitle": "Delete the family account?",
+  "guDeleteBody": "This cannot be undone.",
+  "guDeleteChildren": "Every child",
+  "guDeleteChildrenBody": "Their details, cases and badges",
+  "guDeleteSessions": "Every session and tap",
+  "guDeleteSessionsBody": "The whole learning record",
+  "guDeleteNotes": "Every note and email",
+  "guDeleteNotesBody": "We keep nothing to send",
+  "guDeletePhones": "Every phone and family member",
+  "guDeletePhonesBody": "All signed out, now",
+  "guDeleteNow": "It happens straight away, not in 30 days. If you want a copy first, download everything before you delete.",
+  "guDeleteDownloadFirst": "Download everything first",
   "guDeleteButton": "Delete everything",
+  "guDeleteConfirmTitle": "Type DELETE to confirm",
+  "guDeleteConfirmBody": "One last check that it is you, and that you mean it.",
+  "guDeleteConfirmLabel": "Type DELETE",
+  "guDeleteConfirmWord": "DELETE",
+  "guDeleteConfirmButton": "Delete the family account",
+  "guDeleteKeep": "Keep my account",
+  "guDeletedTitle": "Deleted",
+  "guDeletedBody": "Your family account is gone and every phone is signed out. Thank you for trying Auramath.",
+  "guClose": "Close",
   "guConsentLink": "Withdraw your consent",
   "guConsentLinkBody": "Lessons stop until you agree again",
   "guConsentWithdrawn": "You've withdrawn your consent",
@@ -355,16 +403,18 @@
   "guAgainBody": "You agree, as their grown-up, that we keep each child's first name and every step of their lessons, so lessons can carry on. You can withdraw again or delete everything any time.",
   "guAgainButton": "I agree",
 
-  "guNotifyTitle": "A note after each session?",
-  "guNotifyBody": "We'll email you what {name} did and what's next. Nothing else.",
-  "@guNotifyBody": {"placeholders": {"name": {"type": "String"}}},
-  "guNotifyCard": "An email after each session",
-  "guNotifyCardBody": "One short note, after the session ends.",
-  "guNotifyYes": "Yes please",
+  "guNotifyTitle": "An email after each session",
+  "guNotifyBody": "A short note: what was practised, how much help was needed, something to try tonight.",
+  "guNotifyCard": "Sent to your email",
+  "guNotifyCardBody": "Within a few minutes of {name} finishing.",
+  "@guNotifyCardBody": {"placeholders": {"name": {"type": "String"}}},
+  "guNotifyYes": "Continue",
   "guNotifyNo": "Not now",
+  "guNotifyCheck": "Email me after each session",
 
-  "guSignOutTitle": "Sign out on this phone?",
-  "guSignOutBody": "Progress stays safe in your family account.",
+  "guSignOutTitle": "Sign out of this phone?",
+  "guSignOutBody": "Nothing about your children stays on this phone. Sign in again any time with Apple, Google or an email link.",
+  "guSignedOut": "Signed out",
 
   "guBookTitle": "{name}'s book",
   "@guBookTitle": {"placeholders": {"name": {"type": "String"}}},
@@ -379,6 +429,10 @@
   "guNotesLink": "Recent notes",
   "guNotesTitle": "{name}'s notes",
   "@guNotesTitle": {"placeholders": {"name": {"type": "String"}}},
+  "guNotesBody": "What each session email said. Nothing is scored or graded.",
+  "guNotesEmpty": "No notes yet",
+  "guNotesEmptyBody": "The first one arrives a few minutes after {name}'s first session.",
+  "@guNotesEmptyBody": {"placeholders": {"name": {"type": "String"}}},
   "guNotesNone": "No notes yet. One comes after each of {name}'s sessions.",
   "@guNotesNone": {"placeholders": {"name": {"type": "String"}}},
   "guNoteError": "Couldn't load the note.",
@@ -428,6 +482,21 @@
   "guLearningEdit": "Change {name}'s details",
   "@guLearningEdit": {"placeholders": {"name": {"type": "String"}}},
   "guLearningEditBody": "Name, age and school year",
+  "guChildDoing": "How {name} is doing",
+  "@guChildDoing": {"placeholders": {"name": {"type": "String"}}},
+  "guChildWorkingOn": "Working on",
+  "guChildNow": "Now",
+  "guChildJourney": "{name}'s journey",
+  "@guChildJourney": {"placeholders": {"name": {"type": "String"}}},
+  "guChildDetails": "Details",
+  "guChildFirstName": "First name",
+  "guChildAge": "Age",
+  "guChildYear": "School year",
+  "guChildNotSet": "Not set",
+  "guChildPicture": "Change {name}'s picture",
+  "@guChildPicture": {"placeholders": {"name": {"type": "String"}}},
+  "guLearningMovedUpPlain": "Moved up a level",
+  "guLearningChangedPlain": "Moved to a new level",
 
   "guEditTitle": "{name}'s details",
   "@guEditTitle": {"placeholders": {"name": {"type": "String"}}},
@@ -520,11 +589,12 @@
   "setupContinue": "Continue",
   "setupTryAgain": "Try again",
   "setupWelcomeTitle": "Personalised maths.\nTargeted growth.",
-  "setupWelcomeBody": "Bar-model word problems for ages 6 to 10, read aloud and drawn by your child.",
+  "setupWelcomeBody": "Bar-model word problems for ages 6 to 10, read aloud and drawn by your child. Made with Julia Fong's method.",
   "setupGetStarted": "Get started",
   "setupHaveAccount": "I already have an account",
   "setupNameTitle": "Your child's first name",
   "setupNameSubtitle": "Only the first name. No surname.",
+  "setupNameNote": "We use it to say hello. It never goes to the AI.",
   "setupNameLabel": "First name",
   "setupAgeRange": "Auramath is for ages 6 to 10 for now.",
   "setupAgeTitle": "How old is {name}?",
@@ -536,28 +606,31 @@
   "setupKindergarten": "Kindergarten",
   "setupYearN": "Year {n}",
   "@setupYearN": {"placeholders": {"n": {"type": "int"}}},
-  "setupStartTitle": "What can {name} already do?",
+  "setupStartTitle": "What is {name} confident in?",
   "@setupStartTitle": {"placeholders": {"name": {"type": "String"}}},
-  "setupStartSubtitle": "Pick everything that feels easy. In school order.",
+  "setupStartSubtitle": "Select all likely areas your child is confident in. In school order.",
   "setupCanCount100": "Counting to 100",
   "setupCanAdd100": "Adding to 100",
-  "setupCanSub100": "Subtracting to 100",
+  "setupCanSub100": "Taking away to 100",
   "setupCanAdd1000": "Adding to 1000",
-  "setupCanSub1000": "Subtracting to 1000",
+  "setupCanSub1000": "Taking away to 1000",
   "setupCanWordProblems": "Word problems with bars",
   "setupNotSure": "I'm not sure",
   "setupNotSureDetail": "Help me figure it out",
+  "setupNotSureFromAge": "We'll start from {name}'s age and find out",
+  "@setupNotSureFromAge": {"placeholders": {"name": {"type": "String"}}},
   "setupNotSureTitle": "No problem",
-  "setupNotSureBody": "{name} starts at a typical {year} level. The first sums find the real one, and we'll email you what we found.",
-  "@setupNotSureBody": {"placeholders": {"name": {"type": "String"}, "year": {"type": "String"}}},
-  "setupNotSureBodyNoYear": "{name} starts at a level typical for their age. The first sums find the real one, and we'll email you what we found.",
+  "setupNotSureBody": "{name} starts where most {age}-year-olds do. A few quick sums find the real starting point. We email you what we found after the first session.",
+  "@setupNotSureBody": {"placeholders": {"name": {"type": "String"}, "age": {"type": "int"}}},
+  "setupNotSureBodyNoYear": "{name} starts where most children their age do. A few quick sums find the real starting point. We email you what we found after the first session.",
   "@setupNotSureBodyNoYear": {"placeholders": {"name": {"type": "String"}}},
   "setupQuickSums": "Four quick sums first",
   "setupQuickSumsDetail": "Before any word problem.",
   "setupEmailAfter": "An email after the first session",
-  "setupEmailAfterDetail": "Telling you where {name} is.",
+  "setupEmailAfterDetail": "Telling you where {name} is, in plain words.",
   "@setupEmailAfterDetail": {"placeholders": {"name": {"type": "String"}}},
   "setupGoalTitle": "What would help most?",
+  "setupGoalSubtitle": "Pick the one that fits best.",
   "setupGoalConfidence": "Build confidence",
   "setupGoalConfidenceDetail": "Calm, positive practice",
   "setupGoalCatchUp": "Catch up",
@@ -567,14 +640,20 @@
   "setupGoalWordProblems": "Word problems",
   "setupGoalWordProblemsDetail": "Reading and drawing them",
   "setupGoalSchool": "Do well in the school curriculum",
-  "setupDataTitle": "{name}'s details stay safe",
+  "setupGoalSchoolDetail": "Keep pace with the NSW syllabus",
+  "setupGoalNotSure": "Not sure yet",
+  "setupGoalNotSureDetail": "That is fine too",
+  "setupDataTitle": "What we hold about {name}",
   "@setupDataTitle": {"placeholders": {"name": {"type": "String"}}},
+  "setupDataSubtitle": "And who sees it.",
   "setupDataStored": "Stored in Australia",
   "setupDataStoredDetail": "On servers in Australia.",
+  "setupDataTaps": "Every tap in a lesson",
+  "setupDataTapsDetail": "So the tutor can see how the sum went. Never typed words.",
   "setupDataNoAi": "Nothing personal goes to the AI",
   "setupDataNoAiDetail": "The tutor never sees a name or a birthday.",
-  "setupDataFirstName": "Only a first name",
-  "setupDataFirstNameDetail": "Your child never types personal details.",
+  "setupDataFirstName": "First name, age, school year",
+  "setupDataFirstNameDetail": "And what was practised. No gender, no birthday.",
   "setupDataHelpers": "Who helps us",
   "@setupDataHelpers": {"description": "DRAFT (ACC-10) for Legal and Julia: the processors, under D-15/D-50. Not final wording."},
   "setupDataHelpersDetail": "Google Cloud in Sydney runs Auramath, its AI model (Gemini) and its voice. An email service sends your sign-in emails and notes. They work only for us, and none of them gets a name.",
@@ -583,26 +662,44 @@
   "@setupDataJulia": {"description": "DRAFT (ACC-10) for Legal and Julia: her weekly summary during the home week."},
   "setupDataJuliaDetail": "During the home week, Julia, our teacher, gets a weekly summary of her families' lessons.",
   "@setupDataJuliaDetail": {"description": "DRAFT (ACC-10) for Legal and Julia. Confirm what the summary holds and whether it names the child."},
-  "setupDataDelete": "Delete it any time",
-  "setupDataDeleteDetail": "From Settings, in one step.",
+  "setupDataDelete": "Download or delete it any time",
+  "setupDataDeleteDetail": "From the Family area, in one step, for the whole family.",
+  "setupDataWho": "Who else sees anything",
+  "setupDataAi": "The AI that runs the lesson",
+  "setupDataAiDetail": "Gemini, on Google Cloud in Sydney. It sees the problem and the taps, never a name, age or anything about your family.",
+  "setupDataVoice": "The voice that reads aloud",
+  "setupDataVoiceDetail": "Google Cloud's voice, in Sydney. It gets the words on screen, nothing about your child.",
+  "setupDataEmail": "The email service",
+  "setupDataEmailDetail": "Sends your sign-in emails and notes to your address only.",
+  "setupDataJuliaName": "Julia Fong",
+  "setupDataJuliaWeekly": "Gets a weekly summary of her families' progress, by first name only.",
+  "setupDataConsent": "I am {name}'s parent or guardian. I agree to this for {name}.",
+  "@setupDataConsent": {"placeholders": {"name": {"type": "String"}}},
   "setupAgree": "I agree",
   "setupSaveTitle": "Save {name}'s place",
   "@setupSaveTitle": {"placeholders": {"name": {"type": "String"}}},
   "setupSaveSubtitle": "One family account, so progress follows your child to any phone.",
   "setupSaving": "Saving {name}'s place…",
   "@setupSaving": {"placeholders": {"name": {"type": "String"}}},
-  "setupContinueApple": "Continue with Apple",
-  "setupContinueGoogle": "Continue with Google",
+  "setupContinueApple": "Sign in with Apple",
+  "setupContinueGoogle": "Sign in with Google",
   "setupUseEmail": "Use my email",
-  "setupEmailLabel": "Email address",
-  "setupEmailMeLink": "Email me a link",
+  "setupEmailLabel": "Your email",
+  "setupEmailMeLink": "Email me a sign-in link",
+  "setupOr": "or",
+  "setupTerms": "By continuing you agree to the terms and privacy notice.",
   "setupEmailInvalid": "Type the email address to send the link to.",
   "setupAppleOff": "Apple sign-in isn't switched on for this server yet.",
   "setupEmailOff": "This server can't send email yet.",
-  "setupSignInTitle": "Welcome back",
-  "setupSignInSubtitle": "Sign in to your family account.",
+  "setupSignInTitle": "Sign in or create your family account",
+  "setupSignInSubtitle": "One grown-up account. Your child never signs in.",
   "setupCheckTitle": "Check your email",
-  "setupCheckBody": "Tap the link we sent to sign in on this phone.",
+  "setupCheckBody": "Tap the link we sent to your email. It works once, for 15 minutes.",
+  "setupCheckBodyTo": "Tap the link we sent to {email}. It works once, for 15 minutes.",
+  "@setupCheckBodyTo": {"placeholders": {"email": {"type": "String"}}},
+  "setupSendAgain": "Send it again",
+  "setupSentAgain": "Sent again. Check your spam folder too.",
+  "setupWrongEmail": "Not your email?",
   "setupTappedLink": "I tapped the link",
   "setupLinkNotYet": "The link hasn't opened on this phone yet. Open the email on this phone and tap the link.",
   "setupDevLink": "Open the link (dev only)",
@@ -610,13 +707,19 @@
   "setupCodeUse": "Sign in with the code",
   "setupCodeSix": "The code is 6 numbers.",
   "setupVerifying": "Signing you in…",
+  "setupSignedIn": "Signed in",
   "setupLinkMissing": "This link has no sign-in code in it. Ask for a new one.",
   "setupBackToSignIn": "Back to sign in",
-  "setupReadyTitle": "All set!",
-  "setupReadyBody": "{name} starts with a short warm-up, then a story case.",
+  "setupReadyTitle": "{name}'s work is ready.",
+  "@setupReadyTitle": {"placeholders": {"name": {"type": "String"}}},
+  "setupReadyBody": "{name}'s turn: let them have a go at today's tutor-set work. We will send you an update of their progress from today.",
   "@setupReadyBody": {"placeholders": {"name": {"type": "String"}}},
-  "setupReadyNoHelp": "Please let {name} try on their own. Getting stuck is part of it, and the help is built in.",
-  "@setupReadyNoHelp": {"placeholders": {"name": {"type": "String"}}},
+  "setupReadyNoHelp": "Please don't help with the sums",
+  "setupReadyNoHelpDetail": "The tutor needs to see what {name} can do alone. Sit nearby if you like.",
+  "@setupReadyNoHelpDetail": {"placeholders": {"name": {"type": "String"}}},
+  "setupReadyMeet": "Meet the case partner together",
+  "setupReadyMeetDetail": "It will tell {name} it is a computer helper, an AI, with you there.",
+  "@setupReadyMeetDetail": {"placeholders": {"name": {"type": "String"}}},
   "setupHandOver": "Hand over to {name}",
   "@setupHandOver": {"placeholders": {"name": {"type": "String"}}},
   "setupOwnPhone": "{name} has their own phone",
@@ -627,13 +730,16 @@
   "setupUsePasscode": "Use a passcode",
   "setupFaceIdFailed": "Face ID didn't work. You can use a passcode instead.",
   "setupFaceIdMissing": "Face ID isn't set up on this phone. Use a passcode instead.",
-  "setupPassTitle": "Choose a passcode",
-  "setupPassBody": "{n} digits, so only grown-ups can open the grown-up area.",
-  "@setupPassBody": {"placeholders": {"n": {"type": "int"}}},
-  "setupPassAgainTitle": "Type it again",
-  "setupPassAgainBody": "The same {n} digits, to be sure.",
-  "@setupPassAgainBody": {"placeholders": {"n": {"type": "int"}}},
-  "setupPassMismatch": "Those didn't match. Choose a passcode again.",
+  "setupPassTitle": "Lock the Family area",
+  "setupPassBody": "{digits} only you know. {name} never sees this part.",
+  "@setupPassBody": {"placeholders": {"digits": {"type": "String"}, "name": {"type": "String"}}},
+  "setupPassDigits": "{n, plural, =1{One digit} other{{n} digits}}",
+  "@setupPassDigits": {"placeholders": {"n": {"type": "int"}}},
+  "setupPassFour": "Four digits",
+  "setupPassAgainTitle": "Lock the Family area",
+  "setupPassAgainBody": "Type it once more to be sure.",
+  "setupPassMismatch": "Those did not match. Start again.",
+  "setupPassSet": "Passcode set",
   "setupPassShort": "The passcode is {n} digits.",
   "@setupPassShort": {"placeholders": {"n": {"type": "int"}}},
   "setupPassAlreadySet": "Your family has a passcode",
@@ -642,12 +748,13 @@
   "@setupJoinTitle": {"placeholders": {"name": {"type": "String"}}},
   "setupJoinBody": "On {name}'s phone, open Auramath, tap I'm a kid and type this code.",
   "@setupJoinBody": {"placeholders": {"name": {"type": "String"}}},
-  "setupWorksOnce": "Works once, for {time}",
+  "setupWorksOnce": "Works once, for {time}. Five tries.",
   "@setupWorksOnce": {"placeholders": {"time": {"type": "String"}}},
-  "setupCodeExpired": "This code has run out. Show a new code.",
+  "setupCodeExpired": "That code has expired. Codes last 10 minutes. Show a new one when you are both ready.",
   "setupProgressFollows": "Progress follows {name}",
   "@setupProgressFollows": {"placeholders": {"name": {"type": "String"}}},
   "setupProgressFollowsDetail": "Lessons carry on from any phone in the family.",
+  "setupJoinDone": "Done",
   "setupNewCode": "Show a new code",
   "lessonThinking": "Hmm, let me think.",
   "@lessonThinking": {"description": "DRAFT, for Julia and design (no Figma frame): the case partner's small thinking cue when the tutor's decision takes over a second (NFR-05). Never a spinner; the child can carry on."},
@@ -663,8 +770,20 @@
   "@lessonSeenBeforeNoCase": {"description": "DRAFT, for Julia (AI-10): when the decision names no earlier case, or this phone doesn't have it."},
   "lessonSeenBeforeBack": "Back to my case",
   "@lessonSeenBeforeBack": {"description": "DRAFT, for Julia (AI-10): closes the seen-before prompt."},
-  "lessonRateAsk": "How was this case?",
+  "lessonRateAsk": "How was that one?",
   "@lessonRateAsk": {"description": "DRAFT, for Julia and design (no Figma frame), AI-08: above three faces after a solved case, ages 7 and up. Optional; Next works without a face."},
+  "lessonRateAnyAnswer": "Any answer is fine.",
+  "@lessonRateAnyAnswer": {"description": "DRAFT (prototype Rate, 16 Nov, AI-08): under the three faces."},
+  "lessonRateSkip": "Skip",
+  "@lessonRateSkip": {"description": "DRAFT (prototype Rate): the link under the faces; no face given."},
+  "lessonDrawStoryOut": "Can you draw the story out?",
+  "@lessonDrawStoryOut": {"description": "Policy line.quiet.draw-story (ASK-J42, not yet approved): W1's title when the library has no line."},
+  "lessonDrawTogether": "Let's do it together.",
+  "@lessonDrawTogether": {"description": "DRAFT (prototype W1, 16 Nov): under 'Can you draw the story out?'."},
+  "lessonLetsDraw": "Let's draw",
+  "@lessonLetsDraw": {"description": "DRAFT (prototype W1): the button that opens the board."},
+  "lessonFamilySees": "Your family will see this too.",
+  "@lessonFamilySees": {"description": "DRAFT (prototype Y2, 16 Nov, AI-07 reminder at a natural break): under the praise on case cracked."},
   "lessonRateEasy": "Easy",
   "@lessonRateEasy": {"description": "DRAFT (AI-08): the happy face."},
   "lessonRateOk": "OK",
@@ -731,6 +850,8 @@
   "@lessonStarRow": {"description": "DRAFT (TUT-17): what a screen reader says for each row in the stars lesson, by its place (1 or 2).", "placeholders": {"n": {"type": "int"}}},
   "lessonTakeBack": "Take it back",
   "@lessonTakeBack": {"description": "DRAFT, for Julia (LES-07, LES-15): what a screen reader says on a piece dropped in the wrong place; a tap puts it back in the tray, free."},
+  "lessonSee": "See",
+  "@lessonSee": {"description": "DRAFT (prototype 16 Nov): the word on the question strip's eye button (LES-02)."},
   "lessonSeeQuestion": "See the question",
   "@lessonSeeQuestion": {"description": "What a screen reader says on the eye button that opens the whole question (LES-02). Figma: Prototype parts › Question strip."},
   "lessonQuestionBack": "Back to my work",
@@ -757,14 +878,24 @@
   "@guDrawingLabel": {"description": "DRAFT, for Julia (PAR-09): what a screen reader says for the lesson's drawing when the server sends no caption."},
   "kidPickAvatarAskGrownUp": "Ask a grown-up to set your detective for you.",
   "@kidPickAvatarAskGrownUp": {"description": "DRAFT, for Julia (ACC-12): this phone may not set the child's avatar (a sibling who has never had a lesson on this shared phone); a grown-up sets it in Edit child."},
-  "kidQuickDone": "Quick sums done!",
+  "kidQuickDone": "Warmed up!",
   "@kidQuickDone": {"description": "DRAFT, for Julia (LES-16): after the run of five. No score or count."},
-  "kidQuickStory": "A story problem",
+  "kidQuickOnToday": "On to today.",
+  "@kidQuickOnToday": {"description": "DRAFT (prototype QS3, 16 Nov): under 'Warmed up!' after the run."},
+  "kidQuickGo": "Go!",
+  "@kidQuickGo": {"description": "DRAFT (prototype QSgo): the end of the 3, 2, 1 count before the first sum."},
+  "kidQuickTier1": "Charged up!",
+  "@kidQuickTier1": {"description": "DRAFT (prototype QS2 tiers): the meter reaches its first mark. No count or score."},
+  "kidQuickTier2": "On fire!",
+  "@kidQuickTier2": {"description": "DRAFT (prototype QS2 tiers): the meter's second mark."},
+  "kidQuickTier3": "Super charged!",
+  "@kidQuickTier3": {"description": "DRAFT (prototype QS2 tiers): the meter's third mark."},
+  "kidQuickStory": "On to a case",
   "@kidQuickStory": {"description": "DRAFT, for Julia (LES-16): after Quick sums, on to today's story problem."},
   "kidQuickHome": "Back home",
   "@kidQuickHome": {"description": "DRAFT, for Julia (LES-16): after Quick sums, back to Home."},
-  "kidTodayTitle": "What shall we do today?",
-  "@kidTodayTitle": {"description": "DRAFT, for Julia (LES-14, Figma A3 / 4.2): Choose today's title."},
+  "kidTodayTitle": "Which one first?",
+  "@kidTodayTitle": {"description": "DRAFT, for Julia (LES-14, prototype A3, 16 Nov; Figma A3 / 4.2 had 'What shall we do today?'): Choose today's title."},
   "kidTodayStory": "A story problem",
   "@kidTodayStory": {"description": "DRAFT, for Julia (LES-14): today's case, at the child's level."},
   "kidTodayQuick": "Quick sums",
@@ -804,5 +935,287 @@
   "lessonMore": "more",
   "@lessonMore": {"description": "DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 more')."},
   "lessonLess": "less",
-  "@lessonLess": {"description": "DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 less')."}
+  "@lessonLess": {"description": "DRAFT, for Julia (CON-11): the question strip's word for the difference in a weight story ('128 less')."},
+  "kidSurpriseMe": "Surprise me",
+  "@kidSurpriseMe": {
+    "description": "DRAFT, for Key (ACC-12, TTR-01): picks a look or a tutor at random; the child sees it and can pick again."
+  },
+  "kidLookName": "Look {n}",
+  "@kidLookName": {
+    "description": "DRAFT, for Key (ACC-12): a look's name for screen readers until Key names the looks. Never a gender.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "kidTutorPlaceholderName": "Your tutor",
+  "@kidTutorPlaceholderName": {
+    "description": "DRAFT (TTR-01, contract 6): a tutor's name until Key names the tutors. Never the child's name (NFR-08)."
+  },
+  "kidTutorName": "Tutor {n}",
+  "@kidTutorName": {
+    "description": "DRAFT (TTR-01): a tutor tile's label until Key names the tutors.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "kidVoiceName": "Voice {n}",
+  "@kidVoiceName": {
+    "description": "DRAFT (TTR-06): a voice's label on My tutor until Key names the voices.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "kidHearHello": "Hear hello",
+  "@kidHearHello": {
+    "description": "DRAFT (TTR-01, TTR-06): plays the tutor's or voice's hello sample."
+  },
+  "kidChooseThis": "Choose this one",
+  "@kidChooseThis": {
+    "description": "DRAFT (ACC-12, TTR-01): saves the look, tutor, voice or world picked."
+  },
+  "kidThisIsMe": "This is me!",
+  "@kidThisIsMe": {
+    "description": "DRAFT, for Key (ACC-12; prototype LookPick, 16 Nov): saves the look picked."
+  },
+  "kidThisIsMyTutor": "This is my teacher!",
+  "@kidThisIsMyTutor": {
+    "description": "DRAFT, for Key (TTR-01; prototype TutorPick, 16 Nov): saves the tutor picked."
+  },
+  "kidMyLookNote": "Change how you look",
+  "@kidMyLookNote": {
+    "description": "DRAFT, for Key (JRN-02; prototype Me, 16 Nov): under My look."
+  },
+  "kidMyTutorNote": "Pick who teaches you",
+  "@kidMyTutorNote": {
+    "description": "DRAFT, for Key (JRN-02; prototype Me, 16 Nov): under My tutor."
+  },
+  "kidMyVoiceNote": "How your teacher sounds",
+  "@kidMyVoiceNote": {
+    "description": "DRAFT, for Key (TTR-06; prototype Me, 16 Nov): under My tutor's voice."
+  },
+  "kidMyWorldNote": "Where your cases happen",
+  "@kidMyWorldNote": {
+    "description": "DRAFT, for Key (REW-22; prototype Me, 16 Nov): under My world."
+  },
+  "kidTapYourPicture": "Tap your picture.",
+  "@kidTapYourPicture": {
+    "description": "DRAFT, for Key (DEV-01; prototype A1, 16 Nov): under Who's learning today?"
+  },
+  "kidErrTitle": "That didn't work",
+  "@kidErrTitle": {
+    "description": "DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): something failed on the child's side. Nothing red, no error code."
+  },
+  "kidErrLine": "Let's have another go.",
+  "@kidErrLine": {
+    "description": "DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): under That didn't work."
+  },
+  "kidErrRetry": "Have another go",
+  "@kidErrRetry": {
+    "description": "DRAFT, for Julia (NFR-03; prototype ErrChild, 16 Nov): tries the read again."
+  },
+  "kidReadyForACase": "Ready for a case?",
+  "@kidReadyForACase": {
+    "description": "DRAFT, for Key (SES-07; prototype WelcomeBack, 16 Nov): back on a later day with no case waiting."
+  },
+  "kidGoHome": "Go home",
+  "@kidGoHome": {
+    "description": "DRAFT, for Key (prototype ErrChild, 16 Nov): back to the child's Home."
+  },
+  "pairReadyToPlay": "Hi! Ready to play?",
+  "@pairReadyToPlay": {
+    "description": "DRAFT, for Key (ACC-01; prototype Open, 16 Nov): the ribbon on a fresh phone."
+  },
+  "pairPlay": "Play",
+  "@pairPlay": {
+    "description": "DRAFT, for Key (DEV-02; prototype Open, 16 Nov): a child pairs this phone."
+  },
+  "pairParentsAndCarers": "Parents and carers",
+  "@pairParentsAndCarers": {
+    "description": "DRAFT, for Key (ACC-01; prototype Open, 16 Nov): a grown-up sets up."
+  },
+  "pairSetUpSignIn": "Already set up? Sign in",
+  "@pairSetUpSignIn": {
+    "description": "DRAFT, for Key (ACC-01; prototype Open, 16 Nov): a grown-up signs in."
+  },
+  "pairFamilyArea": "Family area",
+  "@pairFamilyArea": {
+    "description": "DRAFT, for Key (DEV-01; prototype A1, 16 Nov): the grown-ups' way in, behind the passcode."
+  },
+  "kidComingSoon": "Coming soon",
+  "@kidComingSoon": {
+    "description": "DRAFT (REW-22): a greyed world tile; no name, placeholder art."
+  },
+  "kidMe": "Me",
+  "@kidMe": {
+    "description": "DRAFT (JRN-02): the Me screen's title; the child's own choices, no passcode."
+  },
+  "kidMyLook": "My look",
+  "@kidMyLook": {
+    "description": "DRAFT (JRN-02, AVT-01)."
+  },
+  "kidMyTutor": "My tutor",
+  "@kidMyTutor": {
+    "description": "DRAFT (JRN-02, TTR-06)."
+  },
+  "kidMyVoice": "My tutor's voice",
+  "@kidMyVoice": {
+    "description": "DRAFT (TTR-06): switch the tutor's voice."
+  },
+  "kidMyWorld": "My world",
+  "@kidMyWorld": {
+    "description": "DRAFT (JRN-02, JRN-05): only with flags.worlds on and two or more worlds enabled."
+  },
+  "kidWorldNextTime": "Your new world starts next time.",
+  "@kidWorldNextTime": {
+    "description": "DRAFT (REW-17): a world change applies from the next session."
+  },
+  "kidSaveFailed": "That didn't save. Check the internet and tap again.",
+  "@kidSaveFailed": {
+    "description": "DRAFT (ACC-12, TTR-01): a look, tutor or world couldn't be saved."
+  },
+  "kidBadgeCabinet": "My badges",
+  "@kidBadgeCabinet": {
+    "description": "DRAFT (REW-12): the cabinet's title. Earned badges only; never a count."
+  },
+  "kidCabinetEmpty": "Your badges will live here.",
+  "@kidCabinetEmpty": {
+    "description": "DRAFT (REW-12): the cabinet with nothing earned yet. No outline, no count, no 'next to earn'."
+  },  "kidTodaysBadge": "Today's badge",
+  "@kidTodaysBadge": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the heading over the session badge (Y3)."
+  },
+  "kidNewMedal": "A new medal!",
+  "@kidNewMedal": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the ribbon over a stop medal (LevelUp, REW-08)."
+  },
+  "kidTrailGoesOn": "Your trail goes on. Time to try a new skill!",
+  "@kidTrailGoesOn": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the line under a stop medal (LevelUp)."
+  },
+  "kidNewBadge": "A new badge!",
+  "@kidNewBadge": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the ribbon over a habit badge (Habit, REW-10)."
+  },
+  "kidHabitBarBuilder": "You draw the bars yourself.",
+  "@kidHabitBarBuilder": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Bar builder's line (Habit, B2)."
+  },
+  "kidHabitCarefulReader": "You read the question with care.",
+  "@kidHabitCarefulReader": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Careful reader's line (Habit, B2)."
+  },
+  "kidHabitLearnItDoIt": "You learn a step, then do it on your own.",
+  "@kidHabitLearnItDoIt": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Learn it, do it's line (Habit, B2)."
+  },
+  "kidHabitDoubleChecker": "You check your work and fix it.",
+  "@kidHabitDoubleChecker": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: Double checker's line (Habit, B2)."
+  },
+  "kidLandTrophy": "A land trophy!",
+  "@kidLandTrophy": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the ribbon over a land trophy (LandTrophy, REW-09)."
+  },
+  "kidEveryStop": "Every stop, all yours.",
+  "@kidEveryStop": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the line under a land trophy (LandTrophy)."
+  },
+  "kidIntoYourBadges": "Into your badges!",
+  "@kidIntoYourBadges": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: First Case flying into the cabinet (first_badge moment)."
+  },
+  "kidCameBack": "You came back!",
+  "@kidCameBack": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the streak moment's ribbon (Streak, REW-05); no number."
+  },
+  "kidKeepComingBack": "Detectives who keep coming back get really good.",
+  "@kidKeepComingBack": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the streak moment's line (Streak, REW-05); never the child's name, no number."
+  },
+  "kidMedalFor": "Your medal for {stop}.",
+  "@kidMedalFor": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: a stop medal's line in the cabinet (B2).",
+    "placeholders": {"stop": {"type": "String"}}
+  },
+  "kidFirstCaseLine": "Your first case, cracked.",
+  "@kidFirstCaseLine": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: First Case's line in the cabinet (B2)."
+  },
+  "kidWalkedAll": "You walked all of {land}.",
+  "@kidWalkedAll": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: a land trophy's line in the cabinet (B2).",
+    "placeholders": {"land": {"type": "String"}}
+  },
+  "kidNotNow": "Not now",
+  "@kidNotNow": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: OtherPhone's way home instead of carrying on (DEV-05)."
+  },
+  "kidBackHome": "Back home",
+  "@kidBackHome": {
+    "description": "DRAFT (prototype 16 Nov) for Julia: the cabinet's button home (B1)."
+  },
+
+  "kidTrailExplored": "Explored",
+  "@kidTrailExplored": {
+    "description": "catalogue.yaml ui_words explored (Key's word)."
+  },
+  "kidTrailEarned": "Earned",
+  "@kidTrailEarned": {
+    "description": "DRAFT (JRN-03): an earned stop's tag, beside its medal."
+  },
+  "kidTrailMist": "Still in the mist",
+  "@kidTrailMist": {
+    "description": "DRAFT (JRN-03): a later stop or the next land's teaser, for screen readers; nothing is named in the mist."
+  },
+  "kidPolishMe": "Polish me",
+  "@kidPolishMe": {
+    "description": "catalogue.yaml ui_words polish_me (Key's word, REW-08)."
+  },
+  "kidSidePath": "Side path",
+  "@kidSidePath": {
+    "description": "DRAFT (JRN-04): the lesson header's side path during a detour: the case paused, a short path to the skill, and back to the same step."
+  },
+  "kidSidePathBack": "Back to your case",
+  "@kidSidePathBack": {
+    "description": "DRAFT (JRN-04): the way back on the side path."
+  },
+  "kidTrailLookBack": "Look back",
+  "@kidTrailLookBack": {
+    "description": "DRAFT (JRN-03, prototype K2): the sign at the bottom of the Orchard path that shows the older stops again."
+  },
+  "kidTrailOf": "{name}'s trail",
+  "@kidTrailOf": {
+    "description": "DRAFT (JRN-03, prototype K2): under the land's name at the top of the Orchard path. Read on screen, never spoken by the tutor.",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "timeUpCallItADay": "Call it a day",
+  "@timeUpCallItADay": {
+    "description": "DRAFT (SES-01, prototype TU): stop for today at the sitting's cap; nothing is lost."
+  },
+  "timeUpBodyFinish": "Good detective work. Finish this one, or call it a day?",
+  "@timeUpBodyFinish": {
+    "description": "DRAFT (SES-01, prototype TU): the time-up line when a case is open on screen. No clock, no count (SES-02)."
+  },
+  "lostInternetTitle": "Lost the internet",
+  "@lostInternetTitle": {
+    "description": "DRAFT (SES-04, prototype LostNet): the ribbon while the lesson waits for the internet."
+  },
+  "lostInternetBody": "Your drawing is safe. We'll carry on when it's back.",
+  "@lostInternetBody": {
+    "description": "DRAFT (SES-04, prototype LostNet)."
+  },
+  "kidCheckAgain": "Check again",
+  "@kidCheckAgain": {
+    "description": "DRAFT (PLAT-09, prototype NeedNet and LostNet): look for the internet again."
+  },
+  "lessonNeedInternetAsk": "Ask your family to check the Wi-Fi. Then tap Check again.",
+  "@lessonNeedInternetAsk": {
+    "description": "DRAFT (PLAT-09, prototype NeedNet)."
+  }
 }

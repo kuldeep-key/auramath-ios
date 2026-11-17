@@ -66,6 +66,20 @@ abstract final class Paths {
   /// lesson. Not in Figma.
   static const meetPartner = '/meet';
 
+  /// REW-01: a session badge waiting from a session that ended with the
+  /// app closed or offline, shown on the next open before anything else.
+  static const badgeWaiting = '/badge-waiting';
+
+  /// JRN-02: the child's own choices (look, tutor and voice, world). No
+  /// passcode (PRV-06). DRAFT: no Figma frame yet.
+  static const me = '/me';
+  static const pickTutor = '/me/tutor';
+  static const pickVoice = '/me/voice';
+  static const pickWorld = '/me/world';
+
+  /// JRN-01: first run, at the first step still to answer.
+  static const firstRun = '/first-run';
+
   /// After a solved case: X1 (650:166), Streak (650:202), Up (651:35),
   /// Y4 (648:83). `?next=<problemId>` is the case the engine chose.
   static const afterCase = '/after-case';

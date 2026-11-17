@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get gotItLetsDraw => 'Got it, let\'s draw';
+  String get gotItLetsDraw => 'Let\'s draw it';
 
   @override
   String get hearItAgain => 'Hear it again';
@@ -367,7 +367,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pairTypeCode => 'Type your code';
 
   @override
-  String get pairCodeWhere => 'Your grown-up has it on their phone.';
+  String get pairCodeWhere => 'Your family has it on their phone.';
 
   @override
   String get pairAskForNewCode =>
@@ -398,11 +398,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pairCodeWrongBody => 'Ask your grown-up for a new one.';
 
   @override
-  String get pairTooMany => 'Too many tries';
+  String get pairCodeDidntWork => 'That code didn\'t work.';
+
+  @override
+  String get pairTooMany => 'Let\'s get a new code';
 
   @override
   String get pairTooManyBody =>
-      'Wait a few minutes, then ask your grown-up for a new code.';
+      'That code has stopped working. Wait a few minutes, then ask your family for a new one.';
 
   @override
   String get pairNewCode => 'Grown-up: new code';
@@ -439,7 +442,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pairRemovedBody =>
-      'Your progress is safe. Ask your grown-up for a new code.';
+      'Your family took this phone off. Your cases are safe. Ask for a new code to join again.';
 
   @override
   String get pairWhosLearning => 'Who\'s learning today?';
@@ -490,7 +493,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guOff => 'Off';
 
   @override
-  String get guPassTitle => 'Grown-ups only';
+  String get guPassTitle => 'Family area';
 
   @override
   String get guPassEnter => 'Enter your passcode.';
@@ -499,36 +502,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guPassForgot => 'Forgot passcode?';
 
   @override
-  String get guPassWrong => 'That\'s not the passcode. Try again.';
+  String get guPassWrong => 'That is not it. Try again.';
 
   @override
   String guPassLocked(String time) {
-    return 'Too many tries. Try again after $time.';
+    return 'Too many tries. Wait until $time, or sign in again.';
   }
 
   @override
   String get guPassLockedSoon =>
-      'Too many tries. Wait a few minutes and try again.';
+      'Too many tries. Wait a little, or sign in again.';
 
   @override
-  String get guPassChooseTitle => 'Choose a passcode';
+  String get guPassChooseTitle => 'Lock the Family area';
 
   @override
-  String get guPassNewTitle => 'Choose a new passcode';
+  String get guPassNewTitle => 'Set a new passcode';
 
   @override
   String guPassChooseBody(int n) {
-    return '$n digits, so only grown-ups can open this area.';
+    return '$n digits only you know.';
   }
 
   @override
-  String get guPassConfirmTitle => 'Type it again';
+  String get guPassConfirmTitle => 'Lock the Family area';
 
   @override
-  String get guPassConfirmBody => 'To be sure it\'s right.';
+  String get guPassConfirmBody => 'Type it once more to be sure.';
 
   @override
-  String get guPassMismatch => 'Those didn\'t match. Choose a passcode again.';
+  String get guPassMismatch => 'Those did not match. Start again.';
 
   @override
   String guPassShort(int n) {
@@ -546,15 +549,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guUseFaceId => 'Use Face ID';
 
   @override
+  String get guFaceFail => 'Face ID did not work. Use your passcode instead.';
+
+  @override
   String get guForgotTitle => 'Forgot your passcode?';
 
   @override
   String guForgotBody(String email) {
-    return 'We will email a sign-in link to $email.';
+    return 'Sign in again and set a new one. We will email a link to $email.';
   }
 
   @override
-  String get guForgotSend => 'Send the link';
+  String get guForgotSend => 'Email me a sign-in link';
 
   @override
   String get guForgotSentTitle => 'Check your email';
@@ -576,7 +582,44 @@ class AppLocalizationsEn extends AppLocalizations {
       'Or sign in again here with Apple or Google, then choose a new passcode.';
 
   @override
-  String get guHomeHi => 'Hi there';
+  String get guHomeHi => 'Family area';
+
+  @override
+  String get guHomeChildren => 'Children';
+
+  @override
+  String get guHomeThisFamily => 'This family';
+
+  @override
+  String get guHomeAddChildDetail => 'Their own details and consent';
+
+  @override
+  String get guHomeSettingsDetail => 'Time per day, read-aloud, emails';
+
+  @override
+  String get guHomePhones => 'Phones and family';
+
+  @override
+  String get guHomePhonesDetail => 'Join, remove, invite';
+
+  @override
+  String get guHomeRightsDetail => 'Download or delete everything';
+
+  @override
+  String get guHomeSignOut => 'Sign out of this phone';
+
+  @override
+  String get guHomeNotesDetail => 'What each session\'s email said';
+
+  @override
+  String guHomeAbout(int age, String year) {
+    return '$age, $year';
+  }
+
+  @override
+  String guHomeAge(int age) {
+    return '$age';
+  }
 
   @override
   String guHomeWeek(int count) {
@@ -635,7 +678,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guSetReadAloud => 'Read aloud';
 
   @override
-  String get guSetBigPad => 'Bigger number pad (accessibility)';
+  String get guSetReadAloudDetail => 'The teacher\'s voice. On for every age';
+
+  @override
+  String get guSetTimeSheetBody =>
+      'The app ends the session kindly at this point.';
+
+  @override
+  String guSetMinutesLong(int n) {
+    return '$n minutes';
+  }
+
+  @override
+  String get guSaved => 'Saved';
+
+  @override
+  String get guSetBigPad => 'Bigger number pad';
+
+  @override
+  String get guSetBigPadDetail => 'Accessibility: the lesson\'s keys grow';
 
   @override
   String get guSetChangeHint => 'Changes the setting';
@@ -689,10 +750,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guSignOut => 'Sign out';
 
   @override
-  String get guFamilyTitle => 'Family and phones';
+  String get guFamilyTitle => 'Phones and family';
 
   @override
-  String get guGrownUps => 'Grown-ups';
+  String get guGrownUps => 'Family members';
 
   @override
   String get guChildren => 'Children';
@@ -770,16 +831,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guOpenChildHint => 'Shows where they are';
 
   @override
-  String get guInviteGrownUp => 'Invite a grown-up';
+  String get guInviteGrownUp => 'Invite a family member';
 
   @override
-  String get guAddPhone => 'Add a child\'s phone';
+  String get guAddPhone => 'Join a child\'s phone';
 
   @override
-  String get guInviteTitle => 'Invite a grown-up';
+  String get guInviteTitle => 'Invite a family member';
 
   @override
-  String get guInviteBody => 'They can see the book and change settings.';
+  String get guInviteBody =>
+      'They can see the notes and change settings. They set their own passcode.';
 
   @override
   String get guInviteEmail => 'Their email';
@@ -795,8 +857,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String guInviteSentBody(String email) {
-    return 'We emailed a link to $email.';
+    return '$email has an email with a link. It works for 7 days. You will see them here once they join.';
   }
+
+  @override
+  String get guInviteSentDone => 'Done';
 
   @override
   String get guCodeTitle => 'Here is a code';
@@ -809,14 +874,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String guCodeLeft(String time) {
-    return 'Works once. $time left.';
+    return 'Works once, for $time. Five tries.';
   }
 
   @override
-  String get guCodeExpired => 'This code has stopped working.';
+  String get guCodeExpired =>
+      'That code has expired. Codes last 10 minutes. Show a new one when you are both ready.';
 
   @override
-  String get guCodeAgain => 'Get a new code';
+  String get guCodeAgain => 'Show a new code';
 
   @override
   String guCodeTypeOn(String name) {
@@ -833,7 +899,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guRemoveBody =>
-      'It signs out straight away. Progress stays safe in the family account.';
+      'It signs out straight away and keeps nothing. Progress stays safe in the family account.';
 
   @override
   String get guRemoveButton => 'Remove phone';
@@ -846,7 +912,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guRemovedBody =>
-      'That phone is signed out. Join a new phone with a code any time.';
+      'That phone is signed out. On it, your child sees \"This phone was removed\". Join a new phone with a code any time.';
 
   @override
   String guRemoveGrownUpTitle(String email) {
@@ -902,7 +968,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guAddChildBody =>
-      'You agree for them, as their grown-up. Only a first name.';
+      'You agree for them, as their parent or guardian. Only a first name.';
 
   @override
   String get guAddChildName => 'First name';
@@ -921,10 +987,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Type Kindergarten or a year from 1 to 5.';
 
   @override
-  String get guAddChildAgree => 'I agree, continue';
+  String get guAddChildAgree => 'Continue';
+
+  @override
+  String get guAddChildConsent =>
+      'I am this child\'s parent or guardian. I agree to the same terms for them.';
 
   @override
   String get guRightsTitle => 'Your data and rights';
+
+  @override
+  String get guRightsBody =>
+      'Everything we hold is stored in Australia and belongs to your family.';
 
   @override
   String get guStoredTitle => 'What we keep';
@@ -946,7 +1020,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guDownload => 'Download everything';
 
   @override
-  String get guDownloadBody => 'A file with all of your family\'s data';
+  String get guDownloadBody =>
+      'A file with every child\'s data, ready within a day';
 
   @override
   String get guExportPending => 'Getting it ready…';
@@ -970,18 +1045,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guDeleteAccount => 'Delete the family account';
 
   @override
-  String get guDeleteAccountBody =>
-      'Everything, for every child, straight away';
+  String get guDeleteAccountBody => 'Everyone, everything, straight away';
 
   @override
-  String get guDeleteTitle => 'Delete your family account?';
+  String get guDeleteTitle => 'Delete the family account?';
 
   @override
-  String get guDeleteBody =>
-      'This deletes everything we keep: every child\'s lessons and progress, the other grown-ups\' access and every joined phone. It happens straight away and can\'t be undone. Download everything first if you want a copy.';
+  String get guDeleteBody => 'This cannot be undone.';
+
+  @override
+  String get guDeleteChildren => 'Every child';
+
+  @override
+  String get guDeleteChildrenBody => 'Their details, cases and badges';
+
+  @override
+  String get guDeleteSessions => 'Every session and tap';
+
+  @override
+  String get guDeleteSessionsBody => 'The whole learning record';
+
+  @override
+  String get guDeleteNotes => 'Every note and email';
+
+  @override
+  String get guDeleteNotesBody => 'We keep nothing to send';
+
+  @override
+  String get guDeletePhones => 'Every phone and family member';
+
+  @override
+  String get guDeletePhonesBody => 'All signed out, now';
+
+  @override
+  String get guDeleteNow =>
+      'It happens straight away, not in 30 days. If you want a copy first, download everything before you delete.';
+
+  @override
+  String get guDeleteDownloadFirst => 'Download everything first';
 
   @override
   String get guDeleteButton => 'Delete everything';
+
+  @override
+  String get guDeleteConfirmTitle => 'Type DELETE to confirm';
+
+  @override
+  String get guDeleteConfirmBody =>
+      'One last check that it is you, and that you mean it.';
+
+  @override
+  String get guDeleteConfirmLabel => 'Type DELETE';
+
+  @override
+  String get guDeleteConfirmWord => 'DELETE';
+
+  @override
+  String get guDeleteConfirmButton => 'Delete the family account';
+
+  @override
+  String get guDeleteKeep => 'Keep my account';
+
+  @override
+  String get guDeletedTitle => 'Deleted';
+
+  @override
+  String get guDeletedBody =>
+      'Your family account is gone and every phone is signed out. Thank you for trying Auramath.';
+
+  @override
+  String get guClose => 'Close';
 
   @override
   String get guConsentLink => 'Withdraw your consent';
@@ -1026,30 +1159,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guAgainButton => 'I agree';
 
   @override
-  String get guNotifyTitle => 'A note after each session?';
+  String get guNotifyTitle => 'An email after each session';
 
   @override
-  String guNotifyBody(String name) {
-    return 'We\'ll email you what $name did and what\'s next. Nothing else.';
+  String get guNotifyBody =>
+      'A short note: what was practised, how much help was needed, something to try tonight.';
+
+  @override
+  String get guNotifyCard => 'Sent to your email';
+
+  @override
+  String guNotifyCardBody(String name) {
+    return 'Within a few minutes of $name finishing.';
   }
 
   @override
-  String get guNotifyCard => 'An email after each session';
-
-  @override
-  String get guNotifyCardBody => 'One short note, after the session ends.';
-
-  @override
-  String get guNotifyYes => 'Yes please';
+  String get guNotifyYes => 'Continue';
 
   @override
   String get guNotifyNo => 'Not now';
 
   @override
-  String get guSignOutTitle => 'Sign out on this phone?';
+  String get guNotifyCheck => 'Email me after each session';
 
   @override
-  String get guSignOutBody => 'Progress stays safe in your family account.';
+  String get guSignOutTitle => 'Sign out of this phone?';
+
+  @override
+  String get guSignOutBody =>
+      'Nothing about your children stays on this phone. Sign in again any time with Apple, Google or an email link.';
+
+  @override
+  String get guSignedOut => 'Signed out';
 
   @override
   String guBookTitle(String name) {
@@ -1084,6 +1225,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String guNotesTitle(String name) {
     return '$name\'s notes';
+  }
+
+  @override
+  String get guNotesBody =>
+      'What each session email said. Nothing is scored or graded.';
+
+  @override
+  String get guNotesEmpty => 'No notes yet';
+
+  @override
+  String guNotesEmptyBody(String name) {
+    return 'The first one arrives a few minutes after $name\'s first session.';
   }
 
   @override
@@ -1219,6 +1372,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guLearningEditBody => 'Name, age and school year';
+
+  @override
+  String guChildDoing(String name) {
+    return 'How $name is doing';
+  }
+
+  @override
+  String get guChildWorkingOn => 'Working on';
+
+  @override
+  String get guChildNow => 'Now';
+
+  @override
+  String guChildJourney(String name) {
+    return '$name\'s journey';
+  }
+
+  @override
+  String get guChildDetails => 'Details';
+
+  @override
+  String get guChildFirstName => 'First name';
+
+  @override
+  String get guChildAge => 'Age';
+
+  @override
+  String get guChildYear => 'School year';
+
+  @override
+  String get guChildNotSet => 'Not set';
+
+  @override
+  String guChildPicture(String name) {
+    return 'Change $name\'s picture';
+  }
+
+  @override
+  String get guLearningMovedUpPlain => 'Moved up a level';
+
+  @override
+  String get guLearningChangedPlain => 'Moved to a new level';
 
   @override
   String guEditTitle(String name) {
@@ -1471,7 +1666,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupWelcomeBody =>
-      'Bar-model word problems for ages 6 to 10, read aloud and drawn by your child.';
+      'Bar-model word problems for ages 6 to 10, read aloud and drawn by your child. Made with Julia Fong\'s method.';
 
   @override
   String get setupGetStarted => 'Get started';
@@ -1484,6 +1679,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupNameSubtitle => 'Only the first name. No surname.';
+
+  @override
+  String get setupNameNote =>
+      'We use it to say hello. It never goes to the AI.';
 
   @override
   String get setupNameLabel => 'First name';
@@ -1516,12 +1715,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String setupStartTitle(String name) {
-    return 'What can $name already do?';
+    return 'What is $name confident in?';
   }
 
   @override
   String get setupStartSubtitle =>
-      'Pick everything that feels easy. In school order.';
+      'Select all likely areas your child is confident in. In school order.';
 
   @override
   String get setupCanCount100 => 'Counting to 100';
@@ -1530,13 +1729,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupCanAdd100 => 'Adding to 100';
 
   @override
-  String get setupCanSub100 => 'Subtracting to 100';
+  String get setupCanSub100 => 'Taking away to 100';
 
   @override
   String get setupCanAdd1000 => 'Adding to 1000';
 
   @override
-  String get setupCanSub1000 => 'Subtracting to 1000';
+  String get setupCanSub1000 => 'Taking away to 1000';
 
   @override
   String get setupCanWordProblems => 'Word problems with bars';
@@ -1548,16 +1747,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupNotSureDetail => 'Help me figure it out';
 
   @override
+  String setupNotSureFromAge(String name) {
+    return 'We\'ll start from $name\'s age and find out';
+  }
+
+  @override
   String get setupNotSureTitle => 'No problem';
 
   @override
-  String setupNotSureBody(String name, String year) {
-    return '$name starts at a typical $year level. The first sums find the real one, and we\'ll email you what we found.';
+  String setupNotSureBody(String name, int age) {
+    return '$name starts where most $age-year-olds do. A few quick sums find the real starting point. We email you what we found after the first session.';
   }
 
   @override
   String setupNotSureBodyNoYear(String name) {
-    return '$name starts at a level typical for their age. The first sums find the real one, and we\'ll email you what we found.';
+    return '$name starts where most children their age do. A few quick sums find the real starting point. We email you what we found after the first session.';
   }
 
   @override
@@ -1571,11 +1775,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String setupEmailAfterDetail(String name) {
-    return 'Telling you where $name is.';
+    return 'Telling you where $name is, in plain words.';
   }
 
   @override
   String get setupGoalTitle => 'What would help most?';
+
+  @override
+  String get setupGoalSubtitle => 'Pick the one that fits best.';
 
   @override
   String get setupGoalConfidence => 'Build confidence';
@@ -1605,15 +1812,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupGoalSchool => 'Do well in the school curriculum';
 
   @override
+  String get setupGoalSchoolDetail => 'Keep pace with the NSW syllabus';
+
+  @override
+  String get setupGoalNotSure => 'Not sure yet';
+
+  @override
+  String get setupGoalNotSureDetail => 'That is fine too';
+
+  @override
   String setupDataTitle(String name) {
-    return '$name\'s details stay safe';
+    return 'What we hold about $name';
   }
+
+  @override
+  String get setupDataSubtitle => 'And who sees it.';
 
   @override
   String get setupDataStored => 'Stored in Australia';
 
   @override
   String get setupDataStoredDetail => 'On servers in Australia.';
+
+  @override
+  String get setupDataTaps => 'Every tap in a lesson';
+
+  @override
+  String get setupDataTapsDetail =>
+      'So the tutor can see how the sum went. Never typed words.';
 
   @override
   String get setupDataNoAi => 'Nothing personal goes to the AI';
@@ -1623,11 +1849,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'The tutor never sees a name or a birthday.';
 
   @override
-  String get setupDataFirstName => 'Only a first name';
+  String get setupDataFirstName => 'First name, age, school year';
 
   @override
   String get setupDataFirstNameDetail =>
-      'Your child never types personal details.';
+      'And what was practised. No gender, no birthday.';
 
   @override
   String get setupDataHelpers => 'Who helps us';
@@ -1644,10 +1870,47 @@ class AppLocalizationsEn extends AppLocalizations {
       'During the home week, Julia, our teacher, gets a weekly summary of her families\' lessons.';
 
   @override
-  String get setupDataDelete => 'Delete it any time';
+  String get setupDataDelete => 'Download or delete it any time';
 
   @override
-  String get setupDataDeleteDetail => 'From Settings, in one step.';
+  String get setupDataDeleteDetail =>
+      'From the Family area, in one step, for the whole family.';
+
+  @override
+  String get setupDataWho => 'Who else sees anything';
+
+  @override
+  String get setupDataAi => 'The AI that runs the lesson';
+
+  @override
+  String get setupDataAiDetail =>
+      'Gemini, on Google Cloud in Sydney. It sees the problem and the taps, never a name, age or anything about your family.';
+
+  @override
+  String get setupDataVoice => 'The voice that reads aloud';
+
+  @override
+  String get setupDataVoiceDetail =>
+      'Google Cloud\'s voice, in Sydney. It gets the words on screen, nothing about your child.';
+
+  @override
+  String get setupDataEmail => 'The email service';
+
+  @override
+  String get setupDataEmailDetail =>
+      'Sends your sign-in emails and notes to your address only.';
+
+  @override
+  String get setupDataJuliaName => 'Julia Fong';
+
+  @override
+  String get setupDataJuliaWeekly =>
+      'Gets a weekly summary of her families\' progress, by first name only.';
+
+  @override
+  String setupDataConsent(String name) {
+    return 'I am $name\'s parent or guardian. I agree to this for $name.';
+  }
 
   @override
   String get setupAgree => 'I agree';
@@ -1667,19 +1930,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get setupContinueApple => 'Continue with Apple';
+  String get setupContinueApple => 'Sign in with Apple';
 
   @override
-  String get setupContinueGoogle => 'Continue with Google';
+  String get setupContinueGoogle => 'Sign in with Google';
 
   @override
   String get setupUseEmail => 'Use my email';
 
   @override
-  String get setupEmailLabel => 'Email address';
+  String get setupEmailLabel => 'Your email';
 
   @override
-  String get setupEmailMeLink => 'Email me a link';
+  String get setupEmailMeLink => 'Email me a sign-in link';
+
+  @override
+  String get setupOr => 'or';
+
+  @override
+  String get setupTerms =>
+      'By continuing you agree to the terms and privacy notice.';
 
   @override
   String get setupEmailInvalid => 'Type the email address to send the link to.';
@@ -1692,16 +1962,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupEmailOff => 'This server can\'t send email yet.';
 
   @override
-  String get setupSignInTitle => 'Welcome back';
+  String get setupSignInTitle => 'Sign in or create your family account';
 
   @override
-  String get setupSignInSubtitle => 'Sign in to your family account.';
+  String get setupSignInSubtitle =>
+      'One grown-up account. Your child never signs in.';
 
   @override
   String get setupCheckTitle => 'Check your email';
 
   @override
-  String get setupCheckBody => 'Tap the link we sent to sign in on this phone.';
+  String get setupCheckBody =>
+      'Tap the link we sent to your email. It works once, for 15 minutes.';
+
+  @override
+  String setupCheckBodyTo(String email) {
+    return 'Tap the link we sent to $email. It works once, for 15 minutes.';
+  }
+
+  @override
+  String get setupSendAgain => 'Send it again';
+
+  @override
+  String get setupSentAgain => 'Sent again. Check your spam folder too.';
+
+  @override
+  String get setupWrongEmail => 'Not your email?';
 
   @override
   String get setupTappedLink => 'I tapped the link';
@@ -1726,6 +2012,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupVerifying => 'Signing you in…';
 
   @override
+  String get setupSignedIn => 'Signed in';
+
+  @override
   String get setupLinkMissing =>
       'This link has no sign-in code in it. Ask for a new one.';
 
@@ -1733,16 +2022,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupBackToSignIn => 'Back to sign in';
 
   @override
-  String get setupReadyTitle => 'All set!';
-
-  @override
-  String setupReadyBody(String name) {
-    return '$name starts with a short warm-up, then a story case.';
+  String setupReadyTitle(String name) {
+    return '$name\'s work is ready.';
   }
 
   @override
-  String setupReadyNoHelp(String name) {
-    return 'Please let $name try on their own. Getting stuck is part of it, and the help is built in.';
+  String setupReadyBody(String name) {
+    return '$name\'s turn: let them have a go at today\'s tutor-set work. We will send you an update of their progress from today.';
+  }
+
+  @override
+  String get setupReadyNoHelp => 'Please don\'t help with the sums';
+
+  @override
+  String setupReadyNoHelpDetail(String name) {
+    return 'The tutor needs to see what $name can do alone. Sit nearby if you like.';
+  }
+
+  @override
+  String get setupReadyMeet => 'Meet the case partner together';
+
+  @override
+  String setupReadyMeetDetail(String name) {
+    return 'It will tell $name it is a computer helper, an AI, with you there.';
   }
 
   @override
@@ -1777,24 +2079,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'Face ID isn\'t set up on this phone. Use a passcode instead.';
 
   @override
-  String get setupPassTitle => 'Choose a passcode';
+  String get setupPassTitle => 'Lock the Family area';
 
   @override
-  String setupPassBody(int n) {
-    return '$n digits, so only grown-ups can open the grown-up area.';
+  String setupPassBody(String digits, String name) {
+    return '$digits only you know. $name never sees this part.';
   }
 
   @override
-  String get setupPassAgainTitle => 'Type it again';
-
-  @override
-  String setupPassAgainBody(int n) {
-    return 'The same $n digits, to be sure.';
+  String setupPassDigits(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n digits',
+      one: 'One digit',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get setupPassMismatch =>
-      'Those didn\'t match. Choose a passcode again.';
+  String get setupPassFour => 'Four digits';
+
+  @override
+  String get setupPassAgainTitle => 'Lock the Family area';
+
+  @override
+  String get setupPassAgainBody => 'Type it once more to be sure.';
+
+  @override
+  String get setupPassMismatch => 'Those did not match. Start again.';
+
+  @override
+  String get setupPassSet => 'Passcode set';
 
   @override
   String setupPassShort(int n) {
@@ -1820,11 +2136,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String setupWorksOnce(String time) {
-    return 'Works once, for $time';
+    return 'Works once, for $time. Five tries.';
   }
 
   @override
-  String get setupCodeExpired => 'This code has run out. Show a new code.';
+  String get setupCodeExpired =>
+      'That code has expired. Codes last 10 minutes. Show a new one when you are both ready.';
 
   @override
   String setupProgressFollows(String name) {
@@ -1834,6 +2151,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setupProgressFollowsDetail =>
       'Lessons carry on from any phone in the family.';
+
+  @override
+  String get setupJoinDone => 'Done';
 
   @override
   String get setupNewCode => 'Show a new code';
@@ -1862,7 +2182,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lessonSeenBeforeBack => 'Back to my case';
 
   @override
-  String get lessonRateAsk => 'How was this case?';
+  String get lessonRateAsk => 'How was that one?';
+
+  @override
+  String get lessonRateAnyAnswer => 'Any answer is fine.';
+
+  @override
+  String get lessonRateSkip => 'Skip';
+
+  @override
+  String get lessonDrawStoryOut => 'Can you draw the story out?';
+
+  @override
+  String get lessonDrawTogether => 'Let\'s do it together.';
+
+  @override
+  String get lessonLetsDraw => 'Let\'s draw';
+
+  @override
+  String get lessonFamilySees => 'Your family will see this too.';
 
   @override
   String get lessonRateEasy => 'Easy';
@@ -1985,6 +2323,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lessonTakeBack => 'Take it back';
 
   @override
+  String get lessonSee => 'See';
+
+  @override
   String get lessonSeeQuestion => 'See the question';
 
   @override
@@ -2028,16 +2369,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Ask a grown-up to set your detective for you.';
 
   @override
-  String get kidQuickDone => 'Quick sums done!';
+  String get kidQuickDone => 'Warmed up!';
 
   @override
-  String get kidQuickStory => 'A story problem';
+  String get kidQuickOnToday => 'On to today.';
+
+  @override
+  String get kidQuickGo => 'Go!';
+
+  @override
+  String get kidQuickTier1 => 'Charged up!';
+
+  @override
+  String get kidQuickTier2 => 'On fire!';
+
+  @override
+  String get kidQuickTier3 => 'Super charged!';
+
+  @override
+  String get kidQuickStory => 'On to a case';
 
   @override
   String get kidQuickHome => 'Back home';
 
   @override
-  String get kidTodayTitle => 'What shall we do today?';
+  String get kidTodayTitle => 'Which one first?';
 
   @override
   String get kidTodayStory => 'A story problem';
@@ -2110,4 +2466,219 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonLess => 'less';
+
+  @override
+  String get kidSurpriseMe => 'Surprise me';
+
+  @override
+  String kidLookName(int n) {
+    return 'Look $n';
+  }
+
+  @override
+  String get kidTutorPlaceholderName => 'Your tutor';
+
+  @override
+  String kidTutorName(int n) {
+    return 'Tutor $n';
+  }
+
+  @override
+  String kidVoiceName(int n) {
+    return 'Voice $n';
+  }
+
+  @override
+  String get kidHearHello => 'Hear hello';
+
+  @override
+  String get kidChooseThis => 'Choose this one';
+
+  @override
+  String get kidThisIsMe => 'This is me!';
+
+  @override
+  String get kidThisIsMyTutor => 'This is my teacher!';
+
+  @override
+  String get kidMyLookNote => 'Change how you look';
+
+  @override
+  String get kidMyTutorNote => 'Pick who teaches you';
+
+  @override
+  String get kidMyVoiceNote => 'How your teacher sounds';
+
+  @override
+  String get kidMyWorldNote => 'Where your cases happen';
+
+  @override
+  String get kidTapYourPicture => 'Tap your picture.';
+
+  @override
+  String get kidErrTitle => 'That didn\'t work';
+
+  @override
+  String get kidErrLine => 'Let\'s have another go.';
+
+  @override
+  String get kidErrRetry => 'Have another go';
+
+  @override
+  String get kidReadyForACase => 'Ready for a case?';
+
+  @override
+  String get kidGoHome => 'Go home';
+
+  @override
+  String get pairReadyToPlay => 'Hi! Ready to play?';
+
+  @override
+  String get pairPlay => 'Play';
+
+  @override
+  String get pairParentsAndCarers => 'Parents and carers';
+
+  @override
+  String get pairSetUpSignIn => 'Already set up? Sign in';
+
+  @override
+  String get pairFamilyArea => 'Family area';
+
+  @override
+  String get kidComingSoon => 'Coming soon';
+
+  @override
+  String get kidMe => 'Me';
+
+  @override
+  String get kidMyLook => 'My look';
+
+  @override
+  String get kidMyTutor => 'My tutor';
+
+  @override
+  String get kidMyVoice => 'My tutor\'s voice';
+
+  @override
+  String get kidMyWorld => 'My world';
+
+  @override
+  String get kidWorldNextTime => 'Your new world starts next time.';
+
+  @override
+  String get kidSaveFailed =>
+      'That didn\'t save. Check the internet and tap again.';
+
+  @override
+  String get kidBadgeCabinet => 'My badges';
+
+  @override
+  String get kidCabinetEmpty => 'Your badges will live here.';
+
+  @override
+  String get kidTodaysBadge => 'Today\'s badge';
+
+  @override
+  String get kidNewMedal => 'A new medal!';
+
+  @override
+  String get kidTrailGoesOn => 'Your trail goes on. Time to try a new skill!';
+
+  @override
+  String get kidNewBadge => 'A new badge!';
+
+  @override
+  String get kidHabitBarBuilder => 'You draw the bars yourself.';
+
+  @override
+  String get kidHabitCarefulReader => 'You read the question with care.';
+
+  @override
+  String get kidHabitLearnItDoIt => 'You learn a step, then do it on your own.';
+
+  @override
+  String get kidHabitDoubleChecker => 'You check your work and fix it.';
+
+  @override
+  String get kidLandTrophy => 'A land trophy!';
+
+  @override
+  String get kidEveryStop => 'Every stop, all yours.';
+
+  @override
+  String get kidIntoYourBadges => 'Into your badges!';
+
+  @override
+  String get kidCameBack => 'You came back!';
+
+  @override
+  String get kidKeepComingBack =>
+      'Detectives who keep coming back get really good.';
+
+  @override
+  String kidMedalFor(String stop) {
+    return 'Your medal for $stop.';
+  }
+
+  @override
+  String get kidFirstCaseLine => 'Your first case, cracked.';
+
+  @override
+  String kidWalkedAll(String land) {
+    return 'You walked all of $land.';
+  }
+
+  @override
+  String get kidNotNow => 'Not now';
+
+  @override
+  String get kidBackHome => 'Back home';
+
+  @override
+  String get kidTrailExplored => 'Explored';
+
+  @override
+  String get kidTrailEarned => 'Earned';
+
+  @override
+  String get kidTrailMist => 'Still in the mist';
+
+  @override
+  String get kidPolishMe => 'Polish me';
+
+  @override
+  String get kidSidePath => 'Side path';
+
+  @override
+  String get kidSidePathBack => 'Back to your case';
+
+  @override
+  String get kidTrailLookBack => 'Look back';
+
+  @override
+  String kidTrailOf(String name) {
+    return '$name\'s trail';
+  }
+
+  @override
+  String get timeUpCallItADay => 'Call it a day';
+
+  @override
+  String get timeUpBodyFinish =>
+      'Good detective work. Finish this one, or call it a day?';
+
+  @override
+  String get lostInternetTitle => 'Lost the internet';
+
+  @override
+  String get lostInternetBody =>
+      'Your drawing is safe. We\'ll carry on when it\'s back.';
+
+  @override
+  String get kidCheckAgain => 'Check again';
+
+  @override
+  String get lessonNeedInternetAsk =>
+      'Ask your family to check the Wi-Fi. Then tap Check again.';
 }

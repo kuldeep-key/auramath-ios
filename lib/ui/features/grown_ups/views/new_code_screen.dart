@@ -108,7 +108,13 @@ class _NewCodeScreenState extends State<NewCodeScreen> {
               // size, which AuraPage's body asks for
               child: SizedBox(
                 height: 60,
-                child: CodeBoxes(length: code.code.length, value: code.code),
+                child: CodeBoxes(
+                  length: code.code.length,
+                  value: code.code,
+                  // a fresh code: every box blue (`span.f`)
+                  lit: !expired,
+                  cursor: false,
+                ),
               ),
             ),
             const SizedBox(height: 14),

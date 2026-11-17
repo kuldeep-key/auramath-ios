@@ -21,6 +21,16 @@ const notInOneProblem = {
   'easier_chosen': 'something easier switches the case',
   'self_rating_given': 'the self_rating flag, after a solved case',
   'prompt_offered': 'the server\'s decision (ai_decisions)',
+  // D-54: the server writes these into the child's log, never a phone
+  'badge_awarded': 'the server writes it (D-54)',
+  'kept_mark_added': 'the server writes it (D-54)',
+  'collectible_unlocked': 'the server writes it (D-54)',
+  // D-60: outside a lesson, under the visit's id (visit_events_test)
+  'badge_shown': 'the rewards screens, around the lesson',
+  'badge_opened': 'the cabinet',
+  'cabinet_opened': 'the cabinet',
+  'celebration_shown': 'the rewards screens, around the lesson',
+  'trail_opened': 'the trail',
 };
 
 void main() {

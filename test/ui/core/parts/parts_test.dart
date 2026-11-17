@@ -137,15 +137,16 @@ void main() {
     );
     await tester.pumpWidget(header(muted: false));
     expect(find.text('Drag a bar up here.'), findsOneWidget);
-    // sound on: the speaker mutes
-    await tester.tap(find.byIcon(Icons.volume_up_rounded));
+    // sound on: the tutor mutes
+    await tester.tap(find.byKey(const Key('tutorSpeak')));
     await tester.tap(find.byIcon(Icons.home_rounded));
     expect((spoke, home), (0, 1));
     expect(sound, [false]);
 
     // muted: the speaker turns the sound back on and reads the line
     await tester.pumpWidget(header(muted: true));
-    await tester.tap(find.byIcon(Icons.volume_off_rounded));
+    expect(find.byIcon(Icons.volume_off_rounded), findsOneWidget);
+    await tester.tap(find.byKey(const Key('tutorSpeak')));
     expect(spoke, 1);
     expect(sound, [false, true]);
   });

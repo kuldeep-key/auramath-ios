@@ -24,5 +24,10 @@ abstract final class Env {
   /// set in `env/prod.json`.
   static const flagOverrides = String.fromEnvironment('FLAGS');
 
+  /// Testers only: a day's lesson time in minutes over the content's cap
+  /// (SES-01, 30), so a day of testing doesn't end every lesson at once
+  /// with "That's today's time!". Read in dev builds only; 0 keeps the cap.
+  static const sessionCapMinutes = int.fromEnvironment('SESSION_CAP_MINUTES');
+
   static bool get isDev => name == 'dev';
 }

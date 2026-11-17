@@ -17,8 +17,8 @@ List<(String, String?, String)> goalOptions(AppLocalizations l) => [
   (l.setupGoalCatchUp, l.setupGoalCatchUpDetail, 'catch_up'),
   (l.setupGoalAhead, l.setupGoalAheadDetail, 'get_ahead'),
   (l.setupGoalWordProblems, l.setupGoalWordProblemsDetail, 'word_problems'),
-  (l.setupGoalSchool, null, 'school_curriculum'),
-  (l.setupNotSure, null, 'not_sure'),
+  (l.setupGoalSchool, l.setupGoalSchoolDetail, 'school_curriculum'),
+  (l.setupGoalNotSure, l.setupGoalNotSureDetail, 'not_sure'),
 ];
 
 /// Goal (643:169).
@@ -48,7 +48,7 @@ class _GoalScreenState extends State<GoalScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuraHeading(title: l.setupGoalTitle),
+          AuraHeading(title: l.setupGoalTitle, subtitle: l.setupGoalSubtitle),
           for (final (i, (label, detail, _)) in options.indexed) ...[
             ChoiceTile(
               label: label,

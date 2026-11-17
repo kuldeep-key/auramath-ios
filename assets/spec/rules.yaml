@@ -1,0 +1,247 @@
+# Rewards and celebrations: the rules, as settings (rewards/spec.md).
+# Every value here is provisional and can change without a release (PLAT-03, PLAT-06), under D-51.
+# Read with rewards/catalogue.yaml (what can be earned) and scoring/scoring.yaml (outcomes, move-up, spaced checks).
+# The rules run on the server, from the event log (DAT-01). The phone's right/wrong verdict on numbers stands (AI-04).
+# Rewards only READ what the engine records. They never change teaching, help, scoring, levels or the check schedule.
+# No AI decides a badge. The AI may only phrase lines, within approved patterns, behind flags.model_rewording.
+# v0.3.0 (12 Nov): Ashutosh's product calls of 12 Nov and the fixes from the engineering review (spec Appendix B).
+# How rewards reach the phone (D-53), how awards are stored (D-54) and the event fields the case summary needs (D-55)
+# closed 12 Nov on their recommended defaults; Vishal builds them. The R1 scope of the rewards changes is D-56.
+
+version: 0.3.4
+updated: 2026-11-12
+status: provisional
+decision: D-51
+
+definitions:
+  # A case is one word problem in the lesson. Spaced checks and Quick sums in the warm-up are not cases:
+  # they produce no moments, never count as the first case and never give a session badge on their own.
+  # Outcomes come from scoring/scoring.yaml (outcome_rules, outcome_precedence). Which source R1 uses is D-56.
+  solved_outcomes: [solved_alone, one_wrong, two_or_more_wrong, with_hints]   # answer_supplied and left_wrong are not solved
+  solved_also_needs: finished_by_child   # the child committed the case's last step (find_total, or find_unknown at L1-L2) themselves;
+                                         # a case closed by "show me how" (TUT-05) scores with_hints but is not solved for rewards
+  without_help_outcomes: [solved_alone, one_wrong, two_or_more_wrong]
+  clean_outcomes: [solved_alone]         # a fixed transposition costs nothing in scoring (no_cost), so it can still be clean
+  help_outcomes: [with_hints, answer_supplied]
+  help_events:                           # event names in contracts/events.schema.json
+    - {name: help_opened, where: {trigger: child}}   # after_wrong (the automatic hint) and after_quiet are not help by themselves
+    - {name: idle_prompt_shown, where: {level: [demo, still_there]}}   # counts when shown, as scoring.yaml idle_prompts_that_count
+    - {name: worked_example_shown}
+    - {name: easier_chosen}
+    - {name: side_lesson_started}
+  drawing_steps: [draw_known_bar, size_second_bar, place_difference, place_total, choose_operation]
+  near_miss_error_type: transposition    # swapped digits; "Check your sum again" (LES-09)
+  keyword_trap_relations: [shorter]      # content/templates relations with keyword_trap: true
+  detour_steps_count: false              # steps practised inside a side lesson never count toward moments or habits
+  excluded_sessions: [is_demo, is_test]  # session_started flags (DAT-06): rewards show on screen as usual, but nothing is recorded as an
+                                         # award and nothing counts for First Case, habits, stops, the no-repeat rule or any measure
+  day_boundary: family_home_time_zone    # the casebook's days and check dates, from the server (as scoring)
+
+case_summary:
+  # What the rules read for each case, and where each fact comes from in the event log. The server builds one summary
+  # per case from the events between its problem_shown and its problem_completed (or problem_left), in seq order.
+  # status: exists = derivable from today's events; d55 = needs the event change agreed in D-55 (12 Nov), still to build.
+  outcome:                    {from: "problem_completed.outcome", status: exists, note: "re-derived with scoring.yaml outcome_rules once the server scores (SKL-02); R1 source is D-56"}
+  finished_by_child:          {from: "a correct step_committed for the last step (find_total, or find_unknown at L1-L2), or a correct i_know_it_answered for that field, inside the case", status: d55, note: "D-55 confirms that steps filled in by 'show me how' never emit step_committed"}
+  via_i_know_it:              {from: "problem_completed.via_i_know_it", status: d55, note: "optional today; D-55 makes it required"}
+  relation:                   {from: "problem_shown.relation", status: exists}
+  template:                   {from: "problem_shown.template_id", status: exists}
+  problem_name:               {from: "the problem_name of problem_shown.story_id in its template (the session badge subtitle)", status: exists}
+  level:                      {from: "problem_shown.level", status: d55, note: "optional today; D-55 makes it required"}
+  variant:                    {from: "problem_shown.variant", status: d55, note: "optional today; D-55 makes it required. variant check is a spaced check, not a case"}
+  choose_operation_first_try: {from: "the first step_committed with step_id choose_operation in the case has correct true", status: exists}
+  drew_model:                 {from: "problem_completed.drew_model", status: exists}
+  drawing_all_first_try:      {from: "for each drawing step present at the level, the first step_committed for it has correct true", status: d55, note: "needs level (below) to know which steps the level has"}
+  drawing_help:               {from: "any help event (definitions.help_events) before the last drawing step's correct commit", status: d55, note: "help_opened.trigger and idle_prompt_shown.step_id are optional today; D-55 makes them required"}
+  transposition_fixed:        {from: "a step_committed (or i_know_it_answered) with correct false and error_type transposition, then the next commit on the same step (or field) correct, with no help event between", status: d55, note: "telling help apart needs help_opened.trigger, optional today"}
+  side_lesson_completed:      {from: "a side_lesson_ended with completed true between the case's problem_shown and problem_completed", status: exists, note: "matched by seq order; D-55 adds problem_id to side lesson events to make it robust"}
+  clean_at_level:             {from: "outcome solved_alone and problem_shown.level", status: d55, note: "needs level (above)"}
+  gate_met:                   {from: "the server's move-up result at the case's level (SKL-04), including the top level", status: d55, note: "no event today; D-55 adds a server record (agreed 12 Nov)"}
+  starting_level:             {from: "the server's placement result (SKL-07)", status: d55, note: "no event today; D-55 adds a server record (agreed 12 Nov)"}
+  check_result:               {from: "problem_shown.variant check and its outcome; pass or fail as D-52 defines", status: d55}
+  session_end_reason:         {from: "session_ended.reason", status: exists}
+  excluded:                   {from: "session_started.is_demo or is_test", status: d55, note: "is_test is optional today; D-55 makes it required"}
+  active_ms:                  {from: "session_ended.active_ms", status: exists, note: "optional; sessions without it are left out of the celebration-time measure"}
+
+moments:
+  # Recorded for every solved case (REW-07). The session badge takes the top one (REW-01). Priority 1 is highest.
+  - {id: first_case,      priority: 1, when: "the child's first solved case ever (excluded sessions don't count)"}
+  - {id: in_your_head,    priority: 2, when: "problem_completed.via_i_know_it is true and the outcome is solved_alone"}
+  - {id: read_carefully,  priority: 3, when: "a keyword-trap problem where choose_operation was right on its first commit, or in_your_head on a keyword-trap problem"}
+  - {id: checked_it,      priority: 4, when: "a transposition, then a correct commit on the same step with no help event in between"}
+  - {id: all_by_myself,   priority: 5, when: "outcome solved_alone"}
+  - {id: back_on_track,   priority: 6, when: "a side lesson in this case ended with completed true, and the case was solved"}
+  - {id: used_a_clue,     priority: 7, when: "outcome with_hints"}
+  - {id: kept_going,      priority: 8, when: "outcome two_or_more_wrong"}
+  - {id: case_cracked,    priority: 9, when: "always true for a solved case (fallback)"}
+
+session_badge:                              # REW-01
+  per_session: 1
+  pick: highest_priority_moment_in_session
+  tie_break: most_recent_case
+  avoid_repeat_of_previous_session_badge: true   # take the next true moment if there is one
+  subtitle: problem_name_of_the_most_recent_case_where_the_picked_moment_was_true   # "Tree Word Problem"; never a step (TUT-12)
+  first_case: goes_to_the_session_with_the_first_solved_case   # a first session with no solved case gets Good start
+  no_case_solved:
+    badge: good_start
+    subtitle: problem_name_of_the_last_case_worked_on
+  shown_at: session_end
+  shown_on_session_end_reasons: [finished, time_up, left]
+  shown_on_next_open_reasons: [app_closed, offline_timeout]   # shown when the child next opens the app, before anything else;
+                                                              # if the phone is still offline then, as soon as it reconnects
+  not_shown_on: [device_removed, account_deleted]
+  end_of_session_order: [streak_moment, session_badge, secret_badge]   # REW-05 first, then this, then at most one secret badge
+
+big_badges:                                 # REW-11
+  kinds_in_order: [land, stop, habit]        # which is shown first when several are due (a priority, not a display sequence); oldest first within a kind
+  same_kind_same_case: catalogue_order       # e.g. two habits from one case: the one listed first in the catalogue shows first
+  per_session_max: 1                         # big-badge moments; a last stop and its land shown together are one moment
+  shown_at: end_of_the_solved_case_it_was_earned_in
+  land_and_last_stop_in_one_case: one_moment # the last medal drops in, then the trophy: one celebration, one big badge; both count as shown
+  earned_in_warm_up: shown_after_the_first_solved_case_of_that_session   # e.g. Memory keeper from a kept mark
+  queue: show_after_first_solved_case_of_next_session
+  counts_as_given_when: shown                # badge_shown, not badge_awarded, drives the family note
+  collectibles_ride_along: true              # a collectible a big badge unlocks is part of that badge's moment, not a second badge
+
+end_of_warm_up_order: [kept_mark, kept_for_good, warm_up_done]   # a passed check's star (and gold rim) first, then the warm-up moment
+end_of_case_order: [case_solved, polish_cleared, big_badge, move_up_line]   # polish_cleared plays only when this case cleared Polish me (M4);
+                                                             # move_up_line is "Try a new skill" (tutor/policy.yaml line.move-up.new-skill);
+                                                             # it plays only when the child moves up, so never at the top level
+
+stop_badges:                                # REW-06
+  question_type_stops: "earned when scoring/scoring.yaml move_up is met at that level"
+  top_level: "at the top level of a question type (L5 of comparison this term), meeting the move_up gate earns the stop; the level does not change (SKL-04)"
+  tracked_separately_needed_for: [harbour]   # weights share cmp.comparison levels; Harbour stops wait until move-up is tracked by quantity (Next)
+  arithmetic_stops:                          # Number Woods (Next): no move-up gate or spaced checks exist for arithmetic yet.
+    skill_score_at_least: 80                 # When picked up, this gate belongs in scoring, not in rewards (rewards never set gates).
+    items_at_least: 8
+    sessions_at_least: 2
+    needs_flag: quick_sums
+  once_only: true                            # a level that drops and is passed again earns nothing new
+  below_starting_point: explored             # shown as explored on the trail; no badge, no kept marks, never Polish me
+  explored_then_passed: earned               # a child who drops below their start and then meets the gate at an explored level earns that stop (once)
+  when_switched_on: award_silently_for_levels_already_passed   # flags.mastery_badges; no celebration. Habits and marks count from switch-on only.
+
+kept_marks:                                 # REW-08
+  checks: scoring/scoring.yaml spaced_checks # rewards read the checks scoring already runs; they never add, move or limit checks
+  check_passed: as_scoring_decides           # what passes or fails a check is proposed in D-52, through Julia's review of scoring (D-05)
+  on_first_fail: "no mark; the stop shows Polish me"
+  on_second_fail: "no mark; Polish me stays; the badge and any marks stay"
+  polish_me_clears_on: [a_later_passed_check, a_clean_solve_at_that_level]
+  max_marks: number_of_scheduled_checks      # 2 with scoring.yaml today (7 and 21 days); 3 if D-52 adds 60 days
+  kept_for_good_at: all_scheduled_checks_passed
+  checks_added_later: kept_for_good_stays    # if D-52 adds a check after a child has Kept for good, the gold rim stays; a new pass adds a star
+  top_level_stop: no_marks_until_scoring_schedules_checks_there   # scoring checks only after a move up; checks at the top level are proposed in D-52
+  after_level_repassed: marks_carry_on       # a new schedule from scoring adds marks up to the maximum; nothing resets
+  never_removed: true
+
+habits:                                     # REW-10
+  rule: {occurrences: 3, distinct_sessions_at_least: 2}
+  occurrence:
+    bar_builder: "a solved case in which the child drew the model (drew_model true) and every drawing step present at that level was right on its first commit, with no help event during those steps"
+    careful_reader: "a keyword-trap problem where choose_operation was right on its first commit, or in_your_head on a keyword-trap problem"
+    learn_it_do_it: "a case with a help outcome or a completed side lesson, then the next case of the same template with a without-help outcome, in the same or the next session"
+    double_checker: "a transposition, then a correct commit on the same step with no help event in between"
+    memory_keeper: "a kept mark added (M4, with kept marks)"
+    teacher: "a teach-your-partner puzzle finished: the child teaches their tutor (needs flags.teach_your_partner; Next)"
+
+land_badges:                                # REW-09
+  earned_when: "every stop in the land is earned or explored, and the land's big case is solved"
+  when_mysteries_off: "every stop in the land is earned or explored; the land badge comes in the same case as the last stop badge"
+  lands_never_gate_each_other: true          # Number Woods never has to be finished to open the Orchard
+
+secret_badges:                              # REW-14 (Next)
+  per_session_max: 1
+  shown_at: session_end
+  counts_toward_big_badges: false
+  listed_before_earned: false
+
+collectibles:                               # REW-13 (Next)
+  unlocked_by: big_badge                     # deterministic: the catalogue names what each badge unlocks
+  chance: none
+  bought: never
+  announced_before_unlock: false
+  changes_learning: never
+
+cabinet:                                    # REW-12
+  shows: [first_case, stop, land, habit]     # session badges live with that day (casebook from M4)
+  outlines: none                             # only earned badges show (REW-06 as in v4.1); the trail shows the next stop (REW-04)
+  counts_shown: false                        # never "3 of 20"
+  tap_opens: the_case_the_badge_came_from    # in the casebook once it exists; the badge alone until then
+  on_first_launch: earlier_badges_appear_quietly   # e.g. First Case earned at R1: already in the cabinet, no first_badge celebration
+
+worlds:                                     # REW-17
+  ids: [detective, space, wildlife]          # space and wildlife are drafts: journey/spec.md (JRN-05) sets what a world must supply; Apoorv designs which worlds follow
+  default: detective                         # Detective is the first world built (Ashutosh, 12 Nov); adding a world adds names and art, never rules
+  choice: first_session_and_stored           # the first-session world choice stays and is stored (REW-22)
+  enabled: [detective]                       # REW-22 (v0.5.3): only enabled worlds can be chosen; a world is added here when its design is ready
+  coming_soon_tiles: 2                       # REW-22: greyed "Coming soon" tiles with placeholder art and no names; Apoorv sets the number and art
+  switching_keeps: [badges, kept_marks, habits_progress, collectibles, casebook]
+  badges_stored_by: id                       # names and art come from the current world
+  switch_takes_effect: next_session          # a change made mid-session applies from the next session
+
+awards:                                     # REW-18; how they are stored is D-54
+  final_once_awarded: true                   # a badge, mark or collectible is never changed or removed (except with the account, ACC-09);
+                                             # late or re-derived events can add awards, never undo one
+  one_per_child_and_badge: true              # each cabinet badge once per child; one session badge per session
+
+switches:                                   # content/app-config.yaml flags (PLAT-06). The session badge and moments (REW-01, REW-07) have no switch.
+  general:
+    when_on: awards_start_from_that_moment   # habits and kept marks count from switch-on; stops and lands already passed are awarded silently
+    when_turned_off: new_awards_stop         # earned stays earned; a screen behind its own switch hides; nothing is removed
+    when_turned_back_on: everything_earned_shows_again   # nothing that happened while off is counted, except stops and lands passed (awarded silently)
+  mastery_badges: {gives: stop badges (REW-06), off: "no stop badges or stop_badge celebration; the trail, if on, still shows stops as places"}
+  habit_badges:   {gives: habit badges (REW-10), off: "no habit occurrences are counted"}
+  kept_marks:     {gives: kept marks and Memory keeper (REW-08), off: "no marks and no Polish me; scoring's checks still run"}
+  land_badges:    {gives: land badges (REW-09), off: "no trophy; the trail still opens the next land if on"}
+  land_mysteries: {gives: the land's big case (REW-09), off: "the trophy comes with the last stop badge"}
+  badge_cabinet:  {gives: the cabinet screen (REW-12), off: "no cabinet screen; badges are still earned and shown when awarded"}
+  casebook:       {gives: the casebook and story stickers (REW-15), off: "no casebook; the session badge shows on the end screen"}
+  worlds:         {gives: badges re-skinned in the child's chosen world (REW-17), off: "everyone sees the Detective world; the choice made at first run is stored for when it is on"}
+  collectibles:   {gives: collectibles (REW-13, Next), off: "none unlocked"}
+  secret_badges:  {gives: secret badges (REW-14, Next), off: "none awarded"}
+  teach_your_partner: {gives: the Teacher habit (REW-21, Next), off: "none"}
+  logged: switch_changes_with_time           # D-54: the server records when each switch changes, so "from switch-on" can be computed
+
+celebrations:                               # REW-16
+  global:
+    never_during_a_step: true                # starts after a step is committed; the next step accepts input only when it ends or is skipped
+    max_flashes_per_second: 3                # WCAG 2.3.1
+    reduced_motion: still_image_and_text     # follows the phone's reduce-motion setting
+    sound: follows_app_sound_setting
+    variants_per_world_at_least: 3
+    variant_pick: rotate_never_repeat_last   # per child, per moment and world
+    tap_to_skip: after_first_view
+    first_view_counted: per_child            # per child profile, across devices
+    colour_never_red: true                   # NFR-03
+    logged_from: R1                          # celebration_shown and badge_shown are logged from R1 (REW-16, REW-01); the measures are M3 (REW-20)
+  time_budget_metric: {share_of_session_active_time_median_at_most: 0.05}   # a home-week measure (spec section 9), not a pass/fail test
+  tutor_state: {case_solved: cheering, warm_up_done: cheering, habit_badge: cheering, detour_return: encourage, partner_taught: cheering}   # v0.3.4: the child's tutor's animation state in these moments (TTR-04, tutor/tutors.yaml); its costume follows the world
+  # Moving up has no moment of its own: it is the trail drawing on inside stop_badge, then the "Try a new skill" line.
+  # spec v0.3.3 (12 Nov): the three journey moments are defined now and built next term with their features, each off until
+  # its feature exists. Smaller than a stop badge: small wins inside a session, not progress along the trail.
+  moments:
+    step_right:           {max_ms: 300,  release: R1}
+    wrong_move:           {max_ms: 400,  release: R1, note: "the existing wobble (LES-07); never red"}
+    case_solved:          {max_ms: 1500, release: R1}
+    session_badge:        {max_ms: 1500, release: R1, note: "on the end screen at R1; lands in the casebook once it exists"}
+    detour_return:        {max_ms: 1000, release: R1}
+    warm_up_done:         {max_ms: 1000, release: R1, once_per_session: true, note: "when the warm-up block before the lesson ends: the starting check at R1; from M3 also spaced checks and warm-up Quick sums, before Choose today. Quick sums chosen as today's activity is not a warm-up. The ui_words warm_up_done show, the tutor cheers and the session moves on; never a score or count, and the version is chosen by rotation only, never by answers (SKL-07, LES-16)"}
+    streak_moment:        {max_ms: 1500, release: M3, note: "REW-05"}
+    stop_badge:           {max_ms: 3000, release: M3, includes: "the trail draws to the next stop and its mist clears; at the top level there is no next stop, so the medal alone (or the land scene, when the trophy comes with it)"}
+    habit_badge:          {max_ms: 2500, release: M3}
+    first_badge:          {max_ms: 2500, release: M3, note: "First Case taking its place in the cabinet, for a first case solved once the cabinet is on"}
+    kept_mark:            {max_ms: 1000, release: M4}
+    kept_for_good:        {max_ms: 1500, release: M4}
+    polish_cleared:       {max_ms: 1000, release: M4, note: "on the end-of-case screen, the stop's medal shows briefly and its Polish me tag lifts off, after a clean solve at that level. When a passed check clears it, the kept_mark moment covers it instead. Never plays while kept_marks is off (there is no Polish me then), and not at the top level until scoring schedules checks there (D-52)"}
+    land_badge:           {max_ms: 8000, release: M4, skippable: after_first_view, includes: "the last stop's medal dropping in, when both come in one case"}
+    secret_badge:         {max_ms: 1000, release: Next}
+    collectible_unlocked: {max_ms: 2000, release: Next}
+    mystery_clue_found:   {max_ms: 1000, release: Next, note: "a clue inside a land's mystery (not a hint; hints are 'Used a clue'): a magnifying glass reveals it and it pins to the case board; once per clue. Needs flags.land_mysteries and clues inside the land's big case, which are not yet specified"}
+    partner_taught:       {max_ms: 1500, release: Next, note: "the celebration shows 'You taught me!' (ui_words partner_taught, Key-owned) and the tutor gives a thumbs up, when a teach-your-partner puzzle is finished (needs flags.teach_your_partner). On the puzzle that earns the Teacher habit, partner_taught plays first, then habit_badge"}
+    case_made:            {max_ms: 2000, release: Next, note: "the child's case gets the world's stamp and slides into the casebook, when the child finishes making a case (story case files written with the child, PRD v4.1 section 5.3). Needs that feature's own switch; with flags.casebook off, the stamp only"}
+
+family_note:                                # REW-19
+  names: [stop, land, habit, kept_for_good]  # one plain line each, e.g. "Kept for good: Orchard Gate"
+  session_badges: summarised
+  only_badges_shown_to_child: true

@@ -11,8 +11,10 @@ import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
 import 'config/env.dart';
+import 'data/models/journey_config.dart';
 import 'data/repositories/account_repository.dart';
 import 'data/repositories/family_repository.dart';
+import 'data/repositories/look_repository.dart';
 import 'data/repositories/pack_repository.dart';
 import 'data/repositories/session_repository.dart';
 import 'data/services/api_client.dart';
@@ -25,8 +27,10 @@ import 'data/services/key_store.dart';
 import 'data/services/outbox_db.dart';
 import 'data/services/pack_source.dart';
 import 'data/services/social_sign_in.dart';
+import 'data/services/sound_effects.dart';
 import 'data/services/voice.dart';
 import 'deps.dart';
+import 'ui/core/parts/journey_art.dart';
 import 'ui/features/lesson/view_models/sitting.dart';
 
 Future<void> main() async {
@@ -118,6 +122,19 @@ Future<void> main() async {
           await rootBundle.loadString('assets/spec/app-config.yaml'),
     ),
   );
+  // who can teach, who the child can be, the worlds and the celebrations
+  // (D-59, D-51): served, else bundled
+  Future<String?> specFile(ContentBundle? b, String name) async =>
+      b?.yamlOf(name) ?? await rootBundle.loadString('assets/spec/$name');
+  final journey = await served(
+    (b) async => JourneyConfig.fromYaml(
+      tutors: await specFile(b, 'tutors.yaml'),
+      looks: await specFile(b, 'looks.yaml'),
+      catalogue: await specFile(b, 'catalogue.yaml'),
+      rules: await specFile(b, 'rules.yaml'),
+      journey: await specFile(b, 'journey.yaml'),
+    ),
+  );
   final flags = Flags(
     client,
     store,
@@ -160,10 +177,40 @@ Future<void> main() async {
   // the server's problems this phone has shown, for a case left part way
   await sessions.loadProblems(pack);
   final sitting = Sitting(
-    capMs: config.sessionCapMinutes * 60 * 1000,
+    capMs:
+        (Env.isDev && Env.sessionCapMinutes > 0
+            ? Env.sessionCapMinutes
+            : config.sessionCapMinutes) *
+        60 *
+        1000,
     store: store,
   );
+  // the chosen child's own day's time (SES-01)
+  sitting.child = account.childId;
   await sitting.load();
+  // the case partner's voice from the server; the phone's own voice
+  // whenever the server reads nothing aloud or a line can't go out
+  final voice = CloudVoice(
+    // the child's voice from their tutor (TTR-02): voiceId, one of
+    // tutors.yaml voices.enabled
+    fetch: (text, voiceId) => client.postBytes('/api/voice/speak', {
+      'text': text,
+      'voiceId': ?voiceId,
+    }),
+    warmer: (lines, voiceId) =>
+        client.post('/api/voice/warm', {'lines': lines, 'voiceId': ?voiceId}),
+    player: FileClipPlayer(),
+    fallback: DeviceVoice(),
+  );
+  // which of Apoorv's art files this build holds (placeholders until then)
+  await ArtAssets.load();
+  // the prototype's sound effects, under the app's sound setting
+  AuraSound.player = AssetSfxPlayer();
+  final looks = LookRepository(client, journey);
+  // every line in the voice the child chose for their tutor (TTR-02)
+  void voiceOfChild() => voice.voiceId = looks.cached(account.childId)?.voiceId;
+  looks.addListener(voiceOfChild);
+  account.addListener(voiceOfChild);
   runApp(
     AuraApp(
       deps: Deps(
@@ -174,24 +221,15 @@ Future<void> main() async {
         pack: pack,
         // the case partner's voice from the server; the phone's own voice
         // whenever the server reads nothing aloud or a line can't go out
-        voice: CloudVoice(
-          fetch: (text, voiceId) => client.postBytes('/api/voice/speak', {
-            'text': text,
-            'voice': ?voiceId,
-          }),
-          warmer: (lines, voiceId) => client.post('/api/voice/warm', {
-            'lines': lines,
-            'voice': ?voiceId,
-          }),
-          player: FileClipPlayer(),
-          fallback: DeviceVoice(),
-        ),
+        voice: voice,
         sitting: sitting,
         config: config,
         deviceLock: LocalDeviceLock(),
         outbox: db,
         store: store,
         flags: flags,
+        journey: journey,
+        looks: looks,
         timeZone: () async =>
             (await FlutterTimezone.getLocalTimezone()).identifier,
       ),

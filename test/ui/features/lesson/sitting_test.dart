@@ -308,4 +308,32 @@ void main() {
     sitting.useMinutes(45); // never past app-config's 30
     expect(sitting.capMs, 30 * 60 * 1000);
   });
+
+  group('each child has their own day (SES-01)', () {
+    test("a second child doesn't start at the first child's cap", () async {
+      final store = MemoryKeyStore();
+      final day = Sitting(capMs: 30 * minute, store: store, nowMs: () => 0);
+      await day.forChild('ari');
+      day.activeMs = 30 * minute;
+      expect(day.over, isTrue);
+      await day.forChild('sam');
+      expect(day.activeMs, 0);
+      expect(day.over, isFalse);
+      // and back to the first: still at the cap, from the store
+      await day.forChild('ari');
+      expect(day.over, isTrue);
+    });
+
+    test('a new launch reads the chosen child, not the phone', () async {
+      final store = MemoryKeyStore();
+      final first = Sitting(capMs: 30 * minute, store: store, nowMs: () => 0);
+      await first.forChild('ari');
+      first.activeMs = 30 * minute;
+      await first.save();
+      final next = Sitting(capMs: 30 * minute, store: store, nowMs: () => 0)
+        ..child = 'sam';
+      await next.load();
+      expect(next.over, isFalse);
+    });
+  });
 }

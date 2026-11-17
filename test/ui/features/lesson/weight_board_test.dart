@@ -94,7 +94,7 @@ void main() {
       for (final d in n.split('')) {
         await tap(tester, find.text(d).last);
       }
-      await tap(tester, find.byIcon(Icons.check_rounded));
+      await tap(tester, find.byKey(const Key('keypadCheck')));
     }
     expect(vm.state.step, LessonStep.solved);
   });

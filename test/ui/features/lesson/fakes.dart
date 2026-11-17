@@ -20,13 +20,32 @@ class FakeVoice implements Voice {
   @override
   final ValueNotifier<bool> speaking = ValueNotifier(false);
 
-  @override
-  Future<void> say(String text) async => said.add(text);
-
-  @override
-  Future<void> stop() async => stops++;
-
+  /// Lines play until [stop] (a child cutting one short, TTR-03); else
+  /// each one plays to its end at once.
+  bool holdLines = false;
   int stops = 0;
+
+  @override
+  Future<void> say(String text) async {
+    said.add(text);
+    speaking.value = true;
+    if (!holdLines) speaking.value = false;
+  }
+
+  /// Lines said in a voice of their own, as `voiceId: text`.
+  final List<String> saidIn = [];
+
+  @override
+  Future<void> sayIn(String text, String? voiceId) async {
+    saidIn.add('$voiceId: $text');
+    await say(text);
+  }
+
+  @override
+  Future<void> stop() async {
+    stops++;
+    speaking.value = false;
+  }
 
   @override
   Future<void> warm(List<String> lines) async {}

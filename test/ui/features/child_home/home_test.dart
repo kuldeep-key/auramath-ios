@@ -87,7 +87,7 @@ void main() {
 
   testWidgets('WelcomeBack has a way home (SES-07)', (tester) async {
     await show(tester, const WelcomeBackScreen(name: 'Mira'));
-    await tapAndSettle(tester, find.byIcon(Icons.home_outlined));
+    await tapAndSettle(tester, find.byIcon(Icons.home_rounded));
     expect(find.text('went to ${Paths.home}'), findsOneWidget);
   });
 
@@ -110,15 +110,15 @@ void main() {
     expect(find.text('went to ${Paths.chooseToday}'), findsOneWidget);
   });
 
-  testWidgets('@SES-07 back on a later day with no case: Keep going', (
+  testWidgets("@SES-07 back on a later day with no case: Let's go", (
     tester,
   ) async {
     await show(
       tester,
       const WelcomeBackScreen(name: 'Mira', caseWaiting: false),
     );
-    expect(find.text('Ready for a new case?'), findsOneWidget);
-    await tapAndSettle(tester, find.text('Keep going'));
+    expect(find.text('Ready for a case?'), findsOneWidget);
+    await tapAndSettle(tester, find.text("Let's go"));
     expect(find.text('went to ${Paths.lessonNext}'), findsOneWidget);
   });
 }

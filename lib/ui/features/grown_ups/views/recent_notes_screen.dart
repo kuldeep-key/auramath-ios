@@ -34,19 +34,20 @@ class RecentNotesScreen extends StatelessWidget {
       final l = AppLocalizations.of(context)!;
       final locale = Localizations.localeOf(context).toString();
       return AuraPage(
-        top: TitleBar(
-          title: l.guNotesTitle(child.name),
-          fallback: Paths.grownUps,
-        ),
+        top: const AuraTopBar(fallback: Paths.grownUps),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // the prototype's Notes: a title, what the notes are, the cards
+            AuraHeading(
+              title: l.guNotesTitle(child.name),
+              subtitle: l.guNotesBody,
+            ),
             if (list.isEmpty)
-              GuCard(
-                child: Text(
-                  l.guNotesNone(child.name),
-                  style: AuraText.note.copyWith(color: AuraColors.mute),
-                ),
+              EmptyNote(
+                icon: Icons.sticky_note_2_rounded,
+                title: l.guNotesEmpty,
+                body: l.guNotesEmptyBody(child.name),
               ),
             for (final n in list) ...[
               GuCard(
@@ -60,7 +61,12 @@ class RecentNotesScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                     ],
-                    Text(n.sentences.join(' '), style: AuraText.note),
+                    Text(
+                      n.sentences.join(' '),
+                      style: AuraText.optionDetail.copyWith(
+                        color: AuraColors.ink,
+                      ),
+                    ),
                     SessionDrawingView(
                       key: ValueKey(n.sessionId),
                       load: () => notes.drawing(n.sessionId),

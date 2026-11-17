@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../motion/motion.dart';
 import '../theme/tokens.dart';
+import 'gap_segment.dart' show DashedEdge;
 
 /// What the child can place next.
 enum BoardPiece { bar, gap, total }
@@ -14,7 +15,11 @@ class TrayPiece extends StatelessWidget {
     required this.label,
     this.armed = false,
     this.glow = false,
+    this.barColor = AuraColors.blue,
   });
+
+  /// The bar piece in its bar's colour: yellow for A, blue for B.
+  final Color barColor;
 
   final BoardPiece piece;
   final String label;
@@ -26,31 +31,40 @@ class TrayPiece extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mini = switch (piece) {
+      // the prototype's minis: a little bar, a dashed gap, a brace
       BoardPiece.bar => Container(
         width: 22,
-        height: 32,
+        height: 36,
         decoration: BoxDecoration(
-          color: AuraColors.blue,
-          borderRadius: BorderRadius.circular(6),
+          color: barColor,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(8),
+            bottom: Radius.circular(3),
+          ),
+        ),
+        foregroundDecoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: AuraColors.barShade, width: 4),
+          ),
         ),
       ),
-      BoardPiece.gap => Container(
-        width: 36,
+      BoardPiece.gap => const SizedBox(
+        width: 40,
         height: 22,
-        decoration: BoxDecoration(
-          border: Border.all(color: AuraColors.blue, width: 3),
-          borderRadius: BorderRadius.circular(6),
+        child: CustomPaint(
+          painter: DashedEdge(color: AuraColors.blue, radius: 8),
         ),
       ),
       BoardPiece.total => Container(
-        width: 36,
-        height: 12,
+        width: 44,
+        height: 14,
         decoration: const BoxDecoration(
           border: Border(
             left: BorderSide(color: AuraColors.navy, width: 3),
             right: BorderSide(color: AuraColors.navy, width: 3),
             bottom: BorderSide(color: AuraColors.navy, width: 3),
           ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(10)),
         ),
       ),
     };
@@ -73,7 +87,8 @@ class TrayPiece extends StatelessWidget {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           transform: Matrix4.translationValues(0, armed ? -6 : 0, 0),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          constraints: const BoxConstraints(minHeight: 58),
+          padding: const EdgeInsets.fromLTRB(12, 8, 16, 8),
           decoration: BoxDecoration(
             color: AuraColors.white,
             borderRadius: BorderRadius.circular(AuraRadii.panel),

@@ -92,6 +92,8 @@ class _BarSenseViewState extends State<BarSenseView> {
             muted: !widget.vm.readAloud,
             onSound: widget.vm.sound,
             onHome: widget.onHome,
+            // JRN-04: a detour, out and back to the same step
+            sidePath: (label: l.kidSidePath, back: l.kidSidePathBack),
           ),
           const SizedBox(height: 20),
           Expanded(

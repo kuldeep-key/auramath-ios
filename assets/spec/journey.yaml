@@ -1,0 +1,108 @@
+# The journey: first run, Home, the path the child walks, and what a world must supply to re-skin it
+# (journey/spec.md, JRN-01 to JRN-07). The rules for what is earned are rewards/rules.yaml; names are in
+# rewards/catalogue.yaml; this file only says how the journey is laid out and what a world must fill.
+# Key designs and owns the journey and the worlds; Julia may give feedback (D-59).
+# tools/validate.py checks this file: every skin slot points at something that exists, and every enabled world fills every slot.
+
+version: 0.1.0
+updated: 2026-11-12
+status: provisional
+decision: D-59
+
+# ---------------------------------------------------------------- first run (JRN-01), once per child, before the first lesson
+first_run:
+  order: [whos_learning, world_picker, look, tutor, meet_tutor, home]
+  steps:
+    whos_learning: {requirement: DEV-01, skipped_when: "one child in the family", tile: "the child's look once chosen, their first initial until then"}
+    world_picker:  {requirement: REW-22, shows: "the worlds in rewards/rules.yaml worlds.enabled, plus coming_soon_tiles greyed"}
+    look:          {requirement: ACC-12, config: avatar/looks.yaml}
+    tutor:         {requirement: TTR-01, config: tutor/tutors.yaml, skipped_when: "one tutor enabled"}
+    meet_tutor:    {requirement: AI-07, with: grown_up_present}
+    home:          {requirement: JRN-02}
+  once_per_child: true             # a second child on the same phone gets their own first run
+  if_interrupted: resume_at_first_unanswered_step   # the app closed or the phone was taken back mid-way
+  set_up_before_this_release: [look, tutor, meet_tutor]   # once, on their next open; Detective is set without asking while it is the only world
+  grown_up_present: true           # the grown-up has just finished setup and handed over (journey 1, 1.12)
+  session_starts: on_first_lesson  # SES-05: first run is not a session; the session starts with the lesson after Home
+
+# ---------------------------------------------------------------- Home (JRN-02)
+home:
+  shows:
+    - {item: own_look_and_name, opens: me_screen}
+    - {item: family_area_lock, requirement: ACC-07}
+    - {item: tutor, size: large, says: home_greeting}      # spoken without the child's name (NFR-08)
+    - {item: keep_going, primary: true}                     # starts or carries on the lesson (SES-05, SES-06)
+    - {item: trail_tile, needs_flag: trail}                 # REW-04, JRN-03
+    - {item: badges_tile, needs_flag: badge_cabinet}        # REW-12
+    - {item: casebook_tile, needs_flag: casebook}           # REW-15
+  before_home_on_open: [pending_session_badge, welcome_back]   # REW-01 (a badge from a session that ended by app_closed or offline_timeout), then SES-07
+  me_screen:
+    choices:
+      - {item: my_look, requirement: AVT-01}
+      - {item: my_tutor, requirement: TTR-06, includes: voice}   # pick a tutor, then optionally switch its voice
+      - {item: my_world, requirement: JRN-05, shown_when: "flags.worlds is on and two or more worlds are enabled"}
+    gate: none                     # the child's own choices, not settings (PRV-06); settings stay in the Family area
+
+# ---------------------------------------------------------------- the path (JRN-03): how the trail (REW-04) is drawn
+path:
+  you_are_here: child_look         # the child's look stands at their current stop
+  shows:
+    current_land: full             # every stop of the land the child is in, with its state
+    next_stop: clear               # REW-04: the next stop is visible
+    later_stops: mist              # REW-04
+    next_land: teaser              # one glimpse of the next land, in mist; other lands are not drawn
+  stop_states: [earned, explored, current, next, mist, polish_me]   # earned and explored from REW-06, polish_me from REW-08
+  numbers_shown: none              # no counts, percentages or "3 of 5" (REW-03)
+  small_phones: scroll             # NFR-04: scrolls, never clips
+  names_from: rewards/catalogue.yaml   # stop and land names in the child's world
+  opened_event: trail_opened       # contracts/events.schema.json; JRN-03 measure
+  moving_up: rewards/rules.yaml celebrations.moments.stop_badge   # the trail draws to the next stop inside the stop-badge celebration
+
+side_path:                         # JRN-04: Julia's detour and return (TUT-08, TUT-18), shown in the lesson
+  shown_in: lesson_header
+  shows: "the case paused, a short side path to the skill, and the way back to the same step"
+  on_the_trail: nothing            # a detour is not progress; nothing is added to the trail
+
+# ---------------------------------------------------------------- skins (JRN-05): what every world must fill
+skin:
+  default_world: detective         # rewards/rules.yaml worlds.default
+  slots:                           # source: where the value lives; a world is enabled only when every slot is filled for it
+    world_name:        {source: "rewards/catalogue.yaml worlds.<world>.name"}
+    child_role:        {source: "rewards/catalogue.yaml worlds.<world>.role"}         # "lead detective"
+    task_word:         {source: "rewards/catalogue.yaml worlds.<world>.task"}         # "case"
+    solved_stamp:      {source: "rewards/catalogue.yaml worlds.<world>.solved"}       # "Case cracked!"
+    first_badge_name:  {source: "rewards/catalogue.yaml worlds.<world>.first"}        # "First Case"
+    land_and_stop_names: {source: "rewards/catalogue.yaml lands"}
+    badge_names:       {source: "rewards/catalogue.yaml"}
+    look_costumes:     {source: "avatar/looks.yaml looks[].costume.<world>"}
+    tutor_costumes:    {source: "tutor/tutors.yaml tutors[].costume.<world>, for every enabled tutor"}
+    art:               {source: "journey/journey.yaml art.<world>"}
+  never_in_a_skin: [maths, steps, levels, hints, tutor_lines, tutor_voices, scoring, rewards_rules, celebration_lengths]   # "adding a world adds names and art, never rules" (rewards/rules.yaml)
+
+art:                               # art keys Apoorv's files map to; null means not designed yet
+  detective:
+    home_background: art.home.detective
+    path_background: art.path.detective
+    stop_markers: art.path.detective.stops        # one per stop state
+    mist: art.path.detective.mist
+    land_scenes: art.path.detective.lands         # one per land
+    world_tile: art.picker.detective              # on the world picker
+    palette: palette.detective
+    sounds: sound.detective                       # stamp, path drawing; follows the sound setting (REW-16)
+    hidden_creature: art.path.detective.hidden_creature   # Next: the secret badge Hidden friend (REW-14); a small creature to tap on the path
+    celebrations: "rewards/rules.yaml celebrations: at least three versions per moment in this world"
+  space: null                      # draft world (rewards/catalogue.yaml); not designed
+  wildlife: null                   # draft world (rewards/catalogue.yaml); not designed
+
+# ---------------------------------------------------------------- what a grown-up sees (JRN-06)
+grown_up_names:
+  rule: "wherever a grown-up sees a world name for a stop or land, the plain skill name is beside it"
+  format: "{name in the child's world} ({plain name}, level {n})"     # "Orchard Gate (comparison word problems, level 3)"
+  format_arithmetic: "{name in the child's world} ({plain name})"     # arithmetic stops cover skill-map skills, not template levels
+  plain_names:                     # by question type (rewards/catalogue.yaml lands[].question_type)
+    comparison: comparison word problems
+    weights: weight word problems
+    total_and_difference: total and difference word problems
+    arithmetic: "the skill's name in content/skill-map.yaml"
+  applies_to: [family_note, weekly_summary, family_area_recent_notes]   # PAR-01, PAR-11, PAR-12, REW-19
+  never: [codes, year_levels]      # D-27: parents see what the child can do, never a code or year level

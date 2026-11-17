@@ -10,6 +10,7 @@ import '../view_models/lesson_view_model.dart';
 import 'bar_sense_view.dart';
 import 'board_view.dart';
 import 'break_views.dart';
+import 'draw_it_view.dart';
 import 'question_overlay.dart';
 import 'question_view.dart';
 import 'word_meaning.dart';
@@ -184,6 +185,7 @@ class LessonFlow extends StatelessWidget {
                             ),
                           },
                   ),
+                  if (vm.drawItOffer) DrawItView(vm: vm),
                   if (vm.questionOpen) QuestionOverlay(vm: vm),
                   if (vm.wordOpen case final word?)
                     WordMeaningSheet(vm: vm, word: word),

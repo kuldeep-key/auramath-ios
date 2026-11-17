@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../services/api.dart';
+export '../services/api.dart' show Award, ServerBadge;
 import '../services/api_client.dart';
 
 /// A badge the server named (REW-01 session badge, REW-06 level badge).
@@ -17,6 +18,30 @@ typedef StreakMoment = ({String band, bool coveredMissedDay});
 
 /// Where the child is on the trail, as the server knows it on every phone.
 typedef ServedTrail = ({List<ServedStop> stops, int here, bool atTop});
+
+/// A badge in the cabinet (REW-12): earned only, never an outline. Its
+/// name is the child's world's; [problemId] the case it came from.
+typedef CabinetBadge = ({
+  String badgeId,
+  String kind,
+  String name,
+  String? problemId,
+  bool polishMe,
+});
+
+/// A stop on the path (JRN-03, journey spec 5.3): `earned`, `explored`,
+/// `current`, `next` or `mist`, and Polish me (REW-08).
+typedef PathStop = ({String stopId, String name, String state, bool polishMe});
+
+/// A land on the path: the one the child is in ([current], every stop),
+/// or the one teaser of the next ([teaser], no stops).
+typedef PathLand = ({
+  String landId,
+  String name,
+  bool current,
+  bool teaser,
+  List<PathStop> stops,
+});
 
 /// The rewards the server decides (D-47, each behind the flag it serves),
 /// from one route, `GET /api/children/{childId}/rewards` (the child's
@@ -175,4 +200,71 @@ class Rewards {
 
   /// REW-05: today's moment, or null.
   StreakMoment? get streak => RewardsRepository.streakFrom(_j?['streak']);
+
+  /// The child's world (REW-17); Detective while `flags.worlds` is off.
+  String get world => _j?['world'] as String? ?? 'detective';
+
+  /// REW-01: a session badge not yet shown, from a session that ended by
+  /// app_closed or offline_timeout: shown on the next open, before
+  /// anything else. Its session, when the server names it.
+  ({ServerBadge badge, String? sessionId})? get pendingSessionBadge {
+    final j = _j?['pendingSessionBadge'];
+    final b = badgeFromJson(j);
+    if (b == null) return null;
+    return (badge: b, sessionId: (j as Map)['sessionId'] as String?);
+  }
+
+  /// REW-11: big badges earned and waiting to show.
+  List<Award> get queued => awardsFromJson(_j?['queued']);
+
+  /// REW-12: the cabinet's badges, earned only; null while
+  /// `flags.badge_cabinet` is off.
+  List<CabinetBadge>? get cabinet {
+    final list = _j?['cabinet'];
+    if (list is! List) return null;
+    return [
+      for (final b in list.whereType<Map>())
+        if (b['badgeId'] is String && b['name'] is String)
+          (
+            badgeId: b['badgeId'] as String,
+            kind: b['kind'] as String? ?? 'skill_mastered',
+            name: b['name'] as String,
+            problemId: b['problemId'] as String?,
+            polishMe: b['polishMe'] == true,
+          ),
+    ];
+  }
+
+  /// JRN-03: the path's lands (`trail.lands`): the current one in full,
+  /// and one teaser; null while `flags.trail` is off, or from a server
+  /// before v0.5.4 (`trail.questionTypes`, [RewardsRepository.trailFrom]).
+  List<PathLand>? get lands {
+    final trail = _j?['trail'];
+    final raw = trail is Map ? trail['lands'] : null;
+    if (raw is! List) return null;
+    const states = {'earned', 'explored', 'current', 'next', 'mist'};
+    return [
+      for (final l in raw.whereType<Map>())
+        if (l['landId'] is String)
+          (
+            landId: l['landId'] as String,
+            name: l['name'] as String? ?? '',
+            current: l['current'] == true,
+            teaser: l['teaser'] == true,
+            stops: [
+              for (final s
+                  in (l['stops'] as List? ?? const []).whereType<Map>())
+                if (s['stopId'] is String && s['name'] is String)
+                  (
+                    stopId: s['stopId'] as String,
+                    name: s['name'] as String,
+                    state: states.contains(s['state'])
+                        ? s['state'] as String
+                        : 'mist',
+                    polishMe: s['polishMe'] == true,
+                  ),
+            ],
+          ),
+    ];
+  }
 }

@@ -724,6 +724,7 @@ void main() {
         name: 'Case cracked',
         forWhat: 'solved',
         draftName: true,
+        subtitle: null,
       );
     final repo = SessionRepository(
       db: db,

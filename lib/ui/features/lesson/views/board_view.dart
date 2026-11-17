@@ -4,6 +4,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../../data/services/sound_effects.dart';
 import '../../../core/board/bar_board.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/parts/aura_button.dart';
@@ -63,7 +64,11 @@ class _BoardViewState extends State<BoardView> {
   @override
   void didUpdateWidget(BoardView old) {
     super.didUpdateWidget(old);
-    if (vm.wobbles > _wobbles) AuraHaptics.wrong();
+    if (vm.wobbles > _wobbles) {
+      // the prototype's wrongMove: SFX.boing with buzz(30)
+      AuraHaptics.wrong();
+      AuraSound.wrongMove();
+    }
     _wobbles = vm.wobbles;
   }
 
@@ -119,9 +124,12 @@ class _BoardViewState extends State<BoardView> {
                   child: QuestionStrip(
                     chips: [
                       StripChip(label: '${p.a.pic} ${p.aValue}', lit: true),
+                      // lit once B is found with it (the prototype's
+                      // checkB: `.chip[data-c=d]` goes on)
                       StripChip(
                         label: '${p.diff} ${rel.toLowerCase()}',
-                        lit: s.gapPlaced,
+                        lit: s.bFound,
+                        kind: StripChipKind.gap,
                       ),
                     ],
                     onSeeQuestion: vm.seeQuestion,
@@ -294,7 +302,8 @@ class _BoardViewState extends State<BoardView> {
       case LessonStep.findB || LessonStep.findTotal:
         final sentence = s.step == LessonStep.findB
             ? '${p.aValue} ${s.op == Op.add ? '+' : '−'} ${p.diff} ='
-            : '${p.aValue} + ${p.bValue} =';
+            // the prototype's D6: the found height first, then A's
+            : '${p.bValue} + ${p.aValue} =';
         return Column(
           children: [
             Row(
@@ -314,19 +323,42 @@ class _BoardViewState extends State<BoardView> {
                 const SizedBox(width: 8),
                 _AnswerBox(text: _typed, wobbles: vm.wobbles),
                 const SizedBox(width: 8),
-                IconButton.outlined(
-                  constraints: const BoxConstraints.tightFor(
-                    width: 56,
-                    height: 56,
+                // the prototype's .ibtn: white, a navy edge and lip
+                Semantics(
+                  button: true,
+                  label: l.helpMe,
+                  excludeSemantics: true,
+                  child: GestureDetector(
+                    key: const Key('sentenceHelp'),
+                    onTap: _help,
+                    child: PressScale(
+                      child: Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: AuraColors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AuraColors.navy, width: 3),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: AuraColors.navy,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.support_rounded,
+                          color: AuraColors.navy,
+                        ),
+                      ),
+                    ),
                   ),
-                  onPressed: _help,
-                  icon: const Icon(Icons.support_rounded),
-                  tooltip: l.helpMe,
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Keypad(
+              ours: true,
               keyHeight: vm.biggerPad ? 64 : 56,
               key: ValueKey(s.step),
               onChanged: (v) => setState(() => _typed = v),
@@ -539,14 +571,21 @@ class _AnswerBox extends StatelessWidget {
       ),
       child: child,
     ),
+    // the prototype's .sentence .box.focus: 80 by 60, a soft blue ring
     child: Container(
-      constraints: const BoxConstraints(minWidth: 72, minHeight: 56),
+      constraints: const BoxConstraints(minWidth: 80, minHeight: 60),
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: AuraColors.blueTint,
-        borderRadius: BorderRadius.circular(AuraRadii.small),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AuraColors.blue, width: 3),
+        boxShadow: [
+          BoxShadow(
+            color: AuraColors.blue.withValues(alpha: 0.2),
+            spreadRadius: 5,
+          ),
+        ],
       ),
       child: text.isEmpty
           ? const BlinkCaret()

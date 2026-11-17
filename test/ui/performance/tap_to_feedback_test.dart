@@ -83,7 +83,7 @@ void main() {
       ms.add(
         await timedTap(
           tester,
-          find.byIcon(Icons.check_rounded),
+          find.byKey(const Key('keypadCheck')),
           () => t.vm.wobbles == 1,
         ),
       );

@@ -365,7 +365,7 @@ void main() {
       );
       expect(
         api.received.lastWhere((e) => e.name == 'read_aloud_played').payload,
-        {'target': 'question'},
+        {'target': 'question', 'trigger': 'auto', 'stopped_early': false},
       );
       vm.closePrompt();
       expect(vm.prompt, isNull);

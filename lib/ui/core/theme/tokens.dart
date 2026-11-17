@@ -72,6 +72,12 @@ abstract final class AuraColors {
   /// A text link on the blue play background (Open 644:107).
   static const linkOnBlue = Color(0xFFFFD86B);
 
+  /// The top of a blue choice tile (the prototype's `.tile`, A1 and A3).
+  static const tileBlueTop = Color(0xFF5B8CFF);
+
+  /// The line under a row's title on Me (the prototype's `.merow small`).
+  static const meNote = Color(0xFF51608C);
+
   /// The sash board's top-left light (Y4).
   static const sashLight = Color(0xFFFFDE7A);
 }
@@ -268,4 +274,7 @@ abstract final class AuraText {
   );
   static final braceLabel = _nunito(700, 20, color: AuraColors.white);
   static final gap = _nunito(900, 19, color: AuraColors.blueInk);
+
+  /// The child's number pad keys (`.pad.ours button`): Black 28, navy.
+  static final key = _nunito(900, 28, color: AuraColors.navy);
 }

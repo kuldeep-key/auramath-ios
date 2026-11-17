@@ -63,6 +63,9 @@ const _sideError = {
   SideLesson.readQuestion: 'answered_wrong_question',
 };
 
+/// `problem_shown`: with its level and variant always (D-55; the rewards'
+/// case summary reads both). A problem with no level of its own is a
+/// bundled one from before levels, so none is claimed for it.
 SpecEvent problemShown(ComparisonProblem p) => SpecEvent('problem_shown', {
   'problem_id': p.id,
   'template_id': p.templateId,
@@ -441,26 +444,26 @@ List<SpecEvent> eventsFor(
   for (final d in decisions) {
     if (d is Solved) {
       final helped = after.hintsUsed > 0 || after.sideLessonRan;
-      out
-        ..add(
-          SpecEvent('problem_completed', {
-            'problem_id': p.id,
-            'outcome': helped
-                ? 'with_hints'
-                : switch (after.wrong) {
-                    0 => 'solved_alone',
-                    1 => 'one_wrong',
-                    _ => 'two_or_more_wrong',
-                  },
-            'working_ms': t.problemMs - t.readingMs,
-            'reading_ms': t.readingMs,
-            'wrong_count': after.wrong,
-            'hints_used': after.hintsUsed,
-            'drew_model': before.barA,
-            'via_i_know_it': d.by != SolvedBy.draw,
-          }),
-        )
-        ..add(SpecEvent('badge_awarded', {'badge_id': d.badgeId}));
+      out.add(
+        SpecEvent('problem_completed', {
+          'problem_id': p.id,
+          'outcome': helped
+              ? 'with_hints'
+              : switch (after.wrong) {
+                  0 => 'solved_alone',
+                  1 => 'one_wrong',
+                  _ => 'two_or_more_wrong',
+                },
+          'working_ms': t.problemMs - t.readingMs,
+          'reading_ms': t.readingMs,
+          'wrong_count': after.wrong,
+          'hints_used': after.hintsUsed,
+          'drew_model': before.barA,
+          'via_i_know_it': d.by != SolvedBy.draw,
+        }),
+      );
+      // no badge_awarded: the server writes it (D-54), and the phone
+      // logs badge_shown when the child sees one (REW-11)
     }
   }
   return out;

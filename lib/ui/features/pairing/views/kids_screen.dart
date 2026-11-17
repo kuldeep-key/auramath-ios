@@ -32,9 +32,32 @@ class KidsScreen extends StatefulWidget {
 class _KidsScreenState extends State<KidsScreen> {
   late Future<List<Child>> _children = _load();
 
-  Future<List<Child>> _load() async {
+  @override
+  void initState() {
+    super.initState();
+    // the grown-up area changed a child: read them again, so the picker
+    // shows the new name when the grown-up comes back here
+    widget.family.childrenChanged.addListener(_reread);
+  }
+
+  @override
+  void dispose() {
+    widget.family.childrenChanged.removeListener(_reread);
+    super.dispose();
+  }
+
+  void _reread() {
+    if (!mounted) return;
+    setState(() {
+      _children = _load(pickOnly: false);
+    });
+  }
+
+  /// [pickOnly]: a family with one child goes straight to them, but only
+  /// on the first read, never while the grown-up area is in front.
+  Future<List<Child>> _load({bool pickOnly = true}) async {
     final children = await widget.family.children();
-    if (children.length == 1 && widget.account.childId == null) {
+    if (pickOnly && children.length == 1 && widget.account.childId == null) {
       await _pick(children.single);
     }
     return children;
@@ -48,18 +71,34 @@ class _KidsScreenState extends State<KidsScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    // the prototype's A1 (16 Nov): the ribbon, "Tap your picture." and the
+    // children's tiles in the middle; the Family area pinned below
     return AuraPage(
       play: true,
+      bottom: AuraButton(
+        label: l.pairFamilyArea,
+        leading: const Icon(
+          Icons.lock_rounded,
+          size: 28,
+          color: AuraColors.navy,
+        ),
+        color: AuraButtonColor.white,
+        onPressed: () => context.go(Paths.grownUps),
+      ),
       body: Padding(
         padding: const EdgeInsets.only(top: 18),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Ribbon(text: l.pairWhosLearning),
+            Center(child: Ribbon(text: l.pairWhosLearning)),
+            const SizedBox(height: 12),
+            Text(
+              l.kidTapYourPicture,
+              textAlign: TextAlign.center,
+              style: AuraText.play.copyWith(fontSize: 19),
             ),
-            const SizedBox(height: 26),
+            const SizedBox(height: 18),
             FutureBuilder(
               future: _children,
               builder: (context, snap) {
@@ -126,13 +165,6 @@ class _KidsScreenState extends State<KidsScreen> {
                 );
               },
             ),
-            const SizedBox(height: 20),
-            AuraButton(
-              label: l.pairGrownUps,
-              icon: Icons.lock_outline_rounded,
-              color: AuraButtonColor.white,
-              onPressed: () => context.go(Paths.grownUps),
-            ),
           ],
         ),
       ),
@@ -160,7 +192,8 @@ class _ChildTile extends StatelessWidget {
           borderRadius: radius,
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.all(17),
+            constraints: const BoxConstraints(minHeight: 190),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               borderRadius: radius,
               border: Border.all(color: AuraColors.navy, width: 3),
@@ -177,8 +210,9 @@ class _ChildTile extends StatelessWidget {
               ),
             ),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AvatarDisc(avatar: child.avatar, size: 96),
+                AvatarDisc(avatar: child.avatar, size: 112),
                 const SizedBox(height: 8),
                 Text(
                   child.name,

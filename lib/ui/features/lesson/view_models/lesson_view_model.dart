@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../data/repositories/session_repository.dart';
 import '../../../../data/services/api.dart';
+import '../../../../data/services/sound_effects.dart';
 import '../../../../data/services/voice.dart';
 import '../../../core/parts/standing_button.dart';
 import 'line_library.dart';
@@ -74,6 +75,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     _sessions.online.addListener(_onlineChanged);
     _sessions.ended.addListener(_endedByServer);
     _voice.resting.addListener(_voiceResting);
+    _voice.speaking.addListener(_voiceSpeaking);
   }
 
   Pack _pack;
@@ -217,6 +219,8 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// problems are the server's): `session_started`, `problem_shown`.
   Future<void> start() async {
     startError = null;
+    // one voice for the whole lesson: its first line chooses (CloudVoice)
+    if (_voice case final LessonVoice v) v.beginLesson();
     try {
       // a case carried on after time's up goes on in the server's
       // continuation of its session (SES-01); else a new session
@@ -261,14 +265,11 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     notifyListeners();
     _warmVoice(); // the problem is known now, from the pack or the server
     final events = [
-      SpecEvent('session_started', {
-        'launch_source': launchSource,
-        'content_versions': {
-          ..._sessions.identity.contentVersions,
-          'template.${_problem.templateId}': _problem.templateVersion,
-        },
-        'is_demo': _sessions.identity.isDemo,
-      }),
+      _sessions.started(
+        launchSource,
+        childId: childId,
+        versions: {'template.${_problem.templateId}': _problem.templateVersion},
+      ),
       problemShown(_problem),
     ];
     await _record(events);
@@ -443,9 +444,22 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     // nothing happened yet to record, or the server closed the log, or
     // time was up and the child stopped: the next lesson carries it on
     if (sessionId == null || endedByServer || _calledItADay) return;
+    // a line that ended, or the lesson stopping (a line still playing is
+    // cut short): its read_aloud_played goes first, in order
+    final stopping = events.any(
+      (e) => const {
+        'session_ended',
+        'session_paused',
+        'problem_left',
+      }.contains(e.name),
+    );
+    final line = _line != null && (stopping || !_voice.speaking.value)
+        ? _lineEnded(stoppedEarly: _voice.speaking.value)
+        : null;
+    final all = [?line, ...events];
     final first = _seq;
-    _seq += events.length;
-    await _sessions.record(sessionId, first, events);
+    _seq += all.length;
+    await _sessions.record(sessionId, first, all);
   }
 
   String coachText = '';
@@ -453,6 +467,17 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   bool glowPiece = false;
   bool showHand = false;
   bool stillThere = false;
+
+  /// "Can you draw the story out?" (the prototype's W1) is up: an answer
+  /// sheet's draw_it, before the board. Only the screen; the engine's step
+  /// is already the board's.
+  bool drawItOffer = false;
+
+  /// "Let's draw" on W1.
+  void drawItTaken() {
+    drawItOffer = false;
+    notifyListeners();
+  }
 
   /// [stillThere] is open because the child has been on one step for policy
   /// `no_progress_minutes`, moving or not: too hard, so offer a way out
@@ -526,6 +551,10 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
       _wayOutOffered = tooHard = stillThere = true;
       notifyListeners();
     }
+    // TUT-07 (v0.5.4): the quiet timers start when the tutor's line on
+    // the board ends or is stopped, not while it plays; the ladder's own
+    // lines don't hold them
+    if (_line?.holdsQuiet == true && _voice.speaking.value) _lastMoveMs = now;
     await send(QuietFor(now - _lastMoveMs));
   }
 
@@ -650,6 +679,14 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
         _carrying) {
       return;
     }
+    // TTR-03: any child action stops the tutor at once (stopped_early);
+    // a line that ended is logged before what comes next
+    if (_line != null && (input is! QuietFor || !_voice.speaking.value)) {
+      final cut = input is! QuietFor && _voice.speaking.value;
+      final played = _lineEnded(stoppedEarly: cut)!;
+      if (cut) unawaited(_voice.stop());
+      unawaited(_record([played]));
+    }
     if (_held != null) {
       // the child moved on before the decision: the rules' help shows
       if (input is QuietFor) return;
@@ -721,7 +758,9 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     } else {
       _present(held);
     }
-    // lines read aloud on this step follow its events, in this session
+    // lines read aloud on this step follow its events, in this session; a
+    // line still playing as the case is solved goes before its end
+    if (solved && _line != null) reads.add(_lineEnded(stoppedEarly: false)!);
     _heldReads = null;
     if (_sessionId == sessionId) _seq += reads.length;
     // solved: the session ends as finished (SES-01), after this step's
@@ -928,7 +967,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
       case 'read_again':
         // the question again, aloud, before any other help (AI-09)
         prompt = TutorPrompt.readAgain;
-        _speak(_problem.say, 'question');
+        _speak(_problem.say, 'question', ReadTrigger.auto);
         await _record(const [
           SpecEvent('prompt_offered', {'kind': 'read_again'}),
         ]);
@@ -1025,8 +1064,16 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   }
 
   /// The grown-up's "Read aloud" (Settings): when off, nothing is spoken
-  /// unless the child taps a speak button.
-  bool readAloud = true;
+  /// unless the child taps a speak button. It is the app's sound setting:
+  /// the sound effects ([AuraSound]) follow it, so a child with the sound
+  /// off hears none.
+  bool get readAloud => _readAloud;
+  set readAloud(bool on) {
+    _readAloud = on;
+    AuraSound.soundOn.value = on;
+  }
+
+  bool _readAloud = true;
 
   /// The header's speaker: muting stops the line being read and reads
   /// nothing more on its own until the sound is turned back on.
@@ -1039,10 +1086,15 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// The grown-up's "Bigger number pad" (Settings).
   bool biggerPad = false;
 
+  /// The child's tutor (TTR-01), who cheers on "case cracked": its id and
+  /// kind in tutors.yaml. The route sets it; the default teacher until then.
+  String tutorId = 'teacher_1';
+  String tutorKind = 'grown_up_teacher';
+
   /// Tapped "Hear it again": always spoken.
   void readQuestion() {
     _signals.readAloudUsed = true;
-    _speak(_problem.say, 'question');
+    _speak(_problem.say, 'question', ReadTrigger.tap);
   }
 
   /// The flag `read_question_aloud`: the question speaks itself as it shows.
@@ -1134,39 +1186,97 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
 
   /// The question as it first shows: spoken if read-aloud is on.
   void autoReadQuestion() {
-    if (readAloud && readQuestionAloud) _speak(_problem.say, 'question');
+    if (readAloud && readQuestionAloud) {
+      _speak(_problem.say, 'question', ReadTrigger.auto);
+    }
   }
 
   /// A line the child asked to hear (a speak button). [target] is what
-  /// `read_aloud_played` says was read: the question, else a helping line.
-  void say(String text, {String target = 'hint'}) {
+  /// `read_aloud_played` says was read: the question, else a helping line;
+  /// [lineId] the library line it is, if one.
+  void say(String text, {String target = 'hint', String? lineId}) {
     _signals.readAloudUsed = true;
-    _speak(text, target);
+    _speak(text, target, ReadTrigger.tap, lineId);
   }
 
   /// A line a screen shows on its own (the board's steps, the example):
-  /// spoken if read-aloud is on.
-  void autoSay(String text, {String target = 'hint'}) {
-    if (readAloud) _speak(text, target);
+  /// the tutor speaks it as it appears, if read-aloud is on (TTR-03).
+  void autoSay(String text, {String target = 'hint', String? lineId}) {
+    if (readAloud) _speak(text, target, ReadTrigger.auto, lineId);
   }
 
   /// Set while [send] works out a step: lines read then are saved after
   /// its events, so the seqs stay in order.
   List<SpecEvent>? _heldReads;
 
-  /// Reads [text] aloud and logs `read_aloud_played` (NFR-08): its target
-  /// only, never the words, so no name or child text is in the log.
-  void _speak(String text, String target) {
-    _voice.say(text);
-    // nothing to hear: an empty line, or the phone's voice isn't working
-    if (text.isEmpty || _voice.resting.value) return;
-    final played = SpecEvent('read_aloud_played', {'target': target});
+  /// The tutor's line playing now (TTR-03): logged as `read_aloud_played`
+  /// once it ends, a child action stops it, another line takes its place
+  /// or the next event is written, so the log can say if it was cut short.
+  ({String target, ReadTrigger trigger, String? lineId, bool holdsQuiet})?
+  _line;
+
+  /// [_line] has been heard playing: its end is the voice going quiet.
+  bool _lineHeard = false;
+
+  /// The [_line]'s event, and no line playing.
+  SpecEvent? _lineEnded({required bool stoppedEarly}) {
+    final l = _line;
+    if (l == null) return null;
+    _line = null;
+    _lineHeard = false;
+    return readAloudPlayed(
+      target: l.target,
+      trigger: l.trigger,
+      stoppedEarly: stoppedEarly,
+      lineId: l.lineId,
+    );
+  }
+
+  void _logLine(SpecEvent? played) {
+    if (played == null) return;
     final held = _heldReads;
     if (held != null) {
       held.add(played);
     } else {
       unawaited(_record([played]));
     }
+  }
+
+  /// The voice started or went quiet: a line that played to its end is
+  /// logged, and the quiet timers start from now (TUT-07).
+  void _voiceSpeaking() {
+    if (_line == null) return;
+    if (_voice.speaking.value) {
+      _lineHeard = true;
+      return;
+    }
+    if (!_lineHeard) return;
+    if (_line!.holdsQuiet) _lastMoveMs = _now();
+    _logLine(_lineEnded(stoppedEarly: false));
+  }
+
+  /// Reads [text] aloud and logs `read_aloud_played` (NFR-08): its target,
+  /// how it started and its library line id only, never the words, so no
+  /// name or child text is in the log.
+  void _speak(
+    String text,
+    String target,
+    ReadTrigger trigger, [
+    String? lineId,
+  ]) {
+    // the line before it, replaced: it wasn't a child that stopped it
+    _logLine(_lineEnded(stoppedEarly: false));
+    // nothing to hear: an empty line, or the phone's voice isn't working
+    if (text.isNotEmpty && !_voice.resting.value) {
+      final quiet = _pack.quietLines;
+      _line = (
+        target: target,
+        trigger: trigger,
+        lineId: lineId,
+        holdsQuiet: !{quiet.glow, quiet.demo, quiet.still}.contains(lineId),
+      );
+    }
+    _voice.say(text);
   }
 
   /// The sum the side lesson works through: the one the child was on.
@@ -1231,6 +1341,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// if read-aloud is on, and `question_chip_tapped` is logged.
   void ask(({String id, String question, String answer}) q) {
     coachText = q.answer;
+    _coachLineId = null;
     autoSay(q.answer);
     notifyListeners();
     unawaited(
@@ -1324,7 +1435,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
 
   void sayAgain() {
     _signals.readAloudUsed = true;
-    _speak(coachText, 'hint');
+    _speak(coachText, 'hint', ReadTrigger.tap, _coachLineId);
   }
 
   void dismissStillThere() {
@@ -1446,6 +1557,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     _lastMoveMs = _shownAt = _stepAt = _now();
     _startedAt = null;
     coachText = '';
+    _coachLineId = null;
     helpAttention = Attention.none;
     glowPiece = showHand = stillThere = false;
     knowPrompt = sideLesson = badgeId = nextProblemId = null;
@@ -1523,6 +1635,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
           knowPrompt = KnowPrompt.checkPart;
         case DrawIt():
           knowPrompt = null;
+          drawItOffer = true;
         case SuggestShowMeHow():
           _coach('cmp.showMeHow', const {});
         case SwitchProblem(:final problemId):
@@ -1562,8 +1675,12 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   void _coach(String lineId, Map<String, String> slots) {
     // the line's next version: never the same one twice in a row (TUT-14)
     coachText = lines.next(lineId, _problem, slots);
-    autoSay(coachText);
+    _coachLineId = lineId;
+    autoSay(coachText, lineId: lineId);
   }
+
+  /// The library id of [coachText], for `read_aloud_played.line_id`.
+  String? _coachLineId;
 
   /// Every line's words: Julia's library first (TUT-11).
   late final LineLibrary lines = LineLibrary(_pack);
@@ -1610,6 +1727,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     _sessions.online.removeListener(_onlineChanged);
     _sessions.ended.removeListener(_endedByServer);
     _voice.resting.removeListener(_voiceResting);
+    _voice.speaking.removeListener(_voiceSpeaking);
     _ticker?.cancel();
     unawaited(_sitting.save());
     _voice.stop();

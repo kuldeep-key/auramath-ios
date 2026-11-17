@@ -8,7 +8,6 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
-import '../../../core/theme/tokens.dart';
 import '../../setup/views/sign_in_methods.dart';
 import 'parts.dart';
 
@@ -114,9 +113,7 @@ class _ForgotPasscodeScreenState extends State<ForgotPasscodeScreen> {
                     ? l.guForgotSentBody(masked)
                     : l.guForgotBody(masked),
               ),
-              const SizedBox(height: 20),
-              Text(l.guForgotOr, style: AuraText.body),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               AppleButton(
                 onPressed: _busy ? null : () => _again(() => _apple(l)),
               ),

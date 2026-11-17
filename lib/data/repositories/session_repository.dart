@@ -45,6 +45,31 @@ class SessionRepository {
   final Api _api;
   final Identity identity;
 
+  /// What the child's sessions run with (JRN-07): their look, tutor,
+  /// voice and world as the look repository last knew them; the journey's
+  /// defaults until it says.
+  SessionLook Function(String? childId) lookFor = (_) => defaultLook;
+
+  static const defaultLook = (
+    avatarId: 'look_01',
+    tutorId: 'teacher_1',
+    voiceId: 'voice_a',
+    world: 'detective',
+  );
+
+  /// `session_started` for [childId]'s new session (SES-05): [launchSource],
+  /// this launch's content versions plus [versions], and the look.
+  SpecEvent started(
+    String launchSource, {
+    String? childId,
+    Map<String, String> versions = const {},
+  }) => sessionStarted(
+    launchSource: launchSource,
+    contentVersions: {...identity.contentVersions, ...versions},
+    isDemo: identity.isDemo,
+    look: lookFor(childId),
+  );
+
   /// This phone as events name it now (AUR-34): pairing changes it from
   /// the install's id to the paired device's, without a restart. Else
   /// [identity]'s.
@@ -95,6 +120,11 @@ class SessionRepository {
   /// ended a session, by session. Home shows it (else the app's draft).
   final Map<String, ServerBadge> _badges = {};
   ServerBadge? badgeFor(String sessionId) => _badges[sessionId];
+
+  /// REW-11: the big badges the server named in its answer to the batch
+  /// that completed a case in [sessionId], newest case last.
+  final Map<String, List<Award>> _awards = {};
+  List<Award> awardsFor(String sessionId) => _awards[sessionId] ?? const [];
 
   /// SES-01: the continuation the server stored a session's work in after
   /// its `session_ended {time_up}` (`continuedIn`). Problems and decisions
@@ -517,6 +547,7 @@ class SessionRepository {
     _startingChecks.clear();
     _left.clear();
     _badges.clear();
+    _awards.clear();
     _continuedIn.clear();
     _firstSeq.clear();
     _reviewDue.clear();
@@ -553,6 +584,9 @@ class SessionRepository {
               onRejected?.call(sessionId, reply.rejected);
             }
             if (reply.badge case final badge?) _badges[sessionId] = badge;
+            if (reply.awards.isNotEmpty) {
+              (_awards[sessionId] ??= []).addAll(reply.awards);
+            }
             // SES-01: stored after a time_up end, in the server's
             // continuation: this phone links them, so a resume rebuilds
             // the board and later calls go there

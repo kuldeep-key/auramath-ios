@@ -99,53 +99,68 @@ void main() {
     skipped.dispose();
   });
 
-  testWidgets('the faces on "case cracked": big targets, a kind line about '
-      'checking, and Next without a face', (tester) async {
+  testWidgets('Rate after "case cracked": big faces, any answer, then the '
+      'next case 350 ms after a face; Skip gives none', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final (vm, api) =
-        await tester.runAsync(() => solved(8)) ?? (throw StateError('no vm'));
-    addTearDown(vm.dispose);
-    String? finished;
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: ListenableBuilder(
-            listenable: vm,
-            builder: (_, _) => SolvedView(
-              vm: vm..showBadges = false,
-              onFinished: (n) => finished = n,
+    Future<(LessonViewModel, FakeApi, List<String>)> pump() async {
+      final (vm, api) =
+          await tester.runAsync(() => solved(8)) ?? (throw StateError('no vm'));
+      final finished = <String>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ListenableBuilder(
+              listenable: vm,
+              builder: (_, _) => SolvedView(
+                key: ValueKey(vm),
+                vm: vm..showBadges = false,
+                onFinished: finished.add,
+              ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.pump(const Duration(seconds: 2));
-    expect(find.text('How was this case?'), findsOneWidget);
+      );
+      await tester.pump(const Duration(seconds: 2));
+      return (vm, api, finished);
+    }
+
+    final (vm, api, finished) = await pump();
+    addTearDown(vm.dispose);
+    expect(find.text('How was that one?'), findsNothing, reason: 'Y2 first');
+    await tester.tap(find.text('Next'));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('How was that one?'), findsOneWidget);
+    expect(find.text('Any answer is fine.'), findsOneWidget);
     for (final label in ['Easy', 'OK', 'Tricky']) {
       final size = tester.getSize(
-        find.ancestor(of: find.text(label), matching: find.byType(InkWell)),
+        find
+            .ancestor(of: find.text(label), matching: find.byType(Semantics))
+            .first,
       );
       expect(size.height, greaterThanOrEqualTo(56), reason: label);
       expect(size.width, greaterThanOrEqualTo(56), reason: label);
     }
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Tricky'));
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-    });
-    await tester.pump();
-    expect(
-      find.text(
-        'Tricky cases take care. Checking each bar helped you crack it.',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Easy'), findsNothing);
-    await tester.tap(find.text('Next'));
-    expect(finished, vm.nextProblemId);
+    await tester.tap(find.text('Tricky'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(finished, isEmpty, reason: 'the face presses in first');
+    await tester.pump(const Duration(milliseconds: 60));
+    expect(finished, [vm.nextProblemId]);
+    await tester.runAsync(pumpEventQueue);
     expect(api.received.any((e) => e.name == 'self_rating_given'), isTrue);
+
+    final (vm2, api2, finished2) = await pump();
+    addTearDown(vm2.dispose);
+    await tester.tap(find.text('Next'));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.byKey(const Key('rateSkip')));
+    await tester.pump();
+    expect(finished2, [vm2.nextProblemId]);
+    await tester.runAsync(pumpEventQueue);
+    expect(api2.received.any((e) => e.name == 'self_rating_given'), isFalse);
+    expect(api2.received.last.name, 'session_ended');
   });
 }

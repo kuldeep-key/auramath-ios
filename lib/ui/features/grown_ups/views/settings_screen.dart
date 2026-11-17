@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../data/repositories/family_repository.dart';
 import '../../../../data/repositories/grown_up_repository.dart';
@@ -7,13 +6,16 @@ import '../../../../data/repositories/report_email_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_page.dart';
-import '../../../core/theme/tokens.dart';
+import '../../../core/parts/aura_sheet.dart';
+import '../../../core/parts/aura_toast.dart';
+import '../../../core/parts/choice_tile.dart';
 import 'parts.dart';
 import 'report_email_card.dart';
 
-/// Settings (652:75): this phone's lesson settings, the family's report
-/// email (PAR-05), then the links. Membership is not built this term, so
-/// its row is left out.
+/// Settings (652:75, the prototype's Settings): this phone's lesson
+/// settings and the family's report email (PAR-05). Time each day opens a
+/// picker sheet; the rest are switches; each change says Saved. The
+/// family, rights and sign-out rows live on the Family area (GHome).
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
     super.key,
@@ -38,41 +40,10 @@ class SettingsScreen extends StatelessWidget {
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 6),
-              Semantics(
-                header: true,
-                child: Text(l.guSettingsTitle, style: AuraText.heading),
-              ),
-              const SizedBox(height: 10),
+              AuraHeading(title: l.guSettingsTitle),
               _LessonPrefsCard(initial: prefs, save: repo.savePrefs),
-              const SizedBox(height: 14),
-              NavRow(
-                icon: Icons.group_outlined,
-                label: l.guFamilyAndPhones,
-                onTap: () => context.push(Paths.family),
-              ),
               const SizedBox(height: 12),
               ReportEmailCard(email: email),
-              const SizedBox(height: 14),
-              NavRow(
-                icon: Icons.shield_outlined,
-                label: l.guRightsLink,
-                onTap: () => context.push(Paths.rights),
-              ),
-              const SizedBox(height: 12),
-              NavRow(
-                icon: Icons.person_add_outlined,
-                label: l.guAddChild,
-                onTap: () => context.push(Paths.addChild),
-              ),
-              const SizedBox(height: 12),
-              NavRow(
-                icon: Icons.logout_rounded,
-                iconColor: AuraColors.coral,
-                label: l.guSignOut,
-                chevron: false,
-                onTap: () => context.push(Paths.signOut),
-              ),
             ],
           ),
         );
@@ -81,7 +52,8 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-/// Each row cycles through its choices on tap and is saved at once.
+/// Time each day (a picker), read-aloud and the bigger pad (switches),
+/// each saved at once.
 class _LessonPrefsCard extends StatefulWidget {
   const _LessonPrefsCard({required this.initial, required this.save});
 
@@ -98,36 +70,59 @@ class _LessonPrefsCardState extends State<_LessonPrefsCard> {
   void _set(LessonPrefs p) {
     setState(() => _p = p);
     widget.save(p);
+    AuraToast.show(context, AppLocalizations.of(context)!.guSaved);
+  }
+
+  /// The prototype's `pick`: a sheet of the four lengths.
+  Future<void> _pickMinutes() async {
+    final l = AppLocalizations.of(context)!;
+    final picked = await showAuraSheet<int>(
+      context,
+      builder: (context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SheetHeading(title: l.guSetTime, body: l.guSetTimeSheetBody),
+          for (final m in LessonPrefs.minuteChoices) ...[
+            ChoiceTile(
+              label: l.guSetMinutesLong(m),
+              selected: m == _p.minutes,
+              onTap: () => Navigator.of(context).pop(m),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
+    if (picked != null && mounted && picked != _p.minutes) {
+      _set(_p.copyWith(minutes: picked));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    String onOff(bool v) => v ? l.guOn : l.guOff;
-    const m = LessonPrefs.minuteChoices;
     return GuCard(
       child: Column(
         children: [
           KvRow(
             label: l.guSetTime,
             value: l.guSetMinutes(_p.minutes),
+            chevron: true,
             hint: l.guSetChangeHint,
-            onTap: () => _set(
-              _p.copyWith(minutes: m[(m.indexOf(_p.minutes) + 1) % m.length]),
-            ),
+            onTap: _pickMinutes,
           ),
-          KvRow(
+          SwitchRow(
             label: l.guSetReadAloud,
-            value: onOff(_p.readAloud ?? true),
-            hint: l.guSetChangeHint,
-            onTap: () => _set(_p.copyWith(readAloud: !(_p.readAloud ?? true))),
+            detail: l.guSetReadAloudDetail,
+            value: _p.readAloud ?? true,
+            onChanged: (v) => _set(_p.copyWith(readAloud: v)),
           ),
-          KvRow(
+          SwitchRow(
             label: l.guSetBigPad,
-            value: onOff(_p.biggerPad),
-            hint: l.guSetChangeHint,
+            detail: l.guSetBigPadDetail,
+            value: _p.biggerPad,
             divider: false,
-            onTap: () => _set(_p.copyWith(biggerPad: !_p.biggerPad)),
+            onChanged: (v) => _set(_p.copyWith(biggerPad: v)),
           ),
         ],
       ),

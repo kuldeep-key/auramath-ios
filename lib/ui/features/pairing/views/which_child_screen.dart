@@ -28,6 +28,23 @@ class _WhichChildScreenState extends State<WhichChildScreen> {
   });
 
   @override
+  void initState() {
+    super.initState();
+    // a child changed on this phone: show their new details
+    widget.family.childrenChanged.addListener(_changed);
+  }
+
+  @override
+  void dispose() {
+    widget.family.childrenChanged.removeListener(_changed);
+    super.dispose();
+  }
+
+  void _changed() {
+    if (mounted) _reload();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     return AuraPage(

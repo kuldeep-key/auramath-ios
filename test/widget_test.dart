@@ -21,11 +21,12 @@ void main() {
 
     await tester.pumpWidget(AuraApp(deps: deps));
     await tester.pumpAndSettle();
-    expect(find.text('Ready for a new case?'), findsOneWidget);
+    // Home's tutor greets on the ribbon (the prototype's Home)
+    expect(find.text('Your case is waiting.'), findsOneWidget);
 
     await tester.tap(find.text('Keep going'));
     await tester.pumpAndSettle();
-    expect(find.text("Got it, let's draw"), findsOneWidget);
+    expect(find.text("Let's draw it"), findsOneWidget);
     expect(voice.said.last, startsWith('The lemon tree is 186 centimetres'));
 
     await tester.tap(find.byIcon(Icons.home_rounded));
@@ -36,7 +37,12 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 20));
     });
     await tester.pumpAndSettle();
-    expect(find.text('Ready for a new case?'), findsOneWidget);
+    // REW-01: the session's badge first, within its length (REW-16)
+    expect(find.byKey(const Key('celebration')), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 1600));
+    await tester.pumpAndSettle();
+    // Home's tutor greets on the ribbon (the prototype's Home)
+    expect(find.text('Your case is waiting.'), findsOneWidget);
   });
 
   testWidgets('Keep going reopens an unfinished case where it was left', (
@@ -99,16 +105,16 @@ void main() {
     }
 
     await tap(find.text('Keep going'));
-    await tap(find.text("Got it, let's draw"));
+    await tap(find.text("Let's draw it"));
     await tap(find.text('Help me'));
     await tap(find.text('Something easier'));
     expect(find.textContaining('254 cm'), findsOneWidget);
-    await tap(find.text("Got it, let's draw"));
+    await tap(find.text("Let's draw it"));
     await tap(find.text('I know it'));
     for (final d in ['1', '2', '2']) {
       await tap(find.text(d).last);
     }
-    await tap(find.byIcon(Icons.check_rounded));
+    await tap(find.byKey(const Key('keypadCheck')));
     await tap(find.text('Next'));
     await tap(find.text('Add to my sash'));
 

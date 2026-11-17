@@ -70,7 +70,7 @@ void main() {
     tester,
   ) async {
     await boot(tester, Paths.badges);
-    expect(find.text('Crack a case to earn your first badge!'), findsOneWidget);
+    expect(find.text('Your badges will live here.'), findsOneWidget);
   });
 
   testWidgets('Home shows the child named by the server', (tester) async {
@@ -78,35 +78,64 @@ void main() {
     expect(find.text('Mira'), findsOneWidget);
   });
 
-  testWidgets('ACC-12: on their own phone the child picks a detective with '
-      'the device token route; Home shows it', (tester) async {
+  testWidgets('ACC-12: the child picks one of eight looks with PUT look; '
+      'Home shows it', (tester) async {
     late FakeServer server;
     await boot(
       tester,
       Paths.home,
       serve: (s) =>
-          (server = s).routes['PUT /api/children/child-1/avatar'] = (body) {
-            // every phone reads it back from now on
-            s.on('GET /api/children', {
-              'children': [
-                {'id': 'child-1', 'displayName': 'Mira', ...body},
-              ],
-            });
-            return (200, {'id': 'child-1', ...body});
-          },
+          (server = s).routes['PUT /api/children/child-1/look'] = (body) => (
+            200,
+            {
+              'childId': 'child-1',
+              'world': 'detective',
+              'avatarId': body['avatarId'],
+              'tutorId': 'teacher_1',
+              'voiceId': 'voice_a',
+              'needsFirstRun': <String>[],
+            },
+          ),
     );
     await tester.tap(find.byKey(const Key('pickAvatar')));
     await settle(tester);
-    expect(find.text('Pick your detective'), findsWidgets);
-    await tester.tap(find.bySemanticsLabel('Key'));
+    expect(find.text('Who do you want to be?'), findsWidgets);
+    for (var i = 1; i <= 8; i++) {
+      expect(find.bySemanticsLabel('Look $i'), findsOneWidget);
+    }
+    // never a gender
+    expect(
+      find.textContaining(RegExp('boy|girl', caseSensitive: false)),
+      findsNothing,
+    );
+    await tester.tap(find.bySemanticsLabel('Look 3'));
     await settle(tester);
-    await tester.tap(find.byKey(const Key('avatarSave')));
+    await tester.tap(find.byKey(const Key('choose')));
+    await settle(tester);
+    final put = server.calls.lastWhere((c) => c.$1.startsWith('PUT'));
+    expect(put.$1, 'PUT /api/children/child-1/look');
+    expect(put.$2, {'avatarId': 'look_03'});
+    expect(find.byIcon(Icons.key_rounded), findsWidgets, reason: 'on Home');
+    expect(find.text('Mira'), findsOneWidget);
+  });
+
+  testWidgets('ACC-12: a server before looks: the avatar route, with the '
+      'look id (contract 4)', (tester) async {
+    late FakeServer server;
+    await boot(
+      tester,
+      Paths.avatar,
+      serve: (s) => (server = s).on('PUT /api/children/child-1/avatar', {
+        'id': 'child-1',
+      }),
+    );
+    await tester.tap(find.byKey(const Key('surprise')));
+    await settle(tester);
+    await tester.tap(find.byKey(const Key('choose')));
     await settle(tester);
     final put = server.calls.lastWhere((c) => c.$1.startsWith('PUT'));
     expect(put.$1, 'PUT /api/children/child-1/avatar');
-    expect(put.$2, {'avatar': 'key'});
-    expect(find.byIcon(Icons.key_rounded), findsWidgets, reason: 'on Home');
-    expect(find.text('Mira'), findsOneWidget);
+    expect('${put.$2['avatar']}', matches(RegExp(r'^look_0[1-8]$')));
   });
 
   testWidgets('ACC-12: a phone the server won\'t let set it (403) asks for '
@@ -114,47 +143,76 @@ void main() {
     await boot(
       tester,
       Paths.avatar,
-      serve: (s) => s.on('PUT /api/children/child-1/avatar', {
+      serve: (s) => s.on('PUT /api/children/child-1/look', {
         'error': 'another child from this phone',
       }, status: 403),
     );
-    await tester.tap(find.bySemanticsLabel('Compass'));
+    await tester.tap(find.bySemanticsLabel('Look 4'));
     await settle(tester);
-    await tester.tap(find.byKey(const Key('avatarSave')));
+    await tester.tap(find.byKey(const Key('choose')));
     await settle(tester);
     expect(find.textContaining('Ask a grown-up'), findsOneWidget);
     expect(find.textContaining("didn't save"), findsNothing);
   });
 
   testWidgets("ACC-12: a save that fails says so and stays", (tester) async {
-    await boot(tester, Paths.avatar); // no route: the fake answers 404
-    await tester.tap(find.bySemanticsLabel('Compass'));
+    await boot(
+      tester,
+      Paths.avatar,
+      serve: (s) => s.on('PUT /api/children/child-1/look', {
+        'error': 'down',
+      }, status: 503),
+    );
+    await tester.tap(find.bySemanticsLabel('Look 4'));
     await settle(tester);
-    await tester.tap(find.byKey(const Key('avatarSave')));
+    await tester.tap(find.byKey(const Key('choose')));
     await settle(tester);
     expect(find.textContaining("didn't save"), findsOneWidget);
   });
 
-  testWidgets('My badges lists what this phone earned', (tester) async {
+  testWidgets('REW-12: the cabinet is the server\'s, earned badges only; '
+      'another child\'s case on this phone is not this child\'s', (
+    tester,
+  ) async {
     await boot(
       tester,
       Paths.badges,
+      // s1 is the fake server's other child's session
       saved: const [
-        SpecEvent('badge_awarded', {'badge_id': 'tree'}),
+        SpecEvent('problem_completed', {
+          'problem_id': 'lemon',
+          'outcome': 'solved_alone',
+        }),
       ],
+      serve: (server) => server.on('GET /api/children/child-1/rewards', {
+        'world': 'detective',
+        'cabinet': [
+          {'badgeId': 'first_case', 'kind': 'first_case', 'name': 'First Case'},
+          {
+            'badgeId': 'stop.orchard.l1',
+            'kind': 'skill_mastered',
+            'name': 'Seedling Path',
+          },
+        ],
+      }),
     );
-    expect(find.text('Tree Detective'), findsOneWidget);
-    expect(find.text('Brave Asker'), findsOneWidget); // next to earn
+    expect(find.text('First Case'), findsOneWidget);
+    expect(find.text('Seedling Path'), findsOneWidget);
+    // never an outline, one still to earn, or a count
+    expect(find.text('Tree Detective'), findsNothing);
+    expect(find.text('Brave Asker'), findsNothing);
+    expect(find.textContaining(' of '), findsNothing);
   });
 
   testWidgets('an unknown badge or next case goes somewhere sensible', (
     tester,
   ) async {
     await boot(tester, Paths.badge('nope'));
-    expect(find.text('NEXT TO EARN'), findsOneWidget);
+    expect(find.text('Your badges will live here.'), findsOneWidget);
 
     await boot(tester, Paths.afterCaseNext('nope'));
-    expect(find.text('Ready for a new case?'), findsOneWidget);
+    // Home: its tutor's greeting on the ribbon
+    expect(find.text('Your case is waiting.'), findsOneWidget);
   });
 
   testWidgets('after a case with nothing saved, X1 shows the next case', (

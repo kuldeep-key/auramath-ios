@@ -1,0 +1,152 @@
+# Rewards catalogue: everything a child can earn or unlock (rewards/spec.md).
+# The rules for earning are in rewards/rules.yaml. Names are drafts. Key writes and owns them, as it does trail stop
+# names (REW-04); Julia may give feedback (12 Nov). Names follow TUT-12: short and simple, no step-by-step detail,
+# and never the words "taller" or "shorter". tools/validate.py checks this file (ids, worlds, names, counts, links).
+# Badges are stored by id; the name and art shown come from the child's current world (REW-17).
+
+version: 0.2.2
+updated: 2026-11-12
+status: provisional
+decision: D-51
+
+# Detective is the first world built (v0.5.2). Space and Wildlife names are drafts; journey/spec.md (JRN-05) sets what a world must
+# supply, and a world is enabled only when it fills every slot. These world words are skin slots (journey/journey.yaml skin).
+worlds:
+  detective: {name: Detective,       role: lead detective,     task: case,    solved: "Case cracked!",     first: "First Case"}
+  space:     {name: Space explorer,  role: mission commander,  task: mission, solved: "Mission complete!", first: "First Mission"}
+  wildlife:  {name: Wildlife ranger, role: lead ranger,        task: quest,   solved: "Path found!",       first: "First Quest"}
+
+# ---------------------------------------------------------------- session badges (REW-01), one per moment
+session_badges:
+  - {id: session.first_case,     moment: first_case,     names: {detective: "First Case", space: "First Mission", wildlife: "First Quest"}, also_in_cabinet: true}
+  - {id: session.in_your_head,   moment: in_your_head,   names: {all: "In your head!"}}
+  - {id: session.read_carefully, moment: read_carefully, names: {all: "Read it carefully"}}
+  - {id: session.all_by_myself,  moment: all_by_myself,  names: {all: "All by myself"}}
+  - {id: session.checked_it,     moment: checked_it,     names: {all: "Checked it"}}
+  - {id: session.back_on_track,  moment: back_on_track,  names: {all: "Back on track"}}
+  - {id: session.used_a_clue,    moment: used_a_clue,    names: {all: "Used a clue"}}
+  - {id: session.kept_going,     moment: kept_going,     names: {all: "Kept going"}}
+  - {id: session.case_cracked,   moment: case_cracked,   names: {detective: "Case cracked!", space: "Mission complete!", wildlife: "Path found!"}}
+  - {id: session.good_start,     moment: null,           names: {all: "Good start"}}
+
+# ---------------------------------------------------------------- lands and stops (REW-06, REW-09)
+# One stop per level of each question type (REW-04). release = when the stop can first be earned.
+lands:
+  - id: number_woods
+    question_type: arithmetic            # content/arithmetic.yaml; requirement CON-10
+    release: Next                        # arithmetic has no move-up gate or spaced checks yet; Quick sums is M3 P1
+    needs_flag: quick_sums
+    names: {detective: Number Woods, space: Number Nebula, wildlife: Number Creek}
+    badge: {id: land.number_woods, names: {detective: Number Woods detective, space: Number Nebula commander, wildlife: Number Creek ranger}}
+    stops:
+      - {id: stop.numbers.bonds,       skill: facts.to-20,             levels: [A1, A2],  names: {detective: Bond Bridge,      space: Bond Belt,       wildlife: Bond Billabong}}
+      - {id: stop.numbers.to_100,      skill: arith.addsub-2d,         levels: [A3, A4],  names: {detective: Hundred Hollow,   space: Hundred Hangar,  wildlife: Hundred Hill}}
+      - {id: stop.numbers.swap_100,    skill: arith.addsub-2d-regroup, levels: [A5, A6],  names: {detective: Swapping Stream,  space: Swap Station,    wildlife: Swapping Swamp}}
+      - {id: stop.numbers.to_1000,     skill: arith.addsub-3d,         levels: [A7, A8],  names: {detective: Thousand Trees,   space: Thousand Stars,  wildlife: Thousand Gums}}
+      - {id: stop.numbers.add_1000,    skill: arith.add-3d-regroup,    levels: [A9],      names: {detective: Adding Peak,      space: Adding Orbit,    wildlife: Adding Ridge}}
+      - {id: stop.numbers.take_1000,   skill: arith.sub-3d-regroup,    levels: [A10],     names: {detective: Take-away Cave,   space: Take-away Crater, wildlife: Take-away Gorge}}
+  - id: orchard
+    question_type: comparison            # content/templates/comparison-two-step.yaml; CON-01
+    release: M3                          # this term's only earnable land: stop badges need move-up (M3)
+    names: {detective: The Orchard, space: The Star Fields, wildlife: The Rainforest}
+    badge: {id: land.orchard, names: {detective: Orchard detective, space: Star Fields commander, wildlife: Rainforest ranger}}
+    stops:
+      - {id: stop.orchard.l1, template: cmp.comparison, levels: [L1], names: {detective: Seedling Path,  space: Launch Pad,      wildlife: Wallaby Track}}
+      - {id: stop.orchard.l2, template: cmp.comparison, levels: [L2], names: {detective: Sapling Row,    space: Moon Base,       wildlife: Koala Grove}}
+      - {id: stop.orchard.l3, template: cmp.comparison, levels: [L3], names: {detective: Orchard Gate,   space: Comet Gate,      wildlife: Rainforest Gate}}
+      - {id: stop.orchard.l4, template: cmp.comparison, levels: [L4], names: {detective: Old Oak Bridge, space: Asteroid Bridge, wildlife: Vine Bridge}}
+      - {id: stop.orchard.l5, template: cmp.comparison, levels: [L5], names: {detective: Twisty Tree,    space: Twisty Nebula,   wildlife: Twisty Vine}}
+  - id: harbour
+    question_type: weights               # Julia's bowl and mug; CON-11 (stories with quantity mass)
+    release: Next                        # weights share cmp.comparison levels; needs move-up tracked by quantity
+    needs_flag: weight_stories
+    names: {detective: Harbour Scales, space: Cargo Bay, wildlife: The Watering Hole}
+    badge: {id: land.harbour, names: {detective: Harbour detective, space: Cargo Bay commander, wildlife: Watering Hole ranger}}
+    stops:
+      - {id: stop.harbour.l3, template: cmp.comparison, levels: [L3], quantity: mass, names: {detective: Bowl and Mug Dock, space: Cargo Dock, wildlife: Wombat Scales}}
+      - {id: stop.harbour.l4, template: cmp.comparison, levels: [L4], quantity: mass, names: {detective: Heavy Crate Pier,  space: Heavy Lift, wildlife: Croc Creek}}
+      - {id: stop.harbour.l5, template: cmp.comparison, levels: [L5], quantity: mass, names: {detective: Twisty Scales,     space: Twisty Gravity, wildlife: Twisty River}}
+  - id: market
+    question_type: total_and_difference  # CON-07, P1; its template and levels don't exist yet
+    release: Next
+    needs_flag: total_and_difference
+    placeholder: true                    # stop count is fixed when the template's levels are written
+    names: {detective: Market Street, space: Space Market, wildlife: Bush Market}
+    badge: {id: land.market, names: {detective: Market detective, space: Space Market commander, wildlife: Bush Market ranger}}
+    stops:
+      - {id: stop.market.1, template: null, levels: [TBD], names: {detective: Market Stall,   space: Trading Post,     wildlife: Bush Stall}}
+      - {id: stop.market.2, template: null, levels: [TBD], names: {detective: Sharing Square, space: Sharing Station, wildlife: Sharing Shade}}
+
+# ---------------------------------------------------------------- habits (REW-10, REW-21)
+habit_badges:
+  - {id: habit.bar_builder,    names: {all: "Bar builder"},     release: M3,   evidence: [H1]}
+  - {id: habit.careful_reader, names: {all: "Careful reader"},  release: M3,   evidence: [H2]}
+  - {id: habit.learn_it_do_it, names: {all: "Learn it, do it"}, release: M3,   evidence: [H3]}
+  - {id: habit.double_checker, names: {all: "Double checker"},  release: M3,   evidence: [H7]}
+  - {id: habit.memory_keeper,  names: {all: "Memory keeper"},   release: M4,   evidence: [K1, K2]}   # needs kept marks (M4)
+  - {id: habit.teacher,        names: {all: "Teacher"},         release: Next, evidence: [H4, H5], needs_flag: teach_your_partner}
+
+# ---------------------------------------------------------------- kept marks (REW-08): stars on a stop badge, not badges
+kept_marks:
+  marks: number of spaced checks scoring.yaml schedules (2 today; 3 if D-52 adds 60 days)
+  kept_for_good_name: {all: "Kept for good"}
+
+# ---------------------------------------------------------------- secret badges (REW-14): cosmetic, never listed before earned
+secret_badges:
+  # release: Next for all secret badges (REW-14)
+  - {id: secret.giggle,          names: {all: "Giggle"},          when: "taps the tutor on Home 5 times in a row (never in a lesson, so no line repeats there)", depends_on: TTR-04}
+  - {id: secret.met_the_team,    names: {all: "Met the team"},    when: "has heard every enabled tutor say hello on the tutor picker (listening, not switching)", depends_on: TTR-01}
+  - {id: secret.world_hopper,    names: {all: "World hopper"},    when: "switches world for the first time", depends_on: REW-17}
+  - {id: secret.hidden_friend,   names: {all: "Hidden friend"},   when: "taps the hidden creature on the trail", depends_on: REW-04}
+  - {id: secret.good_listener,   names: {all: "Good listener"},   when: "taps to hear the question in three different sessions", depends_on: NFR-08}
+  - {id: secret.word_explorer,   names: {all: "Word explorer"},   when: "taps a word to see what it means", depends_on: LES-10}
+  - {id: secret.dress_up,        names: {all: "Dress-up"},        when: "changes their look for the first time after first run", depends_on: AVT-01}
+  - {id: secret.casebook_reader, names: {all: "Casebook reader"}, when: "opens an old case in the casebook", depends_on: REW-15}
+
+# ---------------------------------------------------------------- collectibles (REW-13): deterministic, cosmetic, never bought
+collectibles:
+  - id: map_decorations
+    unlocked_by: each stop badge          # the land on the trail fills up with the child's own progress
+    unlocks: 16                           # one per stop (6 + 5 + 3 + 2)
+    art_items_per_unlock: 3               # one per world
+  - id: look_items
+    unlocked_by: [first stop badge, first habit badge, first land badge, first kept_for_good, each land badge]
+    unlocks: 8                            # 4 firsts + 4 lands
+    art_items_per_unlock: 3
+  - id: casebook_covers
+    unlocked_by: each land badge
+    unlocks: 4
+    art_items_per_unlock: 3
+
+# ---------------------------------------------------------------- story stickers (REW-15)
+story_stickers:
+  one_per: story object             # each solved case adds its story's object to the casebook (lemon tree, bowl, rocket)
+  from: content templates' stories and the approved object list for generated stories (CON-08)
+  counter_shown: false
+
+# ---------------------------------------------------------------- expected totals, checked by tools/validate.py
+# Words on reward screens that are not badge names. Key writes and owns them, as the names; Julia may give feedback.
+ui_words:
+  polish_me: {all: "Polish me"}
+  explored: {all: "Explored"}
+  kept_for_good: {all: "Kept for good"}
+  warm_up_done: {all: "Warmed up! On to today."}     # the words on the warm-up-done still (v0.5.2)
+  polish_cleared: {all: "Shiny again!"}              # the words on the Polish me cleared still (v0.5.2)
+  partner_taught: {all: "You taught me!"}           # draft, Next (v0.5.3): words the tutor says on the partner-taught celebration; Key owns them, as other celebration words
+
+# ---------------------------------------------------------------- expected totals, checked by tools/validate.py
+totals:
+  library:                          # everything designed; it grows as topics arrive
+    session_badges: 10
+    stops: 16
+    lands: 4
+    habits: 6
+    cabinet_badges: 27              # first_case + stops + lands + habits
+    secret_badges: 8
+    collectible_unlocks: 28         # 16 + 8 + 4
+    collectible_art_items: 84       # 28 x 3 worlds
+  this_term:                        # earnable by 14 Dec (releases R1, M3, M4)
+    stops: 5                        # the Orchard
+    lands: 1
+    habits: 5                       # Teacher is Next
+    cabinet_badges: 12              # first_case + 5 + 1 + 5

@@ -39,18 +39,12 @@ class _AgeScreenState extends State<AgeScreen> {
               l.setupAgeTitle(childName(context, widget.draft.name)),
             ),
           ),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (final age in widget.draft.options?.ages ?? setupAges)
-                AgeChip(
-                  age: age,
-                  selected: age == _age,
-                  onTap: () => setState(() => _age = age),
-                ),
-            ],
+          AgeChips(
+            ages: widget.draft.options?.ages ?? setupAges,
+            selected: _age,
+            onPick: (age) => setState(() => _age = age),
           ),
+          // D-36, E25: the range is said here too (not in the prototype)
           const SizedBox(height: 16),
           Text(l.setupAgeRange, style: AuraText.cardLine),
         ],
@@ -66,6 +60,41 @@ class _AgeScreenState extends State<AgeScreen> {
                 context.push(Paths.setupYear);
               },
       ),
+    );
+  }
+}
+
+/// The ages in one row (`.chips`): five share the width, more wrap.
+class AgeChips extends StatelessWidget {
+  const AgeChips({
+    super.key,
+    required this.ages,
+    required this.selected,
+    required this.onPick,
+  });
+
+  final List<int> ages;
+  final int? selected;
+  final ValueChanged<int> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget chip(int age) =>
+        AgeChip(age: age, selected: age == selected, onTap: () => onPick(age));
+    if (ages.length > 5) {
+      return Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [for (final a in ages) chip(a)],
+      );
+    }
+    return Row(
+      children: [
+        for (final (i, a) in ages.indexed) ...[
+          if (i > 0) const SizedBox(width: 10),
+          Expanded(child: chip(a)),
+        ],
+      ],
     );
   }
 }
@@ -96,7 +125,7 @@ class AgeChip extends StatelessWidget {
           borderRadius: radius,
           onTap: onTap,
           child: Container(
-            width: 64,
+            constraints: const BoxConstraints(minWidth: 56),
             height: 60,
             alignment: Alignment.center,
             decoration: BoxDecoration(

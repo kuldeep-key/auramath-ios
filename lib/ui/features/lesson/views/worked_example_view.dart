@@ -154,8 +154,12 @@ class _Bars extends StatelessWidget {
       // on every step, so the bars don't jump when the brace appears
       const barWidth = 90.0, gapBetween = 40.0, labelSpace = 140.0;
       // Figma's tallest bar is 270 pt; smaller phones shrink it to fit
-      final tallest = (box.maxHeight - labelSpace).clamp(60.0, 270.0);
-      final unit = tallest / (a > b ? a : b);
+      // whole points: a fraction left over overflowed the column by a
+      // hair (0.13 pt) on some phones
+      final tallest = (box.maxHeight - labelSpace)
+          .clamp(60.0, 270.0)
+          .floorToDouble();
+      final unit = (tallest / (a > b ? a : b) * 100).floorToDouble() / 100;
       final faded = step >= 2;
       Widget label(String text) =>
           SizedBox(height: 36, child: Text(text, style: AuraText.barValue));
@@ -190,7 +194,8 @@ class _Bars extends StatelessWidget {
       );
 
       final barB = step == 0
-          ? Container(width: barWidth, height: 6, color: AuraColors.blue)
+          // the prototype's H2·1: B not drawn yet (height 0)
+          ? const SizedBox(width: barWidth)
           : _GrowBox(
               key: ValueKey(step == 1),
               grow: step == 1,

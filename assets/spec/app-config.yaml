@@ -1,6 +1,6 @@
 # App-level settings that are not teaching rules. Provisional values; change without a release (PLAT-03).
-version: 0.4.0
-updated: 2026-11-02
+version: 0.5.4
+updated: 2026-11-12
 session:
   cap_minutes: 30               # SES-01, D-07. Julia: "no more than half an hour"
   clock_pauses_while_offline: true      # SES-04 (v4): the 30-minute cap does not run while the lesson is paused for connection
@@ -48,7 +48,7 @@ setup:                          # ACC-04, D-36 (v4): Julia's 6 to 10, not narrow
 ai:                             # D-34 (v4). Provisional values; Vishal confirms (D-50)
   decision_target_ms: 2000      # NFR-05: 90% of evaluator decisions within this
   fallback_after_ms: 4000       # NFR-05, AI-04: the rules' default applies at this point
-  waiting_cue_after_ms: 1000    # the case partner shows a small thinking cue; never a blocking spinner
+  waiting_cue_after_ms: 1000    # the tutor shows its thinking state (TTR-04); never a blocking spinner
   kill_switch_fallback_rate: 0.2   # AI-04: the evaluator switches itself off if more than this share of decisions fall back
   kill_switch_window_minutes: 15
   kill_switch_min_decisions: 50     # AI-04: the switch only trips with at least this many decisions in the window
@@ -62,6 +62,9 @@ devices:
 report:
   send_within_minutes: 5        # PAR-01, provisional
   default_frequency: each_session   # D-16
+retention:                      # ACC-15 (v0.5.3, 12 Nov); to be confirmed in Chris's review (D-15)
+  inactive_account_delete_after_months: 12
+  warning_email_days_before: 30 # proposed
 flags:                          # PLAT-06. Remote flags; defaults shown
   three_in_a_row: false         # REW-02, D-10
   child_questions: false        # TUT-13, D-01 closed: tap-to-ask buttons only (M3)
@@ -69,33 +72,43 @@ flags:                          # PLAT-06. Remote flags; defaults shown
   total_and_difference: false   # CON-07, D-20 (target M3)
   read_aloud: true              # NFR-06, D-13 revised (v4): every child screen from R1
   read_question_aloud: true     # NFR-08, D-13: tap-to-hear the question from R1
-  read_aloud_default_on_ages: [6, 7]   # NFR-06, D-13
+  read_aloud_default_on_ages: [6, 7, 8, 9, 10]   # NFR-06, TTR-03 (v0.5.4, D-59): the tutor speaks each line for every age; was [6, 7]; a grown-up can turn it off (PAR-05)
   model_rewording: false        # TUT-11, TUT-14 (v4): live phrasing within approved patterns; off until Julia validates the patterns
   ai_evaluator: false           # AI-01, D-34 (v4): on only after the golden set passes (AI-05); rules' defaults while off
   ai_decisions: false           # AI-04, TUT-01 (M3): the app acts on the server's decision instead of only logging it; the rules' default stays its fallback at 4 s
   ai_generation: false          # CON-08, D-34 (v4): live problems; the code generator (CON-01) while off
-  case_partner_intro: true      # AI-07 (v4)
+  ai_terms_cleared: false       # AI-13, D-50 (v0.5.3): while off, a families' build makes no model call of any kind (evaluator, generator, rewording, parent notes); set only when Google confirms in writing that its under-18 terms allow our use, or live AI has moved to Claude Haiku and passed its checks (D-50)
+  case_partner_intro: true      # AI-07 (v4): the tutor's introduction at Meet (v0.5.4: the child's chosen tutor, TTR-01); the flag keeps its id
   self_rating: false            # AI-08, D-47 (v4); never offered at age 6
   self_rating_min_age: 7
   read_again_prompt: false      # AI-09 (v4)
   seen_before_bridge: false     # AI-10 (v4)
   trail: false                  # REW-04, D-47 (v4)
   streak_moment: false          # REW-05, D-47 (v4)
-  mastery_badges: false         # REW-06, D-47 (v4)
-  session_badges: false         # REW-01, D-47 (v4): the server's one badge per session (rewards.session_badge)
+  mastery_badges: false         # REW-06, D-47 (v4): stop badges. What each rewards switch does on, off and turned off: rewards/rules.yaml switches
   weekly_summary: false         # PAR-11, D-39 (v4)
   recent_notes_in_app: false    # PAR-12, D-39 (v4)
-  report_delivery: false        # REW-01, PAR-01: Y4 'Sent to your grown-up' shows only when on (M3)
+  report_delivery: false        # REW-01, PAR-01: Y4 'Sent to your family' (PAR-14; Figma says 'Sent to your grown-up') shows only when on (M3)
   real_families: false          # PRV-05: only with recorded legal review sign-off
   bar_sense_side_lessons: false   # TUT-17 (tentative, D-28)
   weight_stories: false         # CON-11 (M3): the selector skips stories whose quantity is mass while off
+  # v0.5.0 rewards and celebrations (rewards/rules.yaml, D-51)
+  habit_badges: false           # REW-10
+  kept_marks: false             # REW-08
+  land_badges: false            # REW-09
+  land_mysteries: false         # REW-09: while off, the land badge comes with the last stop
+  badge_cabinet: false          # REW-12
+  casebook: false               # REW-15
+  collectibles: false           # REW-13
+  secret_badges: false          # REW-14
+  worlds: false                 # REW-17: while off, every child is in the Detective world
+  teach_your_partner: false     # REW-21 (Next): the child teaches their tutor; the flag keeps its id
 flags_by_env:                   # PLAT-06: an environment's own defaults over the flags above (APP_ENV). Staging and prod run the flags as written
   dev:                          # recommended defaults while the decisions are open; Product changes them here or with a remote flag
     ai_decisions: true          # AI-04: the app acts on the server's decision (dev only)
     self_rating: true           # AI-08, D-47 open: draft default, dev only; never under self_rating_min_age
     read_again_prompt: true     # AI-09: the read-again prompt after two fast wrong answers
     seen_before_bridge: true    # AI-10, D-47 open: draft default, dev only
-    session_badges: true        # REW-01, D-47 open: draft default, dev only
     trail: true                 # REW-04, D-47 open: draft default, dev only
     streak_moment: true         # REW-05, D-47 open: draft default, dev only
     mastery_badges: true        # REW-06, D-47 open: draft default, dev only

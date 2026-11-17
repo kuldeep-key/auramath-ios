@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../../../data/services/sound_effects.dart';
 import '../motion/motion.dart';
 import '../theme/tokens.dart';
 
-enum AuraButtonColor { yellow, blue, white }
+enum AuraButtonColor {
+  yellow,
+  blue,
+  white,
+
+  /// Deleting the family account (`--c:#FF7A59`), grown-ups only: never
+  /// on a child's screen (NFR-03).
+  coral,
+}
 
 /// The one button for every screen, as Figma's Button component (265:25562,
 /// size M): a glossy gradient, a glare strip across the top, a dark band
@@ -72,6 +81,14 @@ class _AuraButtonState extends State<AuraButton> {
       fg: AuraColors.white,
       labelShadow: true,
     ),
+    AuraButtonColor.coral => const (
+      top: Color(0xFFFF9579),
+      bottom: AuraColors.coral,
+      edge: AuraColors.navy,
+      glare: 0.4,
+      fg: AuraColors.yellowFg,
+      labelShadow: false,
+    ),
     AuraButtonColor.white => (
       top: AuraColors.white,
       bottom: AuraColors.whiteBottom,
@@ -101,6 +118,9 @@ class _AuraButtonState extends State<AuraButton> {
             ? (_) {
                 setState(() => _down = false);
                 AuraHaptics.tap();
+                // the prototype's confirmTap: the main (filled) buttons
+                // confirm with a soft blip; white ones are silent
+                if (widget.color != AuraButtonColor.white) AuraSound.tap();
                 widget.onPressed!();
               }
             : null,

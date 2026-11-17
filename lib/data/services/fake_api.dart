@@ -185,6 +185,10 @@ class FakeApi implements Api {
   /// The badge the batch that ends a session answers with (REW-01).
   ServerBadge? badge;
 
+  /// The big badges the batch with a case's problem_completed answers
+  /// with (REW-11).
+  List<Award> awards = const [];
+
   /// How long each events upload takes: a slow connection.
   Duration eventsDelay = Duration.zero;
 
@@ -201,6 +205,7 @@ class FakeApi implements Api {
     batches.add((sessionId, events));
     String? continued;
     var ends = false;
+    var completes = false;
     for (final e in events) {
       final end = timeUpAt[sessionId];
       final into = continues && end != null && e.seq > end
@@ -208,6 +213,7 @@ class FakeApi implements Api {
           : sessionId;
       if (!refuse.contains(e.name) && _seen.add((into, e.seq))) {
         received.add(e);
+        if (e.name == 'problem_completed') completes = true;
         if (e.name == 'session_ended') {
           ends = true;
           if (e.payload['reason'] == 'time_up') timeUpAt[into] = e.seq;
@@ -222,6 +228,7 @@ class FakeApi implements Api {
       ended: ended[sessionId],
       continuedIn: continued,
       badge: ends ? badge : null,
+      awards: completes ? awards : const <Award>[],
     );
   }
 }

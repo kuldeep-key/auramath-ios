@@ -89,3 +89,17 @@ extension WithPayload on LessonEvent {
     payload: payload,
   );
 }
+
+extension WithSession on LessonEvent {
+  LessonEvent withSession(String id) => LessonEvent(
+    eventId: eventId,
+    sessionId: id,
+    seq: seq,
+    at: at,
+    name: name,
+    childRef: childRef,
+    deviceId: deviceId,
+    appVersion: appVersion,
+    payload: payload,
+  );
+}

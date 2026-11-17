@@ -44,7 +44,13 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
         if (f.evaluate().isNotEmpty) return;
       }
-      fail('never saw $f');
+      final shown = [
+        for (final e in find.byType(Text).evaluate()) ?(e.widget as Text).data,
+      ];
+      // the app reports errors itself; say it where the runner shows it
+      // ignore: avoid_print
+      print('E2E never saw $f; on screen: $shown');
+      fail('never saw $f; on screen: $shown');
     }
 
     Future<void> tap(Finder f) async {
@@ -63,7 +69,7 @@ void main() {
     }
 
     // a fresh phone
-    await tap(find.text("I'm a grown-up"));
+    await tap(find.text('Parents and carers'));
     await tap(find.text('Get started'));
     await see(find.text("Your child's first name"));
     await tester.enterText(find.byType(TextField), 'Sam');
@@ -97,6 +103,8 @@ void main() {
 
     // the child's phone now: Keep going opens a lesson the server made
     await tap(find.text('Keep going'));
+    // AI-07: the first lesson opens with the case partner's first meeting
+    await tap(find.text("Let's start"));
     await tap(find.text("Got it, let's draw"));
     await see(find.text('Drag a bar up here.'));
     await tap(find.byKey(const Key('slotA')));

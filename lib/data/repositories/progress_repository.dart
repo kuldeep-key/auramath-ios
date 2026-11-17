@@ -88,11 +88,29 @@ class ProgressRepository {
   /// as a count (Figma 23.2).
   static const streakAt = 3;
 
-  /// Badge ids earned on this phone, first earned first.
-  Future<List<String>> earnedBadges() async => {
-    for (final e in await _events())
-      if (e.name == 'badge_awarded') e.payload['badge_id']! as String,
-  }.toList();
+  /// The case badges solved on this phone, first earned first: Tree
+  /// Detective for a case solved without help, Brave Asker with it (the
+  /// engine's `Solved`). The server writes `badge_awarded` (D-54); this is
+  /// what the phone can know, read from each solved case's outcome.
+  Future<List<String>> earnedBadges() async =>
+      {for (final e in _solvedCases(await _events())) _caseBadge(e)}.toList();
+
+  /// Each `problem_completed` of a case the child solved: a case closed
+  /// by "show me how" (TUT-05) scores with_hints but is not solved, so its
+  /// session's worked example leaves it out.
+  static List<LessonEvent> _solvedCases(List<LessonEvent> events) {
+    final shown = {
+      for (final e in events)
+        if (e.name == 'worked_example_shown') e.sessionId,
+    };
+    return [
+      for (final e in events)
+        if (e.name == 'problem_completed' && !shown.contains(e.sessionId)) e,
+    ];
+  }
+
+  static String _caseBadge(LessonEvent done) =>
+      done.payload['outcome'] == 'with_hints' ? 'asker' : 'tree';
 
   /// The furthest stop with a solved case; the first problem stop before
   /// any. The top is reached once the last stop has a solved case: the
@@ -118,17 +136,15 @@ class ProgressRepository {
         .where((e) => e.name == 'problem_completed')
         .lastOrNull
         ?.payload['problem_id'];
-    final badge = events
-        .where((e) => e.name == 'badge_awarded')
-        .lastOrNull
-        ?.payload['badge_id'];
+    final solved = _solvedCases(events).lastOrNull;
+    final badge = solved == null ? null : _caseBadge(solved);
     final nextProblem = _pack.problems[next]!;
     final furthest = _furthest(events);
     final nextStop = TrailStop.of(nextProblem);
     return (
       solved: _pack.problems[solvedId],
       next: nextProblem,
-      sentBadge: familyHears ? badge as String? : null,
+      sentBadge: familyHears ? badge : null,
       streak: _run(events) == streakAt,
       opened: furthest != null && nextStop.index > furthest.index
           ? nextStop

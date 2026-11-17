@@ -18,6 +18,9 @@ class _Phone implements Voice {
   Future<void> say(String text) async => said.add(text);
 
   @override
+  Future<void> sayIn(String text, String? voiceId) => say(text);
+
+  @override
   Future<void> stop() async {}
 
   @override
@@ -55,6 +58,8 @@ void main() {
     player: clips,
     fallback: phone,
     wait: const Duration(milliseconds: 50),
+    lockedWait: const Duration(milliseconds: 300),
+    retryEvery: const Duration(milliseconds: 20),
   );
 
   setUp(() {
@@ -88,18 +93,123 @@ void main() {
     expect(clips.played, isEmpty);
   });
 
-  test('a slow or failed voice falls back for that line only', () async {
-    var n = 0;
-    final v = voice((t) async {
-      if (n++ == 0) {
-        await Future<void>.delayed(const Duration(milliseconds: 200));
-      }
-      return Uint8List.fromList([1]);
+  group('one voice for a whole lesson', () {
+    test("the first line's clip in time: every line in the case partner's "
+        'voice, even one that is slow to make', () async {
+      var n = 0;
+      final v = voice((t) async {
+        // the second line takes longer than the first line's 50 ms wait
+        if (n++ == 1) {
+          await Future<void>.delayed(const Duration(milliseconds: 120));
+        }
+        return Uint8List.fromList([n]);
+      });
+      v.beginLesson();
+      await v.say('First line');
+      expect(v.lock, VoiceLock.cloud);
+      await v.say('Second line');
+      await v.say('Third line');
+      expect(phone.said, isEmpty);
+      expect(clips.played, hasLength(3));
     });
-    await v.say('First line');
-    await v.say('Second line');
-    expect(phone.said, ['First line']);
-    expect(clips.played, hasLength(1));
+
+    test('the first line too slow: the whole lesson in the phone voice, '
+        'even when the server is ready later', () async {
+      var n = 0;
+      final v = voice((t) async {
+        if (n++ == 0) {
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+        }
+        return Uint8List.fromList([1]);
+      });
+      v.beginLesson();
+      await v.say('First line');
+      await v.say('Second line');
+      expect(v.lock, VoiceLock.phone);
+      expect(phone.said, ['First line', 'Second line']);
+      expect(clips.played, isEmpty);
+      expect(asked, ['First line']); // the server isn't asked again
+    });
+
+    test('a line still being made (503) is asked again, not read by the '
+        'phone', () async {
+      var tries = 0;
+      final v = voice((t) async {
+        if (t == 'Second line' && tries++ < 3) {
+          throw const ApiException('making it', status: 503);
+        }
+        return Uint8List.fromList([1]);
+      });
+      v.beginLesson();
+      await v.say('First line');
+      await v.say('Second line');
+      expect(tries, 4);
+      expect(phone.said, isEmpty);
+      expect(clips.played, hasLength(2));
+    });
+
+    test("the case partner's voice failing mid-lesson: the phone to the "
+        'end, never back', () async {
+      var down = false;
+      final v = voice((t) async {
+        if (down) throw const ApiException('down', status: 500);
+        return Uint8List.fromList([1]);
+      });
+      v.beginLesson();
+      await v.say('One');
+      down = true;
+      await v.say('Two');
+      down = false;
+      await v.say('Three');
+      expect(clips.played, hasLength(1));
+      expect(phone.said, ['Two', 'Three']);
+    });
+
+    test('a new lesson chooses again', () async {
+      var slow = true;
+      final v = voice((t) async {
+        if (slow) await Future<void>.delayed(const Duration(milliseconds: 200));
+        return Uint8List.fromList([1]);
+      });
+      v.beginLesson();
+      await v.say('Lesson one');
+      expect(v.lock, VoiceLock.phone);
+      slow = false;
+      v.beginLesson();
+      await v.say('Lesson two');
+      await v.say('Lesson two again');
+      expect(v.lock, VoiceLock.cloud);
+      expect(phone.said, ['Lesson one']);
+      expect(clips.played, hasLength(2));
+    });
+
+    test('a line naming the child, in a case-partner lesson, stays in the '
+        'bubble rather than switch voice', () async {
+      final v = voice(
+        (t) async => t.contains('Aarav')
+            ? throw const ApiException('names someone', status: 422)
+            : Uint8List.fromList([1]),
+      );
+      v.beginLesson();
+      await v.say('Hello');
+      await v.say('Well spotted, Aarav!');
+      await v.say('Next one');
+      expect(phone.said, isEmpty);
+      expect(clips.played, hasLength(2));
+      expect(v.lock, VoiceLock.cloud);
+    });
+
+    test(
+      "a picker's hello in another voice leaves the lesson's voice",
+      () async {
+        final v = voice((t) async => Uint8List.fromList([1]));
+        v.beginLesson();
+        await v.say('One');
+        await v.sayIn('Hi, I sound like this', 'voice_b');
+        expect(v.lock, VoiceLock.cloud);
+        expect(v.voiceId, isNull);
+      },
+    );
   });
 
   test('read-aloud off on the server: the phone reads from then on', () async {
@@ -144,5 +254,24 @@ void main() {
     await v.say('Two');
     expect(asked, isEmpty);
     expect(phone.said, ['Two']);
+  });
+
+  test('TTR-02: a voice with no service voice yet (404) is read by the '
+      'phone; the other voices still play', () async {
+    final v = CloudVoice(
+      fetch: (text, id) async => id == 'voice_b'
+          ? throw const ApiException('no voice', status: 404)
+          : Uint8List.fromList([1]),
+      warmer: (_, _) async {},
+      player: clips,
+      fallback: phone,
+      wait: const Duration(milliseconds: 50),
+    )..voiceId = 'voice_b';
+    await v.say('Hi!');
+    await v.say('Again');
+    expect(phone.said, ['Hi!', 'Again']);
+    v.voiceId = 'voice_a';
+    await v.say('Hello');
+    expect(clips.played, hasLength(1));
   });
 }

@@ -266,28 +266,54 @@ class TimeUpView extends StatelessWidget {
             children: [
               Align(
                 alignment: Alignment.centerRight,
-                child: SpeakButton(text: '${l.timeUpTitle} ${l.timeUpBody}'),
+                child: SpeakButton(
+                  text:
+                      '${l.timeUpTitle} ${onFinish == null ? l.timeUpBody : l.timeUpBodyFinish}',
+                ),
               ),
               const Spacer(),
-              const Burst(child: Text('🌙', style: TextStyle(fontSize: 96))),
+              // the moon is a picture, not words
+              const ExcludeSemantics(
+                child: Burst(
+                  child: Text('🌙', style: TextStyle(fontSize: 100)),
+                ),
+              ),
               const SizedBox(height: 24),
               Ribbon(text: l.timeUpTitle),
               const SizedBox(height: 16),
               Text(
-                l.timeUpBody,
+                onFinish == null ? l.timeUpBody : l.timeUpBodyFinish,
                 style: AuraText.play,
                 textAlign: TextAlign.center,
               ),
               const Spacer(),
-              AuraButton(label: l.ok, onPressed: onStop),
+              // the prototype's TU: finishing the case on screen leads,
+              // calling it a day is the quiet second choice
               if (onFinish case final onFinish?) ...[
-                const SizedBox(height: 10),
-                AuraButton(
-                  label: l.finishThisOne,
-                  color: AuraButtonColor.white,
-                  onPressed: onFinish,
+                SizedBox(
+                  width: double.infinity,
+                  child: AuraButton(
+                    label: l.finishThisOne,
+                    onPressed: onFinish,
+                  ),
                 ),
-              ],
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: AuraButton(
+                    label: l.timeUpCallItADay,
+                    color: AuraButtonColor.white,
+                    onPressed: onStop,
+                  ),
+                ),
+              ] else
+                SizedBox(
+                  width: double.infinity,
+                  child: AuraButton(
+                    label: l.timeUpCallItADay,
+                    onPressed: onStop,
+                  ),
+                ),
             ],
           ),
         ),
@@ -313,45 +339,120 @@ class LostInternetPause extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    // the prototype's LostNet: the lesson pauses under a calm full screen,
+    // the drawing kept (a picture of it, not the board), never red
     return Semantics(
       liveRegion: true,
-      child: AuraSheet(
-        onClose: onRetry,
-        children: [
-          const Icon(
-            Icons.wifi_off_rounded,
-            size: 56,
-            color: AuraColors.yellowInk,
+      child: PlayBackdrop(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: _FitOrScroll(
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: SpeakButton(
+                    text: '${l.lostInternetTitle} ${l.lostInternetBody}',
+                  ),
+                ),
+                const Spacer(),
+                const Float(
+                  child: Icon(
+                    Icons.wifi_off_rounded,
+                    size: 96,
+                    color: AuraColors.white,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Ribbon(text: l.lostInternetTitle),
+                const SizedBox(height: 18),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 300),
+                  child: Text(
+                    l.lostInternetBody,
+                    style: AuraText.play,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const _KeptDrawing(),
+                const Spacer(),
+                SizedBox(
+                  width: double.infinity,
+                  child: AuraButton(label: l.kidCheckAgain, onPressed: onRetry),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: AuraButton(
+                    label: l.goHome,
+                    color: AuraButtonColor.white,
+                    leading: const Icon(
+                      Icons.home_rounded,
+                      color: AuraColors.navy,
+                    ),
+                    onPressed: onGoHome,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            l.lostInternet,
-            style: AuraText.sheetTitle,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l.lessonLostInternetBody,
-            style: AuraText.sheetLine,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          AuraButton(
-            label: l.lessonTryAgain,
-            color: AuraButtonColor.blue,
-            onPressed: onRetry,
-          ),
-          const SizedBox(height: 10),
-          AuraButton(
-            label: l.goHome,
-            color: AuraButtonColor.white,
-            icon: Icons.home_outlined,
-            onPressed: onGoHome,
-          ),
-        ],
+        ),
       ),
     );
   }
+}
+
+/// The prototype's little card of the child's drawing, kept: a bar on a
+/// line (LostNet, R1).
+class _KeptDrawing extends StatelessWidget {
+  const _KeptDrawing();
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: Container(
+      width: 220,
+      height: 120,
+      decoration: BoxDecoration(
+        color: AuraColors.white,
+        borderRadius: BorderRadius.circular(AuraRadii.panel),
+        boxShadow: const [
+          BoxShadow(color: Color(0x330F2A73), offset: Offset(0, 6)),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 40,
+            bottom: 20,
+            child: Container(
+              width: 50,
+              height: 80,
+              decoration: const BoxDecoration(
+                color: AuraColors.yellow,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(8),
+                  bottom: Radius.circular(2),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 16,
+            child: Container(
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD6DCE8),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// The lesson couldn't start: no connection (online-first). Not designed in
@@ -373,22 +474,19 @@ class NeedInternetView extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     return AuraPage(
       play: true,
-      say: '${l.lessonNeedInternet} ${detail ?? l.lessonNeedInternetBody}',
+      say: '${l.lessonNeedInternet} ${detail ?? l.lessonNeedInternetAsk}',
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Float(
-            child: Icon(
-              Icons.wifi_off_rounded,
-              size: 72,
-              color: AuraColors.white,
-            ),
+          // the prototype's NeedNet: a satellite dish, still
+          const ExcludeSemantics(
+            child: Text('📡', style: TextStyle(fontSize: 96)),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           Ribbon(text: l.lessonNeedInternet),
           const SizedBox(height: 16),
           Text(
-            detail ?? l.lessonNeedInternetBody,
+            detail ?? l.lessonNeedInternetAsk,
             textAlign: TextAlign.center,
             style: AuraText.play,
           ),
@@ -397,12 +495,12 @@ class NeedInternetView extends StatelessWidget {
       bottom: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuraButton(label: l.lessonTryAgain, onPressed: onRetry),
+          AuraButton(label: l.kidCheckAgain, onPressed: onRetry),
           const SizedBox(height: 10),
           AuraButton(
-            label: l.goHome,
+            label: l.kidHome,
             color: AuraButtonColor.white,
-            icon: Icons.home_outlined,
+            leading: const Icon(Icons.home_rounded, color: AuraColors.navy),
             onPressed: onGoHome,
           ),
         ],

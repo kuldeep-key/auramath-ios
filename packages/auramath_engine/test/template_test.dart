@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import 'fixtures.dart';
 
-/// Julia's files, as the app bundles them (copied from spec pack v0.4.0).
+/// Julia's files, as the app bundles them (copied from spec pack v0.5.4).
 final template = ComparisonTemplate.fromYaml(
   File('../../assets/spec/comparison-two-step.yaml').readAsStringSync(),
 );
@@ -41,12 +41,13 @@ bool regroupsAdd(int x, int y) {
 }
 
 void main() {
-  test('the bundled policy is v0.4.0, with the AI layer\'s drafts', () {
-    expect(policy.version, '0.4.0');
+  test('the bundled policy is v0.5.4, with the tutor\'s lines', () {
+    expect(policy.version, '0.5.4');
     expect(policy.lines['line.intro.computer-helper'], contains('AI'));
-    expect(policy.ageWordList?.id, 'draft-2026-11-10');
-    expect(policy.ageWordList?.approved, isFalse);
-    expect(policy.ageWordList?.words, containsAll(['taller', 'bar', 'tree']));
+    expect(policy.lines['line.tutor.intro'], contains('{tutor_name}'));
+    expect(policy.lines['line.home.greeting'], 'Your {task_word} is waiting.');
+    // its own file from v0.5.3 (CON-13): the server checks it
+    expect(policy.ageWordList, isNull);
     expect(policy.forbiddenPhrases, containsAll(['great job', 'friend']));
     expect(policy.abandonAfterWrongPractice, 3);
   });

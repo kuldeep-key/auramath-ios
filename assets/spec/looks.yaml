@@ -1,0 +1,45 @@
+# The looks a child can choose: who the child is in the app (avatar/spec.md, ACC-12, AVT-01 to AVT-03).
+# Key designs and owns the looks; Julia may give feedback (D-59). A look is the child's own choice, not a setting,
+# so changing it needs no parental gate (PRV-06 covers settings, links and purchases).
+# Adding a look or a world's costume is an edit here, with no new release (PLAT-03).
+# tools/validate.py checks this file: ids, the count, and a costume for every enabled world.
+
+version: 0.1.0
+updated: 2026-11-12
+status: provisional
+decision: D-59                     # D-48 (closed 2 Nov) chose a look the child picks, stored per child
+
+count: 8                           # the eight detective looks in Figma "Screens · v4.1 · designed (4 Nov)", LookPick
+looks:                             # ids are stable; the art comes from the child's current world
+  - {id: look_01, costume: {detective: art.look.look_01.detective, space: null, wildlife: null}}
+  - {id: look_02, costume: {detective: art.look.look_02.detective, space: null, wildlife: null}}
+  - {id: look_03, costume: {detective: art.look.look_03.detective, space: null, wildlife: null}}
+  - {id: look_04, costume: {detective: art.look.look_04.detective, space: null, wildlife: null}}
+  - {id: look_05, costume: {detective: art.look.look_05.detective, space: null, wildlife: null}}
+  - {id: look_06, costume: {detective: art.look.look_06.detective, space: null, wildlife: null}}
+  - {id: look_07, costume: {detective: art.look.look_07.detective, space: null, wildlife: null}}
+  - {id: look_08, costume: {detective: art.look.look_08.detective, space: null, wildlife: null}}
+
+rules:                             # ACC-12, PRV-07
+  labelled_or_sorted_by_gender: never   # no "boy" or "girl" anywhere; the set offers a range of skin tones and hairstyles
+  gender_stored: never             # PRV-07
+  real_person_or_brand: never
+  same_look_in_every_world: true   # AVT-03: the world changes the costume, not which look the child picked
+
+choice:                            # ACC-12, AVT-01
+  at_first_run: required           # pick one, or "Surprise me"
+  surprise_me: true                # picks a look at random; the child sees it and can pick again
+  where_changed: [me_screen, family_area]   # Me screen any time outside a lesson (AVT-01); Family area (ACC-14)
+  takes_effect: immediately        # never mid-lesson: both places are outside a lesson
+  child_set_up_before_looks: look_tutor_and_meet_on_next_open   # JRN-01: the look, tutor and Meet steps of first run, once
+
+shown_on:                          # AVT-02; nowhere a grown-up's email or note shows it
+  - whos_learning_tile             # DEV-01, journey 2 (A1)
+  - home_top                       # journey/spec.md, JRN-02
+  - me_screen                      # JRN-02
+  - trail_you_are_here             # JRN-03: the child's look stands at their stop on the path
+  - end_of_session                 # beside the session badge (REW-01)
+
+wardrobe:                          # Next (REW-13): look items unlocked by big badges sit on the child's look
+  release: Next
+  slots: set when collectibles are designed   # rewards/catalogue.yaml collectibles.look_items

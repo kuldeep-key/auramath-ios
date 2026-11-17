@@ -20,7 +20,12 @@ class WelcomeBackScreen extends StatelessWidget {
     this.caseWaiting = true,
     this.chooseToday = false,
     this.onCarryOn,
+    this.figure,
   });
+
+  /// The child's tutor, talking (the prototype's WelcomeBack); without one
+  /// the detective portrait bursts in.
+  final Widget? figure;
 
   /// "Let's see" / "Keep going" inside a lesson that greets from the
   /// server's `welcomeBack`; null: to the lesson.
@@ -39,25 +44,24 @@ class WelcomeBackScreen extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     return PlayMoment(
       top: Align(
-        alignment: Alignment.centerLeft,
+        alignment: Alignment.centerRight,
         child: PlayIconButton(
-          icon: Icons.home_outlined,
+          icon: Icons.home_rounded,
           tooltip: l.kidHome,
           onPressed: () => context.go(Paths.home),
         ),
       ),
       content: [
-        const Burst(child: Portrait(size: 180)),
-        const SizedBox(height: 10),
+        figure ?? const Burst(child: Portrait(size: 180)),
         Ribbon(
           text: name == null ? l.kidWelcomeBackNoName : l.kidWelcomeBack(name!),
         ),
-        PlayLine(caseWaiting ? l.kidCaseWaiting : l.readyForNewCase),
+        PlayLine(caseWaiting ? l.kidCaseWaiting : l.kidReadyForACase),
       ],
       bottom: ButtonStack([
         AuraButton(
           key: const Key('carryOn'),
-          label: caseWaiting ? l.kidLetsSee : l.keepGoing,
+          label: caseWaiting ? l.kidLetsSee : l.kidLetsGo,
           onPressed: onCarryOn ?? () => context.go(Paths.lessonNext),
         ),
         if (chooseToday)

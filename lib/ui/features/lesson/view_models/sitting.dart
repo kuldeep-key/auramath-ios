@@ -26,7 +26,14 @@ class Sitting {
   final KeyStore? store;
   final int Function() _now;
 
+  /// One key per child: each child has their own day's time (SES-01).
+  /// Before this, one key held the phone's time, so a second child on the
+  /// same phone started where the first had stopped, already at the cap.
   static const _key = 'sitting';
+  String get _childKey => child == null ? _key : '$_key:$child';
+
+  /// Whose time this is: the child the lesson is for. [forChild] switches.
+  String? child;
 
   void useMinutes(int minutes) {
     final ms = minutes * 60 * 1000;
@@ -70,13 +77,24 @@ class Sitting {
   void newLesson() => finishing = false;
 
   Future<void> load() async {
-    final saved = await store?.read(_key);
+    _rollOver();
+    _activeMs = 0;
+    final saved = await store?.read(_childKey);
     if (saved == null) return;
     final j = jsonDecode(saved) as Map<String, Object?>;
-    _rollOver();
     if (j['day'] == _day) _activeMs = j['ms']! as int;
   }
 
+  /// A lesson for [childId] starts: their own day's time, from the store.
+  /// The time of the child before is saved first.
+  Future<void> forChild(String? childId) async {
+    if (childId == child) return;
+    if (child != null) await save();
+    child = childId;
+    finishing = false;
+    await load();
+  }
+
   Future<void> save() async =>
-      store?.write(_key, jsonEncode({'day': _day, 'ms': activeMs}));
+      store?.write(_childKey, jsonEncode({'day': _day, 'ms': activeMs}));
 }

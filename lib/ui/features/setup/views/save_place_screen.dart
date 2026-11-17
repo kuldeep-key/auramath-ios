@@ -23,13 +23,15 @@ class SavePlaceScreen extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // the prototype's SignIn: one screen to sign in or create
           AuraHeading(
-            title: sentence(l.setupSaveTitle(name)),
-            subtitle: l.setupSaveSubtitle,
+            title: l.setupSignInTitle,
+            subtitle: l.setupSignInSubtitle,
           ),
           SignInMethods(
             account: deps.account,
             checkEmailPath: Paths.setupCheckEmail,
+            emailOpen: true,
             busyLabel: sentence(l.setupSaving(name)),
             onSignedIn: () => finishSetup(context, deps),
           ),

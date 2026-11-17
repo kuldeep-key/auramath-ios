@@ -59,18 +59,12 @@ class _ReportEmailCardState extends State<ReportEmailCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              KvRow(
+              // a switch, as the prototype's email rows (`.sw`)
+              SwitchRow(
                 label: l.guEmailRow,
-                value: loading
-                    ? '…'
-                    : f == null
-                    ? l.guEmailUnknown
-                    : f.on
-                    ? l.guOn
-                    : l.guOff,
-                hint: l.guSetChangeHint,
+                value: f != null && f.on,
                 divider: f != null && f.on,
-                onTap: loading || _busy ? null : () => _toggle(f),
+                onChanged: loading || _busy ? null : (_) => _toggle(f),
               ),
               if (!loading && f != null && f.on)
                 KvRow(
@@ -78,6 +72,7 @@ class _ReportEmailCardState extends State<ReportEmailCard> {
                   value: f == ReportFrequency.weekly
                       ? l.guEmailWeekly
                       : l.guEmailEach,
+                  chevron: true,
                   divider: false,
                   onTap: _busy
                       ? null

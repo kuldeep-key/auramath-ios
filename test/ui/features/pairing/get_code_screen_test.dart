@@ -4,6 +4,8 @@ import 'package:auramath/data/repositories/account_repository.dart';
 import 'package:auramath/l10n/app_localizations.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/routing/router.dart';
+import 'package:auramath/ui/core/motion/motion.dart';
+import 'package:auramath/ui/core/parts/code_boxes.dart';
 import 'package:auramath/ui/core/parts/keypad.dart';
 import 'package:auramath/ui/core/theme/app_theme.dart';
 import 'package:auramath/ui/features/pairing/views/get_code_screen.dart';
@@ -68,12 +70,60 @@ void main() {
     expect(find.text('went to ${Paths.pairWhichChild}'), findsOneWidget);
   });
 
-  testWidgets('a wrong code goes to CodeWrong', (tester) async {
+  testWidgets('a wrong code shakes the boxes and says so, here', (
+    tester,
+  ) async {
     final s = await screen(tester);
     server.on(_redeem, {'error': 'no'}, status: 400);
     await tester.pumpWidget(shotApp(s));
     await _type(tester, '111111');
-    expect(find.text('went to ${Paths.pairWrong}'), findsOneWidget);
+    // the prototype's GetCode·CodeWrong: no new screen
+    expect(find.textContaining('went to'), findsNothing);
+    expect(find.text("That code didn't work."), findsOneWidget);
+    expect(tester.widget<CodeBoxes>(find.byType(CodeBoxes)).shake, 1);
+    expect(tester.widget<CodeBoxes>(find.byType(CodeBoxes)).value, '');
+    // typing again clears the line
+    await tester.tap(find.text('4'));
+    await tester.pump();
+    expect(find.text("That code didn't work."), findsNothing);
+  });
+
+  testWidgets('the shake: 8 pt left at 100 ms, 8 pt right at 300 ms, home '
+      'at 400 ms', (tester) async {
+    AuraMotion.still = false;
+    addTearDown(() => AuraMotion.still = true);
+    var shake = 0;
+    late StateSetter set;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            set = setState;
+            return CodeBoxes(length: 6, value: '', shake: shake);
+          },
+        ),
+      ),
+    );
+    double dx() => tester
+        .widget<Transform>(
+          find.descendant(
+            of: find.byType(CodeShake),
+            matching: find.byType(Transform),
+          ),
+        )
+        .transform
+        .getTranslation()
+        .x;
+    expect(dx(), 0);
+    set(() => shake++);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(dx(), closeTo(-8, 0.01));
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(dx(), closeTo(8, 0.01));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(dx(), 0);
   });
 
   testWidgets('too many tries says wait', (tester) async {
@@ -91,7 +141,7 @@ void main() {
     await tester.pumpWidget(shotApp(s));
     await _type(tester, '123');
     expect(server.calls, isEmpty);
-    expect(find.text('went to ${Paths.pairWrong}'), findsOneWidget);
+    expect(find.text("That code didn't work."), findsOneWidget);
   });
 
   testWidgets('offline shows a message and tries the same code again', (
@@ -144,7 +194,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text("I'm a kid"));
+    await tester.tap(find.text('Play'));
     await tester.pumpAndSettle();
     await _type(tester, '482715');
     expect(deps.account.role, Role.device);

@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
+import '../../../core/parts/aura_toast.dart';
 import '../../../core/parts/code_boxes.dart';
 import '../../../core/parts/keypad.dart';
 import '../../../core/theme/tokens.dart';
@@ -42,6 +43,9 @@ class _PasscodeScreenState extends State<PasscodeScreen> {
   bool _busy = false;
   String? _error;
 
+  /// "Those did not match. Start again.", under the boxes (`#pmsg`).
+  String? _note;
+
   @override
   void initState() {
     super.initState();
@@ -58,28 +62,37 @@ class _PasscodeScreenState extends State<PasscodeScreen> {
     }
   }
 
-  void _restart(String? error) => setState(() {
+  void _restart({String? error, String? note}) => setState(() {
     _first = null;
     _typed = '';
     _round++;
     _error = error;
+    _note = note;
   });
 
-  void _changed(String v) {
+  /// The prototype's bindCode waits 250 ms on a full code, so the last
+  /// digit shows before the boxes clear.
+  static const fullPause = Duration(milliseconds: 250);
+
+  Future<void> _changed(String v) async {
     setState(() => _typed = v);
     if (v.length < _status!.length) return;
     final l = AppLocalizations.of(context)!;
+    final round = _round;
+    await Future<void>.delayed(fullPause);
+    if (!mounted || round != _round) return;
     if (_first == null) {
       setState(() {
         _first = v;
         _typed = '';
         _round++;
         _error = null;
+        _note = null;
       });
     } else if (v != _first) {
-      _restart(l.setupPassMismatch);
+      _restart(note: l.setupPassMismatch);
     } else {
-      _save(v);
+      await _save(v);
     }
   }
 
@@ -87,9 +100,13 @@ class _PasscodeScreenState extends State<PasscodeScreen> {
     setState(() => _busy = true);
     try {
       await widget.deps.family.setPasscode(passcode);
+      if (!mounted) return;
+      AuraToast.show(context, AppLocalizations.of(context)!.setupPassSet);
+      // the prototype moves on 600 ms after the toast
+      await Future<void>.delayed(const Duration(milliseconds: 600));
       await _handOver();
     } on ApiException catch (e) {
-      if (mounted) _restart(e.message);
+      if (mounted) _restart(error: e.message);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -164,16 +181,32 @@ class _PasscodeScreenState extends State<PasscodeScreen> {
                   AuraHeading(
                     title: again ? l.setupPassAgainTitle : l.setupPassTitle,
                     subtitle: again
-                        ? l.setupPassAgainBody(status.length)
-                        : l.setupPassBody(status.length),
+                        ? l.setupPassAgainBody
+                        : l.setupPassBody(
+                            status.length == 4
+                                ? l.setupPassFour
+                                : l.setupPassDigits(status.length),
+                            widget.name,
+                          ),
                   ),
-                  const SizedBox(height: 22),
+                  const LockTile(),
+                  const SizedBox(height: 14),
                   SizedBox(
                     height: codeBoxesHeight,
                     child: CodeBoxes(
                       length: status.length,
                       value: _typed,
                       obscure: true,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // the line under the boxes keeps its place (min 22 pt)
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 22),
+                    child: Text(
+                      _note ?? '',
+                      textAlign: TextAlign.center,
+                      style: AuraText.subtitle,
                     ),
                   ),
                   if (_busy)

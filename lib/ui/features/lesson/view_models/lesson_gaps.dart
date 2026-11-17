@@ -101,11 +101,7 @@ mixin _LessonGaps on ChangeNotifier {
     choosingToday = false;
     final vm = _vm;
     await vm._record([
-      SpecEvent('session_started', {
-        'launch_source': vm.launchSource,
-        'content_versions': vm._sessions.identity.contentVersions,
-        'is_demo': vm._sessions.identity.isDemo,
-      }),
+      vm._sessions.started(vm.launchSource, childId: vm.childId),
       SpecEvent('choice_selected', {
         'step_id': 'choose_today',
         'option_id': 'quick_sums',

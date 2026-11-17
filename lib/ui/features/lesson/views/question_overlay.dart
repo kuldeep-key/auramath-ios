@@ -14,7 +14,13 @@ import 'word_meaning.dart';
 /// words, so colour is never the only signal (NFR-03).
 ///
 /// [words] (LES-10) are underlined, dotted: a maths word to tap below.
-TextSpan storySpan(ComparisonProblem p, {List<String> words = const []}) {
+/// [lit] is the word being read aloud (the prototype's readStory), counted
+/// from 0 across the whole story; it sits on the yellow tint.
+TextSpan storySpan(
+  ComparisonProblem p, {
+  List<String> words = const [],
+  int? lit,
+}) {
   final names = {
     p.a.name.toLowerCase(): AuraColors.yellowInk,
     p.b.name.toLowerCase(): AuraColors.blueInk,
@@ -25,29 +31,53 @@ TextSpan storySpan(ComparisonProblem p, {List<String> words = const []}) {
     caseSensitive: false,
   );
   final spans = <TextSpan>[];
-  var at = 0;
-  for (final m in pattern.allMatches(p.text)) {
-    spans
-      ..add(TextSpan(text: p.text.substring(at, m.start)))
-      ..add(
+  var word = 0;
+  // one span a word, so the word being read can light up
+  void add(String text, [TextStyle? style]) {
+    for (final m in RegExp(r'\S+|\s+').allMatches(text)) {
+      final t = m[0]!;
+      if (t.trim().isEmpty) {
+        spans.add(TextSpan(text: t, style: style));
+        continue;
+      }
+      final on = word++ == lit;
+      spans.add(
         TextSpan(
-          text: m[0],
-          style: switch (names[m[0]!.toLowerCase()]) {
-            final Color c => AuraText.storyName.copyWith(color: c),
-            // a maths word: dotted underline, the story's own colour
-            null => const TextStyle(
-              decoration: TextDecoration.underline,
-              decorationStyle: TextDecorationStyle.dotted,
-              decorationThickness: 2,
-            ),
-          },
+          text: t,
+          style: on
+              ? (style ?? const TextStyle()).copyWith(
+                  backgroundColor: AuraColors.yellowTint,
+                )
+              : style,
         ),
       );
+    }
+  }
+
+  var at = 0;
+  for (final m in pattern.allMatches(p.text)) {
+    add(p.text.substring(at, m.start));
+    add(m[0]!, switch (names[m[0]!.toLowerCase()]) {
+      final Color c => AuraText.storyName.copyWith(color: c),
+      // a maths word: dotted underline, the story's own colour
+      null => const TextStyle(
+        decoration: TextDecoration.underline,
+        decorationStyle: TextDecorationStyle.dotted,
+        decorationThickness: 2,
+      ),
+    });
     at = m.end;
   }
-  spans.add(TextSpan(text: p.text.substring(at)));
+  add(p.text.substring(at));
   return TextSpan(children: spans);
 }
+
+/// How many words [storySpan] counts in [p]'s story.
+int storyWords(ComparisonProblem p, {List<String> words = const []}) =>
+    storySpan(
+      p,
+      words: words,
+    ).children!.where((s) => (s as TextSpan).text!.trim().isNotEmpty).length;
 
 /// "See the question": the whole question over the work, which stays as
 /// it was underneath (LES-02; Julia's comments on D1, D2, D4, D5, H1·1,

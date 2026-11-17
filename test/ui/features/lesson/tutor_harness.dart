@@ -45,7 +45,7 @@ class TutorLesson {
     for (final d in digits.split('')) {
       await tap(find.text(d).last);
     }
-    await tap(find.byIcon(Icons.check_rounded));
+    await tap(find.byKey(const Key('keypadCheck')));
   }
 }
 
@@ -67,6 +67,7 @@ Future<TutorLesson> pumpLesson(
   String? childId,
   int Function()? nowMs,
   ThemeData? theme,
+  bool settle = true,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -107,6 +108,12 @@ Future<TutorLesson> pumpLesson(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  settle ? await tester.pumpAndSettle() : await tester.pump();
   return lesson = TutorLesson(tester, vm, api, voice);
 }
+
+/// [pumpLesson] with motion running: it never settles, so it pumps once.
+Future<TutorLesson> pumpLessonMoving(
+  WidgetTester tester, {
+  String problemId = 'lemon',
+}) => pumpLesson(tester, problemId: problemId, settle: false);
