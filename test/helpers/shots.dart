@@ -87,6 +87,16 @@ Future<void> shotAllSizes(
   Map<String, Size> sizes = shotSizes,
 }) async {
   await tester.runAsync(loadAppFonts);
+  // NFR-04: the smallest phone at the largest text the app allows (1.3x).
+  // First, and not saved as a shot; anything that clips or overflows fails here.
+  final se = shotSizes['iphoneSE']!;
+  tester.view.physicalSize = se * 3;
+  tester.view.devicePixelRatio = 3;
+  tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+  await tester.pumpWidget(wrap ? shotApp(screen) : screen);
+  await tester.pumpAndSettle();
+  tester.platformDispatcher.clearTextScaleFactorTestValue();
+  await tester.pumpWidget(const SizedBox());
   for (final MapEntry(key: label, value: size) in sizes.entries) {
     tester.view.physicalSize = size * 3;
     tester.view.devicePixelRatio = 3;

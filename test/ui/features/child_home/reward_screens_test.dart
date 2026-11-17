@@ -280,6 +280,27 @@ void main() {
     });
   });
 
+  testWidgets('B1 with a full cabinet: a name that wraps to two lines '
+      '(Orchard detective) fits, and the cabinet scrolls', (tester) async {
+    final badges = {
+      for (final (id, name) in const [
+        ('session.first_case', 'First Case'),
+        ('habit.bar_builder', 'Bar builder'),
+        ('stop.orchard.l3', 'Orchard Gate'),
+        ('stop.orchard.l4', 'Old Oak Bridge'),
+        ('habit.careful_reader', 'Careful reader'),
+        ('stop.orchard.l5', 'Twisty Tree'),
+        ('land.orchard', 'Orchard detective'),
+      ])
+        id: BadgeInfo(name: name, says: name),
+    };
+    await shots(
+      tester,
+      'child_home_reward_B1-full',
+      BadgesScreen(earned: badges.keys.toList(), badges: badges),
+    );
+  });
+
   testWidgets('B1 and B2 fit every size, as the prototype draws them', (
     tester,
   ) async {

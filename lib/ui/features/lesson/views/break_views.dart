@@ -10,6 +10,7 @@ import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
 import 'help_sheet.dart';
 import '../../../core/parts/speak_button.dart';
+import '../../../core/parts/max_width.dart';
 
 /// "Take a break?" when Home is tapped mid-lesson. Figma M1-pause (666:70),
 /// plus "leave this one" (SES-06), which the design doesn't have yet.
@@ -366,8 +367,8 @@ class LostInternetPause extends StatelessWidget {
                 const SizedBox(height: 18),
                 Ribbon(text: l.lostInternetTitle),
                 const SizedBox(height: 18),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 300),
+                MaxWidth(
+                  maxWidth: 300,
                   child: Text(
                     l.lostInternetBody,
                     style: AuraText.play,

@@ -12,6 +12,7 @@ import '../../../core/theme/tokens.dart';
 import 'reward_moments.dart';
 import 'play_icon_button.dart';
 import 'play_moment.dart';
+import '../../../core/parts/max_width.dart';
 
 /// The badge cabinet (REW-12): the badges the child has earned, first
 /// earned first, and nothing else: no outlines, no "next to earn", never a
@@ -134,8 +135,9 @@ class _Earned extends StatelessWidget {
         onOpen?.call(id);
         context.push(Paths.badge(id));
       },
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 56, maxWidth: 150),
+      child: MaxWidth(
+        maxWidth: 150,
+        minHeight: 56,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: 8,

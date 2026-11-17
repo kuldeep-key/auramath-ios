@@ -10,6 +10,7 @@ import 'celebration_fx.dart';
 import 'confetti.dart';
 import 'motion.dart';
 import 'play_backdrop.dart';
+import '../parts/max_width.dart';
 
 /// One celebration to play (rewards/rules.yaml `celebrations`, REW-16):
 /// its moment id, the version to play, and what it shows.
@@ -194,8 +195,8 @@ class _CelebrationViewState extends State<CelebrationView> {
                 child: _words(sub, play.copyWith(fontSize: 20)),
               ),
             if (line != null)
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 300),
+              MaxWidth(
+                maxWidth: 300,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Opacity(
@@ -225,10 +226,7 @@ class _CelebrationViewState extends State<CelebrationView> {
             if (sub != null) _words(sub, play.copyWith(fontSize: 20)),
             if (s.walker != null) LevelPath(walker: s.walker!),
             if (line != null)
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 290),
-                child: _words(line, play),
-              ),
+              MaxWidth(maxWidth: 290, child: _words(line, play)),
           ],
           12,
           const [Confetti(count: 80)],
@@ -243,10 +241,7 @@ class _CelebrationViewState extends State<CelebrationView> {
             const SizedBox(height: 10),
             _words(s.title, _title),
             if (line != null)
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 290),
-                child: _words(line, play),
-              ),
+              MaxWidth(maxWidth: 290, child: _words(line, play)),
           ],
           12,
           const [Confetti(count: 90, delay: Duration(milliseconds: 400))],
@@ -267,8 +262,8 @@ class _CelebrationViewState extends State<CelebrationView> {
             _words(s.title, _title.copyWith(height: 1.1)),
             if (sub != null) _words(sub, play.copyWith(fontSize: 20)),
             if (line != null)
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 290),
+              MaxWidth(
+                maxWidth: 290,
                 child: _words(line, play.copyWith(fontSize: 20)),
               ),
           ],
