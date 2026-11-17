@@ -59,11 +59,11 @@ void main() {
 
   testWidgets('the lock goes where the role says', (tester) async {
     await show(tester, home);
-    await tapAndSettle(tester, find.byTooltip('For grown-ups'));
+    await tapAndSettle(tester, find.byTooltip('Family area'));
     expect(find.text('went to ${Paths.kids}'), findsOneWidget);
 
     await show(tester, const HomeScreen(name: 'Mira', grownUps: Paths.signIn));
-    await tapAndSettle(tester, find.byTooltip('For grown-ups'));
+    await tapAndSettle(tester, find.byTooltip('Family area'));
     expect(find.text('went to ${Paths.signIn}'), findsOneWidget);
   });
 

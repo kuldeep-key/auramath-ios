@@ -43,7 +43,7 @@ void main() {
     );
     expect(find.textContaining('I can make mistakes'), findsOneWidget);
     expect(
-      find.textContaining('Your grown-up can see your work.'),
+      find.textContaining('Your family can see your work.'),
       findsOneWidget,
     );
     // read aloud as it opens, and again on a tap

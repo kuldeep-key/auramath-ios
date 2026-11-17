@@ -565,25 +565,25 @@ abstract class AppLocalizations {
   /// No description provided for @lessonNoChildTitle.
   ///
   /// In en, this message translates to:
-  /// **'Ask a grown-up'**
+  /// **'Ask your family'**
   String get lessonNoChildTitle;
 
   /// No description provided for @lessonNoChildBody.
   ///
   /// In en, this message translates to:
-  /// **'A grown-up needs to add you before your first case.'**
+  /// **'Someone in your family needs to add you before your first case.'**
   String get lessonNoChildBody;
 
   /// No description provided for @lessonPausedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Ask a grown-up'**
+  /// **'Ask your family'**
   String get lessonPausedTitle;
 
   /// No description provided for @lessonPausedBody.
   ///
   /// In en, this message translates to:
-  /// **'Lessons are paused for now. A grown-up can turn them back on.'**
+  /// **'Lessons are paused for now. Someone in your family can turn them back on.'**
   String get lessonPausedBody;
 
   /// No description provided for @drawingSaved.
@@ -691,7 +691,7 @@ abstract class AppLocalizations {
   /// No description provided for @pairImAGrownUp.
   ///
   /// In en, this message translates to:
-  /// **'I\'m a grown-up'**
+  /// **'I\'m a parent or carer'**
   String get pairImAGrownUp;
 
   /// No description provided for @pairHaveAccount.
@@ -715,7 +715,7 @@ abstract class AppLocalizations {
   /// No description provided for @pairAskForNewCode.
   ///
   /// In en, this message translates to:
-  /// **'Ask your grown-up to make a new code on their phone.'**
+  /// **'Ask your family to make a new code on their phone.'**
   String get pairAskForNewCode;
 
   /// No description provided for @pairChecking.
@@ -757,7 +757,7 @@ abstract class AppLocalizations {
   /// No description provided for @pairCodeWrongBody.
   ///
   /// In en, this message translates to:
-  /// **'Ask your grown-up for a new one.'**
+  /// **'Ask your family for a new one.'**
   String get pairCodeWrongBody;
 
   /// DRAFT (DEV-02, prototype GetCode·CodeWrong) for Julia: under the code boxes after a wrong code; no count of tries left (the server keeps it).
@@ -781,7 +781,7 @@ abstract class AppLocalizations {
   /// No description provided for @pairNewCode.
   ///
   /// In en, this message translates to:
-  /// **'Grown-up: new code'**
+  /// **'Family: new code'**
   String get pairNewCode;
 
   /// No description provided for @pairWhichChild.
@@ -793,7 +793,7 @@ abstract class AppLocalizations {
   /// No description provided for @pairNoChildren.
   ///
   /// In en, this message translates to:
-  /// **'No children here yet. Ask your grown-up to add you on their phone.'**
+  /// **'No children here yet. Ask your family to add you on their phone.'**
   String get pairNoChildren;
 
   /// No description provided for @pairIsThisYou.
@@ -853,7 +853,7 @@ abstract class AppLocalizations {
   /// No description provided for @pairGrownUps.
   ///
   /// In en, this message translates to:
-  /// **'Grown-ups'**
+  /// **'Family area'**
   String get pairGrownUps;
 
   /// No description provided for @pairNoKidsYet.
@@ -1021,7 +1021,7 @@ abstract class AppLocalizations {
   /// No description provided for @guFaceIdReason.
   ///
   /// In en, this message translates to:
-  /// **'Open the grown-up area'**
+  /// **'Open the Family area'**
   String get guFaceIdReason;
 
   /// No description provided for @guUseFaceId.
@@ -1201,7 +1201,7 @@ abstract class AppLocalizations {
   /// No description provided for @guHomePausedBody.
   ///
   /// In en, this message translates to:
-  /// **'Lessons can\'t start until a grown-up agrees again to how we keep their learning. You can do that in Your data and rights.'**
+  /// **'Lessons can\'t start until a parent or carer agrees again to how we keep their learning. You can do that in Your data and rights.'**
   String get guHomePausedBody;
 
   /// No description provided for @guHomePausedLink.
@@ -1411,7 +1411,7 @@ abstract class AppLocalizations {
   /// No description provided for @guGrownUp.
   ///
   /// In en, this message translates to:
-  /// **'Grown-up'**
+  /// **'Family member'**
   String get guGrownUp;
 
   /// No description provided for @guInvited.
@@ -1675,7 +1675,7 @@ abstract class AppLocalizations {
   /// No description provided for @guRemoveGrownUpGone.
   ///
   /// In en, this message translates to:
-  /// **'That grown-up isn\'t in your family any more.'**
+  /// **'They aren\'t in your family any more.'**
   String get guRemoveGrownUpGone;
 
   /// No description provided for @guCancelInviteTitle.
@@ -1807,7 +1807,7 @@ abstract class AppLocalizations {
   /// No description provided for @guStored1.
   ///
   /// In en, this message translates to:
-  /// **'Your email, and other grown-ups\' emails'**
+  /// **'Your email, and other family members\' emails'**
   String get guStored1;
 
   /// No description provided for @guStored2.
@@ -2083,7 +2083,7 @@ abstract class AppLocalizations {
   /// No description provided for @guAgainBody.
   ///
   /// In en, this message translates to:
-  /// **'You agree, as their grown-up, that we keep each child\'s first name and every step of their lessons, so lessons can carry on. You can withdraw again or delete everything any time.'**
+  /// **'You agree, as their parent or carer, that we keep each child\'s first name and every step of their lessons, so lessons can carry on. You can withdraw again or delete everything any time.'**
   String get guAgainBody;
 
   /// No description provided for @guAgainButton.
@@ -2635,7 +2635,7 @@ abstract class AppLocalizations {
   /// No description provided for @kidForGrownUps.
   ///
   /// In en, this message translates to:
-  /// **'For grown-ups'**
+  /// **'Family area'**
   String get kidForGrownUps;
 
   /// No description provided for @kidHome.
@@ -2917,7 +2917,7 @@ abstract class AppLocalizations {
   /// No description provided for @kidInYourSash.
   ///
   /// In en, this message translates to:
-  /// **'It\'s in your sash. Your grown-up sees it too.'**
+  /// **'It\'s in your sash. Your family sees it too.'**
   String get kidInYourSash;
 
   /// No description provided for @kidNextCase.
@@ -3475,7 +3475,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupSignInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'One grown-up account. Your child never signs in.'**
+  /// **'One family account. Your child never signs in.'**
   String get setupSignInSubtitle;
 
   /// No description provided for @setupCheckTitle.
@@ -3601,7 +3601,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupReadyMeet.
   ///
   /// In en, this message translates to:
-  /// **'Meet the case partner together'**
+  /// **'Meet the tutor together'**
   String get setupReadyMeet;
 
   /// No description provided for @setupReadyMeetDetail.
@@ -3625,7 +3625,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupLockTitle.
   ///
   /// In en, this message translates to:
-  /// **'Lock the grown-up area'**
+  /// **'Lock the Family area'**
   String get setupLockTitle;
 
   /// No description provided for @setupLockBody.
@@ -3721,7 +3721,7 @@ abstract class AppLocalizations {
   /// No description provided for @setupPassAlreadySetBody.
   ///
   /// In en, this message translates to:
-  /// **'It was set on another phone. Use it to open the grown-up area here too.'**
+  /// **'It was set on another phone. Use it to open the Family area here too.'**
   String get setupPassAlreadySetBody;
 
   /// No description provided for @setupJoinTitle.
@@ -3895,19 +3895,19 @@ abstract class AppLocalizations {
   /// DRAFT, for Julia and design (no Figma frame), AI-07: the first-meeting scene, once per child before their first lesson, with the grown-up there.
   ///
   /// In en, this message translates to:
-  /// **'Meet your case partner'**
+  /// **'Meet your tutor'**
   String get kidMeetTitle;
 
   /// DRAFT, for Julia (AI-07): a note for the grown-up at the top of the first-meeting scene.
   ///
   /// In en, this message translates to:
-  /// **'Grown-up: please stay for this part.'**
+  /// **'Parent or carer: please stay for this part.'**
   String get kidMeetGrownUp;
 
   /// DRAFT, for Julia (AI-07): line 1 of the case partner's disclosure. A line the content bundle serves (policy line.intro.*) replaces these.
   ///
   /// In en, this message translates to:
-  /// **'Hi! I\'m your case partner. I help you crack maths cases.'**
+  /// **'Hi! I\'m your tutor. I help you crack maths cases.'**
   String get kidMeetLine1;
 
   /// DRAFT, for Julia (AI-07): line 2, the disclosure itself.
@@ -3919,13 +3919,13 @@ abstract class AppLocalizations {
   /// DRAFT, for Julia (AI-07): line 3.
   ///
   /// In en, this message translates to:
-  /// **'Julia\'s team wrote my rules. I can make mistakes, so if something looks odd, tell your grown-up.'**
+  /// **'Julia\'s team wrote my rules. I can make mistakes, so if something looks odd, tell your family.'**
   String get kidMeetLine3;
 
   /// DRAFT, for Julia (AI-07): line 4.
   ///
   /// In en, this message translates to:
-  /// **'Your grown-up can see your work.'**
+  /// **'Your family can see your work.'**
   String get kidMeetLine4;
 
   /// DRAFT (AI-07): ends the first-meeting scene and opens the first lesson.
@@ -3991,13 +3991,13 @@ abstract class AppLocalizations {
   /// DRAFT, for Julia (TUT-06): what a screen reader says for the H1-6 picture.
   ///
   /// In en, this message translates to:
-  /// **'A grown-up and a child, side by side.'**
+  /// **'A parent and a child, side by side.'**
   String get lessonEverydayPicture;
 
   /// DRAFT, for Julia (TUT-06): the label under the grown-up in the H1-6 picture.
   ///
   /// In en, this message translates to:
-  /// **'Grown-up'**
+  /// **'Parent'**
   String get lessonGrownUp;
 
   /// DRAFT, for Julia (TUT-06): the label under the child in the H1-6 picture.
@@ -4135,7 +4135,7 @@ abstract class AppLocalizations {
   /// DRAFT, for Julia (ACC-12): this phone may not set the child's avatar (a sibling who has never had a lesson on this shared phone); a grown-up sets it in Edit child.
   ///
   /// In en, this message translates to:
-  /// **'Ask a grown-up to set your detective for you.'**
+  /// **'Ask your family to set your detective for you.'**
   String get kidPickAvatarAskGrownUp;
 
   /// DRAFT, for Julia (LES-16): after the run of five. No score or count.

@@ -139,7 +139,7 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.text('Ask a grown-up'), findsOneWidget);
+    expect(find.text('Ask your family'), findsOneWidget);
     expect(find.text('We need the internet to start'), findsNothing);
     await tester.tap(find.text('OK'));
     expect(home, 1);
@@ -175,7 +175,7 @@ void main() {
     await tester.pump();
     expect(
       find.text(
-        'Lessons are paused for now. A grown-up can turn them back on.',
+        'Lessons are paused for now. Someone in your family can turn them back on.',
       ),
       findsOneWidget,
     );

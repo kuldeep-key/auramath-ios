@@ -151,7 +151,7 @@ void main() {
     await settle(tester);
     await tester.tap(find.byKey(const Key('choose')));
     await settle(tester);
-    expect(find.textContaining('Ask a grown-up'), findsOneWidget);
+    expect(find.textContaining('Ask your family'), findsOneWidget);
     expect(find.textContaining("didn't save"), findsNothing);
   });
 
