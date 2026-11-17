@@ -13,6 +13,7 @@ import '../../../core/theme/tokens.dart';
 import 'play_icon_button.dart';
 import 'play_moment.dart';
 import '../../../core/parts/speak_button.dart';
+import '../../../core/parts/max_width.dart';
 
 /// The winding path: the two stops behind (done), where the child is, and
 /// only the next stop through the mist, so the child never sees how much
@@ -337,34 +338,36 @@ class _Label extends StatelessWidget {
     final next = kind == _Kind.next;
     // the next stop looks quieter (soft fill, no lip), not see-through: a
     // faded label over the map can't be read (WCAG contrast)
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 150),
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
-      decoration: BoxDecoration(
-        color: here
-            ? AuraColors.yellowTint
-            : next
-            ? AuraColors.soft
-            : AuraColors.white,
-        borderRadius: BorderRadius.circular(AuraRadii.small),
-        border: Border.all(color: AuraColors.navy, width: 3),
-        boxShadow: next
-            ? null
-            : const [BoxShadow(color: AuraColors.navy, offset: Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        spacing: 3,
-        children: [
-          Text(title, style: AuraText.trailStop),
-          Text(
-            note,
-            style: AuraText.trailNote.copyWith(
-              color: here ? AuraColors.yellowInk : AuraColors.mute,
+    return MaxWidth(
+      maxWidth: 150,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+        decoration: BoxDecoration(
+          color: here
+              ? AuraColors.yellowTint
+              : next
+              ? AuraColors.soft
+              : AuraColors.white,
+          borderRadius: BorderRadius.circular(AuraRadii.small),
+          border: Border.all(color: AuraColors.navy, width: 3),
+          boxShadow: next
+              ? null
+              : const [BoxShadow(color: AuraColors.navy, offset: Offset(0, 4))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          spacing: 3,
+          children: [
+            Text(title, style: AuraText.trailStop),
+            Text(
+              note,
+              style: AuraText.trailNote.copyWith(
+                color: here ? AuraColors.yellowInk : AuraColors.mute,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
