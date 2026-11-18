@@ -108,8 +108,9 @@ class _LessonRouteState extends State<_LessonRoute> {
     sessionId: widget.resumeSessionId,
     sessions: widget.deps.sessions,
     voice: widget.deps.voice,
+    // REW-01: the sitting's open session, else a new one
     openSession: () =>
-        widget.deps.sessions.open(childId: widget.deps.account.childId),
+        widget.deps.sessions.openOrGoOn(childId: widget.deps.account.childId),
     nextProblem: Env.serverProblems
         ? (sessionId, {level}) => widget.deps.sessions.nextProblem(
             widget.deps.pack,

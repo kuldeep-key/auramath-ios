@@ -49,8 +49,9 @@ void main() {
 
   List<String> names(FakeApi api) => [for (final e in api.received) e.name];
 
-  test('Mia, 7: the faces, then self_rating_given before the session ends; '
-      'the next case is the one it was without a rating', () async {
+  test('Mia, 7: the faces, then self_rating_given in the open session '
+      '(REW-01: it ends at Home); the next case is the one it was without a '
+      'rating', () async {
     final (vm, api) = await solved(7);
     expect(vm.offerRating, isTrue);
     expect(names(api), isNot(contains('session_ended')));
@@ -58,10 +59,8 @@ void main() {
     await vm.rate('easy');
     await pumpEventQueue();
     expect(vm.rating, 'easy');
-    expect(names(api).skip(names(api).length - 2), [
-      'self_rating_given',
-      'session_ended',
-    ]);
+    expect(names(api).last, 'self_rating_given');
+    expect(names(api), isNot(contains('session_ended')));
     expect(
       api.received.firstWhere((e) => e.name == 'self_rating_given').payload,
       {'problem_id': 'lemon', 'rating': 'easy'},
@@ -76,14 +75,15 @@ void main() {
     unrated.dispose();
   });
 
-  test('Ana, 6: no faces, and the session ends at once', () async {
+  test('Ana, 6: no faces; the session stays open for the next case', () async {
     final (vm, api) = await solved(6);
     expect(vm.offerRating, isFalse);
-    expect(names(api).last, 'session_ended');
+    expect(names(api), contains('problem_completed'));
+    expect(names(api), isNot(contains('session_ended')));
     vm.dispose();
   });
 
-  test('a second tap changes nothing; no tap still ends the session', () async {
+  test('a second tap changes nothing; no tap gives no rating', () async {
     final (vm, api) = await solved(9);
     await vm.rate('tricky');
     await vm.rate('easy');
@@ -93,8 +93,8 @@ void main() {
     final (skipped, api2) = await solved(9);
     skipped.skipRating();
     await pumpEventQueue();
-    expect(names(api2).last, 'session_ended');
     expect(names(api2), isNot(contains('self_rating_given')));
+    expect(names(api2), isNot(contains('session_ended')));
     vm.dispose();
     skipped.dispose();
   });
@@ -161,6 +161,6 @@ void main() {
     expect(finished2, [vm2.nextProblemId]);
     await tester.runAsync(pumpEventQueue);
     expect(api2.received.any((e) => e.name == 'self_rating_given'), isFalse);
-    expect(api2.received.last.name, 'session_ended');
+    expect(api2.received.any((e) => e.name == 'session_ended'), isFalse);
   });
 }

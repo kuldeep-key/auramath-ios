@@ -207,7 +207,8 @@ void main() {
         time.flushMicrotasks();
         seen[help] = switch (help) {
           'show_me_how' => vm.showingExample,
-          'easier' => vm.sessionId != 's1' || !vm.ready,
+          // an easier problem, in the same session (REW-01)
+          'easier' => vm.problem.id != 'lemon' || !vm.ready,
           'check_again' => vm.coachText == line('cmp.recheck'),
           // find_unknown has no rung: the ladder offers show me how
           'hint' => vm.coachText == line('cmp.showMeHow'),
