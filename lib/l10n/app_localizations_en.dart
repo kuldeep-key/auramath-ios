@@ -2680,4 +2680,35 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lessonNeedInternetAsk =>
       'Ask your family to check the Wi-Fi. Then tap Check again.';
+
+  @override
+  String get kidMyCasebook => 'My casebook';
+
+  @override
+  String get kidCasebookToday => 'Today';
+
+  @override
+  String get kidCasebookLastTime => 'Last time';
+
+  @override
+  String kidCasebookDayBadge(String day, String badge) {
+    return '$day · badge: $badge';
+  }
+
+  @override
+  String get kidCasebookEmpty => 'Your solved cases will live here.';
+
+  @override
+  String get kidCaseDrawing => 'Your drawing';
+
+  @override
+  String get kidCaseInYourHead => 'You solved this one in your head.';
+
+  @override
+  String kidCaseSticker(String object) {
+    return '$object sticker';
+  }
+
+  @override
+  String get kidBack => 'Back';
 }

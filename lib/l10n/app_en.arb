@@ -1217,5 +1217,43 @@
   "lessonNeedInternetAsk": "Ask your family to check the Wi-Fi. Then tap Check again.",
   "@lessonNeedInternetAsk": {
     "description": "DRAFT (PLAT-09, prototype NeedNet)."
+  },
+  "kidMyCasebook": "My casebook",
+  "@kidMyCasebook": {
+    "description": "DRAFT (REW-15, Figma CB1 1043:11224): the Home tile beside My trail and My badges, and the casebook's title. Never a count."
+  },
+  "kidCasebookToday": "Today",
+  "@kidCasebookToday": {
+    "description": "DRAFT (REW-15, Figma CB1): the heading over today's solved cases (the family's home time zone)."
+  },
+  "kidCasebookLastTime": "Last time",
+  "@kidCasebookLastTime": {
+    "description": "DRAFT (REW-15, Figma CB1): the heading over the newest day before today. Older days show their date."
+  },
+  "kidCasebookDayBadge": "{day} · badge: {badge}",
+  "@kidCasebookDayBadge": {
+    "description": "DRAFT (REW-15, Figma CB1): a day's heading with that day's session badge, e.g. 'Last time · badge: Checked it'. Never a count.",
+    "placeholders": {"day": {"type": "String"}, "badge": {"type": "String"}}
+  },
+  "kidCasebookEmpty": "Your solved cases will live here.",
+  "@kidCasebookEmpty": {
+    "description": "DRAFT (REW-15): the casebook with no solved case yet, under the tutor. No count, no outline."
+  },
+  "kidCaseDrawing": "Your drawing",
+  "@kidCaseDrawing": {
+    "description": "DRAFT (REW-15, Figma CB2 1043:11315): the label over the case's final drawing (shown in capitals)."
+  },
+  "kidCaseInYourHead": "You solved this one in your head.",
+  "@kidCaseInYourHead": {
+    "description": "DRAFT (REW-15): in place of the drawing for a case solved with nothing placed on the board."
+  },
+  "kidCaseSticker": "{object} sticker",
+  "@kidCaseSticker": {
+    "description": "DRAFT (REW-15): what a screen reader says for a case's story sticker, e.g. 'lemon tree sticker'.",
+    "placeholders": {"object": {"type": "String"}}
+  },
+  "kidBack": "Back",
+  "@kidBack": {
+    "description": "DRAFT (REW-15, Figma CB2): back from one case to where it was opened (the casebook or My badges)."
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/repositories/account_repository.dart';
+import '../../../data/repositories/casebook_repository.dart';
 import '../../../data/repositories/celebration_repository.dart';
 import '../../../data/repositories/look_repository.dart';
 import '../../../data/repositories/partner_intro_repository.dart';
@@ -17,6 +18,8 @@ import '../../../routing/paths.dart';
 import 'views/after_case_screen.dart';
 import 'views/badge_screen.dart';
 import 'views/badges_screen.dart';
+import 'views/case_screen.dart';
+import 'views/casebook_screen.dart';
 import 'views/check_screen.dart';
 import 'views/choose_today_screen.dart';
 import 'views/home_moments.dart';
@@ -55,6 +58,13 @@ List<RouteBase> childRoutes(Deps deps) {
   );
 
   final rewards = RewardsRepository(deps.client);
+  final casebook = CasebookRepository(deps.client);
+
+  /// REW-15: the stories' pictures by object name, for the stickers.
+  final pictures = {
+    for (final p in deps.pack.problems.values)
+      for (final item in [p.a, p.b]) item.name.toLowerCase(): item.pic,
+  };
 
   /// REW-06: the level badges last served, by id, for the badge's own screen.
   final levelBadges = <String, BadgeInfo>{};
@@ -345,6 +355,7 @@ List<RouteBase> childRoutes(Deps deps) {
                 badges:
                     deps.flags.on('badge_cabinet') ||
                     deps.flags.on('mastery_badges'),
+                casebook: deps.flags.on('casebook'),
                 avatar: progress.cachedAvatar,
                 // Choose today first, with Quick sums on (LES-14)
                 play: deps.flags.on('quick_sums')
@@ -515,6 +526,66 @@ List<RouteBase> childRoutes(Deps deps) {
       ),
     ),
     GoRoute(path: Paths.trailTop, builder: (_, _) => const TrailTopScreen()),
+    GoRoute(
+      path: Paths.casebook,
+      // REW-15: behind the casebook switch; Home has no tile while it's off
+      redirect: (_, _) => deps.flags.on('casebook') ? null : Paths.home,
+      builder: (_, _) => Loaded(
+        load: () async {
+          final id = deps.account.childId;
+          if (id == null) {
+            return (world: 'detective', days: const <CasebookDay>[]);
+          }
+          final read = await casebook.days(id);
+          return (world: read.world, days: read.days ?? const <CasebookDay>[]);
+        },
+        builder: (c) => CasebookScreen(
+          days: c.days,
+          today: DateTime.now(),
+          pictures: pictures,
+          world: c.world,
+          tutorId: tutorNow().id,
+          tutorKind: tutorNow().kind,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/casebook/cases/:problemId',
+      // with the casebook off, a badge shows alone (REW-12)
+      redirect: (_, state) {
+        if (deps.flags.on('casebook')) return null;
+        final badge = state.uri.queryParameters['badge'];
+        return badge == null ? Paths.home : Paths.badge(badge);
+      },
+      pageBuilder: (_, state) {
+        final problemId = state.pathParameters['problemId']!;
+        final badge = state.uri.queryParameters['badge'];
+        return MotionPage(
+          key: state.pageKey,
+          arrive: Arrive.zoom,
+          child: Loaded(
+            load: () async {
+              final id = deps.account.childId;
+              return id == null ? null : await casebook.caseOf(id, problemId);
+            },
+            builder: (view) => switch (view) {
+              final v? => CaseScreen(
+                view: v,
+                pictures: pictures,
+                world: worldNow(),
+              ),
+              // not in this casebook (404): the badge alone, or the casebook
+              _ when badge != null && badgeInfo(badge) != null => BadgeScreen(
+                id: badge,
+                badge: badgeInfo(badge)!,
+                world: worldNow(),
+              ),
+              _ => const _GoHome(to: Paths.casebook),
+            },
+          ),
+        );
+      },
+    ),
     GoRoute(
       path: Paths.avatar,
       pageBuilder: (context, s) {
@@ -790,7 +861,9 @@ List<RouteBase> childRoutes(Deps deps) {
 
 /// Home, once a waiting badge has shown.
 class _GoHome extends StatefulWidget {
-  const _GoHome();
+  const _GoHome({this.to = Paths.home});
+
+  final String to;
 
   @override
   State<_GoHome> createState() => _GoHomeState();
@@ -801,7 +874,7 @@ class _GoHomeState extends State<_GoHome> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.go(Paths.home);
+      if (mounted) context.go(widget.to);
     });
   }
 

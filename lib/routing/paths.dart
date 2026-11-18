@@ -55,6 +55,9 @@ abstract final class Paths {
   static const badges = '/badges'; // B1 650:233
   static const trail = '/trail'; // K2 651:68
   static const trailTop = '/trail/top'; // TrailTop 659:2
+
+  /// REW-15: My casebook, CB1 1043:11224 (behind `casebook`).
+  static const casebook = '/casebook';
   static const check = '/check'; // A quick check 651:165
   static const chooseToday = '/today'; // A3, Figma 4.2 (LES-14)
   static const quickSums = '/quick-sums'; // no Figma frame yet (LES-16)
@@ -93,6 +96,12 @@ abstract final class Paths {
   static const lessonCarryOnHere = '/lesson?here=1';
   static String lesson(String problemId) => '/lesson/$problemId';
   static String badge(String id) => '/badges/$id'; // B2 651:2
+
+  /// REW-15: one case, CB2 1043:11315. Opened from a badge (REW-12), it
+  /// names the badge, which shows alone when the case can't open.
+  static String casebookCase(String problemId, {String? badge}) =>
+      '/casebook/cases/${Uri.encodeComponent(problemId)}'
+      '${badge == null ? '' : '?badge=${Uri.encodeQueryComponent(badge)}'}';
   static String afterCaseNext(String next) => '$afterCase?next=$next';
 
   // ----------------------------- the grown-up area (passcode-locked)
