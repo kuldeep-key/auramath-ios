@@ -230,28 +230,28 @@ final Map<String, OK> OPR = {
     14,
     false,
     ([dynamic _]) =>
-        '''${osh(0, 2, 20, 4)}<path d="M-18 -2 h30 q6 0 6 -6" fill="none" stroke="#0F2A73" stroke-width="2.4" stroke-linecap="round"/><rect x="-16" y="-10" width="26" height="5" rx="2" fill="#E5484D" stroke="#0F2A73" stroke-width="1.6"/><path d="M-10 -5 v3 M4 -5 v3" stroke="#0F2A73" stroke-width="2"/>''',
+        '''${osh(0, 2, 20, 4)}<path d="M-18 -2 h30 q6 0 6 -6" fill="none" stroke="#0F2A73" stroke-width="2.4" stroke-linecap="round"/><rect x="-16" y="-10" width="26" height="5" rx="2" fill="#F0643C" stroke="#0F2A73" stroke-width="1.6"/><path d="M-10 -5 v3 M4 -5 v3" stroke="#0F2A73" stroke-width="2"/>''',
   ),
   'toad': OK(
     18,
     16,
     false,
     ([dynamic _]) =>
-        '''<rect x="-2" y="-9" width="5" height="10" rx="2.5" fill="#FFF7E2"/><path d="M-10 -8 q10 -14 21 0 z" fill="#E5484D" stroke="#9E2B2F" stroke-width="1.2"/><circle cx="-3" cy="-12" r="1.6" fill="#fff"/><circle cx="4" cy="-11" r="1.3" fill="#fff"/><rect x="10" y="-5" width="3.4" height="6" rx="1.7" fill="#FFF7E2"/><path d="M6 -4 q5.5 -8 11 0 z" fill="#E5484D" stroke="#9E2B2F" stroke-width="1.2"/>''',
+        '''<rect x="-2" y="-9" width="5" height="10" rx="2.5" fill="#FFF7E2"/><path d="M-10 -8 q10 -14 21 0 z" fill="#F0643C" stroke="#9E4A2B" stroke-width="1.2"/><circle cx="-3" cy="-12" r="1.6" fill="#fff"/><circle cx="4" cy="-11" r="1.3" fill="#fff"/><rect x="10" y="-5" width="3.4" height="6" rx="1.7" fill="#FFF7E2"/><path d="M6 -4 q5.5 -8 11 0 z" fill="#F0643C" stroke="#9E4A2B" stroke-width="1.2"/>''',
   ),
   'picnic': OK(
     26,
     22,
     false,
     ([dynamic _]) =>
-        '''<path d="M-22 -6 l34 -6 l12 12 l-34 7 z" fill="#fff" stroke="#E5484D" stroke-width="2" stroke-linejoin="round"/><path d="M-10 -8.5 l12 12.5 M2 -10.5 l12 12 M-16 0 l34 -6.5" stroke="#E5484D" stroke-width="1.6"/><path d="M-4 -16 h14 l-2 9 h-10 z" fill="#C99B5A" stroke="#8A5E36" stroke-width="1.4"/><path d="M-3 -16 q6 -9 12 0" fill="none" stroke="#8A5E36" stroke-width="1.6"/>''',
+        '''<path d="M-22 -6 l34 -6 l12 12 l-34 7 z" fill="#fff" stroke="#F0643C" stroke-width="2" stroke-linejoin="round"/><path d="M-10 -8.5 l12 12.5 M2 -10.5 l12 12 M-16 0 l34 -6.5" stroke="#F0643C" stroke-width="1.6"/><path d="M-4 -16 h14 l-2 9 h-10 z" fill="#C99B5A" stroke="#8A5E36" stroke-width="1.4"/><path d="M-3 -16 q6 -9 12 0" fill="none" stroke="#8A5E36" stroke-width="1.6"/>''',
   ),
   'snowman': OK(
     16,
     48,
     false,
     ([dynamic _]) =>
-        '''${osh(0, 2, 14, 4)}<g fill="#fff" stroke="#C9D8E8" stroke-width="1.4"><circle cy="-9" r="10"/><circle cy="-24" r="7.5"/><circle cy="-35" r="5.5"/></g><path d="M0 -35 l8 2 l-8 1.5 z" fill="#F2A23A"/><circle cx="-2" cy="-37" r="0.9" fill="#0F2A73"/><circle cx="2.5" cy="-37" r="0.9" fill="#0F2A73"/><path d="M-6 -29.5 q6 4 12 0" stroke="#E5484D" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M-7 -40 h14 M-4.5 -40 v-7 h9 v7 z" stroke="#0F2A73" stroke-width="2" fill="#0F2A73" stroke-linejoin="round"/><path d="M-7 -24 l-9 -6 M7 -24 l9 -6" stroke="#8A5A34" stroke-width="1.8" stroke-linecap="round"/>''',
+        '''${osh(0, 2, 14, 4)}<g fill="#fff" stroke="#C9D8E8" stroke-width="1.4"><circle cy="-9" r="10"/><circle cy="-24" r="7.5"/><circle cy="-35" r="5.5"/></g><path d="M0 -35 l8 2 l-8 1.5 z" fill="#F2A23A"/><circle cx="-2" cy="-37" r="0.9" fill="#0F2A73"/><circle cx="2.5" cy="-37" r="0.9" fill="#0F2A73"/><path d="M-6 -29.5 q6 4 12 0" stroke="#F0643C" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M-7 -40 h14 M-4.5 -40 v-7 h9 v7 z" stroke="#0F2A73" stroke-width="2" fill="#0F2A73" stroke-linejoin="round"/><path d="M-7 -24 l-9 -6 M7 -24 l9 -6" stroke="#8A5A34" stroke-width="1.8" stroke-linecap="round"/>''',
   ),
   'scare': OK(
     18,
@@ -310,14 +310,14 @@ final Map<String, OK> OLM = {
     140,
     false,
     ([dynamic _]) =>
-        '''${osh(4, 4, 40, 10)}<path d="M-22 0 l8 -88 h28 l8 88 z" fill="#FFF3DA" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><path d="M-17 -88 q17 -24 34 0 z" fill="#E5484D" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><rect x="-8" y="-22" width="16" height="22" rx="8" fill="#8A5A34" stroke="#0F2A73" stroke-width="2"/><rect x="-6" y="-60" width="12" height="14" rx="3" fill="#8FD2FF" stroke="#0F2A73" stroke-width="2"/><g class="spin" style="transform-origin:0px -94px">${[0, 90, 180, 270].map((a) => '''<g transform="rotate(${a} 0 -94)"><path d="M0 -94 v-46" stroke="#6E4525" stroke-width="3" stroke-linecap="round"/><rect x="1" y="-140" width="13" height="34" rx="2" fill="#fff" stroke="#0F2A73" stroke-width="1.8"/><path d="M1 -129 h13 M1 -118 h13" stroke="#0F2A73" stroke-width="1"/></g>''').join('')}<circle cy="-94" r="5" fill="#FFC531" stroke="#0F2A73" stroke-width="2"/></g>''',
+        '''${osh(4, 4, 40, 10)}<path d="M-22 0 l8 -88 h28 l8 88 z" fill="#FFF3DA" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><path d="M-17 -88 q17 -24 34 0 z" fill="#F0643C" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><rect x="-8" y="-22" width="16" height="22" rx="8" fill="#8A5A34" stroke="#0F2A73" stroke-width="2"/><rect x="-6" y="-60" width="12" height="14" rx="3" fill="#8FD2FF" stroke="#0F2A73" stroke-width="2"/><g class="spin" style="transform-origin:0px -94px">${[0, 90, 180, 270].map((a) => '''<g transform="rotate(${a} 0 -94)"><path d="M0 -94 v-46" stroke="#6E4525" stroke-width="3" stroke-linecap="round"/><rect x="1" y="-140" width="13" height="34" rx="2" fill="#fff" stroke="#0F2A73" stroke-width="1.8"/><path d="M1 -129 h13 M1 -118 h13" stroke="#0F2A73" stroke-width="1"/></g>''').join('')}<circle cy="-94" r="5" fill="#FFC531" stroke="#0F2A73" stroke-width="2"/></g>''',
   ),
   'cottage': OK(
     46,
     84,
     false,
     ([dynamic _]) =>
-        '''${osh(4, 4, 50, 11)}<rect x="15" y="-74" width="12" height="24" fill="#C9CFD9" stroke="#0F2A73" stroke-width="2"/><rect x="-34" y="-40" width="68" height="40" rx="3" fill="#FFF3DA" stroke="#0F2A73" stroke-width="2.5"/><path d="M-44 -38 L0 -76 L44 -38 Z" fill="#E5484D" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><rect x="-8" y="-24" width="16" height="24" rx="8" fill="#5B8CFF" stroke="#0F2A73" stroke-width="2"/><circle cx="4" cy="-11" r="1.5" fill="#FFC531"/><rect x="-27" y="-29" width="13" height="13" rx="2" fill="#8FD2FF" stroke="#0F2A73" stroke-width="2"/><rect x="14" y="-29" width="13" height="13" rx="2" fill="#8FD2FF" stroke="#0F2A73" stroke-width="2"/><path d="M-29 -14 h17 M12 -14 h17" stroke="#57B866" stroke-width="4" stroke-linecap="round"/><g fill="#FFB3D1"><circle cx="-25" cy="-16" r="2"/><circle cx="-17" cy="-16" r="2"/><circle cx="17" cy="-16" r="2"/><circle cx="25" cy="-16" r="2"/></g><g class="bob" fill="#fff"><circle cx="22" cy="-82" r="4" opacity="0.75"/><circle cx="27" cy="-92" r="5.5" opacity="0.5"/></g>''',
+        '''${osh(4, 4, 50, 11)}<rect x="15" y="-74" width="12" height="24" fill="#C9CFD9" stroke="#0F2A73" stroke-width="2"/><rect x="-34" y="-40" width="68" height="40" rx="3" fill="#FFF3DA" stroke="#0F2A73" stroke-width="2.5"/><path d="M-44 -38 L0 -76 L44 -38 Z" fill="#F0643C" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><rect x="-8" y="-24" width="16" height="24" rx="8" fill="#5B8CFF" stroke="#0F2A73" stroke-width="2"/><circle cx="4" cy="-11" r="1.5" fill="#FFC531"/><rect x="-27" y="-29" width="13" height="13" rx="2" fill="#8FD2FF" stroke="#0F2A73" stroke-width="2"/><rect x="14" y="-29" width="13" height="13" rx="2" fill="#8FD2FF" stroke="#0F2A73" stroke-width="2"/><path d="M-29 -14 h17 M12 -14 h17" stroke="#57B866" stroke-width="4" stroke-linecap="round"/><g fill="#FFB3D1"><circle cx="-25" cy="-16" r="2"/><circle cx="-17" cy="-16" r="2"/><circle cx="17" cy="-16" r="2"/><circle cx="25" cy="-16" r="2"/></g><g class="bob" fill="#fff"><circle cx="22" cy="-82" r="4" opacity="0.75"/><circle cx="27" cy="-92" r="5.5" opacity="0.5"/></g>''',
   ),
   'cabin': OK(
     46,
@@ -331,14 +331,14 @@ final Map<String, OK> OLM = {
     54,
     false,
     ([dynamic _]) =>
-        '''${osh(2, 3, 24, 6)}<path d="M-18 0 v-16 h36 v16 z" fill="#C9CFD9" stroke="#8892A4" stroke-width="2" stroke-linejoin="round"/><path d="M-18 -8 h36 M-6 -16 v8 M8 -8 v8 M-12 -8 v8" stroke="#8892A4" stroke-width="1.2"/><path d="M-14 -16 v-24 M14 -16 v-24" stroke="#8A5A34" stroke-width="3.4"/><path d="M-22 -38 L0 -52 L22 -38 Z" fill="#E5484D" stroke="#0F2A73" stroke-width="2.2" stroke-linejoin="round"/><path d="M0 -40 v14" stroke="#6E4525" stroke-width="1.4"/><path d="M-5 -26 h10 l-1.5 8 h-7 z" fill="#C58B52" stroke="#6E4525" stroke-width="1.4"/>''',
+        '''${osh(2, 3, 24, 6)}<path d="M-18 0 v-16 h36 v16 z" fill="#C9CFD9" stroke="#8892A4" stroke-width="2" stroke-linejoin="round"/><path d="M-18 -8 h36 M-6 -16 v8 M8 -8 v8 M-12 -8 v8" stroke="#8892A4" stroke-width="1.2"/><path d="M-14 -16 v-24 M14 -16 v-24" stroke="#8A5A34" stroke-width="3.4"/><path d="M-22 -38 L0 -52 L22 -38 Z" fill="#F0643C" stroke="#0F2A73" stroke-width="2.2" stroke-linejoin="round"/><path d="M0 -40 v14" stroke="#6E4525" stroke-width="1.4"/><path d="M-5 -26 h10 l-1.5 8 h-7 z" fill="#C58B52" stroke="#6E4525" stroke-width="1.4"/>''',
   ),
   'treehouse': OK(
     62,
     150,
     false,
     ([dynamic _]) =>
-        '''${osh(6, 4, 58, 14)}<path d="M-13 4 q7 -30 2 -80 h22 q-4 48 6 80 q-9 -5 -15 -2 q-7 -4 -15 2 z" fill="#7A4E2B"/><path d="M-24 0 l10 -60 M-12 0 l10 -60" stroke="#C58B52" stroke-width="2.6" stroke-linecap="round"/><path d="M-21 -12 h11 M-19 -24 h11 M-17 -36 h11 M-15 -48 h11" stroke="#A9713F" stroke-width="2.4"/><g class="sway"><circle cx="-36" cy="-96" r="28" fill="#2F8750"/><circle cx="38" cy="-94" r="28" fill="#2F8750"/><circle cx="0" cy="-118" r="34" fill="#46A85F"/><circle cx="-14" cy="-130" r="13" fill="#8BD98A" opacity="0.8"/></g><rect x="-22" y="-86" width="44" height="26" rx="2" fill="#F3D9AE" stroke="#0F2A73" stroke-width="2.2"/><path d="M-28 -84 L0 -106 L28 -84 Z" fill="#E5484D" stroke="#0F2A73" stroke-width="2.2" stroke-linejoin="round"/><rect x="-5.5" y="-79" width="11" height="12" rx="5.5" fill="#FFE38A" stroke="#0F2A73" stroke-width="2"/><path d="M-27 -60 h54" stroke="#6E4525" stroke-width="4" stroke-linecap="round"/>''',
+        '''${osh(6, 4, 58, 14)}<path d="M-13 4 q7 -30 2 -80 h22 q-4 48 6 80 q-9 -5 -15 -2 q-7 -4 -15 2 z" fill="#7A4E2B"/><path d="M-24 0 l10 -60 M-12 0 l10 -60" stroke="#C58B52" stroke-width="2.6" stroke-linecap="round"/><path d="M-21 -12 h11 M-19 -24 h11 M-17 -36 h11 M-15 -48 h11" stroke="#A9713F" stroke-width="2.4"/><g class="sway"><circle cx="-36" cy="-96" r="28" fill="#2F8750"/><circle cx="38" cy="-94" r="28" fill="#2F8750"/><circle cx="0" cy="-118" r="34" fill="#46A85F"/><circle cx="-14" cy="-130" r="13" fill="#8BD98A" opacity="0.8"/></g><rect x="-22" y="-86" width="44" height="26" rx="2" fill="#F3D9AE" stroke="#0F2A73" stroke-width="2.2"/><path d="M-28 -84 L0 -106 L28 -84 Z" fill="#F0643C" stroke="#0F2A73" stroke-width="2.2" stroke-linejoin="round"/><rect x="-5.5" y="-79" width="11" height="12" rx="5.5" fill="#FFE38A" stroke="#0F2A73" stroke-width="2"/><path d="M-27 -60 h54" stroke="#6E4525" stroke-width="4" stroke-linecap="round"/>''',
   ),
   'gazebo': OK(
     42,
@@ -352,7 +352,7 @@ final Map<String, OK> OLM = {
     120,
     false,
     ([dynamic _]) =>
-        '''${osh(0, 3, 16, 4)}<path d="M-8 -14 l-10 -42 M8 -14 l10 -42 M0 -14 v-40" stroke="#6E4525" stroke-width="1.2"/><rect x="-9" y="-14" width="18" height="14" rx="3" fill="#C99B5A" stroke="#6E4525" stroke-width="1.8"/><path d="M-9 -8 h18" stroke="#6E4525" stroke-width="1.2"/><path d="M-30 -86 a30 32 0 1 1 60 0 q-6 22 -18 32 h-24 q-12 -10 -18 -32 z" fill="#E5484D" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><path d="M-13 -114 q-9 30 1 60 M13 -114 q9 30 -1 60" fill="none" stroke="#FFC531" stroke-width="7"/><path d="M0 -117 v63" stroke="#fff" stroke-width="7"/><path d="M-30 -86 a30 32 0 1 1 60 0 q-6 22 -18 32 h-24 q-12 -10 -18 -32 z" fill="none" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/>''',
+        '''${osh(0, 3, 16, 4)}<path d="M-8 -14 l-10 -42 M8 -14 l10 -42 M0 -14 v-40" stroke="#6E4525" stroke-width="1.2"/><rect x="-9" y="-14" width="18" height="14" rx="3" fill="#C99B5A" stroke="#6E4525" stroke-width="1.8"/><path d="M-9 -8 h18" stroke="#6E4525" stroke-width="1.2"/><path d="M-30 -86 a30 32 0 1 1 60 0 q-6 22 -18 32 h-24 q-12 -10 -18 -32 z" fill="#F0643C" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><path d="M-13 -114 q-9 30 1 60 M13 -114 q9 30 -1 60" fill="none" stroke="#FFC531" stroke-width="7"/><path d="M0 -117 v63" stroke="#fff" stroke-width="7"/><path d="M-30 -86 a30 32 0 1 1 60 0 q-6 22 -18 32 h-24 q-12 -10 -18 -32 z" fill="none" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/>''',
   ),
   'pond': OK(
     62,
@@ -366,7 +366,7 @@ final Map<String, OK> OLM = {
     64,
     false,
     ([dynamic c]) =>
-        '''${osh(2, 3, 40, 8)}<path d="M-30 -30 v-22 M24 -30 v-22" stroke="#6E4525" stroke-width="2.4"/><path d="M-36 -52 h66 l-4 -10 h-58 z" fill="#fff" stroke="#0F2A73" stroke-width="2" stroke-linejoin="round"/><path d="M-24 -61 l-3 8 M-10 -61 l-1 8 M4 -61 l1 8 M18 -61 l3 8" stroke="#E5484D" stroke-width="6"/><g fill="${t(c) ? c : '#FFD84A'}" stroke="rgba(0,0,0,0.16)" stroke-width="0.6">${[-22, -11, 0, 11].map((d) => '''<circle cx="${d}" cy="-33" r="5.5"/>''').join('')}<circle cx="-16" cy="-40" r="5.5"/><circle cx="-5" cy="-40" r="5.5"/><circle cx="6" cy="-40" r="5.5"/></g><path d="M-30 -30 h54 l-4 18 h-46 z" fill="#C58B52" stroke="#6E4525" stroke-width="2" stroke-linejoin="round"/><path d="M24 -24 l16 -8 M20 -14 l10 14" stroke="#6E4525" stroke-width="2.6" stroke-linecap="round"/><circle cx="-14" cy="-8" r="9" fill="#fff" stroke="#0F2A73" stroke-width="2.5"/><circle cx="-14" cy="-8" r="2" fill="#0F2A73"/>''',
+        '''${osh(2, 3, 40, 8)}<path d="M-30 -30 v-22 M24 -30 v-22" stroke="#6E4525" stroke-width="2.4"/><path d="M-36 -52 h66 l-4 -10 h-58 z" fill="#fff" stroke="#0F2A73" stroke-width="2" stroke-linejoin="round"/><path d="M-24 -61 l-3 8 M-10 -61 l-1 8 M4 -61 l1 8 M18 -61 l3 8" stroke="#F0643C" stroke-width="6"/><g fill="${t(c) ? c : '#FFD84A'}" stroke="rgba(0,0,0,0.16)" stroke-width="0.6">${[-22, -11, 0, 11].map((d) => '''<circle cx="${d}" cy="-33" r="5.5"/>''').join('')}<circle cx="-16" cy="-40" r="5.5"/><circle cx="-5" cy="-40" r="5.5"/><circle cx="6" cy="-40" r="5.5"/></g><path d="M-30 -30 h54 l-4 18 h-46 z" fill="#C58B52" stroke="#6E4525" stroke-width="2" stroke-linejoin="round"/><path d="M24 -24 l16 -8 M20 -14 l10 14" stroke="#6E4525" stroke-width="2.6" stroke-linecap="round"/><circle cx="-14" cy="-8" r="9" fill="#fff" stroke="#0F2A73" stroke-width="2.5"/><circle cx="-14" cy="-8" r="2" fill="#0F2A73"/>''',
   ),
   'camp': OK(
     46,
@@ -413,7 +413,7 @@ final Map<String, OK> OLM = {
     64,
     false,
     ([dynamic _]) =>
-        '''${osh(4, 4, 50, 11)}<path d="M-36 0 v-40 l14 -18 h44 l14 18 v40 z" fill="#D9453F" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><path d="M-39 -39 l16 -21 h46 l16 21" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/><rect x="-12" y="-26" width="24" height="26" fill="#fff" stroke="#0F2A73" stroke-width="2"/><path d="M-12 -26 l24 26 M12 -26 l-24 26" stroke="#D9453F" stroke-width="2"/><circle cy="-44" r="5" fill="#0F2A73"/>''',
+        '''${osh(4, 4, 50, 11)}<path d="M-36 0 v-40 l14 -18 h44 l14 18 v40 z" fill="#E0613A" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><path d="M-39 -39 l16 -21 h46 l16 21" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/><rect x="-12" y="-26" width="24" height="26" fill="#fff" stroke="#0F2A73" stroke-width="2"/><path d="M-12 -26 l24 26 M12 -26 l-24 26" stroke="#E0613A" stroke-width="2"/><circle cy="-44" r="5" fill="#0F2A73"/>''',
   ),
   'scarebarn': OK(44, 64, false, ([dynamic _]) => OLM['barn']!.f()),
   'bigwillow': OK(28, 72, false, ([dynamic _]) => OS.willow()),
