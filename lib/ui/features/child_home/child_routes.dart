@@ -287,13 +287,20 @@ List<RouteBase> childRoutes(Deps deps) {
       // REW-01: a badge waiting from a session that ended with the app
       // closed or offline, before anything else; then Welcome back (SES-07)
       // JRN-01: first, the first-run step still to answer
-      redirect: (_, _) async =>
-          await firstRunAt() ??
-          (await pendingBadgeDue()
-              ? Paths.badgeWaiting
-              : await progress.welcomeBackDue()
-              ? Paths.welcomeBack
-              : null),
+      redirect: (_, _) async {
+        // REW-01: Home ends the sitting's session (one a sitting), so its
+        // one badge is the one that shows; nothing when none is open
+        await deps.sessions.endSitting(
+          deps.account.childId,
+          activeMs: deps.sitting.activeMs,
+        );
+        return await firstRunAt() ??
+            (await pendingBadgeDue()
+                ? Paths.badgeWaiting
+                : await progress.welcomeBackDue()
+                ? Paths.welcomeBack
+                : null);
+      },
       pageBuilder: (context, s) => MotionPage(
         key: s.pageKey,
         arrive: Arrive.fade,

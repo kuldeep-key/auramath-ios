@@ -32,6 +32,33 @@ void main() {
     expect(isRed(scheme.error), isFalse, reason: 'Material error red');
   });
 
+  test('no colour drawn on a child screen is red (NFR-03): the art, the '
+      'path, the tutors and every child feature, not just the palette', () {
+    final dirs = [
+      'lib/ui/core',
+      'lib/ui/features/child_home',
+      'lib/ui/features/lesson',
+      'lib/ui/features/quick_sums',
+      'lib/ui/features/pairing',
+    ];
+    final found = <String>[];
+    for (final d in dirs) {
+      for (final f in Directory(d).listSync(recursive: true)) {
+        if (f is! File || !f.path.endsWith('.dart')) continue;
+        final src = f.readAsStringSync();
+        for (final m in RegExp(
+          r'#([0-9A-Fa-f]{6})\b|0x[Ff]{2}([0-9A-Fa-f]{6})\b',
+        ).allMatches(src)) {
+          final hex = m[1] ?? m[2]!;
+          if (isRed(Color(int.parse('FF$hex', radix: 16)))) {
+            found.add('${f.path}: #$hex');
+          }
+        }
+      }
+    }
+    expect(found, isEmpty);
+  });
+
   testWidgets("keypad keys and buttons are 56 pt or more (NFR-02)", (
     tester,
   ) async {

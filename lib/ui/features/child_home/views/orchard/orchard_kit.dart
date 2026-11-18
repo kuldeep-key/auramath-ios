@@ -126,13 +126,13 @@ final Map<String, Map<String, dynamic>> OFAM = {
       },
       {
         'w': 'Apple',
-        'a': ['round', 'green', '#E5484D'],
-        'fruit': '#E5484D',
+        'a': ['round', 'green', '#F0643C'],
+        'fruit': '#F0643C',
       },
       {
         'w': 'Cherry',
-        'a': ['round', 'deep', '#D7263D'],
-        'fruit': '#D7263D',
+        'a': ['round', 'deep', '#D9562B'],
+        'fruit': '#D9562B',
       },
       {
         'w': 'Plum',
@@ -482,7 +482,7 @@ final Map<String, Map<String, dynamic>> OFAM = {
       'it': [
         [
           0.45,
-          ['gmush', '#E5484D'],
+          ['gmush', '#F0643C'],
         ],
         [
           0.2,
@@ -585,7 +585,7 @@ final Map<String, Map<String, dynamic>> OFAM = {
     'lm': ['cart', 'cottage', 'well', 'barn'],
     'pr': ['basket', 'crate', 'picnic', 'basket', 'hive'],
     'vars': [
-      {'w': 'Berry', 'fruit': '#D7263D'},
+      {'w': 'Berry', 'fruit': '#D9562B'},
       {'w': 'Bramble', 'fruit': '#5B3FA8'},
       {'w': 'Bilberry', 'fruit': '#3F5BD9'},
     ],

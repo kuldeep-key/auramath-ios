@@ -100,12 +100,10 @@ void main() {
     expectContract(api.received);
     final names = api.received.map((e) => e.name).toList();
     expect(names.take(2), ['session_started', 'problem_shown']);
-    // solved: the session ends as finished, last (SES-01); the server
-    // writes badge_awarded (D-54)
-    expect(names.skip(names.length - 2), [
-      'problem_completed',
-      'session_ended',
-    ]);
+    // solved: the case completes and the session stays open for the next
+    // case (REW-01: it ends at Home); the server writes badge_awarded (D-54)
+    expect(names.last, 'problem_completed');
+    expect(names, isNot(contains('session_ended')));
     expect(names, isNot(contains('badge_awarded')));
 
     vm.dispose();

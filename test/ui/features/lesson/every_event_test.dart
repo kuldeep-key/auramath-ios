@@ -101,6 +101,9 @@ void main() {
     expect(vm.state.step, LessonStep.solved);
     // after the case: Y4's badge sent, Home's streak moment, a new avatar,
     // each after the lesson's end (they're shown outside it)
+    // the child goes Home: the sitting's session ends there (REW-01)
+    sessions.goesOnIn('test1234', 's1');
+    await sessions.endSitting('test1234');
     expect(sessions.lastStop.value?.reason, 'finished');
     for (final e in const [
       SpecEvent('badge_shared', {'badge_id': 'tree', 'shared': true}),

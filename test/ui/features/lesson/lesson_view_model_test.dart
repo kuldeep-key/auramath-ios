@@ -225,15 +225,17 @@ void main() {
     vm.dispose();
   });
 
-  test('easier switches problem and session', () async {
+  test('easier switches the problem in the same session (REW-01: one '
+      'session a sitting)', () async {
     final vm = await makeVm();
     await vm.send(const Started());
+    final before = vm.recorded;
     await vm.send(const EasierTaken());
     expect(vm.problem.id, 'easier');
-    expect(vm.sessionId, 's2');
+    expect(vm.sessionId, 's1');
     expect(vm.state.step, LessonStep.question);
-    // the new session opens on the easier problem
-    expect(vm.recorded, 2);
+    // the easier problem's events follow on in the same session
+    expect(vm.recorded, greaterThan(before));
     vm.dispose();
   });
 
@@ -264,7 +266,8 @@ void main() {
     vm.dispose();
   });
 
-  test('a solved case ends its session as finished, last', () async {
+  test('a solved case leaves its session open for the next case; Home ends '
+      'it as finished, last, once (REW-01)', () async {
     final (sessions, db, _) = await memorySessions();
     final vm = LessonViewModel(
       pack: pack,
@@ -279,6 +282,14 @@ void main() {
     );
     await vm.send(const Started());
     await vm.send(const KnowIt(265));
+    expect(
+      (await db.forSession('s1')).where((e) => e.name == 'session_ended'),
+      isEmpty,
+    );
+    // the child goes Home: the sitting's session ends there
+    sessions.goesOnIn(null, 's1');
+    await sessions.endSitting(null);
+    await sessions.endSitting(null); // once only
     final log = await db.forSession('s1');
     expect(log.last.name, 'session_ended');
     expect(log.last.payload['reason'], 'finished');

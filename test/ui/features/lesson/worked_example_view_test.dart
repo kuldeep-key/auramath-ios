@@ -60,14 +60,17 @@ void main() {
     await tester.pump();
     expect(find.text('8 m'), findsOneWidget);
     final sessionId = vm.sessionId;
+    // this case's events, before the next case opens in the same session
+    final shown = await tester.runAsync(() => vm.sessions.resume(sessionId));
     await tester.runAsync(() async {
       await tester.tap(find.text('Now try a new one'));
       await Future<void>.delayed(const Duration(milliseconds: 20));
     });
     expect(vm.showingExample, isFalse);
-    // the pack's chain: the same pattern, new numbers (Figma 8.6)
+    // the pack's chain: the same pattern, new numbers (Figma 8.6), in the
+    // same session (REW-01)
     expect(vm.problem.id, 'mango');
-    final shown = await tester.runAsync(() => vm.sessions.resume(sessionId));
+    expect(vm.sessionId, sessionId);
     expect(
       shown!.events
           .singleWhere((e) => e.name == 'worked_example_shown')

@@ -145,6 +145,64 @@ class SessionRepository {
   final Map<String, int> _firstSeq = {};
   int firstSeq(String sessionId) => _firstSeq[sessionId] ?? 0;
 
+  /// REW-01, SES-05: the session each child's sitting is in while it is
+  /// open. The next case, something easier and the next variant go on in
+  /// it, so a sitting is one session with one session badge; it ends when
+  /// the child goes Home ([endSitting]), leaves a case, or time is up.
+  final Map<String, String> _openFor = {};
+
+  /// Whose sitting each open session is (the key of [_openFor]).
+  final Map<String, String> _sittingOf = {};
+
+  /// The seq the next event of each session takes, past every one saved.
+  final Map<String, int> _nextSeq = {};
+  int nextSeq(String sessionId) => _nextSeq[sessionId] ?? firstSeq(sessionId);
+
+  /// The sessions whose `session_started` is saved: a case after the
+  /// first in the same session sends only its `problem_shown`.
+  final Set<String> _started = {};
+
+  /// True once [sessionId]'s `session_started` is saved, on this launch or
+  /// an earlier one (a resumed case).
+  Future<bool> isStarted(String sessionId) async =>
+      _started.contains(sessionId) ||
+      (await _db.forSession(sessionId)).any((e) => e.name == 'session_started');
+
+  /// The child's open session, or a new one from the server when there is
+  /// none (or the server ended it).
+  Future<String> openOrGoOn({String? childId}) async {
+    final key = childId ?? '';
+    final open = _openFor[key];
+    if (open != null && ended.value != open) return open;
+    final id = await this.open(childId: childId);
+    _openFor[key] = _sittingOfKey(id, key);
+    return id;
+  }
+
+  /// [sessionId] is now [childId]'s open session: a continuation after
+  /// time's up (SES-01) carries the sitting on.
+  void goesOnIn(String? childId, String sessionId) =>
+      _openFor[childId ?? ''] = _sittingOfKey(sessionId, childId ?? '');
+
+  String _sittingOfKey(String sessionId, String key) {
+    _sittingOf[sessionId] = key;
+    return sessionId;
+  }
+
+  /// The child is Home: their open session ends as [reason], so its one
+  /// badge shows (REW-01). Nothing when no session is open.
+  Future<void> endSitting(
+    String? childId, {
+    String reason = 'finished',
+    int? activeMs,
+  }) async {
+    final id = _openFor.remove(childId ?? '');
+    if (id == null || ended.value == id) return;
+    await record(id, nextSeq(id), [
+      SpecEvent('session_ended', {'reason': reason, 'active_ms': ?activeMs}),
+    ]);
+  }
+
   /// TUT-08: the skills [sessionId] opened with to warm up on (server
   /// `reviewDue`, `{skill, errorType, reason}`); a finished side lesson
   /// for one (`side_lesson_ended {skill_id, completed: true}`) clears it.
@@ -440,7 +498,22 @@ class SessionRepository {
         ),
       );
     }
+    _nextSeq[sessionId] = math.max(
+      _nextSeq[sessionId] ?? 0,
+      firstSeq + events.length,
+    );
     for (final e in events) {
+      if (e.name == 'session_started') _started.add(sessionId);
+      // ended, or paused with its case kept for later ("Your drawing is
+      // saved", SES-04): no longer the sitting's open session, so Home
+      // doesn't end it and the next case opens a new one
+      if (e.name == 'session_ended' || e.name == 'session_paused') {
+        _openFor.removeWhere((_, open) => open == sessionId);
+      }
+      // the lesson goes on after a pause (the phone was locked): open again
+      if (e.name == 'session_resumed' && _sittingOf[sessionId] != null) {
+        _openFor[_sittingOf[sessionId]!] = sessionId;
+      }
       if (e.name == 'session_ended' || e.name == 'session_paused') {
         lastStop.value = (
           sessionId: sessionId,
@@ -550,6 +623,10 @@ class SessionRepository {
     _awards.clear();
     _continuedIn.clear();
     _firstSeq.clear();
+    _openFor.clear();
+    _sittingOf.clear();
+    _nextSeq.clear();
+    _started.clear();
     _reviewDue.clear();
     _sittings.clear();
     _suggestions.clear();

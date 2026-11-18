@@ -366,8 +366,8 @@ void main() {
       expect(next.variant, 'standard');
     });
 
-    test('@CON-06 something easier asks easier than this level, in a new '
-        'session, and problem_shown echoes the variant', () async {
+    test('@CON-06 something easier asks easier than this level, in the same '
+        'session (REW-01), and problem_shown echoes the variant', () async {
       final (vm, asked) = await makeVm(
         problems: [
           served(),
@@ -379,7 +379,7 @@ void main() {
       await vm.send(const Started());
       await vm.send(const EasierTaken());
       expect(vm.problem.id, 'g_easy');
-      expect(vm.sessionId, isNot(first));
+      expect(vm.sessionId, first);
       // no level: the server goes one below the child's own, and says so
       // (with a level it would serve that same level)
       expect(asked.last, (vm.sessionId, null));
@@ -391,8 +391,8 @@ void main() {
       vm.dispose();
     });
 
-    test('show me how to its end asks the same level again, in a new '
-        'session (TUT-05)', () async {
+    test('show me how to its end asks the same level again, in the same '
+        'session (TUT-05, REW-01)', () async {
       final (vm, asked) = await makeVm(
         problems: [
           served(),
@@ -405,7 +405,7 @@ void main() {
       await vm.send(const ShowMeHowTaken());
       await vm.exampleDone();
       expect(vm.problem.id, 'g_variant');
-      expect(vm.sessionId, isNot(first));
+      expect(vm.sessionId, first);
       expect(asked.last, (vm.sessionId, 'L4'));
       vm.dispose();
     });

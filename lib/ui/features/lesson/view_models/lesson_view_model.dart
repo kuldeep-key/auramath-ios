@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/foundation.dart';
@@ -224,8 +225,13 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     try {
       // a case carried on after time's up goes on in the server's
       // continuation of its session (SES-01); else a new session
-      final sessionId = _sessionId ??=
-          await _continueAfterTimeUp() ?? await _openSession();
+      final continued = _sessionId == null
+          ? await _continueAfterTimeUp()
+          : null;
+      final sessionId = _sessionId ??= continued ?? await _openSession();
+      if (continued != null) _sessions.goesOnIn(childId, continued);
+      // a case after the first in this sitting's session: its seqs follow on
+      _seq = math.max(_seq, _sessions.nextSeq(sessionId));
       final next = _nextProblem;
       // SES-07: the server says the child is back on a later day (on any
       // phone) and Home didn't greet them: welcome back first
@@ -264,12 +270,17 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     _carrying = carryFrom != null && carryFrom != _sessionId;
     notifyListeners();
     _warmVoice(); // the problem is known now, from the pack or the server
+    final firstCase = !await _sessions.isStarted(_sessionId!);
     final events = [
-      _sessions.started(
-        launchSource,
-        childId: childId,
-        versions: {'template.${_problem.templateId}': _problem.templateVersion},
-      ),
+      // one session_started a sitting: a later case shows only its problem
+      if (firstCase)
+        _sessions.started(
+          launchSource,
+          childId: childId,
+          versions: {
+            'template.${_problem.templateId}': _problem.templateVersion,
+          },
+        ),
       problemShown(_problem),
     ];
     await _record(events);
@@ -763,12 +774,8 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     if (solved && _line != null) reads.add(_lineEnded(stoppedEarly: false)!);
     _heldReads = null;
     if (_sessionId == sessionId) _seq += reads.length;
-    // solved: the session ends as finished (SES-01), after this step's
-    // events and reads; its seq taken now so a tick meanwhile can't take it.
-    // With faces to rate, after the rating instead (AI-08).
-    final ending = solved && _sessionId == sessionId;
-    if (ending && offerRating) _rated = Completer();
-    final endAt = ending && _rated == null ? _seq++ : null;
+    // solved: the session goes on (REW-01: one session a sitting); it ends
+    // when the child goes Home, leaves a case or runs out of time
     notifyListeners();
     await _sessions.record(sessionId, first, [...events, ...reads]);
     for (final ask in asks) {
@@ -778,14 +785,12 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
             : _askServer(sessionId, ask),
       );
     }
-    if (ending && _rated != null) {
-      unawaited(_endFinished(sessionId, null));
-    } else if (endAt != null) {
-      await _endFinished(sessionId, endAt);
-    }
     if (_sessionId == sessionId) await _repeatDetour(events);
-    // something easier: the easier problem gets its own session
-    if (_sessionId == null) await start();
+    // something easier or the next variant: it opens in this session
+    if (_restart) {
+      _restart = false;
+      await start();
+    }
   }
 
   /// A mistake that came back across problems, or the same operation
@@ -1116,10 +1121,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// The face the child tapped for this case: `easy`, `ok` or `tricky`.
   String? rating;
 
-  /// Set while the faces wait: the session ends once they're answered.
-  Completer<void>? _rated;
-
-  /// A face tapped: `self_rating_given`, then the session can end.
+  /// A face tapped: `self_rating_given`.
   Future<void> rate(String face) async {
     if (rating != null) return;
     rating = face;
@@ -1130,16 +1132,10 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
         'rating': face,
       }),
     ]);
-    _doneRating();
   }
 
-  /// Next without a face: no rating, and the session ends.
-  void _doneRating() {
-    final rated = _rated;
-    if (rated != null && !rated.isCompleted) rated.complete();
-  }
-
-  void skipRating() => _doneRating();
+  /// Next without a face: no rating.
+  void skipRating() {}
 
   /// Why the lesson opened (`session_started`, DAT-05): the child on their
   /// own phone, or a grown-up's phone handed over.
@@ -1539,6 +1535,10 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     _ => KnowIt(value),
   });
 
+  /// Set by [goTo]: the step that chose the problem opens it when its own
+  /// events are saved.
+  bool _restart = false;
+
   /// Starts the next problem the engine chose; with the server's problems,
   /// one a level easier than this one, from the server.
   void goTo(String problemId, {bool sameLevel = false}) {
@@ -1552,9 +1552,9 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     } else {
       _p = _pack.problems[problemId]!;
     }
-    _sessionId = null; // the next start() asks the server for one
+    // the next start() opens this problem in the same session (REW-01)
+    _restart = true;
     _state = initialState();
-    _seq = 0;
     _lastMoveMs = _shownAt = _stepAt = _now();
     _startedAt = null;
     coachText = '';
@@ -1569,23 +1569,6 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     _newStepHelp(); // the next problem opens with no highlight (TUT-16)
     notifyListeners();
   }
-
-  /// Solved: `session_ended {finished}`, so the server writes the note and
-  /// moves the level now rather than at the idle sweep. After the next case
-  /// is fetched: problems/next refuses an ended session (409).
-  Future<void> _endFinished(String sessionId, int? seq) async {
-    await _fetching;
-    await _rated?.future;
-    if (endedByServer) return;
-    await _sessions.record(sessionId, seq ?? _seq++, [
-      SpecEvent('session_ended', {
-        'reason': 'finished',
-        'active_ms': _sitting.activeMs,
-      }),
-    ]);
-  }
-
-  Future<void>? _fetching;
 
   /// Solved, with the server's problems: the next case is asked for now,
   /// in this session, while "case cracked" shows. Unreachable, it is
@@ -1649,7 +1632,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
           if (_nextProblem == null) {
             nextProblemId = next;
           } else {
-            _fetching = _fetchNext();
+            unawaited(_fetchNext());
           }
       }
     }
@@ -1724,7 +1707,6 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
     _disposed = true;
     _held?.cue?.cancel();
     _held?.fallback?.cancel();
-    _doneRating();
     _sessions.online.removeListener(_onlineChanged);
     _sessions.ended.removeListener(_endedByServer);
     _voice.resting.removeListener(_voiceResting);

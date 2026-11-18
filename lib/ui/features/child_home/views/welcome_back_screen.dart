@@ -42,7 +42,10 @@ class WelcomeBackScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final line = caseWaiting ? l.kidCaseWaiting : l.kidReadyForACase;
     return PlayMoment(
+      // the name is on screen only: nothing spoken says it (TTR-02, NFR-08)
+      say: '${l.kidWelcomeBackNoName} $line',
       top: Align(
         alignment: Alignment.centerRight,
         child: PlayIconButton(
@@ -56,7 +59,7 @@ class WelcomeBackScreen extends StatelessWidget {
         Ribbon(
           text: name == null ? l.kidWelcomeBackNoName : l.kidWelcomeBack(name!),
         ),
-        PlayLine(caseWaiting ? l.kidCaseWaiting : l.kidReadyForACase),
+        PlayLine(line),
       ],
       bottom: ButtonStack([
         AuraButton(

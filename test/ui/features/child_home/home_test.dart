@@ -1,6 +1,7 @@
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/child_home/views/home_screen.dart';
 import 'package:auramath/ui/features/child_home/views/welcome_back_screen.dart';
+import 'package:auramath/ui/core/parts/speak_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -83,6 +84,15 @@ void main() {
 
     await show(tester, const WelcomeBackScreen(name: null));
     expect(find.text('Welcome back!'), findsOneWidget);
+  });
+
+  testWidgets('WelcomeBack shows the name but never says it (TTR-02, '
+      'NFR-08)', (tester) async {
+    await show(tester, const WelcomeBackScreen(name: 'Mira'));
+    expect(find.text('Welcome back, Mira!'), findsOneWidget);
+    final said = tester.widget<SpeakButton>(find.byType(SpeakButton)).text;
+    expect(said, isNot(contains('Mira')));
+    expect(said, contains('Welcome back!'));
   });
 
   testWidgets('WelcomeBack has a way home (SES-07)', (tester) async {

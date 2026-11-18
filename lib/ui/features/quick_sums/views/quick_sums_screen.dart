@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -8,7 +7,6 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../core/motion/confetti.dart';
 import '../../../core/motion/motion.dart';
 import '../../../core/motion/play_backdrop.dart';
-import '../../../core/motion/sparkle_burst.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/keypad.dart';
@@ -19,12 +17,12 @@ import '../../lesson/views/break_views.dart';
 import '../../lesson/views/place_value_board.dart';
 import '../view_models/quick_sums_view_model.dart';
 
-/// Quick sums (LES-16): one sum at a time, typed on the keypad, drawn as the
-/// prototype's rush (QSgo, QS2, QS3) on the blue play background: a 3, 2, 1,
-/// Go! count (700 ms a beat), then each sum flies in on a white card
-/// (260 ms) and away when right (200 ms) while the energy meter surges;
-/// a wrong one shakes (220 ms). Then "Warmed up!" with confetti. No score,
-/// count or timer (LES-16), so the prototype's 30 s fuse is left out.
+/// Quick sums (LES-16): one sum at a time, typed on the keypad, on the
+/// blue play background: each sum flies in on a white card (260 ms) and
+/// away when right (200 ms); a wrong one shakes (220 ms). Then "Warmed
+/// up!" with confetti. No score, count or timer is shown (LES-16), and no
+/// countdown (SES-02), so the prototype's 3, 2, 1, Go!, its energy meter
+/// with its tier toasts and its 30 s fuse are left out.
 class QuickSumsScreen extends StatefulWidget {
   const QuickSumsScreen({
     super.key,
@@ -54,64 +52,10 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
   /// Quick sums never read on their own: the speaker reads on a tap.
   bool _muted = true;
 
-  /// The count before the first sum: 0..3 is 3, 2, 1, Go!; null once done.
-  int? _count;
-  Timer? _beat;
-  bool _counted = false;
-
-  /// The meter (0..1) and the run of rights; the tier reached.
-  double _energy = 0;
-  int _run = 0, _tier = 0, _surges = 0, _toasts = 0;
-  String? _toast;
   late int _at = widget.vm.at;
 
-  static const _tiers = [.25, .55, .85];
-
-  void _startCount() {
-    _counted = true;
-    if (calmMotion(context)) return;
-    setState(() => _count = 0);
-    _tick();
-  }
-
-  void _tick() {
-    AuraHaptics.tap();
-    AuraSound.tap();
-    _beat = Timer(const Duration(milliseconds: 700), () {
-      if (!mounted) return;
-      final next = _count! + 1;
-      if (next < 4) {
-        setState(() => _count = next);
-        return _tick();
-      }
-      // the last beat holds its 700 ms, then the first sum (2.8 s in all)
-      setState(() => _count = null);
-    });
-  }
-
-  /// A right answer: the meter surges, maybe a new mark.
-  void _right(AppLocalizations l) {
-    _run++;
-    _energy = (_energy + .17 + math.min(_run, 6) * .008).clamp(0, 1);
-    _surges++;
-    AuraSound.right();
-    final reached = _tiers.where((t) => _energy >= t).length;
-    if (reached > _tier) {
-      _tier = reached;
-      _toast =
-          '${const ['⚡', '🔥', '🚀'][_tier - 1]} '
-          '${[l.kidQuickTier1, l.kidQuickTier2, l.kidQuickTier3][_tier - 1]}';
-      _toasts++;
-      AuraSound.celebrate();
-      AuraHaptics.win();
-    }
-  }
-
-  @override
-  void dispose() {
-    _beat?.cancel();
-    super.dispose();
-  }
+  /// A right answer: its sound, nothing counted on screen.
+  void _right() => AuraSound.right();
 
   QuickSumsViewModel get vm => widget.vm;
 
@@ -128,20 +72,12 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
       if (vm.wobbles > _wobbles) {
         AuraHaptics.wrong();
         AuraSound.wrong();
-        _run = 0;
       }
       _wobbles = vm.wobbles;
       if (vm.at > _at) {
         // a sum done: right if it didn't wobble on its last try
-        if (vm.stage != QuickStage.loading) _right(l);
+        if (vm.stage != QuickStage.loading) _right();
         _at = vm.at;
-      }
-      final playing =
-          vm.stage == QuickStage.sum || vm.stage == QuickStage.secondTry;
-      if (playing && !_counted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && !_counted) _startCount();
-        });
       }
       if (vm.startError case final e?) {
         return NeedInternetView(
@@ -155,8 +91,6 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
         QuickStage.loading => const Center(child: CircularProgressIndicator()),
         QuickStage.done => _done(l),
         QuickStage.sideLesson => _side(l),
-        _ when _count != null || (!_counted && !calmMotion(context)) =>
-          _countdown(l),
         _ => _sum(l),
       };
       // the side lesson stays a lesson screen; the rush is play mode
@@ -168,41 +102,6 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
             : PlayBackdrop(child: SafeArea(child: body)),
       );
     },
-  );
-
-  /// QSgo: 3, 2, 1, Go! in white with a navy drop, each in from 2.2x
-  /// (qsTick, 600 ms).
-  Widget _countdown(AppLocalizations l) => Center(
-    child: Entrance(
-      key: ValueKey('count$_count'),
-      duration: const Duration(milliseconds: 600),
-      builder: (context, t, child) {
-        final e = cssFrames(t, const [
-          (0, 2.2),
-          (.6, .92),
-          (1, 1),
-        ], AuraCurves.burst);
-        return Opacity(
-          opacity: (t / .6).clamp(0.0, 1.0),
-          child: Transform.scale(scale: e, child: child),
-        );
-      },
-      child: Text(
-        switch (_count ?? 0) {
-          0 => '3',
-          1 => '2',
-          2 => '1',
-          _ => l.kidQuickGo,
-        },
-        key: const Key('quickCount'),
-        style: AuraText.playTitle.copyWith(
-          fontSize: 150,
-          color: AuraColors.white,
-          height: 1,
-          shadows: const [Shadow(color: AuraColors.navy, offset: Offset(0, 8))],
-        ),
-      ),
-    ),
   );
 
   Widget _sum(AppLocalizations l) {
@@ -224,10 +123,6 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
             onHome: _home,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-          child: _Meter(level: _energy, surges: _surges),
-        ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -244,14 +139,6 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
                         .replaceAll('-', '−'),
                     typed: _typed,
                   ),
-                ),
-                const SizedBox(height: 16),
-                // the mark reached: qsToast, 1 s
-                SizedBox(
-                  height: 44,
-                  child: _toast == null
-                      ? null
-                      : _Toast(key: ValueKey(_toasts), text: _toast!),
                 ),
               ],
             ),
@@ -416,169 +303,6 @@ class _DoneState extends State<_Done> {
   }
 }
 
-/// The energy meter (`.qsmeter`): a navy track with a white edge, the gold
-/// fill growing on a spring (350 ms) with its stripes running and a ✨ at
-/// its end, the three marks' pictures along it. Each right answer squashes
-/// it (220 ms) and throws sparkles from the fill's end. Never a number.
-class _Meter extends StatelessWidget {
-  const _Meter({required this.level, required this.surges});
-
-  final double level;
-  final int surges;
-
-  @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-    child: Entrance(
-      key: ValueKey('surge$surges'),
-      duration: Duration(milliseconds: surges == 0 ? 1 : 220),
-      builder: (context, t, child) => Transform(
-        alignment: Alignment.centerLeft,
-        transform: Matrix4.diagonal3Values(
-          1 + .03 * math.sin(t * math.pi),
-          1 + .25 * math.sin(t * math.pi),
-          1,
-        ),
-        child: child,
-      ),
-      child: SizedBox(
-        height: 46,
-        child: LayoutBuilder(
-          builder: (context, box) {
-            final w = box.maxWidth;
-            final hot = level >= .55, max = level >= .85;
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AuraColors.navy.withValues(alpha: .38),
-                      borderRadius: BorderRadius.circular(23),
-                      border: Border.all(
-                        color: AuraColors.white.withValues(alpha: .6),
-                        width: 3,
-                      ),
-                    ),
-                  ),
-                ),
-                TweenAnimationBuilder<double>(
-                  tween: Tween(end: level),
-                  duration: const Duration(milliseconds: 350),
-                  curve: AuraCurves.spring,
-                  builder: (context, v, _) => Positioned(
-                    left: 3,
-                    top: 3,
-                    bottom: 3,
-                    width: math.max(40, (w - 6) * v),
-                    child: _Fill(hot: hot, max: max),
-                  ),
-                ),
-                for (final (i, at) in const [.25, .55, .85].indexed)
-                  Positioned(
-                    left: w * at - 14,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: Text(
-                        const ['⚡', '🔥', '🚀'][i],
-                        style: const TextStyle(fontSize: 22),
-                      ),
-                    ),
-                  ),
-                if (surges > 0)
-                  Positioned(
-                    key: ValueKey('spark$surges'),
-                    left: math.max(40, (w - 6) * level),
-                    top: 23,
-                    child: const SparkleBurst(count: 7),
-                  ),
-              ],
-            );
-          },
-        ),
-      ),
-    ),
-  );
-}
-
-/// The fill: gold, then orange-gold past the second mark and pink-orange
-/// at the top (pulsing), with white stripes running (600 ms) and the
-/// sparkle at its end spinning (350 ms each way).
-class _Fill extends StatelessWidget {
-  const _Fill({required this.hot, required this.max});
-
-  final bool hot;
-  final bool max;
-
-  @override
-  Widget build(BuildContext context) => Loop(
-    period: const Duration(milliseconds: 600),
-    builder: (context, t, child) => ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: max
-                ? const [
-                    Color(0xFFFF5FA2),
-                    Color(0xFFFF8A3D),
-                    Color(0xFFFFE48A),
-                  ]
-                : hot
-                ? const [
-                    Color(0xFFFF8A3D),
-                    Color(0xFFFFC531),
-                    Color(0xFFFFE48A),
-                  ]
-                : const [Color(0xFFFFC531), Color(0xFFFFE48A)],
-          ),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFFFC531), blurRadius: 18),
-          ],
-        ),
-        child: CustomPaint(
-          painter: _Stripes(t),
-          child: const Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: EdgeInsets.only(right: 4),
-              child: SparkleSpin(
-                child: Text('✨', style: TextStyle(fontSize: 20)),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-class _Stripes extends CustomPainter {
-  _Stripes(this.t);
-
-  final double t;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = const Color(0x47FFFFFF);
-    // 135° stripes, 10 on 10 off, sliding 28 px a loop
-    for (var x = -size.height - 28 + 28 * t; x < size.width; x += 20) {
-      canvas.drawPath(
-        Path()
-          ..moveTo(x, size.height)
-          ..lineTo(x + 10, size.height)
-          ..lineTo(x + 10 + size.height, 0)
-          ..lineTo(x + size.height, 0)
-          ..close(),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_Stripes old) => old.t != t;
-}
-
 /// The sum on its white card (`.qscard`); it flies in from above (260 ms)
 /// as it arrives.
 class _Card extends StatelessWidget {
@@ -639,47 +363,6 @@ class _Card extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    ),
-  );
-}
-
-/// A mark reached (`qsToast`, 1 s): pops in tilted, holds, rises away.
-class _Toast extends StatelessWidget {
-  const _Toast({super.key, required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Entrance(
-    duration: const Duration(seconds: 1),
-    builder: (context, t, child) {
-      final s = cssFrames(t, const [
-        (0, .4),
-        (.25, 1.15),
-        (.45, 1),
-        (1, 1),
-      ], AuraCurves.burst);
-      final turn = cssFrames(t, const [(0, -8), (.25, 3), (.45, 0), (1, 0)]);
-      final o = cssFrames(t, const [(0, 0), (.25, 1), (.8, 1), (1, 0)]);
-      final y = cssFrames(t, const [(0, 0), (.8, 0), (1, -20)]);
-      return Opacity(
-        opacity: o.clamp(0.0, 1.0),
-        child: Transform.translate(
-          offset: Offset(0, y),
-          child: Transform.rotate(
-            angle: turn * math.pi / 180,
-            child: Transform.scale(scale: s, child: child),
-          ),
-        ),
-      );
-    },
-    child: Text(
-      text,
-      style: AuraText.playTitle.copyWith(
-        fontSize: 28,
-        color: AuraColors.white,
-        shadows: const [Shadow(color: AuraColors.navy, offset: Offset(0, 3))],
       ),
     ),
   );
