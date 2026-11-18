@@ -1,4 +1,10 @@
+import 'package:auramath/data/models/journey_config.dart';
+import 'package:auramath/data/repositories/celebration_repository.dart';
+import 'package:auramath/data/repositories/visit_repository.dart';
+import 'package:auramath/data/services/api_client.dart';
+import 'package:auramath/data/services/key_store.dart';
 import 'package:auramath/data/services/sound_effects.dart';
+import 'package:auramath/l10n/app_localizations.dart';
 import 'package:auramath/ui/core/motion/celebration.dart';
 import 'package:auramath/ui/core/motion/celebration_fx.dart';
 import 'package:auramath/ui/core/motion/motion.dart';
@@ -61,13 +67,26 @@ void main() {
     art: const BadgeArt(badgeId: 'session.all_by_myself', size: 200),
     tutor: tutor,
   );
+  // the peak moment (Figma section 15, 17 Nov), level number switch off
   final levelUp = spec(
     'stop_badge',
-    title: 'Seedling Path',
-    ribbon: 'A new medal!',
-    line: 'Your trail goes on. Time to try a new skill!',
-    art: const BadgeArt(badgeId: 'stop.orchard.l1', size: 176, glint: true),
+    title: 'Sapling Row',
+    heading: 'You reached the peak!',
+    line: 'A new land opens: Orchard Gate.',
+    art: const PeakArt(
+      medal: BadgeArt(badgeId: 'stop.orchard.l2', size: 96, glint: true),
+    ),
     walker: const LookPortrait(lookId: 'look_01', size: 34),
+  );
+  final levelTop = spec(
+    'stop_badge',
+    title: 'Twisty Tree',
+    heading: 'You reached the top!',
+    line: 'You climbed every land in the Orchard!',
+    art: const PeakArt(
+      last: true,
+      medal: BadgeArt(badgeId: 'stop.orchard.l5', size: 96, glint: true),
+    ),
   );
   final habit = spec(
     'habit_badge',
@@ -110,6 +129,7 @@ void main() {
     for (final (name, s) in [
       ('Y3', y3),
       ('LevelUp', levelUp),
+      ('LevelTop', levelTop),
       ('Habit', habit),
       ('LandTrophy', land),
       ('Streak', streak),
@@ -118,6 +138,79 @@ void main() {
       await shots(tester, 'child_home_reward_$name', view(s));
     }
     await tester.pumpWidget(const SizedBox());
+  });
+
+  group('the peak moment (Figma section 15)', () {
+    RewardMoments moments() => RewardMoments(
+      celebrations: CelebrationRepository(
+        MemoryKeyStore(),
+        VisitRepository(
+          ApiClient(baseUrl: 'http://test', bearer: () => null),
+          deviceId: () => 'dv_test',
+          appVersion: '0.1.0',
+        ),
+      ),
+      config: const JourneyConfig(),
+      childId: null,
+      lookId: 'look_01',
+    );
+    final l = lookupAppLocalizations(const Locale('en'));
+    const award = (
+      badgeId: 'stop.orchard.l2',
+      kind: 'skill_mastered',
+      name: 'Sapling Row',
+      problemId: null,
+      celebration: 'stop_badge',
+      queued: false,
+      alsoLand: null,
+    );
+
+    test('a passed level: the peak, its land, and the next land by name; '
+        'never a level number', () async {
+      final s = await moments().bigBadge(
+        award,
+        l: l,
+        peak: (next: 'Orchard Gate', last: false, path: 'The Orchard'),
+      );
+      expect(s.heading, 'You reached the peak!');
+      expect(s.title, 'Sapling Row');
+      expect(s.line, 'A new land opens: Orchard Gate.');
+      expect(s.ribbon, isNull);
+      expect(s.art, isA<PeakArt>());
+      expect(s.walker, isNotNull);
+      for (final t in [s.heading, s.title, s.line]) {
+        expect(t, isNot(matches(RegExp(r'\d|[Ll]evel'))));
+      }
+    });
+
+    test(
+      'the last level: the top, every land climbed, nothing promised',
+      () async {
+        final s = await moments().bigBadge(
+          (
+            badgeId: 'stop.orchard.l5',
+            kind: 'skill_mastered',
+            name: 'Twisty Tree',
+            problemId: null,
+            celebration: 'stop_badge',
+            queued: false,
+            alsoLand: null,
+          ),
+          l: l,
+          peak: (next: null, last: true, path: 'The Orchard'),
+        );
+        expect(s.heading, 'You reached the top!');
+        expect(s.line, 'You climbed every land in the Orchard!');
+        expect(s.walker, isNull);
+        expect((s.art as PeakArt).last, isTrue);
+      },
+    );
+
+    test('offline (no path): the peak and its land, no line', () async {
+      final s = await moments().bigBadge(award, l: l);
+      expect(s.heading, 'You reached the peak!');
+      expect(s.line, isNull);
+    });
   });
 
   testWidgets('Y3: the heading, the badge with the tutor, the case and the '

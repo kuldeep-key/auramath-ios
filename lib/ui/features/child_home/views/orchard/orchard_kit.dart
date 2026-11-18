@@ -740,9 +740,10 @@ Pt bez(Seg s, double t) {
   ];
 }
 
-/// The path from stop [lo] to stop [hi] and on into the fog.
+/// The path from stop [lo] to stop [hi] and on into the fog ([open]), or
+/// ending at stop [hi] (the top, section 15).
 class OGeom {
-  OGeom(int lo, int hi) {
+  OGeom(int lo, int hi, {bool open = true}) {
     final n = hi - lo + 1;
     H = opBOT + (n - 1) * opSTEP + opTOP;
     for (var j = 0; j < n; j++) {
@@ -766,14 +767,14 @@ class OGeom {
     ];
     String f(Pt p) => '${p[0].toStringAsFixed(1)} ${p[1].toStringAsFixed(1)}';
     final b = StringBuffer('M${_n(P[0][0])} ${_n(H + 30)} L${f(P[0])}');
-    for (final s in [...segs, tail]) {
+    for (final s in [...segs, if (open) tail]) {
       b.write(' C${f(s[1])} ${f(s[2])} ${f(s[3])}');
     }
     d = b.toString();
     for (var y = H + 30; y > P[0][1]; y -= 12) {
       pts.add([P[0][0], y]);
     }
-    for (final s in [...segs, tail]) {
+    for (final s in [...segs, if (open) tail]) {
       for (double t = 0; t <= 1; t += .04) {
         pts.add(bez(s, t));
       }
@@ -807,12 +808,45 @@ class OrchardWords {
 }
 
 /// A stop on the drawn stretch: its name and state (`earned`, `explored`,
-/// `here` or `next`).
+/// `here` or `next`; inside a level's land (Figma section 15, 17 Nov)
+/// also `walked`, `ahead`, `peak`, `peakEarned` and `peakExplored`). An
+/// empty [name] has no sign; [sub] replaces the sign's second line.
 class OrchardStop {
-  const OrchardStop(this.name, this.state);
+  const OrchardStop(this.name, this.state, {this.sub});
   final String name;
   final String state;
+  final String? sub;
 }
+
+/// Figma section 15 (17 Nov): one level is one land of [stopsPerLand]
+/// stops, the last its peak. Stop [g] of the whole path is stop
+/// `g % stopsPerLand` of level `g ~/ stopsPerLand`'s land.
+const stopsPerLand = 5;
+
+/// The land under stop [g] when every level is one land: the level's own
+/// land (its way in, colours and light) at its first stop, and for the
+/// stops after it the same land, open ground between them, each with
+/// another of the land's landmarks and props.
+OLand olandInLevel(int g) {
+  final level = g ~/ stopsPerLand, k = g % stopsPerLand;
+  final base = oland(level);
+  if (k == 0) return base;
+  final lms = (OFAM[base.fam]!['lm'] as List?)?.cast<String>() ?? [base.lm];
+  final at = math.max(0, lms.indexOf(base.lm));
+  final prs = (OFAM[base.fam]!['pr'] as List?)?.cast<String>() ?? base.pr;
+  return OLand(
+    fam: base.fam,
+    v: base.v,
+    mood: base.mood,
+    ent: 'soft',
+    lm: lms[(at + k) % lms.length],
+    pr: [for (var p = 0; p < 4; p++) prs[(k * 2 + p) % prs.length]],
+  );
+}
+
+/// Whether a way in lies below stop [g]: only where a new level's land
+/// starts.
+bool wayInBelow(int g) => g % stopsPerLand == 0;
 
 /// The drawn stretch: SVG markup plus what the screen needs to put the
 /// walker on the path, scroll to the child's stop and hear a tapped stop.
@@ -835,21 +869,31 @@ String _esc(String s) => s
 /// The prototype's `orchardSVG()`. [stops] are the stops [lo] to
 /// [lo] + stops.length - 1, the child at [here]; [bloom] (0 to 3) is how
 /// far the child's land has bloomed.
+///
+/// [landAt] gives the land under each stop (one land a stop by default);
+/// [wayIn] says where one land ends and the next starts below a stop (at
+/// every stop by default). With [top] the path ends under open sky: no
+/// fog and nothing promised after the last stop (section 15, the end of
+/// v1).
 OrchardScene orchardSVG({
   required int lo,
   required int here,
   required List<OrchardStop> stops,
   required int bloom,
   required OrchardWords words,
+  OLand Function(int i) landAt = oland,
+  bool Function(int i)? wayIn,
+  bool top = false,
 }) {
+  bool border(int i) => wayIn?.call(i) ?? true;
   final hi = lo + stops.length - 1;
-  final G = OGeom(lo, hi);
+  final G = OGeom(lo, hi, open: !top);
   const W = opW;
   final H = G.H, P = G.P;
   const HS = opSTEP / 2;
   final L = <int, OLand>{};
   for (var i = lo; i <= hi + 1; i++) {
-    L[i] = oland(i);
+    L[i] = landAt(i);
   }
   String nameOf(int i) => stops[i - lo].name;
   double Y(int i) => H - opBOT - (i - lo) * opSTEP;
@@ -866,6 +910,7 @@ OrchardScene orchardSVG({
 
   bool offSigns(num x, num y, num m) {
     for (var j = 0; j < P.length; j++) {
+      if (nameOf(lo + j).isEmpty) continue;
       final b = signBox(j);
       if (!(x < b.x - m ||
           x > b.x + b.w + m ||
@@ -995,6 +1040,8 @@ OrchardScene orchardSVG({
   }
 
   for (var i = lo + 1; i <= hi; i++) {
+    // the same land on both sides: no edge
+    if (!border(i)) continue;
     o.add(
       zoneShape(
         BF[i]!,
@@ -1152,7 +1199,7 @@ OrchardScene orchardSVG({
       );
     }
     // the way in
-    if (i > lo) {
+    if (i > lo && border(i)) {
       final c = CR[i]!, by = BF[i]!(0), e = D.ent;
       if (e == 'wall') {
         final wall = StringBuffer();
@@ -1635,29 +1682,44 @@ OrchardScene orchardSVG({
         nm = _esc(nameOf(i)),
         s = stops[j].state,
         b = signBox(j);
-    final sub = switch (s) {
-      'explored' => words.explored,
-      'here' => words.here,
-      'next' => words.next,
-      _ => '',
-    };
-    final disc =
-        '<ellipse cx="$x" cy="${y + 10}" rx="50" ry="30" fill="rgba(20,70,40,0.28)"/><ellipse cx="$x" cy="${y + 6}" rx="46" ry="27" fill="${s == 'next' ? '#C9B88F' : '#D9A441'}"/><ellipse cx="$x" cy="$y" rx="46" ry="27" fill="${s == 'next'
-            ? '#FFF7E2'
-            : s == 'here'
-            ? '#FFE38A'
-            : '#FFEFB8'}" stroke="${s == 'here' ? '#0F2A73' : 'rgba(15,42,115,0.35)'}" stroke-width="${s == 'here' ? 3 : 2}"/>';
-    final mark = s == 'earned'
+    final sub =
+        stops[j].sub ??
+        switch (s) {
+          'explored' => words.explored,
+          'here' => words.here,
+          'next' => words.next,
+          _ => '',
+        };
+    final peak = s.startsWith('peak');
+    // a land's peak: a bigger gold stop (section 15)
+    final disc = peak
+        ? '<ellipse cx="$x" cy="${y + 12}" rx="60" ry="35" fill="rgba(20,70,40,0.28)"/><ellipse cx="$x" cy="${y + 7}" rx="56" ry="32" fill="#D9A441"/><ellipse cx="$x" cy="$y" rx="56" ry="32" fill="#FFE38A" stroke="#C99B2E" stroke-width="3"/><ellipse cx="$x" cy="$y" rx="46" ry="25" fill="none" stroke="#C99B2E" stroke-width="2" stroke-dasharray="3 6"/>'
+        : '<ellipse cx="$x" cy="${y + 10}" rx="50" ry="30" fill="rgba(20,70,40,0.28)"/><ellipse cx="$x" cy="${y + 6}" rx="46" ry="27" fill="${s == 'next' ? '#C9B88F' : '#D9A441'}"/><ellipse cx="$x" cy="$y" rx="46" ry="27" fill="${s == 'next'
+              ? '#FFF7E2'
+              : s == 'here'
+              ? '#FFE38A'
+              : '#FFEFB8'}" stroke="${s == 'here' ? '#0F2A73' : 'rgba(15,42,115,0.35)'}" stroke-width="${s == 'here' ? 3 : 2}"/>';
+    final steps =
+        '<ellipse cx="${x - 14}" cy="${y + 4}" rx="4" ry="6" fill="rgba(15,42,115,0.3)" transform="rotate(-20 ${x - 14} ${y + 4})"/><ellipse cx="${x + 16}" cy="${y + 10}" rx="4" ry="6" fill="rgba(15,42,115,0.3)" transform="rotate(15 ${x + 16} ${y + 10})"/>';
+    final mark = s == 'peak'
+        // the summit flag, until the level is passed
+        ? '<g><line x1="$x" y1="${y + 2}" x2="$x" y2="${y - 70}" stroke="#6E4525" stroke-width="5" stroke-linecap="round"/><path class="flag" d="M${x + 2} ${y - 70} h34 l-8 11 l8 11 h-34 z" fill="#FFC531" stroke="#0F2A73" stroke-width="2.5" stroke-linejoin="round"/><path d="M${x + 17} ${y - 66} l2.2 4.5 5 .7 -3.6 3.5 .9 5 -4.5 -2.4 -4.5 2.4 .9 -5 -3.6 -3.5 5 -.7 z" fill="#0F2A73"/></g>'
+        : s == 'walked'
+        ? '<g>$steps</g>'
+        : s == 'ahead'
+        ? ''
+        : s == 'earned' || s == 'peakEarned'
         ? '<g class="medal"><path d="M${x - 12} ${y - 58} l8 22 h8 l8 -22 z" fill="#2F6BFF" stroke="#0F2A73" stroke-width="2" stroke-linejoin="round"/><circle cx="$x" cy="${y - 22}" r="21" fill="#FFC531" stroke="#0F2A73" stroke-width="3"/><circle cx="$x" cy="${y - 22}" r="14" fill="#FFE38A"/><path d="M$x ${y - 32} l3.2 6.6 7.2 1 -5.2 5 1.3 7.2 -6.5 -3.5 -6.5 3.5 1.3 -7.2 -5.2 -5 7.2 -1 z" fill="#E5A100"/><path class="glint" d="M${x + 20} ${y - 46} l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2 z" fill="#fff"/></g>'
-        : s == 'explored'
+        : s == 'explored' || s == 'peakExplored'
         ? '<g><line x1="$x" y1="${y + 2}" x2="$x" y2="${y - 44}" stroke="#0F2A73" stroke-width="3.5" stroke-linecap="round"/><path class="flag" d="M${x + 1} ${y - 44} q14 -6 26 2 q-12 6 -26 14 z" fill="#2F6BFF" stroke="#0F2A73" stroke-width="2" stroke-linejoin="round"/><ellipse cx="${x - 14}" cy="${y + 4}" rx="4" ry="6" fill="rgba(15,42,115,0.3)" transform="rotate(-20 ${x - 14} ${y + 4})"/><ellipse cx="${x + 16}" cy="${y + 10}" rx="4" ry="6" fill="rgba(15,42,115,0.3)" transform="rotate(15 ${x + 16} ${y + 10})"/></g>'
         : s == 'here'
         ? '<ellipse class="ring" cx="$x" cy="$y" rx="46" ry="27" fill="none" stroke="#FFC531" stroke-width="5"/>'
         : '<path class="bob" d="M${x - 9} ${y - 2} l9 -10 l9 10 M${x - 9} ${y + 9} l9 -10 l9 10" fill="none" stroke="#0F2A73" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>';
     final px = b.left ? b.x + b.w - 14 : b.x + 14;
     final hasSub = sub.isNotEmpty;
-    final sign =
-        '<g class="sign"><rect x="${px - 3}" y="${b.y + 12}" width="6" height="${b.h + 2}" rx="3" fill="#6E4525"/><ellipse cx="$px" cy="${b.y + b.h + 15}" rx="12" ry="4" fill="rgba(20,70,40,0.25)"/><rect x="${b.x}" y="${b.y + 4}" width="${b.w}" height="${hasSub ? 48 : 34}" rx="10" fill="#6E4525"/><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${hasSub ? 48 : 34}" rx="10" fill="${s == 'here' ? '#FFF7E2' : '#F3D9AE'}" stroke="#6E4525" stroke-width="2.5"/><text x="${b.x + b.w / 2}" y="${b.y + 22}" text-anchor="middle" font-size="18" font-weight="900" fill="#3B2410" max-width="${b.w - 12}">$nm</text>${hasSub ? '<text x="${b.x + b.w / 2}" y="${b.y + 40}" text-anchor="middle" font-size="13.5" font-weight="800" fill="${s == 'here' ? '#1D3FB8' : '#7A5A36'}" max-width="${b.w - 12}">${_esc(sub)}</text>' : ''}</g>';
+    final sign = nm.isEmpty
+        ? ''
+        : '<g class="sign"><rect x="${px - 3}" y="${b.y + 12}" width="6" height="${b.h + 2}" rx="3" fill="#6E4525"/><ellipse cx="$px" cy="${b.y + b.h + 15}" rx="12" ry="4" fill="rgba(20,70,40,0.25)"/><rect x="${b.x}" y="${b.y + 4}" width="${b.w}" height="${hasSub ? 48 : 34}" rx="10" fill="#6E4525"/><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${hasSub ? 48 : 34}" rx="10" fill="${s == 'here' ? '#FFF7E2' : '#F3D9AE'}" stroke="#6E4525" stroke-width="2.5"/><text x="${b.x + b.w / 2}" y="${b.y + 22}" text-anchor="middle" font-size="18" font-weight="900" fill="#3B2410" max-width="${b.w - 12}">$nm</text>${hasSub ? '<text x="${b.x + b.w / 2}" y="${b.y + 40}" text-anchor="middle" font-size="13.5" font-weight="800" fill="${s == 'here' ? '#1D3FB8' : '#7A5A36'}" max-width="${b.w - 12}">${_esc(sub)}</text>' : ''}</g>';
     discs.write('<g class="ostop $s" id="ostop$j">$disc</g>');
     ups.write(
       '<g class="ostop-up $s" style="animation-delay:${(.15 + j * .09).toStringAsFixed(2)}s">$mark</g>$sign',
@@ -1696,7 +1758,7 @@ OrchardScene orchardSVG({
       '${tints.join()}'
       '$ups'
       '<ellipse class="cloud" cx="-80" cy="${H * .55}" rx="120" ry="46" fill="#0F2A73" opacity="0.06"/><ellipse class="cloud c2" cx="-80" cy="${H * .2}" rx="150" ry="54" fill="#0F2A73" opacity="0.05"/>'
-      '$fog$behind</svg>';
+      '${top ? '' : fog}$behind</svg>';
   return OrchardScene._(svg, G, lo, here);
 }
 

@@ -235,7 +235,29 @@ List<RouteBase> childRoutes(Deps deps) {
         if (bigShown.add(a.badgeId)) a,
     ];
     final r = momentsFor();
-    return [for (final a in due) await r.bigBadge(a, l: l)];
+    // a passed level's peak moment names the land that opens next
+    // (Figma section 15), from the server's path
+    final id = deps.account.childId;
+    final levels = due.any((a) => a.kind == 'skill_mastered') && id != null
+        ? (await rewards.read(
+            id,
+          )).lands?.where((x) => x.current || !x.teaser).firstOrNull
+        : null;
+    PeakNext? peakOf(Award a) {
+      final stops = levels?.stops;
+      if (stops == null) return null;
+      var i = stops.indexWhere((s) => s.stopId == a.badgeId);
+      if (i < 0) i = stops.indexWhere((s) => s.name == a.name);
+      if (i < 0) return null;
+      final last = i == stops.length - 1;
+      return (
+        next: last ? null : stops[i + 1].name,
+        last: last,
+        path: levels!.name,
+      );
+    }
+
+    return [for (final a in due) await r.bigBadge(a, l: l, peak: peakOf(a))];
   }
 
   /// The end of the session just stopped, in rules.yaml's order

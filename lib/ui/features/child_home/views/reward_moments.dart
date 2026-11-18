@@ -126,7 +126,18 @@ class RewardMoments {
   /// and its land are one moment: the land's trophy, with the stop named.
   /// Drawn as the prototype's LevelUp (a stop), Habit, LandTrophy, or First
   /// Case flying into the cabinet.
-  Future<CelebrationSpec> bigBadge(Award a, {AppLocalizations? l}) {
+  ///
+  /// A passed level is the peak moment (Figma section 15, 17 Nov): "You
+  /// reached the peak!", the land's medal on its peak under the summit
+  /// flag, the land's name, the path running on into the next land and
+  /// "A new land opens: [PeakNext.next]." (with the level number switch
+  /// off: never a level number, REW-03). After the last level, "You
+  /// reached the top!" and "You climbed every land in the Orchard!".
+  Future<CelebrationSpec> bigBadge(
+    Award a, {
+    AppLocalizations? l,
+    PeakNext? peak,
+  }) {
     final land = a.alsoLand;
     final id = land?.badgeId ?? a.badgeId;
     final layout = land != null
@@ -154,33 +165,46 @@ class RewardMoments {
       badgeId: id,
       queued: a.queued,
       problemId: a.problemId,
+      heading: layout == 'stop_badge'
+          ? (peak?.last ?? false ? l?.kidReachedTop : l?.kidReachedPeak)
+          : null,
       ribbon: switch (layout) {
-        'stop_badge' => l?.kidNewMedal,
+        'stop_badge' => null,
         'habit_badge' => l?.kidNewBadge,
         'land_badge' => l?.kidLandTrophy,
         _ => null,
       },
       line: switch (layout) {
-        'stop_badge' => l?.kidTrailGoesOn,
+        'stop_badge' when l != null && peak != null =>
+          peak.last
+              ? l.kidClimbedEveryLand(inLine(peak.path))
+              : peak.next == null
+              ? null
+              : l.kidNewLandOpens(peak.next!),
         'habit_badge' when l != null => BadgeArt.habitLine(l, id),
         'land_badge' => l?.kidEveryStop,
         _ => null,
       },
       tutor: _tutor(layout == 'first_badge' ? 170 : 104),
-      walker: layout == 'stop_badge' && lookId != null
+      walker: layout == 'stop_badge' && lookId != null && !(peak?.last ?? false)
           ? LookPortrait(lookId: lookId!, world: world, size: 34)
           : null,
-      art: BadgeArt(
-        badgeId: id,
-        world: world,
-        size: switch (layout) {
-          'stop_badge' => 176,
-          'land_badge' => 217,
-          'first_badge' => 133,
-          _ => 200,
-        },
-        glint: layout == 'stop_badge',
-      ),
+      art: layout == 'stop_badge'
+          ? PeakArt(
+              last: peak?.last ?? false,
+              medal: BadgeArt(badgeId: id, world: world, size: 96, glint: true),
+            )
+          : BadgeArt(
+              badgeId: id,
+              world: world,
+              size: switch (layout) {
+                'stop_badge' => 176,
+                'land_badge' => 217,
+                'first_badge' => 133,
+                _ => 200,
+              },
+              glint: layout == 'stop_badge',
+            ),
     );
   }
 
@@ -325,4 +349,96 @@ class _CelebrateState extends State<Celebrate> {
       ),
     },
   );
+}
+
+/// What comes after a passed level on the path (Figma section 15): the
+/// next land's name, or [last] when it was the last level of [path].
+typedef PeakNext = ({String? next, bool last, String path});
+
+/// A name as it reads inside a line: "The Orchard" becomes "the Orchard".
+String inLine(String name) =>
+    name.startsWith('The ') ? 'the ${name.substring(4)}' : name;
+
+/// The peak moment's art (Figma section 15 LevelUp): the land's medal on
+/// its peak, under the summit flag; a sand hill for the last land's top.
+class PeakArt extends StatelessWidget {
+  const PeakArt({super.key, required this.medal, this.last = false});
+
+  final Widget medal;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 220,
+    height: 190,
+    child: Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        Positioned.fill(
+          child: CustomPaint(painter: _PeakPainter(last: last)),
+        ),
+        Positioned(top: 62, child: medal),
+      ],
+    ),
+  );
+}
+
+class _PeakPainter extends CustomPainter {
+  const _PeakPainter({required this.last});
+
+  final bool last;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const navy = Color(0xFF0F2A73);
+    final w = size.width, h = size.height;
+    final hill = Path()
+      ..moveTo(4, h - 6)
+      ..quadraticBezierTo(w * .3, h * .5, w / 2 - 18, h * .36)
+      ..quadraticBezierTo(w / 2, h * .3, w / 2 + 18, h * .36)
+      ..quadraticBezierTo(w * .7, h * .5, w - 4, h - 6)
+      ..close();
+    canvas.drawPath(
+      hill,
+      Paint()..color = last ? const Color(0xFFE2D57A) : const Color(0xFF9EDB9A),
+    );
+    canvas.drawPath(
+      hill,
+      Paint()
+        ..color = navy
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..strokeJoin = StrokeJoin.round,
+    );
+    // the summit flag
+    final x = w / 2;
+    canvas.drawLine(
+      Offset(x, h * .34),
+      Offset(x, 6),
+      Paint()
+        ..color = const Color(0xFF6E4525)
+        ..strokeWidth = 5
+        ..strokeCap = StrokeCap.round,
+    );
+    final flag = Path()
+      ..moveTo(x + 2, 6)
+      ..lineTo(x + 46, 6)
+      ..lineTo(x + 36, 20)
+      ..lineTo(x + 46, 34)
+      ..lineTo(x + 2, 34)
+      ..close();
+    canvas.drawPath(flag, Paint()..color = const Color(0xFFFFC531));
+    canvas.drawPath(
+      flag,
+      Paint()
+        ..color = navy
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..strokeJoin = StrokeJoin.round,
+    );
+    canvas.drawCircle(Offset(x + 20, 20), 5, Paint()..color = navy);
+  }
+
+  @override
+  bool shouldRepaint(_PeakPainter old) => old.last != last;
 }

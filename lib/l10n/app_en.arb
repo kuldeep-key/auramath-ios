@@ -1331,5 +1331,31 @@
   "guSomethingWrong": "That didn't work just now. Please give it a moment, then have another go.",
   "@guSomethingWrong": {
     "description": "DRAFT (PAR-14): a Family area screen got an answer it couldn't use (a server error, or something unexpected). Plain words; never the technical detail."
+  },
+  "kidThePeak": "The peak",
+  "@kidThePeak": {
+    "description": "DRAFT (Figma section 15, 17 Nov): the sign at a land's last stop, its peak with the summit flag (or its medal once the level is passed). Never a number."
+  },
+  "kidTheTop": "The top",
+  "@kidTheTop": {
+    "description": "DRAFT (Figma section 15, 17 Nov): the sign where the child stands once every land is climbed (the last level's peak). Nothing is promised after it."
+  },
+  "kidReachedPeak": "You reached the peak!",
+  "@kidReachedPeak": {
+    "description": "DRAFT (Figma section 15 LevelUp, 17 Nov): the heading of the peak moment when the child passes a level. Replaces 'A new medal!'. No level number (REW-03)."
+  },
+  "kidReachedTop": "You reached the top!",
+  "@kidReachedTop": {
+    "description": "DRAFT (Figma section 15 LevelUp, 17 Nov): the heading of the peak moment for the last level. Nothing after it is promised."
+  },
+  "kidNewLandOpens": "A new land opens: {name}.",
+  "@kidNewLandOpens": {
+    "description": "DRAFT (Figma section 15 LevelUp, 17 Nov): the line under the peak moment, naming the next level's land. The Figma line with the level number switch off ('Level 3 opens: ...' is not used: no level on the child's side, REW-03).",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "kidClimbedEveryLand": "You climbed every land in {path}!",
+  "@kidClimbedEveryLand": {
+    "description": "DRAFT (Figma section 15 LevelUp, 17 Nov): the line under the last peak, e.g. 'You climbed every land in the Orchard!'. path is the trail's name.",
+    "placeholders": {"path": {"type": "String"}}
   }
 }

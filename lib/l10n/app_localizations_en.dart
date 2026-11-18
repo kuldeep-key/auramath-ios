@@ -2817,4 +2817,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get guSomethingWrong =>
       'That didn\'t work just now. Please give it a moment, then have another go.';
+
+  @override
+  String get kidThePeak => 'The peak';
+
+  @override
+  String get kidTheTop => 'The top';
+
+  @override
+  String get kidReachedPeak => 'You reached the peak!';
+
+  @override
+  String kidNewLandOpens(String name) {
+    return 'A new land opens: $name.';
+  }
+
+  @override
+  String kidClimbedEveryLand(String path) {
+    return 'You climbed every land in $path!';
+  }
 }
