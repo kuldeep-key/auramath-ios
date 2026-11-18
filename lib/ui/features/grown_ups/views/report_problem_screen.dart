@@ -121,7 +121,11 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
             for (final c in data.choices) ...[
               ChoiceTile(
                 key: ValueKey('case-${c.sessionId}-${c.problemId}'),
-                label: widget.storyOf?.call(c.problemId) ?? l.reportCaseLabel,
+                // the server's title, else this phone's pack, else plain
+                label:
+                    c.title ??
+                    widget.storyOf?.call(c.problemId) ??
+                    l.reportCaseLabel,
                 detail: l.reportCaseWhen(
                   data.names[c.childId] ?? '',
                   DateFormat.MMMEd(locale).add_jm().format(c.shownAt),

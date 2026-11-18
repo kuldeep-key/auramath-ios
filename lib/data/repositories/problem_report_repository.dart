@@ -11,6 +11,7 @@ class ReportChoice {
     required this.problemId,
     required this.shownAt,
     this.contentVersion,
+    this.title,
   });
 
   /// Null when [j] isn't one.
@@ -30,6 +31,10 @@ class ReportChoice {
       problemId: j['problemId'] as String,
       shownAt: at(j['shownAt'] ?? j['startedAt']),
       contentVersion: j['contentVersion'] as String?,
+      title: switch (j['title']) {
+        final String t when t.trim().isNotEmpty => t.trim(),
+        _ => null,
+      },
     );
   }
 
@@ -39,6 +44,10 @@ class ReportChoice {
   final String problemId;
   final DateTime shownAt;
   final String? contentVersion;
+
+  /// The story's title from the server's problem bank ("The lemon tree and
+  /// the fig tree"); null for a generated story the bank doesn't hold.
+  final String? title;
 }
 
 /// PAR-13: "Report a problem" in the Family area, into Key's weekly review

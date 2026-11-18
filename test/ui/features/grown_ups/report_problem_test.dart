@@ -91,6 +91,82 @@ void main() {
     expect(find.text("Please don't include names."), findsOneWidget);
   });
 
+  testWidgets(
+    "the server's title names a case, before this phone's pack (PAR-13)",
+    (tester) async {
+      final g = await Gu.make(tester);
+      g.server.on(choices, {
+        'choices': [
+          {
+            // the pack knows it too: the server's title still wins
+            'sessionId': 'sess-2',
+            'childId': 'child-2',
+            'startedAt': shown,
+            'problemId': 'g_known',
+            'contentVersion': '1.4.0',
+            'shownAt': shown,
+            'title': 'The lemon tree and the fig tree',
+          },
+          {
+            'sessionId': 'sess-1',
+            'childId': 'child-1',
+            'startedAt': shown - 86400000,
+            'problemId': 'g_0f3a9c',
+            'contentVersion': '1.3.0',
+            'shownAt': shown - 86400000,
+            'title': 'Building A and Building B',
+          },
+          {
+            // a generated story: no title, and the pack doesn't know it
+            'sessionId': 'sess-1',
+            'childId': 'child-1',
+            'startedAt': shown - 86400000,
+            'problemId': 'g_ai',
+            'contentVersion': '1.3.0',
+            'shownAt': shown - 86400000 + 60000,
+            'title': null,
+          },
+        ],
+      });
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.text('The lemon tree and the fig tree'), findsOneWidget);
+      expect(find.text('Building A and Building B'), findsOneWidget);
+      expect(find.text('Tree and Lamp'), findsNothing);
+      expect(find.text('A story problem'), findsOneWidget);
+      g.server.on(send, {
+        'report': {'id': 'r1'},
+      }, status: 201);
+      await tapText(tester, 'Building A and Building B');
+      await tapText(tester, 'Send');
+      expect(g.bodyOf(send), {
+        'kind': 'problem',
+        'sessionId': 'sess-1',
+        'problemId': 'g_0f3a9c',
+        'contentVersion': '1.3.0',
+      });
+    },
+  );
+
+  testWidgets('a titled case at every size', (tester) async {
+    final g = await Gu.make(tester);
+    g.server.on(choices, {
+      'choices': [
+        {
+          'sessionId': 'sess-2',
+          'childId': 'child-2',
+          'startedAt': shown,
+          'problemId': 'g_known',
+          'contentVersion': '1.4.0',
+          'shownAt': shown,
+          'title': 'The lemon tree and the fig tree',
+        },
+      ],
+    });
+    await shotAllSizes(tester, 'grown_ups_report_problem_titled', screen(g));
+    expect(find.text('The lemon tree and the fig tree'), findsOneWidget);
+  });
+
   testWidgets('Send waits for a pick', (tester) async {
     await open(tester);
     expect(sendEnabled(tester), isFalse);
