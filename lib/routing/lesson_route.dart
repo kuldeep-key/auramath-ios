@@ -212,14 +212,17 @@ class _LessonRouteState extends State<_LessonRoute> {
     }, addingUp: flags.on('adding_up_option'));
     // each child's own day's time, not the phone's (SES-01)
     await widget.deps.sitting.forChild(deps.account.childId);
+    // a case after the first in a sitting keeps the cap the sitting opened
+    // with: the session cap counts from then, not from each case (SES-01)
+    final goesOn = deps.sessions.sittingOpen(deps.account.childId);
     // the grown-up's time each day, as the server keeps it (PAR-05)
-    widget.deps.sitting.useMinutes(settings?.dailyLimitMinutes);
+    if (!goesOn) widget.deps.sitting.useMinutes(settings?.dailyLimitMinutes);
     if (!mounted) return;
     // SES-01: what is left of the child's day on every family phone; with
     // none left the server opens no lesson, so none is asked for
     if (settings?.today case final today?) {
       if (today.timesUp) return _vm.timesUpBeforeStart();
-      widget.deps.sitting.runFor(today.capMs);
+      if (!goesOn) widget.deps.sitting.runFor(today.capMs);
     }
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
   }

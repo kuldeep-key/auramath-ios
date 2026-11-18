@@ -9,6 +9,7 @@ import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/child_home/views/choose_today_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../helpers/app_harness.dart';
 import '../child_home/child_routes_test.dart' show settle;
@@ -140,6 +141,26 @@ void main() {
       );
       expect(deps.sitting.capMs, deps.sitting.activeMs + 7 * minute);
       expect(find.text("That's today's time!"), findsNothing);
+    });
+
+    testWidgets('the next case in a sitting keeps the cap the sitting '
+        'opened with, so the session cap is not given again', (tester) async {
+      final (deps, _, _) = await boot(
+        tester,
+        serve: (s) => s.on('GET /api/children/child-1/settings', {
+          ...settingsJson(),
+          'today': day(leftMs: 7 * minute),
+        }),
+      );
+      final cap = deps.sitting.capMs;
+      expect(deps.sessions.sittingOpen(deps.account.childId), isTrue);
+      // five minutes on, the child goes on to the next case
+      deps.sitting.activeMs = deps.sitting.activeMs + 5 * minute;
+      GoRouter.of(
+        tester.element(find.byType(Scaffold).first),
+      ).go(Paths.lesson('shorter'));
+      await settle(tester);
+      expect(deps.sitting.capMs, cap);
     });
 
     testWidgets('what is left of the day, read before the lesson opens', (

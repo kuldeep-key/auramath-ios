@@ -130,6 +130,10 @@ class SessionRepository {
   /// The big badges due for [childId] now: what waited, under the last
   /// session stopped, then the case just solved, in the sitting's open
   /// session (one session a sitting).
+  /// True while [childId]'s sitting has an open session: the cases in it
+  /// share the time the server gave when it opened (SES-01).
+  bool sittingOpen(String? childId) => _openFor.containsKey(childId ?? '');
+
   List<Award> awardsDue(String? childId) => [
     for (final id in {lastStop.value?.sessionId, _openFor[childId ?? '']})
       if (id != null) ...awardsFor(id),
