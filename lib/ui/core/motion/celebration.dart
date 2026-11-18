@@ -215,8 +215,10 @@ class _CelebrationViewState extends State<CelebrationView> {
             ),
           ],
         );
-      // LevelUp: "A new medal!", the medal with its glint, the stop's name,
-      // and the look walking on along the path; confetti at once
+      // LevelUp, the peak moment (Figma section 15): "You reached the
+      // peak!" (the heading, at the top), the land's medal on its peak,
+      // the land's name, and the look walking on along the path into the
+      // next land; confetti at once
       case 'stop_badge':
         return (
           [
