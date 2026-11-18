@@ -226,12 +226,10 @@ List<RouteBase> childRoutes(Deps deps) {
   /// case the smaller first (Ashutosh, daily catch-up 16 Nov).
   final bigShown = <String>{};
   Future<List<CelebrationSpec>> bigBadge(AppLocalizations l) async {
-    final session = deps.sessions.lastStop.value?.sessionId;
-    if (session == null) return const [];
     // the case's last batch, and its answer, first
     await deps.sessions.syncNow();
     final due = [
-      for (final a in deps.sessions.awardsFor(session))
+      for (final a in deps.sessions.awardsDue(deps.account.childId))
         if (bigShown.add(a.badgeId)) a,
     ];
     final r = momentsFor();

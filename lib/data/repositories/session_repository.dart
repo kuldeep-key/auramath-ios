@@ -127,6 +127,14 @@ class SessionRepository {
   final Map<String, List<Award>> _awards = {};
   List<Award> awardsFor(String sessionId) => _awards[sessionId] ?? const [];
 
+  /// The big badges due for [childId] now: what waited, under the last
+  /// session stopped, then the case just solved, in the sitting's open
+  /// session (one session a sitting).
+  List<Award> awardsDue(String? childId) => [
+    for (final id in {lastStop.value?.sessionId, _openFor[childId ?? '']})
+      if (id != null) ...awardsFor(id),
+  ];
+
   /// SES-01: the continuation the server stored a session's work in after
   /// its `session_ended {time_up}` (`continuedIn`). Problems and decisions
   /// for that work go there: the ended session refuses them.

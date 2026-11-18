@@ -84,6 +84,52 @@ void main() {
     expect(await sessions.openOrGoOn(childId: 'kid'), isNot(vm.sessionId));
   });
 
+  test('REW-11: a medal earned in the second case of a sitting is due '
+      'at the end of that case, from the open session', () async {
+    final (sessions, _, api) = await memorySessions();
+    LessonViewModel lesson(String problemId) => LessonViewModel(
+      pack: pack,
+      problemId: problemId,
+      sessions: sessions,
+      voice: FakeVoice(),
+      nowMs: () => 0,
+      openSession: () => sessions.openOrGoOn(childId: 'kid'),
+      sitting: Sitting(capMs: 30 * 60 * 1000),
+      tickEvery: null,
+    );
+    final first = lesson('lemon');
+    await first.start();
+    await first.send(const Started());
+    await first.send(const KnowIt(265));
+    first.dispose();
+    await sessions.syncNow();
+    expect(sessions.awardsDue('kid'), isEmpty);
+
+    api.awards = const [
+      (
+        badgeId: 'stop.orchard.l2',
+        kind: 'skill_mastered',
+        name: 'Sapling Row',
+        problemId: 'lemon',
+        celebration: 'big',
+        queued: false,
+        alsoLand: null,
+      ),
+    ];
+    final second = lesson('lemon');
+    await second.start();
+    await second.send(const Started());
+    await second.send(const KnowIt(265));
+    second.dispose();
+    await sessions.syncNow();
+    expect(sessions.lastStop.value, isNull, reason: 'the sitting is open');
+    expect(
+      [for (final a in sessions.awardsDue('kid')) a.badgeId],
+      ['stop.orchard.l2'],
+    );
+    expect(sessions.awardsDue('other'), isEmpty);
+  });
+
   test('two children on one phone each have their own sitting', () async {
     final (sessions, _, _) = await memorySessions();
     final a = await sessions.openOrGoOn(childId: 'ada');
