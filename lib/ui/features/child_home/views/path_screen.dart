@@ -23,16 +23,18 @@ import 'play_icon_button.dart';
 /// the fifth its peak. From the server's `trail.lands` (a stop per level)
 /// the screen draws the child's level as its land (orchard_kit): the last
 /// land's peak below (its medal, or a flag when the child was placed
-/// past it), the way in, the child's look at the land's first stop, the
-/// next stop, the stops ahead and the peak with its summit flag; then fog
+/// past it), the way in, the stops the child has walked (the server's
+/// `stopInLevel`, 0 to 3), the child's look at their stop, the next stop,
+/// the stops ahead and the peak with its summit flag; then fog
 /// with one glimpse of the next land. After the last level's peak the
 /// path ends at the top under open sky and nothing more is promised.
 /// Never a level number or count on the child's side (REW-03; Figma's
 /// `level_numbers` switch stays off). It scrolls, so nothing clips
 /// (NFR-04).
 ///
-/// When the child has moved on since they last looked, their look walks
-/// up the path from the stop before (500 ms wait, 2.2 s, hopping) and the
+/// When the child has moved on since they last looked (a new level, or a
+/// stop further into this one), their look walks up the path from the
+/// stop before (500 ms wait, 2.2 s, hopping) and the
 /// gold line follows; then it bobs where it stands. Tap a stop to hear
 /// its name. Reduced motion: the still map.
 class PathScreen extends StatefulWidget {
@@ -420,6 +422,7 @@ class _Stretch {
     this.lo,
     this.here,
     this.hi,
+    this.walked,
   );
 
   factory _Stretch.of(List<PathLand> lands, int back) {
@@ -438,6 +441,11 @@ class _Stretch {
       level = passed < 0 ? 0 : (top ? passed : passed + 1);
     }
     final first = level * stopsPerLand;
+    // how far into the level the child is, as the server's move-up gate
+    // says (0 to 3); the peak only comes by passing the level
+    final walked = top
+        ? 0
+        : (land?.stopInLevel ?? 0).clamp(0, stopsPerLand - 2);
     return _Stretch._(
       land?.landId ?? '',
       land?.name ?? '',
@@ -445,10 +453,10 @@ class _Stretch {
       level,
       top,
       math.max(0, first - 1 - back * stopsPerLand),
-      // the server doesn't say how far into a level the child is yet, so
-      // they stand at its way in (or on the top once every land is done)
-      top ? first + stopsPerLand - 1 : first,
+      // on the top once every land is done
+      top ? first + stopsPerLand - 1 : first + walked,
       levels.isEmpty ? -1 : first + stopsPerLand - 1,
+      walked,
     );
   }
 
@@ -467,12 +475,16 @@ class _Stretch {
   final int here;
   final int hi;
 
+  /// The stops of the child's land already walked (before [here]).
+  final int walked;
+
   /// The title: the child's land ("Orchard Gate").
   String get landName => level < levels.length ? levels[level].name : '';
 
   int get j => here - lo;
   String? get hereStopId => level < levels.length
       ? '${levels[level].stopId}${top ? ':top' : ''}'
+            '${walked > 0 ? ':$walked' : ''}'
       : null;
 
   List<OrchardStop> stops = const [];
@@ -511,10 +523,13 @@ class _Stretch {
           : const OrchardStop('', 'walked');
     }
     if (top) return OrchardStop(l.kidTheTop, 'here', sub: '');
+    // the child's land: the stops walked (footprints; the land's name
+    // goes with the child), their stop, the next, the stops ahead, the peak
     return switch (k) {
-      0 => OrchardStop(name, 'here'),
-      1 => OrchardStop(l.kidNextStop, 'next', sub: ''),
       _ when peak => OrchardStop(l.kidThePeak, 'peak', sub: ''),
+      _ when k < walked => const OrchardStop('', 'walked'),
+      _ when k == walked => OrchardStop(name, 'here'),
+      _ when k == walked + 1 => OrchardStop(l.kidNextStop, 'next', sub: ''),
       _ => const OrchardStop('', 'ahead'),
     };
   }

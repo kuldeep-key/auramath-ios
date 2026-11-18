@@ -222,31 +222,33 @@ void main() {
     });
   });
 
-  List<PathLand> orchard(List<String> states) => Rewards({
-    'trail': {
-      'lands': [
-        {
-          'landId': 'orchard',
-          'name': 'The Orchard',
-          'current': true,
-          'stops': [
-            for (final (i, n) in [
-              'Seedling Path',
-              'Sapling Row',
-              'Orchard Gate',
-              'Old Oak Bridge',
-              'Twisty Tree',
-            ].indexed)
-              {
-                'stopId': 'stop.orchard.l${i + 1}',
-                'name': n,
-                'state': states[i],
-              },
+  List<PathLand> orchard(List<String> states, {Object? stopInLevel}) =>
+      Rewards({
+        'trail': {
+          'lands': [
+            {
+              'landId': 'orchard',
+              'name': 'The Orchard',
+              'current': true,
+              'stopInLevel': ?stopInLevel,
+              'stops': [
+                for (final (i, n) in [
+                  'Seedling Path',
+                  'Sapling Row',
+                  'Orchard Gate',
+                  'Old Oak Bridge',
+                  'Twisty Tree',
+                ].indexed)
+                  {
+                    'stopId': 'stop.orchard.l${i + 1}',
+                    'name': n,
+                    'state': states[i],
+                  },
+              ],
+            },
           ],
         },
-      ],
-    },
-  }).lands!;
+      }).lands!;
 
   testWidgets('far along: Look back shows the land before, walked, with its '
       'medal on its peak', (tester) async {
@@ -307,5 +309,111 @@ void main() {
     expect(find.bySemanticsLabel('The peak'), findsNothing);
     expect(find.textContaining(RegExp(r'\d')), findsNothing);
     handle.dispose();
+  });
+
+  group('inside a level: stops 1 to 4 fill in (stopInLevel)', () {
+    const atL2 = ['explored', 'current', 'next', 'mist', 'mist'];
+
+    test('the server\'s stopInLevel is read, 0 when absent, never past 3', () {
+      expect(orchard(atL2).first.stopInLevel, 0);
+      expect(orchard(atL2, stopInLevel: 2).first.stopInLevel, 2);
+      expect(orchard(atL2, stopInLevel: 9).first.stopInLevel, 3);
+      expect(orchard(atL2, stopInLevel: -1).first.stopInLevel, 0);
+      expect(orchard(atL2, stopInLevel: 'two').first.stopInLevel, 0);
+      expect(lands.last.stopInLevel, 0); // the teaser
+    });
+
+    Offset walker(WidgetTester tester) =>
+        tester.getTopLeft(find.byKey(const Key('walker'))) +
+        const Offset(32, 32);
+
+    testWidgets('two stops walked: footprints behind, the child at the '
+        'third, the next stop, then the peak; no number', (tester) async {
+      final handle = tester.ensureSemantics();
+      await show(
+        tester,
+        PathScreen(lands: orchard(atL2, stopInLevel: 2), lookId: 'look_01'),
+      );
+      expect(find.text('Sapling Row'), findsOneWidget); // the title
+      expect(
+        find.bySemanticsLabel('Sapling Row, You are here'),
+        findsOneWidget,
+      );
+      expect(find.bySemanticsLabel('Next stop'), findsOneWidget);
+      expect(find.bySemanticsLabel('The peak'), findsOneWidget);
+      // the last land's peak, the walked stops unnamed, the child, next, peak
+      for (final j in [0, 3, 4, 5]) {
+        expect(find.byKey(Key('stop$j')), findsOneWidget, reason: 'stop$j');
+      }
+      for (final j in [1, 2, 6]) {
+        expect(find.byKey(Key('stop$j')), findsNothing, reason: 'stop$j');
+      }
+      final here = tester.getCenter(find.byKey(const Key('stop3')));
+      expect(walker(tester).dx, closeTo(here.dx, 2));
+      expect(find.textContaining(RegExp(r'\d')), findsNothing);
+      expect(find.bySemanticsLabel(RegExp(r'\d')), findsNothing);
+      handle.dispose();
+    });
+
+    testWidgets('one stop below the peak: the peak is next, never reached '
+        'before the level is passed', (tester) async {
+      final handle = tester.ensureSemantics();
+      await shots(
+        tester,
+        'child_home_path_below_peak',
+        PathScreen(
+          lands: orchard(atL2, stopInLevel: 3),
+          lookId: 'look_01',
+          childName: 'Aarav',
+        ),
+      );
+      PathScreen.seen.clear();
+      await show(
+        tester,
+        PathScreen(lands: orchard(atL2, stopInLevel: 3), lookId: 'look_01'),
+      );
+      expect(
+        find.bySemanticsLabel('Sapling Row, You are here'),
+        findsOneWidget,
+      );
+      expect(find.bySemanticsLabel('Next stop'), findsNothing);
+      expect(find.bySemanticsLabel('The peak'), findsOneWidget);
+      final here = tester.getCenter(find.byKey(const Key('stop4')));
+      expect(walker(tester).dx, closeTo(here.dx, 2));
+      handle.dispose();
+    });
+
+    testWidgets('a stop further in since the last visit: the child walks '
+        'up from the stop before, once', (tester) async {
+      AuraMotion.still = false;
+      addTearDown(() => AuraMotion.still = true);
+      tester.view.physicalSize = shotSizes['iphone15']! * 3;
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      Widget at(int k) => shotApp(
+        PathScreen(
+          lands: orchard(atL2, stopInLevel: k),
+          lookId: 'look_01',
+        ),
+      );
+      await tester.pumpWidget(at(0));
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pumpWidget(const SizedBox());
+      // the next visit: the engine has moved the child one stop on
+      await tester.pumpWidget(at(1));
+      await tester.pump();
+      final there = tester.getCenter(find.byKey(const Key('stop2')));
+      final from = walker(tester);
+      expect(from.dy, greaterThan(there.dy - 52 + 20), reason: 'below');
+      await tester.pump(walkDelay + walkDuration);
+      expect(walker(tester).dx, closeTo(there.dx, 2));
+      expect(walker(tester).dy, closeTo(there.dy - 52, 2));
+      // and the time after, they are already there
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(at(1));
+      await tester.pump();
+      expect(walker(tester).dx, closeTo(there.dx, 2));
+      await tester.pumpWidget(const SizedBox());
+    });
   });
 }
