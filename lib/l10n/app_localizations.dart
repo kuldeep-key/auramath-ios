@@ -4737,6 +4737,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These settings can\'t be read right now. Check the internet and come back.'**
   String get guSetCantRead;
+
+  /// DRAFT (PAR-13, Figma 1046:7536 Settings): the row that opens Report a problem.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get reportProblemRow;
+
+  /// DRAFT (PAR-13, Figma 1046:7536 Settings): under Report a problem.
+  ///
+  /// In en, this message translates to:
+  /// **'A lesson, a note or the app'**
+  String get reportProblemRowDetail;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): the screen's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get reportTitle;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'A person on the Auramath team reads every report.'**
+  String get reportIntro;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): the label over the cases to pick from.
+  ///
+  /// In en, this message translates to:
+  /// **'What is it about?'**
+  String get reportAbout;
+
+  /// DRAFT (PAR-13): a case from the last sessions when this phone doesn't know its story. Never an id.
+  ///
+  /// In en, this message translates to:
+  /// **'A story problem'**
+  String get reportCaseLabel;
+
+  /// DRAFT (PAR-13): under a case: the child's first name and when it was shown ("Aarav, Wed, 18 Nov 4:05 pm"). On the parent's screen only.
+  ///
+  /// In en, this message translates to:
+  /// **'{child}, {when}'**
+  String reportCaseWhen(String child, String when);
+
+  /// DRAFT (PAR-13): no session problems to report yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No lessons to pick from yet. Something else is always there.'**
+  String get reportNoCases;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): a report not about one problem.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get reportSomethingElse;
+
+  /// DRAFT (PAR-13): under Something else.
+  ///
+  /// In en, this message translates to:
+  /// **'The app, a note or an email'**
+  String get reportSomethingElseDetail;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): the label over the note.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get reportWhatHappened;
+
+  /// DRAFT (PAR-13): the note's field label; the note is optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Your note (you can leave it out)'**
+  String get reportNoteLabel;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): the note's placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'A sentence or two is plenty.'**
+  String get reportNoteHint;
+
+  /// DRAFT (PAR-13, D-15): the note screen asks people not to include names.
+  ///
+  /// In en, this message translates to:
+  /// **'Please don\'t include names.'**
+  String get reportNoNames;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): sends the report.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get reportSend;
+
+  /// DRAFT (PAR-13): the report couldn't reach the server.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent. Check the internet, then send it again. Your note is still here.'**
+  String get reportOffline;
+
+  /// DRAFT (PAR-13): the server's 429, too many reports this hour.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s a lot of reports in one hour. Please send this one a little later. Your note is still here.'**
+  String get reportTooMany;
+
+  /// DRAFT (PAR-13): the server's 404 for the session picked.
+  ///
+  /// In en, this message translates to:
+  /// **'That lesson can\'t be found any more. Pick another, or Something else.'**
+  String get reportGone;
+
+  /// DRAFT (PAR-13): the server refused the report (400).
+  ///
+  /// In en, this message translates to:
+  /// **'That couldn\'t be sent. Please check the note, then send it again.'**
+  String get reportNotSent;
+
+  /// DRAFT (PAR-13, Figma 1046:7814 ReportSent): the title once sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you'**
+  String get reportThanksTitle;
+
+  /// DRAFT (PAR-13, Figma 1046:7814): says Key will look at it. Figma's 'will write back' is left out: the backend doesn't promise a reply.
+  ///
+  /// In en, this message translates to:
+  /// **'We have your report. A person at Key will look at it.'**
+  String get reportThanksBody;
+
+  /// DRAFT (PAR-13, Figma 1046:7814 ReportSent): the card's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get reportSentTitle;
+
+  /// DRAFT (PAR-13, OPS-02): the card's line.
+  ///
+  /// In en, this message translates to:
+  /// **'It goes into the team\'s weekly review of what the tutor wrote and said.'**
+  String get reportSentBody;
+
+  /// DRAFT (PAR-13, Figma 1046:7814 ReportSent): the button once sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the Family area'**
+  String get reportBackToFamily;
 }
 
 class _AppLocalizationsDelegate

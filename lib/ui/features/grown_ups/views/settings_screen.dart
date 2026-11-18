@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../data/models/child_settings.dart';
 import '../../../../data/repositories/child_settings_repository.dart';
@@ -25,7 +26,8 @@ typedef _SettingsData = ({
 
 /// Settings (652:75, Figma 1046:7536): each child's time each day and
 /// read-aloud, kept on the server so every family phone has them (PAR-05);
-/// this phone's bigger pad; and the family's report email. Time each day opens a picker sheet; the rest are
+/// this phone's bigger pad; the family's report email; and Report a
+/// problem (PAR-13). Time each day opens a picker sheet; the rest are
 /// switches; each change says Saved. The family, rights and sign-out rows
 /// live on the Family area (GHome).
 class SettingsScreen extends StatelessWidget {
@@ -90,6 +92,14 @@ class SettingsScreen extends StatelessWidget {
               _PadCard(initial: data.prefs, save: repo.savePrefs),
               const SizedBox(height: 12),
               ReportEmailCard(email: email),
+              const SizedBox(height: 12),
+              // PAR-13: reachable without leaving the app
+              NavRow(
+                icon: Icons.flag_outlined,
+                label: l.reportProblemRow,
+                detail: l.reportProblemRowDetail,
+                onTap: () => context.push(Paths.reportProblem),
+              ),
             ],
           ),
         );

@@ -17,6 +17,8 @@ class AuraTextField extends StatelessWidget {
     this.autofocus = false,
     this.capitalization = TextCapitalization.none,
     this.error,
+    this.maxLines = 1,
+    this.maxLength,
   });
 
   final String label;
@@ -31,6 +33,12 @@ class AuraTextField extends StatelessWidget {
 
   /// Shown under the field, with an icon, never only as a colour.
   final String? error;
+
+  /// More than one: a note that wraps (null: grows with the text).
+  final int? maxLines;
+
+  /// The most characters, counted under the field.
+  final int? maxLength;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +60,9 @@ class AuraTextField extends StatelessWidget {
           onSubmitted: onSubmitted,
           autofocus: autofocus,
           autocorrect: false,
+          maxLines: maxLines,
+          minLines: maxLines == 1 ? null : 3,
+          maxLength: maxLength,
           style: AuraText.option,
           decoration: InputDecoration(
             hintText: hint,
