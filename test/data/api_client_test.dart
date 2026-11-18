@@ -191,6 +191,70 @@ void main() {
     }
   });
 
+  test('SES-01, PAR-05: a new session reads dailyTime and settings', () async {
+    final api = HttpApi(
+      clientFor(
+        (_) async => http.Response(
+          '{"id":"s1","childRef":"ch_abc12345","childId":"c1",'
+          '"settings":{"dailyLimitMinutes":20,"dailyLimitIsDefault":false,'
+          '"readAloud":false,"readAloudIsDefault":false},'
+          '"dailyTime":{"limitMinutes":20,"usedMs":900000,"leftMs":300000,'
+          '"capMs":300000,"timesUp":false,"day":"2026-11-18",'
+          '"timeZone":"Australia/Sydney"}}',
+          200,
+        ),
+      ),
+    );
+    final s = await api.startSession(childId: 'c1', isDemo: false);
+    expect(s.dailyTime?.capMs, 300000);
+    expect(s.dailyTime?.leftMs, 300000);
+    expect(s.dailyTime?.timesUp, isFalse);
+    expect(s.settings?.childId, 'c1');
+    expect(s.settings?.dailyLimitMinutes, 20);
+    expect(s.settings?.readAloud, isFalse);
+  });
+
+  test("SES-01: an older server's session has no dailyTime", () async {
+    final api = HttpApi(
+      clientFor(
+        (_) async => http.Response('{"id":"s1","childRef":"ch_abc12345"}', 200),
+      ),
+    );
+    final s = await api.startSession(isDemo: false);
+    expect(s.dailyTime, isNull);
+    expect(s.settings, isNull);
+  });
+
+  test("SES-01: time's up for today (409) says so, with the day", () async {
+    final api = HttpApi(
+      clientFor(
+        (_) async => http.Response(
+          '{"error":"time\'s up for today","timesUp":true,'
+          '"dailyTime":{"limitMinutes":20,"usedMs":1200000,"leftMs":0,'
+          '"capMs":0,"timesUp":true,"day":"2026-11-18",'
+          '"timeZone":"Australia/Sydney"}}',
+          409,
+        ),
+      ),
+    );
+    final e = await api
+        .startSession(childId: 'c1', isDemo: false)
+        .then<ApiException?>(
+          (_) => null,
+          onError: (Object e) => e as ApiException,
+        );
+    expect(e?.status, 409);
+    expect(e?.timesUp, isTrue);
+    expect(e?.dailyTime?.leftMs, 0);
+    // the other 409 (no child yet) is not time's up
+    const noChild = ApiException(
+      'add a child',
+      status: 409,
+      body: {'error': 'add a child before starting a lesson'},
+    );
+    expect(noChild.timesUp, isFalse);
+  });
+
   test("the starting check's result is sent, and the server's level read "
       'back', () async {
     String? asked;

@@ -4,6 +4,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../data/repositories/child_settings_repository.dart';
 import '../../../data/repositories/account_repository.dart';
 import '../../../data/repositories/celebration_repository.dart';
 import '../../../data/repositories/look_repository.dart';
@@ -688,7 +689,19 @@ List<RouteBase> childRoutes(Deps deps) {
     GoRoute(path: Paths.check, builder: (_, _) => const CheckScreen()),
     GoRoute(
       path: Paths.chooseToday,
-      redirect: (_, _) => deps.flags.on('quick_sums') ? null : Paths.lessonNext,
+      redirect: (_, _) async {
+        if (!deps.flags.on('quick_sums')) return Paths.lessonNext;
+        // SES-01: none of the child's time is left today (on any family
+        // phone): the lesson says "That's today's time!" instead of
+        // offering a choice that can't open
+        final childId = deps.account.childId;
+        if (childId == null) return null;
+        final today = await ChildSettingsRepository(
+          deps.client,
+          deps.store,
+        ).today(childId);
+        return today?.timesUp == true ? Paths.lessonNext : null;
+      },
       pageBuilder: (_, s) => MotionPage(
         key: s.pageKey,
         arrive: Arrive.fade,

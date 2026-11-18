@@ -196,4 +196,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('47 + 25 ='), findsOneWidget);
   });
+
+  testWidgets("SES-01: no time left today: That's today's time!, no sums", (
+    tester,
+  ) async {
+    final vm = (await tester.runAsync(() async {
+      final (sessions, _, api) = await memorySessions();
+      api.timesUp = {
+        'limitMinutes': 20,
+        'usedMs': 1200000,
+        'leftMs': 0,
+        'capMs': 0,
+        'timesUp': true,
+        'day': '2026-11-18',
+        'timeZone': 'Australia/Sydney',
+      };
+      final vm = QuickSumsViewModel(sessions: sessions, childId: 'kid12345');
+      await vm.start();
+      return vm;
+    }))!;
+    addTearDown(vm.dispose);
+    var home = 0;
+    await tester.pumpWidget(
+      shotApp(QuickSumsScreen(vm: vm, onHome: () => home++, onStory: () {})),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text("That's today's time!"), findsOneWidget);
+    expect(find.text('Check again'), findsNothing);
+    await tester.tap(find.text('Call it a day'));
+    expect(home, 1);
+  });
 }

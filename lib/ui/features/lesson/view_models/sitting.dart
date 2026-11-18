@@ -41,6 +41,11 @@ class Sitting {
     capMs = ms < maxCapMs ? ms : maxCapMs;
   }
 
+  /// SES-01: the server's cap for the lesson opening now (`dailyTime.
+  /// capMs`): the smaller of the session cap and what is left of the
+  /// child's day on every family phone. It runs from today's time so far.
+  void runFor(int ms) => capMs = activeMs + (ms < 0 ? 0 : ms);
+
   String _day = '';
   int _activeMs = 0;
 

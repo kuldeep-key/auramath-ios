@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:auramath/app.dart';
+import 'package:auramath/data/models/child_settings.dart';
 import 'package:auramath/data/services/fake_api.dart';
 import 'package:auramath/data/services/sound_effects.dart';
 import 'package:auramath/deps.dart';
 import 'package:auramath/routing/paths.dart';
+import 'package:auramath/ui/features/child_home/views/choose_today_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -33,6 +35,8 @@ void main() {
     void Function(FakeServer server)? serve,
     void Function(FakeApi api)? api,
     Map<String, String> stored = const {},
+    String at = Paths.lessonNext,
+    Map<String, Object?> flags = allScreensOn,
   }) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -43,6 +47,7 @@ void main() {
         await tester.runAsync(
           () => testDeps(
             stored: {...pairedChildPhone, ...stored},
+            flags: flags,
             api: (a) {
               fake = a;
               api?.call(a);
@@ -57,9 +62,7 @@ void main() {
     });
     serve?.call(server);
     await tester.pumpWidget(const SizedBox());
-    await tester.pumpWidget(
-      AuraApp(deps: deps, initialLocation: Paths.lessonNext),
-    );
+    await tester.pumpWidget(AuraApp(deps: deps, initialLocation: at));
     await settle(tester);
     return (deps, server, fake);
   }
@@ -114,5 +117,102 @@ void main() {
     );
     expect(deps.sitting.capMs, 15 * minute);
     expect(AuraSound.soundOn.value, isFalse);
+  });
+
+  group("SES-01: time's up, from the server's day", () {
+    Map<String, Object?> day({required int leftMs, int capMs = 30 * minute}) =>
+        {
+          'limitMinutes': 20,
+          'usedMs': 20 * minute - leftMs,
+          'leftMs': leftMs,
+          'capMs': leftMs < capMs ? leftMs : capMs,
+          'timesUp': leftMs <= 0,
+          'day': '2026-11-18',
+          'timeZone': 'Australia/Sydney',
+        };
+
+    testWidgets("the lesson's cap is the server's capMs, not 30 minutes", (
+      tester,
+    ) async {
+      final (deps, _, _) = await boot(
+        tester,
+        api: (a) => a.dailyTime = dailyTimeFromJson(day(leftMs: 7 * minute)),
+      );
+      expect(deps.sitting.capMs, deps.sitting.activeMs + 7 * minute);
+      expect(find.text("That's today's time!"), findsNothing);
+    });
+
+    testWidgets('what is left of the day, read before the lesson opens', (
+      tester,
+    ) async {
+      final (deps, _, _) = await boot(
+        tester,
+        serve: (s) => s.on('GET /api/children/child-1/settings', {
+          ...settingsJson(minutes: 20),
+          'today': day(leftMs: 4 * minute),
+        }),
+      );
+      expect(deps.sitting.capMs, deps.sitting.activeMs + 4 * minute);
+    });
+
+    testWidgets("the server's 409: That's today's time!, and no lesson", (
+      tester,
+    ) async {
+      final (_, _, api) = await boot(
+        tester,
+        api: (a) => a.timesUp = day(leftMs: 0),
+      );
+      expect(find.text("That's today's time!"), findsOneWidget);
+      // nothing to finish, and never the internet screen
+      expect(find.text('Finish this one'), findsNothing);
+      expect(find.text('Check again'), findsNothing);
+      // only the harness's own session: none opened for this lesson
+      expect(api.sessions, hasLength(1));
+      await tester.tap(find.text('Call it a day'));
+      await settle(tester);
+      expect(find.text("That's today's time!"), findsNothing);
+    });
+
+    testWidgets('time used up on another phone: no lesson is asked for', (
+      tester,
+    ) async {
+      final (_, _, api) = await boot(
+        tester,
+        serve: (s) => s.on('GET /api/children/child-1/settings', {
+          ...settingsJson(minutes: 20),
+          'today': day(leftMs: 0),
+        }),
+      );
+      expect(find.text("That's today's time!"), findsOneWidget);
+      expect(api.sessions, hasLength(1));
+    });
+
+    testWidgets("Home's Keep going to Choose today, with no time left, says "
+        "That's today's time!", (tester) async {
+      await boot(
+        tester,
+        at: Paths.chooseToday,
+        flags: {...allScreensOn, 'quick_sums': true},
+        serve: (s) => s.on('GET /api/children/child-1/settings', {
+          ...settingsJson(minutes: 20),
+          'today': day(leftMs: 0),
+        }),
+      );
+      expect(find.text("That's today's time!"), findsOneWidget);
+    });
+
+    testWidgets('time left: Choose today as before', (tester) async {
+      await boot(
+        tester,
+        at: Paths.chooseToday,
+        flags: {...allScreensOn, 'quick_sums': true},
+        serve: (s) => s.on('GET /api/children/child-1/settings', {
+          ...settingsJson(minutes: 20),
+          'today': day(leftMs: 5 * minute),
+        }),
+      );
+      expect(find.text("That's today's time!"), findsNothing);
+      expect(find.byType(ChooseTodayScreen), findsOneWidget);
+    });
   });
 }

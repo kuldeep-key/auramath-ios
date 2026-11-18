@@ -1,3 +1,4 @@
+import '../models/child_settings.dart';
 import '../models/lesson_event.dart';
 import 'api.dart';
 
@@ -26,6 +27,18 @@ class FakeApi implements Api {
       failNext--;
       throw const ApiException('offline');
     }
+    // SES-01: none of the child's time is left today: no lesson opens
+    if (timesUp case final day?) {
+      throw ApiException(
+        "time's up for today",
+        status: 409,
+        body: {
+          'error': "time's up for today",
+          'timesUp': true,
+          'dailyTime': day,
+        },
+      );
+    }
     final id = 's${sessions.length + 1}';
     sessions.add(id);
     // the server names the child as childRefFor does
@@ -40,8 +53,19 @@ class FakeApi implements Api {
       sittingId: sittingId ?? id,
       todaySuggestion: todaySuggestion,
       welcomeBack: welcomeBack,
+      dailyTime: dailyTime,
+      settings: settings,
     );
   }
+
+  /// SES-01: what is left of the day, as every session says.
+  DailyTime? dailyTime;
+
+  /// SES-01: set, a new session's 409 with this `dailyTime` (as JSON).
+  Map<String, Object?>? timesUp;
+
+  /// PAR-05: the settings every session runs with.
+  ChildSettings? settings;
 
   /// SES-07: back on a later day, as every session says.
   WelcomeBack? welcomeBack;

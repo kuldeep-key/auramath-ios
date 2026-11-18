@@ -112,8 +112,7 @@ class _LessonRouteState extends State<_LessonRoute> {
     sessions: widget.deps.sessions,
     voice: widget.deps.voice,
     // REW-01: the sitting's open session, else a new one
-    openSession: () =>
-        widget.deps.sessions.openOrGoOn(childId: widget.deps.account.childId),
+    openSession: _open,
     nextProblem: Env.serverProblems
         ? (sessionId, {level}) => widget.deps.sessions.nextProblem(
             widget.deps.pack,
@@ -125,6 +124,22 @@ class _LessonRouteState extends State<_LessonRoute> {
   );
 
   late final AppLifecycleListener _lifecycle;
+
+  /// The sitting's open session, else a new one; a new one says what is
+  /// left of the child's day (SES-01) and the settings it runs with
+  /// (PAR-05), which the lesson then runs with.
+  Future<String> _open() async {
+    final deps = widget.deps;
+    final id = await deps.sessions.openOrGoOn(childId: deps.account.childId);
+    if (deps.sessions.takeDailyTime(id) case final day?) {
+      deps.sitting.runFor(day.capMs);
+    }
+    if (deps.sessions.takeSettings(id) case final s?) {
+      await ChildSettingsRepository(deps.client, deps.store).remember(s);
+      _vm.readAloud = deps.flags.on('read_aloud') && s.readAloud;
+    }
+    return id;
+  }
 
   @override
   void initState() {
@@ -200,6 +215,12 @@ class _LessonRouteState extends State<_LessonRoute> {
     // the grown-up's time each day, as the server keeps it (PAR-05)
     widget.deps.sitting.useMinutes(settings?.dailyLimitMinutes);
     if (!mounted) return;
+    // SES-01: what is left of the child's day on every family phone; with
+    // none left the server opens no lesson, so none is asked for
+    if (settings?.today case final today?) {
+      if (today.timesUp) return _vm.timesUpBeforeStart();
+      widget.deps.sitting.runFor(today.capMs);
+    }
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
   }
 
