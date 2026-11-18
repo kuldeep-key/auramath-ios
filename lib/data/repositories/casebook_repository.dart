@@ -57,6 +57,7 @@ typedef CaseView = ({
 /// GET /api/children/{childId}/casebook/cases/{problemId}
 ///   {...CasebookCase, "date", "drawing": {"barA", "barB",
 ///    "pieces": [{"object", "target", "value"}]} | null,
+///    "bars": {"barA": {"value"}, "barB": {"value"}, ...} | null,
 ///    "sessionBadge": Badge | null, "badges": [{"badgeId", "kind", "name"}]}
 /// ```
 ///
@@ -145,7 +146,7 @@ class CasebookRepository {
           ? (
               barA: (d['barA'] as num).toDouble(),
               barB: (d['barB'] as num).toDouble(),
-              pieces: [
+              pieces: _withBarNumbers([
                 for (final p
                     in (d['pieces'] as List? ?? const []).whereType<Map>())
                   if (p['object'] is String)
@@ -154,7 +155,7 @@ class CasebookRepository {
                       target: '${p['target']}',
                       value: (p['value'] as num?)?.toInt(),
                     ),
-              ],
+              ], j['bars']),
             )
           : null,
       sessionBadge: badgeFromJson(j['sessionBadge']),
@@ -168,5 +169,32 @@ class CasebookRepository {
             ),
       ],
     );
+  }
+
+  /// The numbers on the two bars, as on the lesson board: the lesson
+  /// places no label piece for a number the story gives (A's) or one the
+  /// child types (the unknown bar), so the drawing alone shows only the
+  /// difference. The case's `bars` has both (given, or found by the
+  /// child); a label piece the child placed wins.
+  static List<DrawnPiece> _withBarNumbers(
+    List<DrawnPiece> pieces,
+    Object? bars,
+  ) {
+    if (bars is! Map) return pieces;
+    int? value(String bar) {
+      final b = bars[bar];
+      return b is Map ? (b['value'] as num?)?.toInt() : null;
+    }
+
+    return [
+      ...pieces,
+      for (final (label, bar, target) in const [
+        ('label_a', 'barA', 'bar_a'),
+        ('label_b', 'barB', 'bar_b'),
+      ])
+        if (!pieces.any((p) => p.object == label))
+          if (value(bar) case final v?)
+            (object: label, target: target, value: v),
+    ];
   }
 }

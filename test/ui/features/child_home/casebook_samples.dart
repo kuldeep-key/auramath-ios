@@ -80,3 +80,48 @@ const sampleCase = <String, Object?>{
     },
   ],
 };
+
+/// A case as the server answers it for a real lesson (taken from a device
+/// run): A's number is the story's and B's the child typed, so the lesson
+/// placed only the difference; `bars` carries both numbers.
+const sampleCaseFromLesson = <String, Object?>{
+  'problemId': 'g_ec1b71424eba40ed',
+  'sessionId': '89533e8c-522d-4bc8-b9af-ca887e5be882',
+  'name': 'Tree Word Problem',
+  'sticker': {
+    'stickerId': 'sticker.apple_tree',
+    'object': 'apple tree',
+    'subject': 'tree',
+  },
+  'solvedAt': 1794984590932,
+  'story': {
+    'storyId': 'apple-palm',
+    'a': 'apple tree',
+    'b': 'palm tree',
+    'kind': 'tree',
+    'unit': 'cm',
+    'quantity': 'height',
+  },
+  'bars': {
+    'relation': 'taller',
+    'unit': 'cm',
+    'barA': {'label': 'apple tree', 'value': 55, 'given': true},
+    'barB': {'label': 'palm tree', 'value': 20, 'given': false},
+    'gap': {'value': 35, 'given': true},
+    'acrossBoth': null,
+  },
+  'date': '2026-11-18',
+  'drawing': {
+    'barA': 5.5,
+    'barB': 2.0,
+    'pieces': [
+      {'object': 'difference', 'target': 'gap', 'value': 35},
+    ],
+  },
+  'sessionBadge': {
+    'badgeId': 'session.first_case',
+    'kind': 'session',
+    'name': 'First Case',
+  },
+  'badges': <Object?>[],
+};

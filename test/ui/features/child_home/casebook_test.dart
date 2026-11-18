@@ -143,6 +143,22 @@ void main() {
     noCounts(tester, allowed: {'186', '107', '265'});
   });
 
+  testWidgets('REW-15: a real lesson\'s case shows the numbers on its '
+      'bars, as the lesson board did, from the case\'s bars', (tester) async {
+    final real = CasebookRepository.caseFrom(sampleCaseFromLesson)!;
+    await show(tester, CaseScreen(view: real));
+    expect(find.text('55'), findsOneWidget, reason: "A's number");
+    expect(find.text('35'), findsOneWidget, reason: 'the difference');
+    expect(find.text('20'), findsOneWidget, reason: "the child's answer");
+    expect(find.byKey(const Key('caseTotal')), findsNothing);
+    noCounts(tester, allowed: {'55', '35', '20'});
+
+    // a label the child placed is kept, not doubled
+    final placed = CasebookRepository.caseFrom(sampleCase)!;
+    await show(tester, CaseScreen(view: placed));
+    expect(find.text('186'), findsOneWidget);
+  });
+
   testWidgets('REW-15: a case solved with nothing placed says so', (
     tester,
   ) async {
