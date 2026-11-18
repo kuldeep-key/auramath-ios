@@ -76,6 +76,31 @@ void main() {
     expect(v.badges.single.name, 'Seedling Path');
   });
 
+  test('REW-15: a piece dropped off the board is not drawn; the bars\' '
+      'numbers win over a label piece', () {
+    final v = CasebookRepository.caseFrom({
+      ...sampleCase,
+      'drawing': {
+        'barA': 18.6,
+        'barB': 7.9,
+        'pieces': [
+          {'object': 'label_a', 'target': 'bar_a', 'value': 180},
+          {'object': 'total', 'target': 'none', 'value': 265},
+          {'object': 'difference', 'target': 'gap', 'value': 107},
+        ],
+      },
+      'bars': {
+        'barA': {'value': 186},
+        'barB': {'value': 79},
+      },
+    })!;
+    expect(v.drawing!.pieces.map((p) => (p.object, p.value)), [
+      ('difference', 107),
+      ('label_a', 186),
+      ('label_b', 79),
+    ]);
+  });
+
   test('REW-15: an older server\'s case has no subject, story or bars', () {
     final c = CasebookRepository.caseFrom(sampleCase)!.entry;
     expect(c.sticker.subject, isNull);

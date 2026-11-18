@@ -136,6 +136,20 @@ void main() {
     expect(find.text('My casebook'), findsNothing);
   });
 
+  testWidgets('REW-15: the switch on here but the casebook off on the '
+      'server: Home, not an empty casebook', (tester) async {
+    await boot(
+      tester,
+      Paths.casebook,
+      serve: (server) => server.on('GET /api/children/child-1/casebook', {
+        'world': 'detective',
+        'days': null,
+      }),
+    );
+    expect(find.text('Keep going'), findsOneWidget);
+    expect(find.text('Your solved cases will live here.'), findsNothing);
+  });
+
   testWidgets('REW-12: a badge opens the case it came from', (tester) async {
     final (deps, server) = await boot(
       tester,

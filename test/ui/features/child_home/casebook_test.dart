@@ -76,6 +76,27 @@ void main() {
     );
   });
 
+  testWidgets('REW-15: "Last time" is the newest past day with cases, '
+      'whatever days without cases come first', (tester) async {
+    final withEmpty = CasebookRepository.daysFrom({
+      ...sampleCasebook,
+      'days': [
+        {'date': '2026-11-19', 'sessionBadges': const [], 'cases': const []},
+        ...(sampleCasebook['days']! as List),
+      ],
+    }).days!;
+    await show(
+      tester,
+      // today has no cases yet
+      CasebookScreen(days: withEmpty, today: DateTime(2026, 11, 19)),
+    );
+    expect(find.text('Last time'), findsOneWidget);
+    expect(
+      find.text('Monday, November 16 · badge: Checked it'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('REW-15: a case opens its own view; Back home goes home', (
     tester,
   ) async {

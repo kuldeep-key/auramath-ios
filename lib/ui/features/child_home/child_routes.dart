@@ -572,17 +572,21 @@ List<RouteBase> childRoutes(Deps deps) {
           if (id == null) {
             return (world: 'detective', days: const <CasebookDay>[]);
           }
-          final read = await casebook.days(id);
-          return (world: read.world, days: read.days ?? const <CasebookDay>[]);
+          return casebook.days(id);
         },
-        builder: (c) => CasebookScreen(
-          days: c.days,
-          today: DateTime.now(),
-          pictures: pictures,
-          world: c.world,
-          tutorId: tutorNow().id,
-          tutorKind: tutorNow().kind,
-        ),
+        // days null: the server's casebook is off, though this phone's
+        // switch is on; Home, not an empty casebook that never fills
+        builder: (c) => switch (c.days) {
+          null => const _GoHome(),
+          final days => CasebookScreen(
+            days: days,
+            today: DateTime.now(),
+            pictures: pictures,
+            world: c.world,
+            tutorId: tutorNow().id,
+            tutorKind: tutorNow().kind,
+          ),
+        },
       ),
     ),
     GoRoute(

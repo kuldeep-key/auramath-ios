@@ -45,10 +45,17 @@ class CasebookScreen extends StatelessWidget {
   static bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  String _dayName(AppLocalizations l, int i, DateTime date, String locale) {
+  /// [i] indexes [shown], the days with cases.
+  String _dayName(
+    AppLocalizations l,
+    List<CasebookDay> shown,
+    int i,
+    DateTime date,
+    String locale,
+  ) {
     if (_sameDay(date, today)) return l.kidCasebookToday;
     // the newest day before today is "last time"; older days by their date
-    final firstPast = days.indexWhere((d) => !_sameDay(d.date, today));
+    final firstPast = shown.indexWhere((d) => !_sameDay(d.date, today));
     if (i == firstPast) return l.kidCasebookLastTime;
     return DateFormat.MMMMEEEEd(locale).format(date);
   }
@@ -98,9 +105,9 @@ class CasebookScreen extends StatelessWidget {
                         header: true,
                         child: Text(
                           d.sessionBadges.isEmpty
-                              ? _dayName(l, i, d.date, locale)
+                              ? _dayName(l, shown, i, d.date, locale)
                               : l.kidCasebookDayBadge(
-                                  _dayName(l, i, d.date, locale),
+                                  _dayName(l, shown, i, d.date, locale),
                                   d.sessionBadges.map((b) => b.name).join(', '),
                                 ),
                           style: AuraText.badgeNext.copyWith(fontSize: 17),
