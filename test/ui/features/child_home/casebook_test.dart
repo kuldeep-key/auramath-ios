@@ -1,12 +1,14 @@
 import 'package:auramath/data/repositories/casebook_repository.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/core/board/bar.dart';
+import 'package:auramath/ui/features/child_home/views/badges_screen.dart';
 import 'package:auramath/ui/features/child_home/views/case_screen.dart';
 import 'package:auramath/ui/features/child_home/views/casebook_screen.dart';
 import 'package:auramath/ui/features/child_home/views/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../lesson/fakes.dart';
 import 'casebook_samples.dart';
 import 'helpers.dart';
 
@@ -182,5 +184,30 @@ void main() {
       ),
     );
     expect(find.text('My casebook'), findsOneWidget);
+  });
+
+  testWidgets('REW-12: a badge with its case opens the case; one without '
+      'opens alone', (tester) async {
+    final badges = samplePack().badges;
+    final opened = <String>[];
+    await show(
+      tester,
+      BadgesScreen(
+        earned: const ['tree'],
+        badges: badges,
+        cases: const {'tree': 'lemon'},
+        onOpen: opened.add,
+      ),
+    );
+    await tapAndSettle(tester, find.text('Tree Detective'));
+    expect(opened, ['tree']);
+    expect(
+      find.text('went to ${Paths.casebookCase('lemon', badge: 'tree')}'),
+      findsOneWidget,
+    );
+
+    await show(tester, BadgesScreen(earned: const ['tree'], badges: badges));
+    await tapAndSettle(tester, find.text('Tree Detective'));
+    expect(find.text('went to ${Paths.badge('tree')}'), findsOneWidget);
   });
 }

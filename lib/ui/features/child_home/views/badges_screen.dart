@@ -17,7 +17,8 @@ import '../../../core/parts/max_width.dart';
 /// The badge cabinet (REW-12): the badges the child has earned, first
 /// earned first, and nothing else: no outlines, no "next to earn", never a
 /// count (rules.yaml `cabinet`). The next stop is on the trail. Tapping a
-/// badge opens it ([onOpen] logs `badge_opened`). The prototype's B1: two
+/// badge opens the case it came from ([cases], while the casebook is on,
+/// REW-15), else the badge alone ([onOpen] logs `badge_opened`). The prototype's B1: two
 /// columns, each badge popping in 60 ms after the one before; with none
 /// yet, the tutor and "Your badges will live here."
 class BadgesScreen extends StatelessWidget {
@@ -27,6 +28,7 @@ class BadgesScreen extends StatelessWidget {
     required this.badges,
     this.world = 'detective',
     this.onOpen,
+    this.cases = const {},
     this.tutorId,
     this.tutorKind = 'grown_up_teacher',
   });
@@ -38,6 +40,10 @@ class BadgesScreen extends StatelessWidget {
   final Map<String, BadgeInfo> badges;
   final String world;
   final ValueChanged<String>? onOpen;
+
+  /// REW-12: the case each badge came from (its `problemId`), by badge id;
+  /// empty while the casebook is off, so every badge opens alone.
+  final Map<String, String> cases;
 
   /// The child's tutor, standing in the empty cabinet.
   final String? tutorId;
@@ -55,6 +61,7 @@ class BadgesScreen extends StatelessWidget {
             id: id,
             name: badges[id]?.name ?? id,
             world: world,
+            problemId: cases[id],
             onOpen: onOpen,
           ),
         ),
@@ -117,12 +124,14 @@ class _Earned extends StatelessWidget {
     required this.id,
     required this.name,
     required this.world,
+    this.problemId,
     this.onOpen,
   });
 
   final String id;
   final String name;
   final String world;
+  final String? problemId;
   final ValueChanged<String>? onOpen;
 
   @override
@@ -133,7 +142,11 @@ class _Earned extends StatelessWidget {
     child: GestureDetector(
       onTap: () {
         onOpen?.call(id);
-        context.push(Paths.badge(id));
+        context.push(
+          problemId == null
+              ? Paths.badge(id)
+              : Paths.casebookCase(problemId!, badge: id),
+        );
       },
       child: MaxWidth(
         maxWidth: 150,

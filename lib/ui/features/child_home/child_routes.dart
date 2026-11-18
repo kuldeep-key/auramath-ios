@@ -440,6 +440,12 @@ List<RouteBase> childRoutes(Deps deps) {
           final cabinet = read?.cabinet;
           levelBadges.clear();
           final List<String> earned;
+          // REW-12: with the casebook on, a badge opens its case
+          final cases = <String, String>{
+            if (deps.flags.on('casebook'))
+              for (final b in cabinet ?? const <CabinetBadge>[])
+                b.badgeId: ?b.problemId,
+          };
           if (cabinet != null) {
             levelBadges.addAll({
               for (final b in cabinet)
@@ -463,16 +469,25 @@ List<RouteBase> childRoutes(Deps deps) {
           }
           // logged, never shown: how many it showed (REW-20)
           unawaited(deps.visits.record(id, [cabinetOpened(earned.length)]));
-          return (earned: earned, world: read?.world ?? 'detective');
+          return (
+            earned: earned,
+            world: read?.world ?? 'detective',
+            cases: cases,
+          );
         },
         builder: (c) => BadgesScreen(
           earned: c.earned,
+          cases: c.cases,
           badges: {...deps.pack.badges, ...levelBadges},
           world: c.world,
           tutorId: tutorNow().id,
           tutorKind: tutorNow().kind,
           onOpen: (badge) => deps.visits.record(deps.account.childId, [
-            badgeOpened(badge, from: BadgeOpenedFrom.cabinet),
+            badgeOpened(
+              badge,
+              from: BadgeOpenedFrom.cabinet,
+              openedCase: c.cases.containsKey(badge) ? true : null,
+            ),
           ]),
         ),
       ),

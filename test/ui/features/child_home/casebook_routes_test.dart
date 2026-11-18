@@ -13,6 +13,18 @@ void main() {
   const casebookOn = {...allScreensOn, 'badge_cabinet': true, 'casebook': true};
   const casebookOff = {...allScreensOn, 'badge_cabinet': true};
 
+  const cabinet = {
+    'world': 'detective',
+    'cabinet': [
+      {
+        'badgeId': 'first_case',
+        'kind': 'first_case',
+        'name': 'First Case',
+        'problemId': 'lemon',
+      },
+    ],
+  };
+
   Future<(Deps, FakeServer)> boot(
     WidgetTester tester,
     String at, {
@@ -122,6 +134,56 @@ void main() {
     await boot(tester, Paths.casebook, flags: casebookOff);
     expect(find.text('Keep going'), findsOneWidget);
     expect(find.text('My casebook'), findsNothing);
+  });
+
+  testWidgets('REW-12: a badge opens the case it came from', (tester) async {
+    final (deps, server) = await boot(
+      tester,
+      Paths.badges,
+      serve: (server) {
+        server.on('GET /api/children/child-1/rewards', cabinet);
+        server.on('GET /api/children/child-1/casebook/cases/lemon', sampleCase);
+      },
+    );
+    await tester.tap(find.text('First Case'));
+    await settle(tester);
+    expect(find.text('YOUR DRAWING'), findsOneWidget);
+    expect(find.text('Tree Word Problem'), findsOneWidget);
+    expect(
+      server.calls.map((c) => c.$1),
+      contains('GET /api/children/child-1/casebook/cases/lemon'),
+    );
+  });
+
+  testWidgets('REW-12: a badge whose case isn\'t there (404) shows alone', (
+    tester,
+  ) async {
+    await boot(
+      tester,
+      Paths.badges,
+      serve: (server) =>
+          server.on('GET /api/children/child-1/rewards', cabinet),
+    );
+    await tester.tap(find.text('First Case'));
+    await settle(tester);
+    expect(find.text('YOUR DRAWING'), findsNothing);
+    expect(find.text('Back to my badges'), findsOneWidget);
+  });
+
+  testWidgets('REW-12: with the casebook off, a badge shows alone, as before', (
+    tester,
+  ) async {
+    final (_, server) = await boot(
+      tester,
+      Paths.badges,
+      flags: casebookOff,
+      serve: (server) =>
+          server.on('GET /api/children/child-1/rewards', cabinet),
+    );
+    await tester.tap(find.text('First Case'));
+    await settle(tester);
+    expect(find.text('Back to my badges'), findsOneWidget);
+    expect(server.calls.where((c) => c.$1.contains('casebook')), isEmpty);
   });
 }
 
