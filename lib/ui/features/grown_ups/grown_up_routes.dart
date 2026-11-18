@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../../../data/repositories/child_settings_repository.dart';
 import '../../../data/repositories/grown_up_repository.dart';
 import '../../../data/repositories/recent_notes_repository.dart';
 import '../../../data/repositories/report_email_repository.dart';
@@ -65,8 +66,12 @@ List<RouteBase> grownUpRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.settings,
-      builder: (_, _) =>
-          SettingsScreen(family: family, repo: repo, email: email),
+      builder: (_, _) => SettingsScreen(
+        family: family,
+        repo: repo,
+        email: email,
+        settings: ChildSettingsRepository(deps.client, deps.store),
+      ),
     ),
     GoRoute(
       path: Paths.emailFrequency,

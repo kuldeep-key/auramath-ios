@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:auramath/data/repositories/child_settings_repository.dart';
 import 'package:auramath/data/repositories/grown_up_repository.dart';
 import 'package:auramath/data/services/key_store.dart';
 import 'package:auramath/deps.dart';
@@ -27,6 +28,9 @@ class Gu {
   final FakeServer server;
   final MemoryKeyStore store;
   final GrownUpRepository repo;
+
+  /// The children's time each day and read-aloud (PAR-05).
+  late final settings = ChildSettingsRepository(deps.client, store);
 
   static Future<Gu> make(WidgetTester tester) async {
     final (deps, server) =
@@ -60,9 +64,37 @@ class Gu {
       ..on('GET /api/family/settings/reports', {'frequency': 'each_session'})
       ..on('GET /api/children', {
         'children': [
-          {'id': 'child-1', 'displayName': 'Aarav', 'schoolYear': 'year_2'},
+          {
+            'id': 'child-1',
+            'displayName': 'Aarav',
+            'schoolYear': 'year_2',
+            // PAR-05: the list carries each child's settings
+            'settings': {
+              'dailyLimitMinutes': 15,
+              'dailyLimitIsDefault': false,
+              'readAloud': true,
+              'readAloudIsDefault': true,
+            },
+          },
+          // as from an older list: Settings asks for hers on their own
           {'id': 'child-2', 'displayName': 'Maya', 'schoolYear': 'year_1'},
         ],
+      })
+      ..on('GET /api/children/child-2/settings', {
+        'childId': 'child-2',
+        'dailyLimitMinutes': null,
+        'dailyLimitIsDefault': true,
+        'readAloud': true,
+        'readAloudIsDefault': true,
+        'today': {
+          'limitMinutes': null,
+          'usedMs': 0,
+          'leftMs': null,
+          'capMs': 1800000,
+          'timesUp': false,
+          'day': '2026-11-18',
+          'timeZone': 'Australia/Sydney',
+        },
       })
       ..on('GET /api/parent/members', {
         'members': [

@@ -1217,5 +1217,25 @@
   "lessonNeedInternetAsk": "Ask your family to check the Wi-Fi. Then tap Check again.",
   "@lessonNeedInternetAsk": {
     "description": "DRAFT (PLAT-09, prototype NeedNet)."
+  },
+  "guSetNoLimit": "No limit",
+  "@guSetNoLimit": {
+    "description": "DRAFT (PAR-05): Time each day with no daily limit; the session cap still ends each lesson."
+  },
+  "guSetThisPhone": "This phone",
+  "@guSetThisPhone": {
+    "description": "DRAFT (PAR-05): the label over the settings kept on this phone only (the bigger pad)."
+  },
+  "guSetOffline": "Not saved. Check the internet, then change it again.",
+  "@guSetOffline": {
+    "description": "DRAFT (PAR-05): a child's setting couldn't reach the server; it goes back to what it was."
+  },
+  "guSetNotSaved": "That didn't save. Please change it again.",
+  "@guSetNotSaved": {
+    "description": "DRAFT (PAR-05): the server refused a child's setting; it goes back to what it was."
+  },
+  "guSetCantRead": "These settings can't be read right now. Check the internet and come back.",
+  "@guSetCantRead": {
+    "description": "DRAFT (PAR-05): a child's settings couldn't be read and none are kept on this phone."
   }
 }

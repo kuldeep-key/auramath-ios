@@ -4707,6 +4707,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask your family to check the Wi-Fi. Then tap Check again.'**
   String get lessonNeedInternetAsk;
+
+  /// DRAFT (PAR-05): Time each day with no daily limit; the session cap still ends each lesson.
+  ///
+  /// In en, this message translates to:
+  /// **'No limit'**
+  String get guSetNoLimit;
+
+  /// DRAFT (PAR-05): the label over the settings kept on this phone only (the bigger pad).
+  ///
+  /// In en, this message translates to:
+  /// **'This phone'**
+  String get guSetThisPhone;
+
+  /// DRAFT (PAR-05): a child's setting couldn't reach the server; it goes back to what it was.
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved. Check the internet, then change it again.'**
+  String get guSetOffline;
+
+  /// DRAFT (PAR-05): the server refused a child's setting; it goes back to what it was.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t save. Please change it again.'**
+  String get guSetNotSaved;
+
+  /// DRAFT (PAR-05): a child's settings couldn't be read and none are kept on this phone.
+  ///
+  /// In en, this message translates to:
+  /// **'These settings can\'t be read right now. Check the internet and come back.'**
+  String get guSetCantRead;
 }
 
 class _AppLocalizationsDelegate

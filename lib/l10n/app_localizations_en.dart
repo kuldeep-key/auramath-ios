@@ -2680,4 +2680,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lessonNeedInternetAsk =>
       'Ask your family to check the Wi-Fi. Then tap Check again.';
+
+  @override
+  String get guSetNoLimit => 'No limit';
+
+  @override
+  String get guSetThisPhone => 'This phone';
+
+  @override
+  String get guSetOffline =>
+      'Not saved. Check the internet, then change it again.';
+
+  @override
+  String get guSetNotSaved => 'That didn\'t save. Please change it again.';
+
+  @override
+  String get guSetCantRead =>
+      'These settings can\'t be read right now. Check the internet and come back.';
 }

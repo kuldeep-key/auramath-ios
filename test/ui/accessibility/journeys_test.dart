@@ -166,6 +166,7 @@ void main() {
           family: g.deps.family,
           repo: g.repo,
           email: ReportEmailRepository(g.deps.client),
+          settings: g.settings,
         ),
       );
     });

@@ -35,8 +35,9 @@ class Sitting {
   /// Whose time this is: the child the lesson is for. [forChild] switches.
   String? child;
 
-  void useMinutes(int minutes) {
-    final ms = minutes * 60 * 1000;
+  /// The grown-up's time each day (PAR-05); null: no limit, so the cap.
+  void useMinutes(int? minutes) {
+    final ms = minutes == null ? maxCapMs : minutes * 60 * 1000;
     capMs = ms < maxCapMs ? ms : maxCapMs;
   }
 

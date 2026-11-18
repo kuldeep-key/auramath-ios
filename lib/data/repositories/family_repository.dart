@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../models/child_settings.dart';
 import '../services/api.dart';
 import '../services/api_client.dart';
 
@@ -11,6 +12,7 @@ class Child {
     this.age,
     this.schoolYear,
     this.avatar,
+    this.settings,
   });
 
   factory Child.fromJson(Map<String, Object?> j) => Child(
@@ -19,6 +21,10 @@ class Child {
     age: j['age'] as int?,
     schoolYear: j['schoolYear'] as String?,
     avatar: j['avatar'] as String?,
+    settings: ChildSettings.fromJson(
+      j['settings'],
+      childId: j['id'] as String?,
+    ),
   );
 
   final String id;
@@ -32,6 +38,10 @@ class Child {
 
   /// The avatar id the child chose (ACC-12), if any.
   final String? avatar;
+
+  /// PAR-05: the time per day and read-aloud the server keeps for them;
+  /// null from an older server.
+  final ChildSettings? settings;
 }
 
 /// Whether the family's consent holds now (`GET /api/parent/consents`).
