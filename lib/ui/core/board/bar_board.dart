@@ -866,7 +866,7 @@ class _BarBoardState extends State<BarBoard> {
               totW,
               rows,
               Pop(
-                child: _AcrossBrace(
+                child: AcrossBrace(
                   label: s.step == LessonStep.solved
                       ? '${p.total}\n${p.unit}'
                       : '?\n${p.unit}',
@@ -1145,50 +1145,6 @@ class _Hand extends StatelessWidget {
         );
       },
     ),
-  );
-}
-
-/// The total on a weight story's board: a bracket on the right holding
-/// both bars, with the total in it.
-class _AcrossBrace extends StatelessWidget {
-  const _AcrossBrace({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Container(
-        width: 16,
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(color: AuraColors.navy, width: 3),
-            right: BorderSide(color: AuraColors.navy, width: 3),
-            bottom: BorderSide(color: AuraColors.navy, width: 3),
-          ),
-          borderRadius: BorderRadius.horizontal(
-            right: Radius.circular(AuraRadii.small),
-          ),
-        ),
-      ),
-      Expanded(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-          decoration: BoxDecoration(
-            color: AuraColors.navy,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: AuraText.braceLabel,
-            ),
-          ),
-        ),
-      ),
-    ],
   );
 }
 

@@ -4881,6 +4881,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to the Family area'**
   String get reportBackToFamily;
+
+  /// DRAFT (REW-15, Figma CB1 1043:11224): the Home tile beside My trail and My badges, and the casebook's title. Never a count.
+  ///
+  /// In en, this message translates to:
+  /// **'My casebook'**
+  String get kidMyCasebook;
+
+  /// DRAFT (REW-15, Figma CB1): the heading over today's solved cases (the family's home time zone).
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get kidCasebookToday;
+
+  /// DRAFT (REW-15, Figma CB1): the heading over the newest day before today. Older days show their date.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time'**
+  String get kidCasebookLastTime;
+
+  /// DRAFT (REW-15, Figma CB1): a day's heading with that day's session badge, e.g. 'Last time · badge: Checked it'. Never a count.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} · badge: {badge}'**
+  String kidCasebookDayBadge(String day, String badge);
+
+  /// DRAFT (REW-15): the casebook with no solved case yet, under the tutor. No count, no outline.
+  ///
+  /// In en, this message translates to:
+  /// **'Your solved cases will live here.'**
+  String get kidCasebookEmpty;
+
+  /// DRAFT (REW-15, Figma CB2 1043:11315): the label over the case's final drawing (shown in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'Your drawing'**
+  String get kidCaseDrawing;
+
+  /// DRAFT (REW-15): in place of the drawing for a case solved with nothing placed on the board.
+  ///
+  /// In en, this message translates to:
+  /// **'You solved this one in your head.'**
+  String get kidCaseInYourHead;
+
+  /// DRAFT (REW-15): what a screen reader says for a case's story sticker, e.g. 'lemon tree sticker'.
+  ///
+  /// In en, this message translates to:
+  /// **'{object} sticker'**
+  String kidCaseSticker(String object);
+
+  /// DRAFT (REW-15, Figma CB2): back from one case to where it was opened (the casebook or My badges).
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get kidBack;
 }
 
 class _AppLocalizationsDelegate
