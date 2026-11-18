@@ -104,6 +104,13 @@ class _HomeScreenState extends State<HomeScreen> {
       :tutorId,
       :greeting,
     ) = widget;
+    // REW-15: with the casebook's tile under the other two, a small phone
+    // at large text has no room for the full-size figure: it shrinks, so
+    // the greeting stays whole above Keep going (NFR-04)
+    final small =
+        casebook &&
+        MediaQuery.sizeOf(context).height < 700 &&
+        MediaQuery.textScalerOf(context).scale(1) > 1;
     Widget me(double size) => lookId == null
         ? AvatarDisc(avatar: avatar, size: size)
         : LookPortrait(lookId: lookId, world: world, size: size);
@@ -162,12 +169,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   tutorId: tutorId,
                   kind: widget.tutorKind,
                   world: world,
-                  size: moment == null ? 220 : 110,
+                  size: moment != null ? 110 : (small ? 170 : 220),
                 ),
               ),
             )
           else
-            Float(child: me(moment == null ? 210 : 120)),
+            Float(child: me(moment != null ? 120 : (small ? 160 : 210))),
           ?moment,
           Ribbon(text: greeting ?? l.readyForNewCase),
         ],

@@ -1,6 +1,7 @@
 import 'package:auramath/data/repositories/casebook_repository.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/core/board/bar.dart';
+import 'package:auramath/ui/core/parts/ribbon.dart';
 import 'package:auramath/ui/features/child_home/views/badges_screen.dart';
 import 'package:auramath/ui/features/child_home/views/case_screen.dart';
 import 'package:auramath/ui/features/child_home/views/casebook_screen.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../lesson/fakes.dart';
 import 'casebook_samples.dart';
+import '../../../helpers/shots.dart';
 import 'helpers.dart';
 
 void main() {
@@ -184,6 +186,44 @@ void main() {
       ),
     );
     expect(find.text('My casebook'), findsOneWidget);
+  });
+
+  testWidgets('Home with the casebook tile: the greeting ribbon is whole '
+      'on every phone at 1.3x text (NFR-04)', (tester) async {
+    await tester.runAsync(loadAppFonts);
+    tester.view.devicePixelRatio = 3;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final cut = <String>[];
+    for (final (size, tutorId) in [
+      for (final size in shotSizes.keys)
+        for (final tutorId in [null, 'teacher_1']) (size, tutorId),
+    ]) {
+      tester.view.physicalSize = shotSizes[size]! * 3;
+      await tester.pumpWidget(
+        shotApp(
+          HomeScreen(
+            name: 'Mira',
+            grownUps: Paths.kids,
+            casebook: true,
+            tutorId: tutorId,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // the body scrolls when it is too tall; the ribbon must not sit
+      // half under its edge, cut off above Keep going
+      final ribbon = tester.getRect(find.byType(Ribbon));
+      final body = tester.getRect(find.byType(CustomScrollView));
+      if (ribbon.bottom > body.bottom) {
+        cut.add(
+          '$size, tutor $tutorId: ribbon ends at ${ribbon.bottom}, '
+          'the body at ${body.bottom}',
+        );
+      }
+    }
+    expect(cut, isEmpty);
   });
 
   testWidgets('REW-12: a badge with its case opens the case; one without '
