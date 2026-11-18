@@ -3,9 +3,20 @@ import '../models/lesson_event.dart';
 
 /// A call to the backend failed: offline, timed out, or a non-2xx answer.
 class ApiException implements Exception {
-  const ApiException(this.message, {this.status, this.body});
+  const ApiException(this.message, {this.status, this.body}) : cause = null;
+
+  /// The server never answered (socket, TLS, timeout). [cause] is the
+  /// transport's own error, for the log; a screen says it plainly instead.
+  const ApiException.unreachable(Object this.cause)
+    : message = "Can't reach the server",
+      status = null,
+      body = null;
 
   final String message;
+
+  /// What the transport threw when the server couldn't be reached: detail
+  /// for the log, never for a screen.
+  final Object? cause;
 
   /// The HTTP status, or null when the server couldn't be reached.
   final int? status;
@@ -25,7 +36,9 @@ class ApiException implements Exception {
       body is Map ? dailyTimeFromJson((body! as Map)['dailyTime']) : null;
 
   @override
-  String toString() => 'ApiException(${status ?? 'offline'}): $message';
+  String toString() =>
+      'ApiException(${status ?? 'offline'}): $message'
+      '${cause == null ? '' : ' ($cause)'}';
 }
 
 /// A badge the server awarded (REW-01, D-47 draft names): `kind` session

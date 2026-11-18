@@ -197,7 +197,7 @@ class _PasscodeScreenState extends State<PasscodeScreen> {
       } else if (e.status == 403 && _reset) {
         _clear(message: _l.guPassResetBlocked);
       } else {
-        _clear(message: e.message, shake: true);
+        _clear(message: ErrorNote.message(e, _l), shake: true);
       }
     } finally {
       if (mounted) setState(() => _busy = false);

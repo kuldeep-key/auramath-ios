@@ -4935,6 +4935,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get kidBack;
+
+  /// DRAFT (PAR-14): a Family area screen couldn't reach the server (no internet, or the server didn't answer). Plain words for a parent or carer; never the technical detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t connect right now. Please check the internet.'**
+  String get guOffline;
+
+  /// DRAFT (PAR-14): a Family area screen got an answer it couldn't use (a server error, or something unexpected). Plain words; never the technical detail.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t work just now. Please give it a moment, then have another go.'**
+  String get guSomethingWrong;
 }
 
 class _AppLocalizationsDelegate

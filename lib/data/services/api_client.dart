@@ -79,7 +79,7 @@ class ApiClient {
         await _http.send(request).timeout(timeout ?? this.timeout),
       );
     } on Exception catch (e) {
-      throw ApiException("Can't reach the server ($e)");
+      throw ApiException.unreachable(e);
     }
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return (bytes: response.bodyBytes, headers: response.headers);
@@ -146,7 +146,7 @@ class ApiClient {
       );
     } on Exception catch (e) {
       // socket, TLS, timeout: the server never answered
-      throw ApiException("Can't reach the server ($e)");
+      throw ApiException.unreachable(e);
     }
     onResponse?.call(response);
 

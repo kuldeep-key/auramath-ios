@@ -2809,4 +2809,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidBack => 'Back';
+
+  @override
+  String get guOffline =>
+      'Can\'t connect right now. Please check the internet.';
+
+  @override
+  String get guSomethingWrong =>
+      'That didn\'t work just now. Please give it a moment, then have another go.';
 }

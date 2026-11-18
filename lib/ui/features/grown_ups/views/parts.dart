@@ -321,7 +321,31 @@ class ErrorNote extends StatelessWidget {
   final Object error;
   final VoidCallback? onRetry;
 
-  static String message(Object e) => e is ApiException ? e.message : '$e';
+  /// What a parent or carer reads for [e] (PAR-14). The server couldn't
+  /// be reached: says so plainly. The server's own reason, or the app's,
+  /// as it says it. Anything else (a bare status line, an answer that
+  /// isn't JSON, an error that isn't an [ApiException]): "That didn't work
+  /// just now". Never a socket error or a status line: they go to the log
+  /// only. A [String] is already the screen's own words.
+  static String message(Object e, AppLocalizations l) {
+    if (e is String) return e;
+    if (e is ApiException && !_unreached(e) && !_technical(e)) {
+      return e.message;
+    }
+    debugPrint('family area: $e');
+    return e is ApiException && _unreached(e)
+        ? l.guOffline
+        : l.guSomethingWrong;
+  }
+
+  static bool _unreached(ApiException e) =>
+      e.offline && (e.cause != null || e.message.startsWith(_unreachable));
+  static final _unreachable = const ApiException.unreachable('').message;
+
+  /// api_client's own words for an answer with no reason in it.
+  static bool _technical(ApiException e) =>
+      RegExp(r'^HTTP \d+$').hasMatch(e.message) ||
+      e.message == 'The server sent something that is not JSON';
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -334,7 +358,12 @@ class ErrorNote extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline_rounded, color: AuraColors.ink),
             const SizedBox(width: 8),
-            Expanded(child: Text(message(error), style: AuraText.body)),
+            Expanded(
+              child: Text(
+                message(error, AppLocalizations.of(context)!),
+                style: AuraText.body,
+              ),
+            ),
           ],
         ),
         if (onRetry != null)

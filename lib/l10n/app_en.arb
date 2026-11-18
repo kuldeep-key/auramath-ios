@@ -1323,5 +1323,13 @@
   "kidBack": "Back",
   "@kidBack": {
     "description": "DRAFT (REW-15, Figma CB2): back from one case to where it was opened (the casebook or My badges)."
+  },
+  "guOffline": "Can't connect right now. Please check the internet.",
+  "@guOffline": {
+    "description": "DRAFT (PAR-14): a Family area screen couldn't reach the server (no internet, or the server didn't answer). Plain words for a parent or carer; never the technical detail."
+  },
+  "guSomethingWrong": "That didn't work just now. Please give it a moment, then have another go.",
+  "@guSomethingWrong": {
+    "description": "DRAFT (PAR-14): a Family area screen got an answer it couldn't use (a server error, or something unexpected). Plain words; never the technical detail."
   }
 }
