@@ -2718,6 +2718,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportAbout => 'What is it about?';
 
   @override
+  String reportCaseStory(String a, String b) {
+    return '$a and $b';
+  }
+
+  @override
   String get reportCaseLabel => 'A story problem';
 
   @override

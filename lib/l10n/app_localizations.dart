@@ -4774,6 +4774,12 @@ abstract class AppLocalizations {
   /// **'What is it about?'**
   String get reportAbout;
 
+  /// DRAFT (PAR-13): a case in Report a problem, named by the two things in its story ("Tree and Lamp").
+  ///
+  /// In en, this message translates to:
+  /// **'{a} and {b}'**
+  String reportCaseStory(String a, String b);
+
   /// DRAFT (PAR-13): a case from the last sessions when this phone doesn't know its story. Never an id.
   ///
   /// In en, this message translates to:

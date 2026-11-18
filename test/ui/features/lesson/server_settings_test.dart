@@ -222,6 +222,30 @@ void main() {
       expect(find.text("That's today's time!"), findsOneWidget);
     });
 
+    testWidgets('a server that never answers holds Choose today for a '
+        'moment only', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final (deps, server) =
+          await tester.runAsync(
+            () => testDeps(
+              stored: pairedChildPhone,
+              flags: {...allScreensOn, 'quick_sums': true},
+            ),
+          ) ??
+          (throw StateError('no deps'));
+      server.silent.add('GET /api/children/child-1/settings');
+      await tester.pumpWidget(
+        AuraApp(deps: deps, initialLocation: Paths.chooseToday),
+      );
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pump();
+      expect(find.byType(ChooseTodayScreen), findsOneWidget);
+      // the request's own timeout runs out behind it
+      await tester.pump(const Duration(seconds: 15));
+    });
+
     testWidgets('time left: Choose today as before', (tester) async {
       await boot(
         tester,

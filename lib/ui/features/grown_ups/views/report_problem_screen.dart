@@ -34,9 +34,9 @@ class ReportProblemScreen extends StatefulWidget {
   final ProblemReportRepository reports;
   final FamilyRepository family;
 
-  /// The story of a problem this phone has drawn ("Tree and Lamp"); null
-  /// when it hasn't.
-  final String? Function(String problemId)? storyOf;
+  /// The two things in the story of a problem this phone has drawn
+  /// (tree, lamp: "Tree and Lamp"); null when it hasn't.
+  final (String, String)? Function(String problemId)? storyOf;
 
   @override
   State<ReportProblemScreen> createState() => _ReportProblemScreenState();
@@ -124,8 +124,10 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
                 // the server's title, else this phone's pack, else plain
                 label:
                     c.title ??
-                    widget.storyOf?.call(c.problemId) ??
-                    l.reportCaseLabel,
+                    switch (widget.storyOf?.call(c.problemId)) {
+                      (final a, final b) => l.reportCaseStory(a, b),
+                      null => l.reportCaseLabel,
+                    },
                 detail: l.reportCaseWhen(
                   data.names[c.childId] ?? '',
                   DateFormat.MMMEd(locale).add_jm().format(c.shownAt),

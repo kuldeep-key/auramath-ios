@@ -1252,6 +1252,11 @@
   "@reportIntro": {"description": "DRAFT (PAR-13, Figma 1046:7734 Report): under the title."},
   "reportAbout": "What is it about?",
   "@reportAbout": {"description": "DRAFT (PAR-13, Figma 1046:7734 Report): the label over the cases to pick from."},
+  "reportCaseStory": "{a} and {b}",
+  "@reportCaseStory": {
+    "description": "DRAFT (PAR-13): a case in Report a problem, named by the two things in its story (\"Tree and Lamp\").",
+    "placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}
+  },
   "reportCaseLabel": "A story problem",
   "@reportCaseLabel": {"description": "DRAFT (PAR-13): a case from the last sessions when this phone doesn't know its story. Never an id."},
   "reportCaseWhen": "{child}, {when}",

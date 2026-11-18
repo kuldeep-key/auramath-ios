@@ -808,10 +808,12 @@ List<RouteBase> childRoutes(Deps deps) {
         // offering a choice that can't open
         final childId = deps.account.childId;
         if (childId == null) return null;
+        // a slow server doesn't hold the tap: the lesson's start asks
+        // again and says time's up itself
         final today = await ChildSettingsRepository(
           deps.client,
           deps.store,
-        ).today(childId);
+        ).today(childId).timeout(_todayWait, onTimeout: () => null);
         return today?.timesUp == true ? Paths.lessonNext : null;
       },
       pageBuilder: (_, s) => MotionPage(
@@ -936,3 +938,6 @@ class _GoHomeState extends State<_GoHome> {
   Widget build(BuildContext context) =>
       const Material(color: AuraColors.blue, child: SizedBox.expand());
 }
+
+/// How long Choose today waits to hear whether any of the day is left.
+const _todayWait = Duration(seconds: 3);
