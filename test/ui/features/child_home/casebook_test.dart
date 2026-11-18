@@ -17,6 +17,7 @@ import 'helpers.dart';
 void main() {
   final days = CasebookRepository.daysFrom(sampleCasebook).days!;
   final view = CasebookRepository.caseFrom(sampleCase)!;
+  final labelled = CasebookRepository.caseFrom(sampleLabelledCase)!;
   final today = DateTime(2026, 11, 18, 9);
   const pictures = {'lemon tree': '🍋', 'fig tree': '🌳', 'mango tree': '🥭'};
 
@@ -100,7 +101,43 @@ void main() {
     expect(StickerArt.pictureOf('lemon tree', const {}), '🍋');
     expect(StickerArt.pictureOf('Big ROCKET', const {}), '🚀');
     expect(StickerArt.pictureOf('lemon tree', const {'lemon tree': 'L'}), 'L');
-    expect(StickerArt.pictureOf('kite', const {}), '🔍');
+    expect(StickerArt.pictureOf('kite', const {}), '🪁');
+    expect(StickerArt.pictureOf('giraffe', const {}), '🦒');
+    expect(StickerArt.pictureOf('Building A', const {}), '🏢');
+    expect(StickerArt.pictureOf('zorb', const {}), '🔍');
+  });
+
+  testWidgets('REW-15: a sticker no word knows goes by its subject; the '
+      'glass only when nothing knows it', (tester) async {
+    for (final (subject, pic) in [
+      ('tree', '🌳'),
+      ('building', '🏢'),
+      ('plant', '🌱'),
+      ('animal', '🐾'),
+      ('thing', '📦'),
+      ('cost', '🪙'),
+      ('length', '📏'),
+      ('story', '📖'),
+    ]) {
+      expect(
+        StickerArt.pictureOf('zorb', const {}, subject: subject),
+        pic,
+        reason: subject,
+      );
+    }
+    // the object's own word comes first
+    expect(StickerArt.pictureOf('giraffe', const {}, subject: 'animal'), '🦒');
+    expect(StickerArt.pictureOf('zorb', const {}, subject: 'nebula'), '🔍');
+    final kite = CasebookRepository.caseFrom(sampleGeneratedCase)!;
+    await show(tester, CaseScreen(view: kite));
+    expect(find.text('🪁'), findsOneWidget);
+    final zorb = CasebookRepository.caseFrom({
+      ...sampleGeneratedCase,
+      'sticker': {'stickerId': 's.z', 'object': 'zorb', 'subject': 'thing'},
+    })!;
+    await show(tester, CaseScreen(view: zorb));
+    expect(find.text('📦'), findsOneWidget);
+    expect(find.text('🔍'), findsNothing);
   });
 
   testWidgets('CB2 fits every size, with a drawing and with none', (
@@ -117,6 +154,93 @@ void main() {
       'badges': <Object?>[],
     })!;
     await shots(tester, 'child_home_case_in_head', CaseScreen(view: head));
+    await shots(
+      tester,
+      'child_home_case_labelled',
+      CaseScreen(view: labelled, pictures: pictures),
+    );
+    await shots(
+      tester,
+      'child_home_case_generated',
+      CaseScreen(view: CasebookRepository.caseFrom(sampleGeneratedCase)!),
+    );
+  });
+
+  testWidgets('REW-15: with the bar model each bar has its name, picture and '
+      'number with its unit; the gap and the two together too', (tester) async {
+    await show(tester, CaseScreen(view: labelled, pictures: pictures));
+    expect(find.byType(Bar), findsNWidgets(2));
+    expect(find.text('Lemon tree'), findsNWidgets(2)); // bar and sticker
+    expect(find.text('Fig tree'), findsOneWidget);
+    expect(find.text('186 cm'), findsOneWidget);
+    expect(find.text('79 cm'), findsOneWidget);
+    expect(find.text('107 cm'), findsOneWidget);
+    expect(find.text('265\ncm'), findsOneWidget);
+    expect(find.text('🌳'), findsOneWidget); // the fig tree's picture
+    // the name sits on its own bar's row: lemon above fig
+    expect(
+      tester.getTopLeft(find.byKey(const Key('caseLabel-label_a'))).dy,
+      lessThan(
+        tester.getTopLeft(find.byKey(const Key('caseLabel-label_b'))).dy,
+      ),
+    );
+    // the bars still as the child drew them
+    final bars = tester.widgetList<Bar>(find.byType(Bar)).toList();
+    final wA = tester.getSize(find.byWidget(bars[0])).width;
+    final wB = tester.getSize(find.byWidget(bars[1])).width;
+    expect(wA / wB, closeTo(18.6 / 7.9, 0.05));
+    noCounts(tester, allowed: {'186 cm', '79 cm', '107 cm', '265\ncm'});
+  });
+
+  testWidgets('REW-15: a cost is money; one step has no total', (tester) async {
+    final cost = CasebookRepository.caseFrom({
+      ...sampleLabelledCase,
+      'drawing': {
+        'barA': 8.0,
+        'barB': 5.0,
+        'pieces': [
+          {'object': 'difference', 'target': 'gap', 'value': 3},
+        ],
+      },
+      'bars': {
+        'relation': 'more',
+        'unit': 'dollars',
+        'barA': {'label': 'burger', 'value': 8, 'given': false},
+        'barB': {'label': 'drink', 'value': 5, 'given': false},
+        'gap': {'value': 3, 'given': true},
+        'acrossBoth': null,
+      },
+    })!;
+    await show(tester, CaseScreen(view: cost));
+    expect(find.text('\$8'), findsOneWidget);
+    expect(find.text('\$5'), findsOneWidget);
+    expect(find.text('\$3'), findsOneWidget);
+    expect(find.text('🍔'), findsOneWidget);
+    expect(find.byKey(const Key('caseTotal')), findsNothing);
+  });
+
+  testWidgets('REW-15: a generated story (no story): numbers without names', (
+    tester,
+  ) async {
+    final g = CasebookRepository.caseFrom(sampleGeneratedCase)!;
+    await show(tester, CaseScreen(view: g));
+    expect(find.byType(Bar), findsNWidgets(2));
+    expect(find.byKey(const Key('caseLabel-label_a')), findsNothing);
+    expect(find.byKey(const Key('caseLabel-label_b')), findsNothing);
+    expect(find.text('186'), findsOneWidget);
+    expect(find.text('79'), findsOneWidget);
+    expect(find.text('107'), findsOneWidget);
+    // one step: acrossBoth null, and the child placed a total: its number
+    expect(find.text('265'), findsOneWidget);
+    expect(find.text('Red kite'), findsWidgets);
+  });
+
+  testWidgets('REW-15: no bar model (an older server): only the drawing\'s '
+      'own numbers, no names or units', (tester) async {
+    await show(tester, CaseScreen(view: view, pictures: pictures));
+    expect(find.byKey(const Key('caseLabel-label_a')), findsNothing);
+    expect(find.text('186'), findsOneWidget);
+    expect(find.textContaining('cm'), findsNothing);
   });
 
   testWidgets('REW-15: the case shows the child\'s own bars with the '
@@ -147,11 +271,11 @@ void main() {
       'bars, as the lesson board did, from the case\'s bars', (tester) async {
     final real = CasebookRepository.caseFrom(sampleCaseFromLesson)!;
     await show(tester, CaseScreen(view: real));
-    expect(find.text('55'), findsOneWidget, reason: "A's number");
-    expect(find.text('35'), findsOneWidget, reason: 'the difference');
-    expect(find.text('20'), findsOneWidget, reason: "the child's answer");
+    expect(find.text('55 cm'), findsOneWidget, reason: "A's number");
+    expect(find.text('35 cm'), findsOneWidget, reason: 'the difference');
+    expect(find.text('20 cm'), findsOneWidget, reason: "the child's answer");
     expect(find.byKey(const Key('caseTotal')), findsNothing);
-    noCounts(tester, allowed: {'55', '35', '20'});
+    noCounts(tester, allowed: {'55 cm', '35 cm', '20 cm'});
 
     // a label the child placed is kept, not doubled
     final placed = CasebookRepository.caseFrom(sampleCase)!;

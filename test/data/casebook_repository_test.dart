@@ -76,6 +76,70 @@ void main() {
     expect(v.badges.single.name, 'Seedling Path');
   });
 
+  test('REW-15: an older server\'s case has no subject, story or bars', () {
+    final c = CasebookRepository.caseFrom(sampleCase)!.entry;
+    expect(c.sticker.subject, isNull);
+    expect(c.story, isNull);
+    expect(c.bars, isNull);
+    final day = CasebookRepository.daysFrom(sampleCasebook).days!.first;
+    expect(day.cases.single.bars, isNull);
+  });
+
+  test('REW-15: a case carries its sticker subject, story and bar model, '
+      'in the day view and the case', () async {
+    final (r, server) = repo();
+    server.on('GET /api/children/c1/casebook/cases/lemon', sampleLabelledCase);
+    server.on('GET /api/children/c1/casebook', {
+      'world': 'detective',
+      'days': [
+        {
+          'date': '2026-11-18',
+          'sessionBadges': <Object?>[],
+          'cases': [sampleLabelledCase],
+        },
+      ],
+    });
+    final listed = (await r.days('c1')).days!.single.cases.single;
+    final c = (await r.caseOf('c1', 'lemon'))!.entry;
+    for (final e in [listed, c]) {
+      expect(e.sticker.subject, 'tree');
+      expect(e.story, (
+        storyId: 'lemon-fig',
+        a: 'lemon tree',
+        b: 'fig tree',
+        kind: 'tree',
+        unit: 'cm',
+        quantity: 'height',
+      ));
+      final b = e.bars!;
+      expect(b.relation, 'shorter');
+      expect(b.unit, 'cm');
+      expect(b.barA, (label: 'lemon tree', value: 186, given: true));
+      expect(b.barB, (label: 'fig tree', value: 79, given: false));
+      expect(b.gap, (value: 107, given: true));
+      expect(b.acrossBoth, (value: 265, given: false));
+    }
+  });
+
+  test('REW-15: a generated story: no story, bars without names; a bar '
+      'model missing a bar is none', () {
+    final g = CasebookRepository.caseFrom(sampleGeneratedCase)!.entry;
+    expect(g.story, isNull);
+    expect(g.bars!.barA.label, isNull);
+    expect(g.bars!.unit, isNull);
+    expect(g.bars!.acrossBoth, isNull);
+    final broken = CasebookRepository.caseFrom({
+      ...sampleLabelledCase,
+      'bars': {
+        'relation': 'taller',
+        'barA': {'label': 'x', 'value': 3, 'given': true},
+        'gap': {'value': 1, 'given': true},
+      },
+    })!.entry;
+    expect(broken.bars, isNull);
+    expect(broken.story, isNotNull);
+  });
+
   test('REW-15: a case with nothing placed has no drawing', () async {
     final (r, server) = repo();
     server.on('GET /api/children/c1/casebook/cases/lemon', {

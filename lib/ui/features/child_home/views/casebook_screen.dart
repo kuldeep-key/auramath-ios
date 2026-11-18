@@ -201,8 +201,10 @@ String stickerName(CaseSticker s) {
 }
 
 /// A case's story sticker (catalogue `story_stickers`): the picture of the
-/// story's object, from the pack's stories, else by its words; a story
-/// the phone has no picture for gets the detective's glass.
+/// story's object, from the pack's stories, else by its words, else by the
+/// story's subject (the server's kind of thing: tree, building, animal,
+/// ..., or its quantity: cost, length); only a sticker with none of these
+/// gets the detective's glass.
 class StickerArt extends StatelessWidget {
   const StickerArt({
     super.key,
@@ -222,24 +224,81 @@ class StickerArt extends StatelessWidget {
     'pear': '🍐',
     'orange': '🍊',
     'apple': '🍎',
+    'banana': '🍌',
+    'cherry': '🍒',
+    'peach': '🍑',
+    'coconut': '🥥',
     'palm': '🌴',
+    'pine': '🌲',
     'fig': '🌳',
     'gum': '🌳',
     'tree': '🌳',
+    'sunflower': '🌻',
+    'flower': '🌸',
+    'bush': '🌿',
+    'giraffe': '🦒',
+    'kangaroo': '🦘',
+    'elephant': '🐘',
+    'dog': '🐕',
+    'cat': '🐈',
+    'building': '🏢',
+    'tower': '🗼',
+    'house': '🏠',
     'bowl': '🥣',
     'mug': '☕',
     'cup': '☕',
     'rocket': '🚀',
+    'robot': '🤖',
+    'burger': '🍔',
+    'drink': '🥤',
+    'book': '📚',
+    'pencil': '✏️',
+    'ribbon': '🎀',
+    'kite': '🪁',
+    'ball': '⚽',
+    'hat': '🎩',
+    'scarf': '🧣',
+    'teddy': '🧸',
+    'lunchbox': '🍱',
   };
 
-  static String pictureOf(String object, Map<String, String> pictures) {
+  /// The server's `sticker.subject`: the story's kind of thing, else its
+  /// quantity, else `story` (a generated story).
+  static const _subjects = {
+    'tree': '🌳',
+    'building': '🏢',
+    'plant': '🌱',
+    'animal': '🐾',
+    'thing': '📦',
+    'robot': '🤖',
+    'cost': '🪙',
+    'length': '📏',
+    'height': '📏',
+    'mass': '⚖️',
+    'weight': '⚖️',
+    'story': '📖',
+  };
+
+  /// The picture for [object]: the pack's, by its words, by [subject];
+  /// null when none of them knows it.
+  static String? knownPicture(
+    String object,
+    Map<String, String> pictures, {
+    String? subject,
+  }) {
     final o = object.toLowerCase().trim();
     if (pictures[o] case final p?) return p;
     for (final w in o.split(RegExp(r'[^a-z]+'))) {
       if (_words[w] case final p?) return p;
     }
-    return '🔍';
+    return _subjects[subject?.toLowerCase().trim()];
   }
+
+  static String pictureOf(
+    String object,
+    Map<String, String> pictures, {
+    String? subject,
+  }) => knownPicture(object, pictures, subject: subject) ?? '🔍';
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -249,7 +308,7 @@ class StickerArt extends StatelessWidget {
       dimension: size,
       child: FittedBox(
         child: Text(
-          pictureOf(sticker.object, pictures),
+          pictureOf(sticker.object, pictures, subject: sticker.subject),
           style: TextStyle(fontSize: size * .86, height: 1.1),
         ),
       ),

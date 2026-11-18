@@ -81,6 +81,53 @@ const sampleCase = <String, Object?>{
   ],
 };
 
+/// [sampleCase] as the server sends it since REW-15's labels (wt-rj
+/// 5b0de43): the sticker's subject, the bank story and the bar model.
+final sampleLabelledCase = <String, Object?>{
+  ...sampleCase,
+  'sticker': {
+    'stickerId': 'sticker.lemon_tree',
+    'object': 'lemon tree',
+    'subject': 'tree',
+  },
+  'story': {
+    'storyId': 'lemon-fig',
+    'a': 'lemon tree',
+    'b': 'fig tree',
+    'kind': 'tree',
+    'unit': 'cm',
+    'quantity': 'height',
+  },
+  'bars': {
+    'relation': 'shorter',
+    'unit': 'cm',
+    'barA': {'label': 'lemon tree', 'value': 186, 'given': true},
+    'barB': {'label': 'fig tree', 'value': 79, 'given': false},
+    'gap': {'value': 107, 'given': true},
+    'acrossBoth': {'value': 265, 'given': false},
+  },
+};
+
+/// A generated story's case: no bank story, so bars with numbers only.
+final sampleGeneratedCase = <String, Object?>{
+  ...sampleCase,
+  'name': null,
+  'sticker': {
+    'stickerId': 'sticker.red_kite',
+    'object': 'red kite',
+    'subject': 'story',
+  },
+  'story': null,
+  'bars': {
+    'relation': 'taller',
+    'unit': null,
+    'barA': {'label': null, 'value': 186, 'given': true},
+    'barB': {'label': null, 'value': 79, 'given': false},
+    'gap': {'value': 107, 'given': true},
+    'acrossBoth': null,
+  },
+};
+
 /// A case as the server answers it for a real lesson (taken from a device
 /// run): A's number is the story's and B's the child typed, so the lesson
 /// placed only the difference; `bars` carries both numbers.
