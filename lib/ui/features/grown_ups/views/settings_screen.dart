@@ -7,7 +7,6 @@ import '../../../../data/repositories/family_repository.dart';
 import '../../../../data/repositories/grown_up_repository.dart';
 import '../../../../data/repositories/report_email_repository.dart';
 import '../../../../data/services/api.dart';
-import '../../../../data/services/sound_effects.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/parts/aura_page.dart';
@@ -58,23 +57,24 @@ class SettingsScreen extends StatelessWidget {
       if (kept.isEmpty) rethrow;
       kids = [for (final k in kept) Child(id: k.id, name: k.name)];
     }
-    final out = <(Child, ChildSettings?)>[];
-    for (final c in kids) {
-      // the list of children carries them; an older server: ask, else
-      // what this phone kept
-      ChildSettings? s = c.settings;
-      if (s != null) {
-        await settings.remember(s);
-      } else {
-        try {
-          s = await settings.load(c.id);
-        } on ApiException {
-          s = await settings.cached(c.id);
-        }
-      }
-      out.add((c, s));
-    }
+    // read together: offline, each can wait for the whole timeout
+    final out = await Future.wait([for (final c in kids) _settingsOf(c)]);
     return (children: out, prefs: await repo.loadPrefs());
+  }
+
+  /// [c]'s settings: the list of children carries them; an older server:
+  /// ask, else what this phone kept.
+  Future<(Child, ChildSettings?)> _settingsOf(Child c) async {
+    final carried = c.settings;
+    if (carried != null) {
+      await settings.remember(carried);
+      return (c, carried);
+    }
+    try {
+      return (c, await settings.load(c.id));
+    } on ApiException {
+      return (c, await settings.cached(c.id));
+    }
   }
 
   @override
@@ -158,9 +158,18 @@ class _ChildSettingsCardState extends State<ChildSettingsCard> {
       final saved = await send();
       if (!mounted) return;
       setState(() => _s = saved);
-      // the sound effects follow the grown-up's read-aloud on this phone
-      if (!saved.readAloudIsDefault) AuraSound.soundOn.value = saved.readAloud;
-      AuraToast.show(context, l.guSaved);
+      // the sound follows the child's read-aloud when their lesson starts,
+      // not the child edited last. Read aloud asked for but not on: the
+      // server's read-aloud is off for now, so not Saved
+      if (shown.readAloud && !saved.readAloud) {
+        AuraToast.show(
+          context,
+          l.guSetReadAloudOff,
+          icon: Icons.info_outline_rounded,
+        );
+      } else {
+        AuraToast.show(context, l.guSaved);
+      }
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _s = before);

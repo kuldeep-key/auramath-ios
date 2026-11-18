@@ -27,7 +27,7 @@ class ChildSettingsRepository {
         await _client.get(_path(childId)),
         childId: childId,
       );
-      if (s == null) throw const ApiException('No settings in the answer');
+      if (s == null) throw _noSettings;
       await remember(s);
       return s;
     } on ApiException catch (e) {
@@ -96,7 +96,7 @@ class ChildSettingsRepository {
       }),
       childId: childId,
     );
-    if (s == null) throw const ApiException('No settings in the answer');
+    if (s == null) throw _noSettings;
     await remember(s);
     return s;
   }
@@ -113,3 +113,7 @@ class ChildSettingsRepository {
 }
 
 const _keep = Object();
+
+/// The server answered, but not with settings: not offline, so neither
+/// the kept copy stands in for it nor "can't reach the server" is said.
+const _noSettings = ApiException('No settings in the answer', status: 502);

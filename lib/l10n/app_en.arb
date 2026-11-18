@@ -1234,6 +1234,10 @@
   "@guSetNotSaved": {
     "description": "DRAFT (PAR-05): the server refused a child's setting; it goes back to what it was."
   },
+  "guSetReadAloudOff": "Read aloud isn't on in AuraMath yet, so it stays off for now.",
+  "@guSetReadAloudOff": {
+    "description": "DRAFT (PAR-05): read-aloud was turned on, but the server has it off for everyone for now; the switch goes back to off."
+  },
   "guSetCantRead": "These settings can't be read right now. Check the internet and come back.",
   "@guSetCantRead": {
     "description": "DRAFT (PAR-05): a child's settings couldn't be read and none are kept on this phone."
