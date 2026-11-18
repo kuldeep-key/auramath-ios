@@ -224,13 +224,15 @@ List<RouteBase> childRoutes(Deps deps) {
   /// from last session, `queued`), each once, one after another in the
   /// order the server sent them: what waited longest first, and from one
   /// case the smaller first (Ashutosh, daily catch-up 16 Nov).
-  final bigShown = <String>{};
+  /// By child and badge: on a shared phone each child sees their own.
+  final bigShown = <(String?, String)>{};
   Future<List<CelebrationSpec>> bigBadge(AppLocalizations l) async {
     // the case's last batch, and its answer, first
     await deps.sessions.syncNow();
+    final child = deps.account.childId;
     final due = [
-      for (final a in deps.sessions.awardsDue(deps.account.childId))
-        if (bigShown.add(a.badgeId)) a,
+      for (final a in deps.sessions.awardsDue(child))
+        if (bigShown.add((child, a.badgeId))) a,
     ];
     final r = momentsFor();
     // a passed level's peak moment names the land that opens next

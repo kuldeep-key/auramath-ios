@@ -127,17 +127,24 @@ class SessionRepository {
   final Map<String, List<Award>> _awards = {};
   List<Award> awardsFor(String sessionId) => _awards[sessionId] ?? const [];
 
-  /// The big badges due for [childId] now: what waited, under the last
-  /// session stopped, then the case just solved, in the sitting's open
-  /// session (one session a sitting).
   /// True while [childId]'s sitting has an open session: the cases in it
   /// share the time the server gave when it opened (SES-01).
   bool sittingOpen(String? childId) => _openFor.containsKey(childId ?? '');
 
-  List<Award> awardsDue(String? childId) => [
-    for (final id in {lastStop.value?.sessionId, _openFor[childId ?? '']})
-      if (id != null) ...awardsFor(id),
-  ];
+  /// The big badges due for [childId] now: what waited, under the last
+  /// session stopped, then the case just solved, in the sitting's open
+  /// session (one session a sitting). The last session stopped counts
+  /// only when it was [childId]'s: on a shared phone a sibling's waiting
+  /// medal stays theirs.
+  List<Award> awardsDue(String? childId) {
+    final key = childId ?? '';
+    final last = lastStop.value?.sessionId;
+    final whose = last == null ? null : _sittingOf[last];
+    return [
+      for (final id in {if (whose == null || whose == key) last, _openFor[key]})
+        if (id != null) ...awardsFor(id),
+    ];
+  }
 
   /// SES-01: the continuation the server stored a session's work in after
   /// its `session_ended {time_up}` (`continuedIn`). Problems and decisions
@@ -649,6 +656,8 @@ class SessionRepository {
     _firstSeq.clear();
     _openFor.clear();
     _sittingOf.clear();
+    _dailyTimes.clear();
+    _settings.clear();
     _nextSeq.clear();
     _started.clear();
     _reviewDue.clear();

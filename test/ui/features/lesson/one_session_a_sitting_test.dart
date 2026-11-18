@@ -130,6 +130,44 @@ void main() {
     expect(sessions.awardsDue('other'), isEmpty);
   });
 
+  test("REW-11: on a shared phone a medal waiting from one child's sitting "
+      'is not due for the other', () async {
+    final (sessions, _, api) = await memorySessions();
+    api.awards = const [
+      (
+        badgeId: 'stop.orchard.l2',
+        kind: 'skill_mastered',
+        name: 'Sapling Row',
+        problemId: 'lemon',
+        celebration: 'big',
+        queued: false,
+        alsoLand: null,
+      ),
+    ];
+    final vm = LessonViewModel(
+      pack: pack,
+      problemId: 'lemon',
+      sessions: sessions,
+      voice: FakeVoice(),
+      nowMs: () => 0,
+      openSession: () => sessions.openOrGoOn(childId: 'ada'),
+      sitting: Sitting(capMs: 30 * 60 * 1000),
+      tickEvery: null,
+    );
+    await vm.start();
+    await vm.send(const Started());
+    await vm.send(const KnowIt(265));
+    vm.dispose();
+    await sessions.endSitting('ada');
+    await sessions.syncNow();
+    expect(sessions.lastStop.value?.sessionId, vm.sessionId);
+    expect(
+      [for (final a in sessions.awardsDue('ada')) a.badgeId],
+      ['stop.orchard.l2'],
+    );
+    expect(sessions.awardsDue('bo'), isEmpty);
+  });
+
   test('two children on one phone each have their own sitting', () async {
     final (sessions, _, _) = await memorySessions();
     final a = await sessions.openOrGoOn(childId: 'ada');
