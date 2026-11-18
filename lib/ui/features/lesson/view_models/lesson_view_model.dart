@@ -1100,7 +1100,8 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// The flag `read_question_aloud`: the question speaks itself as it shows.
   bool readQuestionAloud = true;
 
-  /// The flag `mastery_badges`: the badge after "case cracked".
+  /// The v4 badge after "case cracked"; off in the app since D-51 (the
+  /// rewards come from the server), kept for the prototype shots.
   bool showBadges = true;
 
   /// The flag `self_rating` and the child's age (AI-08): three faces after

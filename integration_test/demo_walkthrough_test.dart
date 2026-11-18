@@ -96,7 +96,7 @@ void main() {
     await hold(2500); // the opening screen
 
     // ---- a grown-up sets up
-    await tapAny(['Parents and carers', "I'm a grown-up"]);
+    await tapAny(['Parents and carers', "I'm a parent or carer"]);
     await maybeTap(['Get started', 'Set up', 'Continue']);
     await seeAny([
       "Your child's first name",

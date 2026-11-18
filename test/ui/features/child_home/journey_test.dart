@@ -114,7 +114,7 @@ void main() {
       'no world and no passcode', (tester) async {
     final (deps, _) = await boot(tester, Paths.home);
     expect(find.text('Aarav'), findsOneWidget);
-    expect(find.byTooltip('For grown-ups'), findsOneWidget);
+    expect(find.byTooltip('Family area'), findsOneWidget);
     expect(find.byKey(const Key('tutor')), findsOneWidget);
     expect(find.text('Your case is waiting.'), findsOneWidget);
     final voice = deps.voice as FakeVoice;

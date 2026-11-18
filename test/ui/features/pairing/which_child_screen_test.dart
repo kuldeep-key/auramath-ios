@@ -56,11 +56,11 @@ void main() {
     expect(server.calls.length, 2);
   });
 
-  testWidgets('no children yet says ask your grown-up', (tester) async {
+  testWidgets('no children yet says ask your family', (tester) async {
     final (family, server) = await setUp(tester);
     server.on(_children, familyJson([]));
     await tester.pumpWidget(shotApp(WhichChildScreen(family: family)));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Ask your grown-up to add you'), findsOneWidget);
+    expect(find.textContaining('Ask your family to add you'), findsOneWidget);
   });
 }

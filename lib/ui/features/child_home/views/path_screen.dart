@@ -115,7 +115,9 @@ class _PathScreenState extends State<PathScreen>
     super.dispose();
   }
 
-  /// The child's stop a little above the middle; after Look back, the
+  /// The child's stop a little above the middle, with the next stop and
+  /// its sign clear of the title (they sat under it on most phones); the
+  /// child's stop always stays above Keep going. After Look back, the
   /// older lands.
   void _jump() {
     if (!mounted || !_scroll.hasClients) return;
@@ -123,12 +125,28 @@ class _PathScreenState extends State<PathScreen>
     final k = pos.viewportDimension > 0 ? context.size!.width / opW : 1.0;
     final view = pos.viewportDimension;
     final st = _s;
+    double here() {
+      final p = st.scene!.geom.P;
+      final hereY = p[st.j][1] * k;
+      var y = hereY - view * .56;
+      // the title's veil, then the next stop's sign above its stop
+      final titleBottom = MediaQuery.paddingOf(context).top + 104;
+      if (st.j + 1 < p.length) {
+        final signTop = (p[st.j + 1][1] - 100) * k;
+        if (signTop - y < titleBottom) y = signTop - titleBottom;
+      }
+      // Keep going and the stop chip along the bottom
+      final aboveBar = view - 110;
+      if (hereY + 70 * k - y > aboveBar) y = hereY + 70 * k - aboveBar;
+      return y;
+    }
+
     final y = _lookBack
         ? pos.maxScrollExtent +
               view -
               math.min(4, st.here - 3 - st.lo) * opSTEP * k -
               view * 1.1
-        : st.scene!.geom.P[st.j][1] * k - view * .56;
+        : here();
     _lookBack = false;
     _scroll.jumpTo(y.clamp(0, pos.maxScrollExtent));
   }

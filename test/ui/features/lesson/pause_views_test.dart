@@ -170,7 +170,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
     });
     await tester.pumpAndSettle();
-    expect(find.text('Ask a grown-up'), findsOneWidget);
+    expect(find.text('Ask your family'), findsOneWidget);
     expect(find.text('Saved for next time'), findsNothing);
     expect(find.textContaining('Lost the internet'), findsNothing);
     vm.dispose();

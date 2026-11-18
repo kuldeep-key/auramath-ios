@@ -71,7 +71,7 @@ void main() {
       }
 
       // set up a family with Sam, as a fresh phone does
-      await tap(find.text("I'm a grown-up"));
+      await tap(find.text("I'm a parent or carer"));
       await tap(find.text('Get started'));
       await see(find.text("Your child's first name"));
       await tester.enterText(find.byType(TextField), 'Sam');
@@ -102,10 +102,10 @@ void main() {
       // the child's Home > For grown-ups > Who's learning > Grown-ups, then
       // the passcode
       await see(find.text('Keep going'), seconds: 20);
-      await tap(find.byTooltip('For grown-ups'));
+      await tap(find.byTooltip('Family area'));
       await see(find.text("Who's learning today?"));
       expect(find.text('Sam'), findsOneWidget);
-      await tap(find.text('Grown-ups'));
+      await tap(find.text('Family area'));
       await see(find.text('Enter your passcode.'));
       await keypad('2468');
 

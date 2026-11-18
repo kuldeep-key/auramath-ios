@@ -152,7 +152,10 @@ class _LessonRouteState extends State<_LessonRoute> {
       ..readQuestionAloud = flags.on('read_question_aloud')
       ..readAloudFlag = flags.on('read_aloud')
       ..barSenseLessons = flags.on('bar_sense_side_lessons')
-      ..showBadges = flags.on('mastery_badges')
+      // D-51: no badge after each case. The big badges come from the
+      // server's rewards (the stop medal, habit and land badges) and the
+      // session badge at the end (REW-01), so the v4 case badge stays off
+      ..showBadges = false
       ..selfRating = flags.on('self_rating')
       ..childQuestions = flags.on('child_questions')
       ..wordMeanings = flags.on('word_meanings')

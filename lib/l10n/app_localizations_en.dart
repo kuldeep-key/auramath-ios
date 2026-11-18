@@ -289,18 +289,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lessonNeedInternetBody => 'Check the Wi-Fi, then try again.';
 
   @override
-  String get lessonNoChildTitle => 'Ask a grown-up';
+  String get lessonNoChildTitle => 'Ask your family';
 
   @override
   String get lessonNoChildBody =>
-      'A grown-up needs to add you before your first case.';
+      'Someone in your family needs to add you before your first case.';
 
   @override
-  String get lessonPausedTitle => 'Ask a grown-up';
+  String get lessonPausedTitle => 'Ask your family';
 
   @override
   String get lessonPausedBody =>
-      'Lessons are paused for now. A grown-up can turn them back on.';
+      'Lessons are paused for now. Someone in your family can turn them back on.';
 
   @override
   String get drawingSaved => 'Your drawing is saved.';
@@ -358,7 +358,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pairImAKid => 'I\'m a kid';
 
   @override
-  String get pairImAGrownUp => 'I\'m a grown-up';
+  String get pairImAGrownUp => 'I\'m a parent or carer';
 
   @override
   String get pairHaveAccount => 'I already have an account';
@@ -371,7 +371,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pairAskForNewCode =>
-      'Ask your grown-up to make a new code on their phone.';
+      'Ask your family to make a new code on their phone.';
 
   @override
   String get pairChecking => 'Checking your code';
@@ -395,7 +395,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pairCodeWrong => 'That code didn\'t work';
 
   @override
-  String get pairCodeWrongBody => 'Ask your grown-up for a new one.';
+  String get pairCodeWrongBody => 'Ask your family for a new one.';
 
   @override
   String get pairCodeDidntWork => 'That code didn\'t work.';
@@ -408,14 +408,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'That code has stopped working. Wait a few minutes, then ask your family for a new one.';
 
   @override
-  String get pairNewCode => 'Grown-up: new code';
+  String get pairNewCode => 'Family: new code';
 
   @override
   String get pairWhichChild => 'Which child is this phone for?';
 
   @override
   String get pairNoChildren =>
-      'No children here yet. Ask your grown-up to add you on their phone.';
+      'No children here yet. Ask your family to add you on their phone.';
 
   @override
   String get pairIsThisYou => 'Is this you?';
@@ -448,7 +448,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pairWhosLearning => 'Who\'s learning today?';
 
   @override
-  String get pairGrownUps => 'Grown-ups';
+  String get pairGrownUps => 'Family area';
 
   @override
   String get pairNoKidsYet => 'No children yet. Add one to start learning.';
@@ -543,7 +543,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'It has been more than 10 minutes since you signed in. Sign in again, then choose a new passcode.';
 
   @override
-  String get guFaceIdReason => 'Open the grown-up area';
+  String get guFaceIdReason => 'Open the Family area';
 
   @override
   String get guUseFaceId => 'Use Face ID';
@@ -655,7 +655,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guHomePausedBody =>
-      'Lessons can\'t start until a grown-up agrees again to how we keep their learning. You can do that in Your data and rights.';
+      'Lessons can\'t start until a parent or carer agrees again to how we keep their learning. You can do that in Your data and rights.';
 
   @override
   String get guHomePausedLink => 'Your data and rights';
@@ -770,7 +770,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guOwner => 'Owner';
 
   @override
-  String get guGrownUp => 'Grown-up';
+  String get guGrownUp => 'Family member';
 
   @override
   String get guInvited => 'Invited';
@@ -927,8 +927,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guRemoveGrownUpButton => 'Remove them';
 
   @override
-  String get guRemoveGrownUpGone =>
-      'That grown-up isn\'t in your family any more.';
+  String get guRemoveGrownUpGone => 'They aren\'t in your family any more.';
 
   @override
   String guCancelInviteTitle(String email) {
@@ -1004,7 +1003,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guStoredTitle => 'What we keep';
 
   @override
-  String get guStored1 => 'Your email, and other grown-ups\' emails';
+  String get guStored1 => 'Your email, and other family members\' emails';
 
   @override
   String get guStored2 =>
@@ -1153,7 +1152,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guAgainBody =>
-      'You agree, as their grown-up, that we keep each child\'s first name and every step of their lessons, so lessons can carry on. You can withdraw again or delete everything any time.';
+      'You agree, as their parent or carer, that we keep each child\'s first name and every step of their lessons, so lessons can carry on. You can withdraw again or delete everything any time.';
 
   @override
   String get guAgainButton => 'I agree';
@@ -1496,7 +1495,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidMyBadges => 'My badges';
 
   @override
-  String get kidForGrownUps => 'For grown-ups';
+  String get kidForGrownUps => 'Family area';
 
   @override
   String get kidHome => 'Home';
@@ -1644,7 +1643,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidMySash => 'My sash';
 
   @override
-  String get kidInYourSash => 'It\'s in your sash. Your grown-up sees it too.';
+  String get kidInYourSash => 'It\'s in your sash. Your family sees it too.';
 
   @override
   String get kidNextCase => 'Next case';
@@ -1966,7 +1965,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupSignInSubtitle =>
-      'One grown-up account. Your child never signs in.';
+      'One family account. Your child never signs in.';
 
   @override
   String get setupCheckTitle => 'Check your email';
@@ -2040,7 +2039,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get setupReadyMeet => 'Meet the case partner together';
+  String get setupReadyMeet => 'Meet the tutor together';
 
   @override
   String setupReadyMeetDetail(String name) {
@@ -2058,7 +2057,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get setupLockTitle => 'Lock the grown-up area';
+  String get setupLockTitle => 'Lock the Family area';
 
   @override
   String get setupLockBody =>
@@ -2122,7 +2121,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupPassAlreadySetBody =>
-      'It was set on another phone. Use it to open the grown-up area here too.';
+      'It was set on another phone. Use it to open the Family area here too.';
 
   @override
   String setupJoinTitle(String name) {
@@ -2224,14 +2223,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tricky cases take care. Checking each bar helped you crack it.';
 
   @override
-  String get kidMeetTitle => 'Meet your case partner';
+  String get kidMeetTitle => 'Meet your tutor';
 
   @override
-  String get kidMeetGrownUp => 'Grown-up: please stay for this part.';
+  String get kidMeetGrownUp => 'Parent or carer: please stay for this part.';
 
   @override
   String get kidMeetLine1 =>
-      'Hi! I\'m your case partner. I help you crack maths cases.';
+      'Hi! I\'m your tutor. I help you crack maths cases.';
 
   @override
   String get kidMeetLine2 =>
@@ -2239,10 +2238,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidMeetLine3 =>
-      'Julia\'s team wrote my rules. I can make mistakes, so if something looks odd, tell your grown-up.';
+      'Julia\'s team wrote my rules. I can make mistakes, so if something looks odd, tell your family.';
 
   @override
-  String get kidMeetLine4 => 'Your grown-up can see your work.';
+  String get kidMeetLine4 => 'Your family can see your work.';
 
   @override
   String get kidMeetStart => 'Let\'s start';
@@ -2280,10 +2279,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kidReadToMe => 'Read it to me';
 
   @override
-  String get lessonEverydayPicture => 'A grown-up and a child, side by side.';
+  String get lessonEverydayPicture => 'A parent and a child, side by side.';
 
   @override
-  String get lessonGrownUp => 'Grown-up';
+  String get lessonGrownUp => 'Parent';
 
   @override
   String get lessonYou => 'You';
@@ -2366,7 +2365,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kidPickAvatarAskGrownUp =>
-      'Ask a grown-up to set your detective for you.';
+      'Ask your family to set your detective for you.';
 
   @override
   String get kidQuickDone => 'Warmed up!';
