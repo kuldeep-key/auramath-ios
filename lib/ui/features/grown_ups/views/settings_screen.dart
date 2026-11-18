@@ -164,7 +164,12 @@ class _ChildSettingsCardState extends State<ChildSettingsCard> {
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _s = before);
-      AuraToast.show(context, e.offline ? l.guSetOffline : l.guSetNotSaved);
+      // not saved: never the Saved tick
+      AuraToast.show(
+        context,
+        e.offline ? l.guSetOffline : l.guSetNotSaved,
+        icon: Icons.error_outline_rounded,
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }

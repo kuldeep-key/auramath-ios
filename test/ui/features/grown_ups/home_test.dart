@@ -542,6 +542,9 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Saved'), findsNothing);
+      // an error, so not the tick that says Saved
+      expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
+      expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
     });
 
     testWidgets('opened offline, it shows the settings this phone kept '
