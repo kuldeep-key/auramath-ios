@@ -42,7 +42,7 @@ void main() {
   Widget screen(Gu g) => ReportProblemScreen(
     reports: ProblemReportRepository(g.deps.client),
     family: g.deps.family,
-    storyOf: (id) => id == 'g_known' ? 'Tree and Lamp' : null,
+    storyOf: (id) => id == 'g_known' ? ('Tree', 'Lamp') : null,
   );
 
   Future<Gu> open(WidgetTester tester) async {

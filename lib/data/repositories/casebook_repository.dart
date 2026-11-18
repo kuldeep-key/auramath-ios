@@ -241,7 +241,8 @@ class CasebookRepository {
               pieces: _withBarNumbers([
                 for (final p
                     in (d['pieces'] as List? ?? const []).whereType<Map>())
-                  if (p['object'] is String)
+                  // a piece the child dropped off the board isn't drawn
+                  if (p['object'] is String && p['target'] != 'none')
                     (
                       object: p['object'] as String,
                       target: '${p['target']}',
@@ -267,7 +268,7 @@ class CasebookRepository {
   /// places no label piece for a number the story gives (A's) or one the
   /// child types (the unknown bar), so the drawing alone shows only the
   /// difference. The case's `bars` has both (given, or found by the
-  /// child); a label piece the child placed wins.
+  /// child) and wins over a label piece, as on the case board's heads.
   static List<DrawnPiece> _withBarNumbers(
     List<DrawnPiece> pieces,
     Object? bars,
@@ -278,15 +279,18 @@ class CasebookRepository {
       return b is Map ? (b['value'] as num?)?.toInt() : null;
     }
 
-    return [
-      ...pieces,
+    final fromBars = <String, DrawnPiece>{
       for (final (label, bar, target) in const [
         ('label_a', 'barA', 'bar_a'),
         ('label_b', 'barB', 'bar_b'),
       ])
-        if (!pieces.any((p) => p.object == label))
-          if (value(bar) case final v?)
-            (object: label, target: target, value: v),
+        if (value(bar) case final v?)
+          label: (object: label, target: target, value: v),
+    };
+    return [
+      for (final p in pieces)
+        if (!fromBars.containsKey(p.object)) p,
+      ...fromBars.values,
     ];
   }
 }

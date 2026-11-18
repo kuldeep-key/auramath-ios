@@ -2695,6 +2695,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guSetNotSaved => 'That didn\'t save. Please change it again.';
 
   @override
+  String get guSetReadAloudOff =>
+      'Read aloud isn\'t on in AuraMath yet, so it stays off for now.';
+
+  @override
   String get guSetCantRead =>
       'These settings can\'t be read right now. Check the internet and come back.';
 
@@ -2712,6 +2716,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportAbout => 'What is it about?';
+
+  @override
+  String reportCaseStory(String a, String b) {
+    return '$a and $b';
+  }
 
   @override
   String get reportCaseLabel => 'A story problem';

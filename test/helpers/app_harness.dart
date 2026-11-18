@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -35,6 +36,9 @@ class FakeServer {
   /// Answers [route] with these bytes and headers instead of JSON (a PNG).
   final Map<String, http.Response> raw = {};
 
+  /// Routes that never answer (a server that hangs).
+  final Set<String> silent = {};
+
   late final http.Client client = MockClient((req) async {
     final key = '${req.method} ${req.url.path}';
     final body = req.body.isEmpty
@@ -42,6 +46,7 @@ class FakeServer {
         : jsonDecode(req.body) as Map<String, Object?>;
     calls.add((key, body));
     urls.add(req.url);
+    if (silent.contains(key)) return Completer<http.Response>().future;
     if (raw[key] case final r?) return r;
     final handler = routes[key];
     final (status, json) = handler == null

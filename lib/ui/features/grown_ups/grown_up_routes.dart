@@ -82,7 +82,7 @@ List<RouteBase> grownUpRoutes(Deps deps) {
         family: family,
         // a case this phone drew is named by its story, never an id
         storyOf: (id) => switch (deps.pack.problems[id]) {
-          final p? => '${p.a.name} and ${p.b.name}',
+          final p? => (p.a.name, p.b.name),
           null => null,
         },
       ),

@@ -224,13 +224,15 @@ List<RouteBase> childRoutes(Deps deps) {
   /// from last session, `queued`), each once, one after another in the
   /// order the server sent them: what waited longest first, and from one
   /// case the smaller first (Ashutosh, daily catch-up 16 Nov).
-  final bigShown = <String>{};
+  /// By child and badge: on a shared phone each child sees their own.
+  final bigShown = <(String?, String)>{};
   Future<List<CelebrationSpec>> bigBadge(AppLocalizations l) async {
     // the case's last batch, and its answer, first
     await deps.sessions.syncNow();
+    final child = deps.account.childId;
     final due = [
-      for (final a in deps.sessions.awardsDue(deps.account.childId))
-        if (bigShown.add(a.badgeId)) a,
+      for (final a in deps.sessions.awardsDue(child))
+        if (bigShown.add((child, a.badgeId))) a,
     ];
     final r = momentsFor();
     // a passed level's peak moment names the land that opens next
@@ -572,17 +574,21 @@ List<RouteBase> childRoutes(Deps deps) {
           if (id == null) {
             return (world: 'detective', days: const <CasebookDay>[]);
           }
-          final read = await casebook.days(id);
-          return (world: read.world, days: read.days ?? const <CasebookDay>[]);
+          return casebook.days(id);
         },
-        builder: (c) => CasebookScreen(
-          days: c.days,
-          today: DateTime.now(),
-          pictures: pictures,
-          world: c.world,
-          tutorId: tutorNow().id,
-          tutorKind: tutorNow().kind,
-        ),
+        // days null: the server's casebook is off, though this phone's
+        // switch is on; Home, not an empty casebook that never fills
+        builder: (c) => switch (c.days) {
+          null => const _GoHome(),
+          final days => CasebookScreen(
+            days: days,
+            today: DateTime.now(),
+            pictures: pictures,
+            world: c.world,
+            tutorId: tutorNow().id,
+            tutorKind: tutorNow().kind,
+          ),
+        },
       ),
     ),
     GoRoute(
@@ -802,10 +808,12 @@ List<RouteBase> childRoutes(Deps deps) {
         // offering a choice that can't open
         final childId = deps.account.childId;
         if (childId == null) return null;
+        // a slow server doesn't hold the tap: the lesson's start asks
+        // again and says time's up itself
         final today = await ChildSettingsRepository(
           deps.client,
           deps.store,
-        ).today(childId);
+        ).today(childId).timeout(_todayWait, onTimeout: () => null);
         return today?.timesUp == true ? Paths.lessonNext : null;
       },
       pageBuilder: (_, s) => MotionPage(
@@ -930,3 +938,6 @@ class _GoHomeState extends State<_GoHome> {
   Widget build(BuildContext context) =>
       const Material(color: AuraColors.blue, child: SizedBox.expand());
 }
+
+/// How long Choose today waits to hear whether any of the day is left.
+const _todayWait = Duration(seconds: 3);

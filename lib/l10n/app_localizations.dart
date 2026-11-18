@@ -4732,6 +4732,12 @@ abstract class AppLocalizations {
   /// **'That didn\'t save. Please change it again.'**
   String get guSetNotSaved;
 
+  /// DRAFT (PAR-05): read-aloud was turned on, but the server has it off for everyone for now; the switch goes back to off.
+  ///
+  /// In en, this message translates to:
+  /// **'Read aloud isn\'t on in AuraMath yet, so it stays off for now.'**
+  String get guSetReadAloudOff;
+
   /// DRAFT (PAR-05): a child's settings couldn't be read and none are kept on this phone.
   ///
   /// In en, this message translates to:
@@ -4767,6 +4773,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What is it about?'**
   String get reportAbout;
+
+  /// DRAFT (PAR-13): a case in Report a problem, named by the two things in its story ("Tree and Lamp").
+  ///
+  /// In en, this message translates to:
+  /// **'{a} and {b}'**
+  String reportCaseStory(String a, String b);
 
   /// DRAFT (PAR-13): a case from the last sessions when this phone doesn't know its story. Never an id.
   ///

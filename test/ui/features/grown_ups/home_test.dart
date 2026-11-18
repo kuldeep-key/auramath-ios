@@ -524,6 +524,82 @@ void main() {
       expect(g.store.values['lesson.readAloud'], isNull);
     });
 
+    testWidgets('read aloud on while the server has it off: the switch '
+        'goes back, and says so, not Saved', (tester) async {
+      final g = await Gu.make(tester);
+      const off = {
+        'childId': 'child-2',
+        'dailyLimitMinutes': null,
+        'dailyLimitIsDefault': true,
+        'readAloud': false,
+        'readAloudIsDefault': false,
+      };
+      g.server
+        ..on('GET /api/children/child-2/settings', off)
+        ..on('PUT /api/children/child-2/settings', off);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      final sw = find.descendant(
+        of: find.byKey(const ValueKey('settings-child-2')),
+        matching: find.byType(AuraSwitch),
+      );
+      expect(tester.widget<AuraSwitch>(sw).value, isFalse);
+      await tester.tap(inCard('child-2', 'Read aloud'));
+      await tester.pumpAndSettle();
+      expect(g.bodyOf('PUT /api/children/child-2/settings'), {
+        'readAloud': true,
+      });
+      expect(tester.widget<AuraSwitch>(sw).value, isFalse);
+      expect(find.text('Saved'), findsNothing);
+      expect(
+        find.text(
+          "Read aloud isn't on in AuraMath yet, so it stays off for now.",
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a change does not set the sound for the whole phone: the '
+        "child's lesson does", (tester) async {
+      final g = await Gu.make(tester);
+      g.server.on('PUT /api/children/child-1/settings', {
+        'childId': 'child-1',
+        'dailyLimitMinutes': 15,
+        'dailyLimitIsDefault': false,
+        'readAloud': false,
+        'readAloudIsDefault': false,
+      });
+      AuraSound.soundOn.value = true;
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.tap(inCard('child-1', 'Read aloud'));
+      await tester.pumpAndSettle();
+      expect(find.text('Saved'), findsOneWidget);
+      expect(AuraSound.soundOn.value, isTrue);
+    });
+
+    testWidgets('an answer without settings is a refusal, not offline', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('PUT /api/children/child-1/settings', const [
+        'not',
+        'settings',
+      ]);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.tap(inCard('child-1', 'Read aloud'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text("That didn't save. Please change it again."),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Not saved. Check the internet, then change it again.'),
+        findsNothing,
+      );
+    });
+
     testWidgets('offline, a change goes back and says so', (tester) async {
       final g = await Gu.make(tester);
       g.server.routes['PUT /api/children/child-1/settings'] = (_) =>

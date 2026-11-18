@@ -9,6 +9,7 @@ import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/child_home/views/choose_today_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../helpers/app_harness.dart';
 import '../child_home/child_routes_test.dart' show settle;
@@ -142,6 +143,26 @@ void main() {
       expect(find.text("That's today's time!"), findsNothing);
     });
 
+    testWidgets('the next case in a sitting keeps the cap the sitting '
+        'opened with, so the session cap is not given again', (tester) async {
+      final (deps, _, _) = await boot(
+        tester,
+        serve: (s) => s.on('GET /api/children/child-1/settings', {
+          ...settingsJson(),
+          'today': day(leftMs: 7 * minute),
+        }),
+      );
+      final cap = deps.sitting.capMs;
+      expect(deps.sessions.sittingOpen(deps.account.childId), isTrue);
+      // five minutes on, the child goes on to the next case
+      deps.sitting.activeMs = deps.sitting.activeMs + 5 * minute;
+      GoRouter.of(
+        tester.element(find.byType(Scaffold).first),
+      ).go(Paths.lesson('shorter'));
+      await settle(tester);
+      expect(deps.sitting.capMs, cap);
+    });
+
     testWidgets('what is left of the day, read before the lesson opens', (
       tester,
     ) async {
@@ -199,6 +220,30 @@ void main() {
         }),
       );
       expect(find.text("That's today's time!"), findsOneWidget);
+    });
+
+    testWidgets('a server that never answers holds Choose today for a '
+        'moment only', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final (deps, server) =
+          await tester.runAsync(
+            () => testDeps(
+              stored: pairedChildPhone,
+              flags: {...allScreensOn, 'quick_sums': true},
+            ),
+          ) ??
+          (throw StateError('no deps'));
+      server.silent.add('GET /api/children/child-1/settings');
+      await tester.pumpWidget(
+        AuraApp(deps: deps, initialLocation: Paths.chooseToday),
+      );
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pump();
+      expect(find.byType(ChooseTodayScreen), findsOneWidget);
+      // the request's own timeout runs out behind it
+      await tester.pump(const Duration(seconds: 15));
     });
 
     testWidgets('time left: Choose today as before', (tester) async {
