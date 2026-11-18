@@ -74,18 +74,35 @@ void main() {
     await shots(tester, 'child_home_path', screen(name: 'Aarav'));
   });
 
-  testWidgets('his look at Sapling Row; Seedling Path explored, Orchard Gate '
-      'next, the rest in mist; one teaser; no number', (tester) async {
+  testWidgets('section 15: his level is one land, Sapling Row, his look at '
+      'its way in, the last land\'s peak below with a flag, the next stop, '
+      'its peak, then mist; no number', (tester) async {
     final handle = tester.ensureSemantics();
     await show(tester, screen(name: 'Aarav'));
-    expect(find.text('The Orchard'), findsOneWidget);
+    // the header: his land and his trail (the level number switch is off)
+    expect(find.text('Sapling Row'), findsOneWidget);
     expect(find.text("Aarav's trail"), findsOneWidget);
-    expect(find.bySemanticsLabel('Seedling Path, Explored'), findsOneWidget);
+    expect(find.bySemanticsLabel('The peak, Explored'), findsOneWidget);
     expect(find.bySemanticsLabel('Sapling Row, You are here'), findsOneWidget);
-    expect(find.bySemanticsLabel('Orchard Gate, Next stop'), findsOneWidget);
+    expect(find.bySemanticsLabel('Next stop'), findsOneWidget);
+    expect(find.bySemanticsLabel('The peak'), findsOneWidget);
     expect(find.bySemanticsLabel('Still in the mist'), findsOneWidget);
+    // five stops in the land and the last land's peak; the stops ahead
+    // have no sign and nothing to tap
+    for (final j in [0, 1, 2, 5]) {
+      expect(find.byKey(Key('stop$j')), findsOneWidget, reason: 'stop$j');
+    }
+    for (final j in [3, 4, 6]) {
+      expect(find.byKey(Key('stop$j')), findsNothing, reason: 'stop$j');
+    }
     // nothing named in the mist, and the next land unnamed
-    for (final hidden in ['Old Oak Bridge', 'Twisty Tree', 'Harbour Scales']) {
+    for (final hidden in [
+      'Seedling Path',
+      'Orchard Gate',
+      'Old Oak Bridge',
+      'Twisty Tree',
+      'Harbour Scales',
+    ]) {
       expect(find.bySemanticsLabel(RegExp(hidden)), findsNothing);
       expect(find.textContaining(hidden), findsNothing);
     }
@@ -94,8 +111,8 @@ void main() {
     // REW-03: no counts, levels or percentages, on screen or read out
     expect(find.textContaining(RegExp(r'\d')), findsNothing);
     expect(find.bySemanticsLabel(RegExp(r'\d')), findsNothing);
-    // the first three stops have no Look back below them
-    expect(find.byKey(const Key('lookBack')), findsNothing);
+    // Look back opens the first land below
+    expect(find.byKey(const Key('lookBack')), findsOneWidget);
     handle.dispose();
   });
 
@@ -172,7 +189,7 @@ void main() {
       expect(sfx.played, [Sfx.snap]);
       // idle: it bobs up to 5 pt, every 2.2 s
       await tester.pump(const Duration(milliseconds: 1100));
-      expect(centre().dy, closeTo(to.dy - 52, 1), reason: 'shadow stays');
+      expect(centre().dy, closeTo(to.dy - 52, 2), reason: 'shadow stays');
 
       // the next time the trail opens, the child is already there
       await tester.pumpWidget(const SizedBox());
@@ -205,43 +222,90 @@ void main() {
     });
   });
 
-  testWidgets('far along: Look back shows the older stops', (tester) async {
-    final long = Rewards({
-      'trail': {
-        'lands': [
-          {
-            'landId': 'orchard',
-            'name': 'The Orchard',
-            'current': true,
-            'stops': [
-              for (final (i, n) in [
-                'Seedling Path',
-                'Sapling Row',
-                'Orchard Gate',
-                'Old Oak Bridge',
-                'Twisty Tree',
-                'Sunny Meadow',
-              ].indexed)
-                {
-                  'stopId': 'stop.orchard.$i',
-                  'name': n,
-                  'state': i < 5 ? 'earned' : 'current',
-                },
-            ],
-          },
-        ],
-      },
-    }).lands!;
+  List<PathLand> orchard(List<String> states) => Rewards({
+    'trail': {
+      'lands': [
+        {
+          'landId': 'orchard',
+          'name': 'The Orchard',
+          'current': true,
+          'stops': [
+            for (final (i, n) in [
+              'Seedling Path',
+              'Sapling Row',
+              'Orchard Gate',
+              'Old Oak Bridge',
+              'Twisty Tree',
+            ].indexed)
+              {
+                'stopId': 'stop.orchard.l${i + 1}',
+                'name': n,
+                'state': states[i],
+              },
+          ],
+        },
+      ],
+    },
+  }).lands!;
+
+  testWidgets('far along: Look back shows the land before, walked, with its '
+      'medal on its peak', (tester) async {
     final handle = tester.ensureSemantics();
-    await show(tester, PathScreen(lands: long, lookId: 'look_01'));
-    expect(find.bySemanticsLabel('Seedling Path, Earned'), findsNothing);
-    expect(find.bySemanticsLabel('Sapling Row, Earned'), findsNothing);
-    expect(find.bySemanticsLabel('Orchard Gate, Earned'), findsOneWidget);
-    expect(find.bySemanticsLabel('Sunny Meadow, You are here'), findsOneWidget);
+    await show(
+      tester,
+      PathScreen(
+        lands: orchard(['earned', 'earned', 'current', 'mist', 'mist']),
+        lookId: 'look_01',
+      ),
+    );
+    expect(find.text('Orchard Gate'), findsOneWidget);
+    expect(find.bySemanticsLabel('Orchard Gate, You are here'), findsOneWidget);
+    expect(find.bySemanticsLabel('The peak, Earned'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Sapling Row')), findsNothing);
     await tester.ensureVisible(find.byKey(const Key('lookBack')));
     await tapAndSettle(tester, find.byKey(const Key('lookBack')));
-    expect(find.bySemanticsLabel('Seedling Path, Earned'), findsOneWidget);
+    // Sapling Row's land: its way in named, its peak with its medal
+    expect(find.bySemanticsLabel('Sapling Row'), findsOneWidget);
+    expect(find.bySemanticsLabel('The peak, Earned'), findsNWidgets(2));
+    expect(find.byKey(const Key('lookBack')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('lookBack')));
+    await tapAndSettle(tester, find.byKey(const Key('lookBack')));
+    expect(find.bySemanticsLabel('Seedling Path'), findsOneWidget);
     expect(find.byKey(const Key('lookBack')), findsNothing);
+    handle.dispose();
+  });
+
+  testWidgets('a child placed at a higher level: the lands before show as '
+      'explored, a flag on the peak and no medal', (tester) async {
+    final handle = tester.ensureSemantics();
+    await show(
+      tester,
+      PathScreen(
+        lands: orchard(['explored', 'explored', 'explored', 'current', 'mist']),
+        lookId: 'look_01',
+      ),
+    );
+    expect(find.bySemanticsLabel('The peak, Explored'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Earned')), findsNothing);
+    handle.dispose();
+  });
+
+  testWidgets('the end of v1: every land climbed, the child on the top of '
+      'Twisty Tree, no fog and nothing promised', (tester) async {
+    final handle = tester.ensureSemantics();
+    final top = PathScreen(
+      lands: orchard(['earned', 'earned', 'earned', 'earned', 'earned']),
+      lookId: 'look_01',
+      childName: 'Aarav',
+    );
+    await shots(tester, 'child_home_path_top', top);
+    await show(tester, top);
+    expect(find.text('Twisty Tree'), findsOneWidget);
+    expect(find.bySemanticsLabel('The top, You are here'), findsOneWidget);
+    expect(find.bySemanticsLabel('Still in the mist'), findsNothing);
+    expect(find.bySemanticsLabel('Next stop'), findsNothing);
+    expect(find.bySemanticsLabel('The peak'), findsNothing);
+    expect(find.textContaining(RegExp(r'\d')), findsNothing);
     handle.dispose();
   });
 }

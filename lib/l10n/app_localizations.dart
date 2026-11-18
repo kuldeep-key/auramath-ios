@@ -2812,7 +2812,7 @@ abstract class AppLocalizations {
   /// **'Burger cases'**
   String get kidStopTotalAndDifference;
 
-  /// No description provided for @kidReachedTop.
+  /// DRAFT (Figma section 15 LevelUp, 17 Nov): the heading of the peak moment for the last level. Nothing after it is promised.
   ///
   /// In en, this message translates to:
   /// **'You reached the top!'**
@@ -4935,6 +4935,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get kidBack;
+
+  /// DRAFT (Figma section 15, 17 Nov): the sign at a land's last stop, its peak with the summit flag (or its medal once the level is passed). Never a number.
+  ///
+  /// In en, this message translates to:
+  /// **'The peak'**
+  String get kidThePeak;
+
+  /// DRAFT (Figma section 15, 17 Nov): the sign where the child stands once every land is climbed (the last level's peak). Nothing is promised after it.
+  ///
+  /// In en, this message translates to:
+  /// **'The top'**
+  String get kidTheTop;
+
+  /// DRAFT (Figma section 15 LevelUp, 17 Nov): the heading of the peak moment when the child passes a level. Replaces 'A new medal!'. No level number (REW-03).
+  ///
+  /// In en, this message translates to:
+  /// **'You reached the peak!'**
+  String get kidReachedPeak;
+
+  /// DRAFT (Figma section 15 LevelUp, 17 Nov): the line under the peak moment, naming the next level's land. The Figma line with the level number switch off ('Level 3 opens: ...' is not used: no level on the child's side, REW-03).
+  ///
+  /// In en, this message translates to:
+  /// **'A new land opens: {name}.'**
+  String kidNewLandOpens(String name);
+
+  /// DRAFT (Figma section 15 LevelUp, 17 Nov): the line under the last peak, e.g. 'You climbed every land in the Orchard!'. path is the trail's name.
+  ///
+  /// In en, this message translates to:
+  /// **'You climbed every land in {path}!'**
+  String kidClimbedEveryLand(String path);
 }
 
 class _AppLocalizationsDelegate

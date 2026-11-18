@@ -18,13 +18,18 @@ import 'orchard/mini_svg.dart';
 import 'orchard/orchard_kit.dart';
 import 'play_icon_button.dart';
 
-/// The trail drawn as a path (JRN-03, REW-04): the prototype's endless
-/// Orchard path (K2, 16 Nov). One drawn country edge to edge, a land per
-/// stop (orchard_kit), from the server's `trail.lands`: the stops behind
-/// the child (explored, or with a medal when earned), the child's look
-/// standing at their stop, the next stop clear, and then fog with one
-/// glimpse of the next land in it. No other land, and never a number
-/// about the child (REW-03). It scrolls, so nothing clips (NFR-04).
+/// The trail drawn as a path (JRN-03, REW-04), as Figma section 15
+/// (17 Nov, "Levels are finite"): one level is one land of five stops,
+/// the fifth its peak. From the server's `trail.lands` (a stop per level)
+/// the screen draws the child's level as its land (orchard_kit): the last
+/// land's peak below (its medal, or a flag when the child was placed
+/// past it), the way in, the child's look at the land's first stop, the
+/// next stop, the stops ahead and the peak with its summit flag; then fog
+/// with one glimpse of the next land. After the last level's peak the
+/// path ends at the top under open sky and nothing more is promised.
+/// Never a level number or count on the child's side (REW-03; Figma's
+/// `level_numbers` switch stays off). It scrolls, so nothing clips
+/// (NFR-04).
 ///
 /// When the child has moved on since they last looked, their look walks
 /// up the path from the stop before (500 ms wait, 2.2 s, hopping) and the
@@ -141,11 +146,9 @@ class _PathScreenState extends State<PathScreen>
       return y;
     }
 
+    // after Look back: the older land's peak and the way in above it
     final y = _lookBack
-        ? pos.maxScrollExtent +
-              view -
-              math.min(4, st.here - 3 - st.lo) * opSTEP * k -
-              view * 1.1
+        ? pos.maxScrollExtent - (stopsPerLand - 2) * opSTEP * k
         : here();
     _lookBack = false;
     _scroll.jumpTo(y.clamp(0, pos.maxScrollExtent));
@@ -153,7 +156,7 @@ class _PathScreenState extends State<PathScreen>
 
   void _onLookBack() {
     setState(() {
-      _back += 4;
+      _back += 1;
       _lookBack = true;
       _fresh = false;
       _s = _Stretch.of(widget.lands, _back)
@@ -204,40 +207,43 @@ class _PathScreenState extends State<PathScreen>
                           ),
                           // the stops: tap to hear the name
                           for (var j = 0; j < s.stops.length; j++)
-                            Positioned(
-                              left: (scene.geom.P[j][0] - 50) * k,
-                              top: (scene.geom.P[j][1] - 30) * k,
-                              width: 100 * k,
-                              height: 60 * k,
-                              child: Semantics(
-                                button: true,
-                                label: [
-                                  s.stops[j].name,
-                                  ?s.tag(l, j),
-                                ].join(', '),
-                                excludeSemantics: true,
-                                child: GestureDetector(
-                                  key: Key('stop$j'),
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () {
-                                    AuraHaptics.tap();
-                                    say?.call('${s.stops[j].name}.');
-                                  },
+                            if (s.stops[j].name.isNotEmpty)
+                              Positioned(
+                                left: (scene.geom.P[j][0] - 50) * k,
+                                top: (scene.geom.P[j][1] - 30) * k,
+                                width: 100 * k,
+                                height: 60 * k,
+                                child: Semantics(
+                                  button: true,
+                                  label: [
+                                    s.stops[j].name,
+                                    ?s.tag(l, j),
+                                  ].join(', '),
+                                  excludeSemantics: true,
+                                  child: GestureDetector(
+                                    key: Key('stop$j'),
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      AuraHaptics.tap();
+                                      say?.call('${s.stops[j].name}.');
+                                    },
+                                  ),
                                 ),
                               ),
-                            ),
                           // the fog and the next land's glimpse: nothing named
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            height:
-                                math.max(46.0, scene.geom.P.last[1] - 118) * k,
-                            child: Semantics(
-                              label: l.kidTrailMist,
-                              child: const SizedBox.expand(),
+                          if (!s.top)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              top: 0,
+                              height:
+                                  math.max(46.0, scene.geom.P.last[1] - 118) *
+                                  k,
+                              child: Semantics(
+                                label: l.kidTrailMist,
+                                child: const SizedBox.expand(),
+                              ),
                             ),
-                          ),
                           if (s.lo > 0)
                             Positioned(
                               left: (_lookBackX(scene) - 78) * k,
@@ -400,76 +406,130 @@ class _PathScreenState extends State<PathScreen>
   );
 }
 
-/// The stretch of the trail on the map: from three stops behind the child
-/// (more after Look back) to the next stop.
+/// The stretch of the trail on the map (Figma section 15): the child's
+/// level as one land of [stopsPerLand] stops, with the last land's peak
+/// below it (and one more land for each Look back). Stop `g` of the
+/// whole path is stop `g % stopsPerLand` of level `g ~/ stopsPerLand`.
 class _Stretch {
-  _Stretch._(this.landId, this.landName, this.all, this.lo, this.here, this.hi);
+  _Stretch._(
+    this.landId,
+    this.pathName,
+    this.levels,
+    this.level,
+    this.top,
+    this.lo,
+    this.here,
+    this.hi,
+  );
 
   factory _Stretch.of(List<PathLand> lands, int back) {
     final land =
         lands.where((x) => x.current).firstOrNull ??
         lands.where((x) => !x.teaser).firstOrNull;
-    final all = land?.stops ?? const <PathStop>[];
-    var here = all.indexWhere((s) => s.state == 'current');
-    if (here < 0) {
-      // no current stop: stand at the last one walked
-      here = all.lastIndexWhere(
+    final levels = land?.stops ?? const <PathStop>[];
+    var level = levels.indexWhere((s) => s.state == 'current');
+    var top = false;
+    if (level < 0) {
+      // no current level: past the last one passed, or at the top
+      final passed = levels.lastIndexWhere(
         (s) => s.state == 'earned' || s.state == 'explored',
       );
-      if (here < 0) here = 0;
+      top = passed >= 0 && passed == levels.length - 1;
+      level = passed < 0 ? 0 : (top ? passed : passed + 1);
     }
-    final hi = here + 1 < all.length && all[here + 1].state != 'mist'
-        ? here + 1
-        : here;
-    final lo = math.max(0, here - 3 - back);
+    final first = level * stopsPerLand;
     return _Stretch._(
       land?.landId ?? '',
       land?.name ?? '',
-      all,
-      lo,
-      here,
-      all.isEmpty ? -1 : hi,
+      levels,
+      level,
+      top,
+      math.max(0, first - 1 - back * stopsPerLand),
+      // the server doesn't say how far into a level the child is yet, so
+      // they stand at its way in (or on the top once every land is done)
+      top ? first + stopsPerLand - 1 : first,
+      levels.isEmpty ? -1 : first + stopsPerLand - 1,
     );
   }
 
   final String landId;
-  final String landName;
-  final List<PathStop> all;
+
+  /// The whole path's name ("The Orchard").
+  final String pathName;
+  final List<PathStop> levels;
+
+  /// The child's level: the land drawn.
+  final int level;
+
+  /// Every land climbed: the child on the last peak, no fog.
+  final bool top;
   final int lo;
   final int here;
   final int hi;
 
+  /// The title: the child's land ("Orchard Gate").
+  String get landName => level < levels.length ? levels[level].name : '';
+
   int get j => here - lo;
-  String? get hereStopId => here < all.length ? all[here].stopId : null;
+  String? get hereStopId => level < levels.length
+      ? '${levels[level].stopId}${top ? ':top' : ''}'
+      : null;
 
   List<OrchardStop> stops = const [];
   OrchardScene? scene;
   MiniSvg? svg;
 
-  String? tag(AppLocalizations l, int j) => switch (stops[j].state) {
-    'earned' => l.kidTrailEarned,
-    'explored' => l.kidTrailExplored,
-    'here' => l.kidYouAreHere,
-    'next' => l.kidNextStop,
-    _ => null,
-  };
+  String? tag(AppLocalizations l, int j) {
+    final t = switch (stops[j].state) {
+      'earned' || 'peakEarned' => l.kidTrailEarned,
+      'explored' || 'peakExplored' => l.kidTrailExplored,
+      'here' => l.kidYouAreHere,
+      'next' => l.kidNextStop,
+      _ => null,
+    };
+    return t == stops[j].name ? null : t;
+  }
+
+  /// Stop [g] of the path, as drawn.
+  OrchardStop _stop(AppLocalizations l, int g) {
+    final lv = g ~/ stopsPerLand, k = g % stopsPerLand;
+    final name = lv < levels.length ? levels[lv].name : '';
+    final peak = k == stopsPerLand - 1;
+    if (lv < level || (top && !peak)) {
+      // a land behind the child: walked, its peak with the land's medal,
+      // or a flag where the child was placed past it
+      final past = levels[lv].state == 'explored';
+      if (peak) {
+        return OrchardStop(
+          l.kidThePeak,
+          past ? 'peakExplored' : 'peakEarned',
+          sub: '',
+        );
+      }
+      return k == 0
+          ? OrchardStop(name, past ? 'explored' : 'walked', sub: '')
+          : const OrchardStop('', 'walked');
+    }
+    if (top) return OrchardStop(l.kidTheTop, 'here', sub: '');
+    return switch (k) {
+      0 => OrchardStop(name, 'here'),
+      1 => OrchardStop(l.kidNextStop, 'next', sub: ''),
+      _ when peak => OrchardStop(l.kidThePeak, 'peak', sub: ''),
+      _ => const OrchardStop('', 'ahead'),
+    };
+  }
 
   void build(AppLocalizations l) {
     if (scene != null || hi < lo) return;
-    stops = [
-      for (var i = lo; i <= hi; i++)
-        OrchardStop(all[i].name, switch (all[i].state) {
-          'current' => 'here',
-          'earned' => 'earned',
-          'explored' => 'explored',
-          _ => i < here ? 'explored' : 'next',
-        }),
-    ];
+    stops = [for (var g = lo; g <= hi; g++) _stop(l, g)];
     scene = orchardSVG(
       lo: lo,
       here: here,
       stops: stops,
       bloom: PathScreen.bloom,
+      landAt: olandInLevel,
+      wayIn: wayInBelow,
+      top: top,
       words: OrchardWords(
         explored: l.kidTrailExplored,
         here: l.kidYouAreHere,
