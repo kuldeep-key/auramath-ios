@@ -544,6 +544,36 @@ void main() {
       expect(find.text('Saved'), findsNothing);
     });
 
+    testWidgets('opened offline, it shows the settings this phone kept '
+        '(PAR-05)', (tester) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      // the server goes away; Settings is opened again
+      g.server.routes['GET /api/children'] = (_) =>
+          throw const SocketException('offline');
+      g.server.routes['GET /api/children/child-2/settings'] = (_) =>
+          throw const SocketException('offline');
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.textContaining("Can't reach the server"), findsNothing);
+      expect(find.text('AARAV'), findsOneWidget);
+      expect(find.text('MAYA'), findsOneWidget);
+      expect(inCard('child-1', '15 min'), findsOneWidget);
+      expect(inCard('child-2', 'No limit'), findsOneWidget);
+    });
+
+    testWidgets('opened offline with nothing kept, it says so with Try '
+        'again', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.routes['GET /api/children'] = (_) =>
+          throw const SocketException('offline');
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.text('Try again'), findsOneWidget);
+    });
+
     testWidgets('a refused change goes back too', (tester) async {
       final g = await Gu.make(tester);
       g.server.on('PUT /api/children/child-1/settings', {

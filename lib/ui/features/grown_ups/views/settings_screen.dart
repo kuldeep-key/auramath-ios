@@ -17,8 +17,8 @@ import '../../../core/parts/choice_tile.dart';
 import 'parts.dart';
 import 'report_email_card.dart';
 
-/// What Settings shows: each child with their settings from the server,
-/// and this phone's own.
+/// What Settings shows: each child with their settings from the server
+/// (offline, what this phone kept), and this phone's own.
 typedef _SettingsData = ({
   List<(Child, ChildSettings?)> children,
   LessonPrefs prefs,
@@ -45,7 +45,19 @@ class SettingsScreen extends StatelessWidget {
   final ChildSettingsRepository settings;
 
   Future<_SettingsData> _load() async {
-    final kids = await family.children();
+    List<Child> kids;
+    try {
+      kids = await family.children();
+      await settings.rememberChildren([
+        for (final c in kids) (id: c.id, name: c.name),
+      ]);
+    } on ApiException catch (e) {
+      // offline: the children this phone last showed, with their kept
+      // settings (a change then says it can't be saved)
+      final kept = e.offline ? await settings.cachedChildren() : const [];
+      if (kept.isEmpty) rethrow;
+      kids = [for (final k in kept) Child(id: k.id, name: k.name)];
+    }
     final out = <(Child, ChildSettings?)>[];
     for (final c in kids) {
       // the list of children carries them; an older server: ask, else

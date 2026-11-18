@@ -52,6 +52,34 @@ class ChildSettingsRepository {
   Future<void> remember(ChildSettings s) =>
       _store.write(_key(s.childId), jsonEncode(s.toJson()));
 
+  static const _childrenKey = 'childSettings.children';
+
+  /// Keeps the children Settings last showed (ids and first names only),
+  /// so Settings can show their kept settings when the server can't be
+  /// reached.
+  Future<void> rememberChildren(List<({String id, String name})> kids) =>
+      _store.write(
+        _childrenKey,
+        jsonEncode([
+          for (final k in kids) {'id': k.id, 'name': k.name},
+        ]),
+      );
+
+  /// The children Settings last showed on this phone; empty when none.
+  Future<List<({String id, String name})>> cachedChildren() async {
+    final raw = await _store.read(_childrenKey);
+    if (raw == null) return const [];
+    try {
+      return [
+        for (final k in (jsonDecode(raw) as List).whereType<Map>())
+          if (k['id'] is String && k['name'] is String)
+            (id: k['id'] as String, name: k['name'] as String),
+      ];
+    } on FormatException {
+      return const [];
+    }
+  }
+
   /// `PUT /api/children/{id}/settings`, the parent's token only: only the
   /// fields given change. [dailyLimitMinutes] null is no limit;
   /// [readAloud] null is back to the default.
