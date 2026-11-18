@@ -43,10 +43,9 @@ void main() {
     AuraSound.player = const SilentSfxPlayer();
   });
 
-  testWidgets('3, 2, 1, Go! 700 ms a beat, the first sum at 2.8 s; a right '
-      'answer surges the meter and plays SFX.right; the end is Warmed up!', (
-    tester,
-  ) async {
+  testWidgets('no countdown: the first sum shows at once (SES-02); a right '
+      'answer plays SFX.right and nothing is counted on screen (LES-16); '
+      'the end is Warmed up!', (tester) async {
     if (_shots) await tester.runAsync(loadAppFonts);
     tester.view.physicalSize = const Size(369, 828);
     tester.view.devicePixelRatio = 1;
@@ -67,22 +66,16 @@ void main() {
       ),
     );
     await tester.pump();
-    String count() =>
-        tester.widget<Text>(find.byKey(const Key('quickCount'))).data!;
-    expect(count(), '3');
-    await tester.pump(const Duration(milliseconds: 350));
-    await _save(tester, 'QSgo');
-    await tester.pump(const Duration(milliseconds: 350));
-    expect(count(), '2');
-    await tester.pump(const Duration(milliseconds: 700));
-    expect(count(), '1');
-    await tester.pump(const Duration(milliseconds: 700));
-    expect(count(), 'Go!');
-    expect(find.byKey(const Key('quickSum')), findsNothing);
-    await tester.pump(const Duration(milliseconds: 700));
-    await tester.pump();
     expect(find.byKey(const Key('quickCount')), findsNothing);
     expect(find.byKey(const Key('quickSum')), findsOneWidget);
+    for (final n in ['3', '2', '1', 'Go!']) {
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Text && w.data == n && (w.style?.fontSize ?? 0) > 60,
+        ),
+        findsNothing,
+      );
+    }
     // the card flies in over 260 ms
     await tester.pump(const Duration(milliseconds: 300));
     await _save(tester, 'QS2');
@@ -98,21 +91,11 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 20));
       });
       await tester.pump(const Duration(milliseconds: 400));
-      if (i == 1) {
-        // the second right answer reaches the first mark
-        expect(find.text('⚡ Charged up!'), findsOneWidget);
-        // the new card and the toast start on this frame: 300 ms on, the
-        // card has landed and the toast holds
-        await tester.pump(const Duration(milliseconds: 300));
-        expect(
-          tester.getSize(find.byKey(const Key('quickSum'))).height,
-          greaterThan(40),
-        );
-        await _save(tester, 'QS2-surge');
-      }
+      // nothing counted: no meter mark, no tier toast
+      expect(find.textContaining('Charged up'), findsNothing);
+      expect(find.textContaining('On fire'), findsNothing);
     }
     expect(rec.played.where((s) => s == Sfx.right), hasLength(5));
-    expect(rec.played, contains(Sfx.win));
     await tester.pump(const Duration(milliseconds: 1500));
     expect(find.text('Warmed up!'), findsOneWidget);
     expect(rec.played.last, Sfx.badge);
