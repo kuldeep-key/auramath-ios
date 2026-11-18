@@ -17,7 +17,8 @@ import 'reward_moments.dart';
 /// the event log, drawn with the lesson board's own bars), "Case cracked!"
 /// and the case's sticker with the badges it holds: its session's badge
 /// and any big badge earned in it (REW-12 opens a badge's case here).
-/// The drawing's own numbers only; nothing counted about the child.
+/// The drawing's own numbers only, with the story's names and units when
+/// the server sends the case's bar model; nothing counted about the child.
 class CaseScreen extends StatelessWidget {
   const CaseScreen({
     super.key,
@@ -78,7 +79,12 @@ class CaseScreen extends StatelessWidget {
                     ],
                   ),
                   if (view.drawing case final d?)
-                    CaseBoard(drawing: d)
+                    CaseBoard(
+                      drawing: d,
+                      bars: view.entry.bars,
+                      pictureOf: (label) =>
+                          StickerArt.knownPicture(label, pictures),
+                    )
                   else
                     Text(
                       l.kidCaseInYourHead,

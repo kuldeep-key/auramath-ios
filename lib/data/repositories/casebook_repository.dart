@@ -4,16 +4,55 @@ import '../services/api_client.dart';
 
 /// A case's story sticker (REW-15, catalogue `story_stickers`): one per
 /// story object ("lemon tree"); two stories with one object share it.
-typedef CaseSticker = ({String stickerId, String object});
+/// [subject] is the story's kind of thing (`tree`, `building`, `animal`,
+/// ...), else its quantity (`cost`, `length`), else `story`; null from an
+/// older server. The app maps it to a picture.
+typedef CaseSticker = ({String stickerId, String object, String? subject});
+
+/// The case's story from the problem bank (`CasebookCase.story`): the two
+/// things' names ([a], [b]), the kind, the unit and the quantity. Null for
+/// a generated story, which has no names. Only the bank's words.
+typedef CaseStory = ({
+  String storyId,
+  String? a,
+  String? b,
+  String kind,
+  String? unit,
+  String? quantity,
+});
+
+/// A number in the bar model: [given] in the story, else found by the
+/// child.
+typedef BarNumber = ({int value, bool given});
+
+/// One bar of the case's model (`CasebookBar`): the thing's name from the
+/// bank (null for a generated story) and its number.
+typedef CaseBar = ({String? label, int value, bool given});
+
+/// The case's bar model with its numbers (`CasebookCase.bars`): [barA] the
+/// story's first thing, [barB] the second, [gap] the difference and
+/// [acrossBoth] the two together (null at a one-step level).
+typedef CaseBars = ({
+  String relation,
+  String? unit,
+  CaseBar barA,
+  CaseBar barB,
+  BarNumber gap,
+  BarNumber? acrossBoth,
+});
 
 /// One solved case in the casebook (`CasebookCase`): [name] is the
 /// problem's plain name (TUT-12), [solvedAt] the phone's clock, epoch ms.
+/// [story] and [bars] are null from an older server, [story] also for a
+/// generated story and [bars] when the numbers are not in the log.
 typedef CasebookCase = ({
   String problemId,
   String sessionId,
   String? name,
   CaseSticker sticker,
   int solvedAt,
+  CaseStory? story,
+  CaseBars? bars,
 });
 
 /// One day of the casebook, in the family's home time zone: that day's
@@ -54,6 +93,12 @@ typedef CaseView = ({
 /// GET /api/children/{childId}/casebook
 ///   {"world", "days": [{"date", "sessionBadges": [Badge],
 ///                       "cases": [CasebookCase]}] | null}
+/// CasebookCase: {"problemId", "sessionId", "name", "solvedAt",
+///   "sticker": {"stickerId", "object", "subject"},
+///   "story": {"storyId", "a", "b", "kind", "unit", "quantity"} | null,
+///   "bars": {"relation", "unit", "barA": {"label", "value", "given"},
+///            "barB": {...}, "gap": {"value", "given"},
+///            "acrossBoth": {"value", "given"} | null} | null}
 /// GET /api/children/{childId}/casebook/cases/{problemId}
 ///   {...CasebookCase, "date", "drawing": {"barA", "barB",
 ///    "pieces": [{"object", "target", "value"}]} | null,
@@ -127,8 +172,55 @@ class CasebookRepository {
             ? s['stickerId'] as String
             : 'sticker.story',
         object: object,
+        subject: s is Map && s['subject'] is String
+            ? s['subject'] as String
+            : null,
       ),
       solvedAt: (j['solvedAt'] as num?)?.toInt() ?? 0,
+      story: storyFrom(j['story']),
+      bars: barsFrom(j['bars']),
+    );
+  }
+
+  static String? _str(Object? v) => v is String && v.isNotEmpty ? v : null;
+
+  static CaseStory? storyFrom(Object? j) {
+    if (j is! Map) return null;
+    return (
+      storyId: _str(j['storyId']) ?? '',
+      a: _str(j['a']),
+      b: _str(j['b']),
+      kind: _str(j['kind']) ?? 'story',
+      unit: _str(j['unit']),
+      quantity: _str(j['quantity']),
+    );
+  }
+
+  static BarNumber? _number(Object? j) => j is Map && j['value'] is num
+      ? (value: (j['value'] as num).toInt(), given: j['given'] == true)
+      : null;
+
+  static CaseBar? _bar(Object? j) => switch (_number(j)) {
+    final n? => (
+      label: _str((j! as Map)['label']),
+      value: n.value,
+      given: n.given,
+    ),
+    null => null,
+  };
+
+  /// The bar model; null when it or any of its bars or the gap is missing.
+  static CaseBars? barsFrom(Object? j) {
+    if (j is! Map) return null;
+    final (a, b, gap) = (_bar(j['barA']), _bar(j['barB']), _number(j['gap']));
+    if (a == null || b == null || gap == null) return null;
+    return (
+      relation: _str(j['relation']) ?? 'more',
+      unit: _str(j['unit']),
+      barA: a,
+      barB: b,
+      gap: gap,
+      acrossBoth: _number(j['acrossBoth']),
     );
   }
 
