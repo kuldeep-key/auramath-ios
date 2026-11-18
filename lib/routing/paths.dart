@@ -104,6 +104,10 @@ abstract final class Paths {
 
   /// How often the report email goes (PAR-06; no Figma frame yet).
   static const emailFrequency = '/grown-ups/settings/email';
+
+  /// Report a problem (PAR-13): Report 1046:7734, then ReportSent
+  /// 1046:7814 on the same screen.
+  static const reportProblem = '/grown-ups/settings/report';
   static const family = '/grown-ups/family'; // 652:213
   static const invite = '/grown-ups/family/invite'; // 652:251
   static const newCode = '/grown-ups/family/new-code'; // NewCode 653:89

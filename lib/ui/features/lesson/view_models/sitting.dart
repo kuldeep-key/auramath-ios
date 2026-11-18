@@ -35,10 +35,16 @@ class Sitting {
   /// Whose time this is: the child the lesson is for. [forChild] switches.
   String? child;
 
-  void useMinutes(int minutes) {
-    final ms = minutes * 60 * 1000;
+  /// The grown-up's time each day (PAR-05); null: no limit, so the cap.
+  void useMinutes(int? minutes) {
+    final ms = minutes == null ? maxCapMs : minutes * 60 * 1000;
     capMs = ms < maxCapMs ? ms : maxCapMs;
   }
+
+  /// SES-01: the server's cap for the lesson opening now (`dailyTime.
+  /// capMs`): the smaller of the session cap and what is left of the
+  /// child's day on every family phone. It runs from today's time so far.
+  void runFor(int ms) => capMs = activeMs + (ms < 0 ? 0 : ms);
 
   String _day = '';
   int _activeMs = 0;

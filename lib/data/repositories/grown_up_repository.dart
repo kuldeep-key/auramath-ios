@@ -8,7 +8,6 @@ import 'package:path_provider/path_provider.dart';
 import '../services/api.dart';
 import '../services/api_client.dart';
 import '../services/key_store.dart';
-import '../services/sound_effects.dart';
 import 'partner_intro_repository.dart';
 
 /// A lesson's drawing (PAR-09): the PNG, and what it shows in words.
@@ -236,38 +235,22 @@ class ExportJob {
   bool get done => status != 'pending';
 }
 
-/// This phone's lesson settings (Settings 652:75). Kept on the phone, not
-/// the account: a shared phone and a child's own phone can differ. The
-/// lesson reads them through [loadPrefs].
+/// This phone's own lesson setting (Settings 652:75): the bigger pad.
+/// The time per day and read-aloud are the child's, kept on the server so
+/// every family phone has them (PAR-05, ChildSettingsRepository).
 class LessonPrefs {
-  const LessonPrefs({
-    this.minutes = 15,
-    this.readAloud,
-    this.biggerPad = false,
-  });
-
-  static const minuteChoices = [10, 15, 20, 30];
-
-  final int minutes;
-
-  /// Null until the grown-up chooses: then it's on for the ages the flag
-  /// `read_aloud_default_on_ages` names (NFR-06).
-  final bool? readAloud;
+  const LessonPrefs({this.biggerPad = false});
 
   /// The lesson always uses the app's own pad (D-41); this makes its keys
   /// bigger still.
   final bool biggerPad;
 
-  LessonPrefs copyWith({int? minutes, bool? readAloud, bool? biggerPad}) =>
-      LessonPrefs(
-        minutes: minutes ?? this.minutes,
-        readAloud: readAloud ?? this.readAloud,
-        biggerPad: biggerPad ?? this.biggerPad,
-      );
+  LessonPrefs copyWith({bool? biggerPad}) =>
+      LessonPrefs(biggerPad: biggerPad ?? this.biggerPad);
 }
 
 /// The grown-up area's own calls: the family, phones, reports, the plan,
-/// the two rights, and this phone's lesson settings.
+/// the two rights, and this phone's bigger pad.
 class GrownUpRepository {
   GrownUpRepository(
     this._client,
@@ -451,31 +434,11 @@ class GrownUpRepository {
 
   // --------------------------------------------- this phone's lesson prefs
 
-  Future<LessonPrefs> loadPrefs() async {
-    const d = LessonPrefs();
-    final minutes = int.tryParse(await _store.read('lesson.minutes') ?? '');
-    Future<bool?> flag(String key) async => switch (await _store.read(key)) {
-      '1' => true,
-      '0' => false,
-      _ => null,
-    };
-    final readAloud = await flag('lesson.readAloud');
-    // the sound effects follow the grown-up's read-aloud, once it is set
-    if (readAloud != null) AuraSound.soundOn.value = readAloud;
-    return LessonPrefs(
-      minutes: minutes ?? d.minutes,
-      readAloud: readAloud,
-      biggerPad: await flag('lesson.biggerPad') ?? d.biggerPad,
-    );
-  }
+  Future<LessonPrefs> loadPrefs() async =>
+      LessonPrefs(biggerPad: await _store.read('lesson.biggerPad') == '1');
 
-  Future<void> savePrefs(LessonPrefs p) async {
-    String? b(bool? v) => v == null ? null : (v ? '1' : '0');
-    await _store.write('lesson.minutes', '${p.minutes}');
-    await _store.write('lesson.readAloud', b(p.readAloud));
-    await _store.write('lesson.biggerPad', b(p.biggerPad));
-    if (p.readAloud != null) AuraSound.soundOn.value = p.readAloud!;
-  }
+  Future<void> savePrefs(LessonPrefs p) =>
+      _store.write('lesson.biggerPad', p.biggerPad ? '1' : '0');
 
   // ---------------------------------------------- forgot the passcode
 

@@ -79,6 +79,10 @@ class _QuickSumsScreenState extends State<QuickSumsScreen> {
         if (vm.stage != QuickStage.loading) _right();
         _at = vm.at;
       }
+      if (vm.startError case final e? when e.timesUp) {
+        // SES-01: none of the child's time is left today: no sums open
+        return Scaffold(body: TimeUpView(onStop: widget.onHome));
+      }
       if (vm.startError case final e?) {
         return NeedInternetView(
           detail: e.offline ? null : e.message,

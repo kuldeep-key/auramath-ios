@@ -1,15 +1,28 @@
+import '../models/child_settings.dart';
 import '../models/lesson_event.dart';
 
 /// A call to the backend failed: offline, timed out, or a non-2xx answer.
 class ApiException implements Exception {
-  const ApiException(this.message, {this.status});
+  const ApiException(this.message, {this.status, this.body});
 
   final String message;
 
   /// The HTTP status, or null when the server couldn't be reached.
   final int? status;
 
+  /// The server's JSON answer with the error, when it sent one.
+  final Object? body;
+
   bool get offline => status == null;
+
+  /// SES-01: a new lesson's 409 `{timesUp: true, dailyTime}`: none of the
+  /// child's time is left today, on any family phone.
+  bool get timesUp =>
+      status == 409 && body is Map && (body! as Map)['timesUp'] == true;
+
+  /// What is left of the day, with a [timesUp] answer.
+  DailyTime? get dailyTime =>
+      body is Map ? dailyTimeFromJson((body! as Map)['dailyTime']) : null;
 
   @override
   String toString() => 'ApiException(${status ?? 'offline'}): $message';
@@ -205,13 +218,22 @@ typedef StartedSession = ({
   /// SES-07: back on a later day, as the server counts days; null on the
   /// same day, for a first lesson, or from an older server.
   WelcomeBack? welcomeBack,
+
+  /// SES-01: what is left of the child's day; this lesson's cap is its
+  /// `capMs`. Null from an older server.
+  DailyTime? dailyTime,
+
+  /// PAR-05: the time per day and read-aloud this lesson runs with.
+  ChildSettings? settings,
 });
 
 /// The lesson's calls to the backend. Throws [ApiException] on any failure.
 abstract interface class Api {
   /// `POST /api/sessions`: the server makes the session (online-first) and
   /// says which `child_ref` its events must carry, and the level of a
-  /// spaced check that is due (its first problem is at that level).
+  /// spaced check that is due (its first problem is at that level). Its
+  /// 409 with `timesUp` (SES-01) is an [ApiException] whose
+  /// [ApiException.timesUp] is true: no lesson opens today.
   Future<StartedSession> startSession({String? childId, required bool isDemo});
 
   /// `POST /api/sessions/{id}/problems/next`: the next problem at the

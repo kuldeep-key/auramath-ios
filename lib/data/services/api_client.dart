@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
+import '../models/child_settings.dart';
 import '../models/lesson_event.dart';
 import 'api.dart';
 
@@ -165,7 +166,7 @@ class ApiClient {
     final message = json is Map && json['error'] is String
         ? json['error']! as String
         : 'HTTP ${response.statusCode}';
-    throw ApiException(message, status: response.statusCode);
+    throw ApiException(message, status: response.statusCode, body: json);
   }
 
   void close() => _http.close();
@@ -204,6 +205,11 @@ class HttpApi implements Api {
       sittingId: json['sittingId'] as String?,
       todaySuggestion: todaySuggestionFromJson(json['todaySuggestion']),
       welcomeBack: welcomeBackFromJson(json['welcomeBack']),
+      dailyTime: dailyTimeFromJson(json['dailyTime']),
+      settings: ChildSettings.fromJson(
+        json['settings'],
+        childId: json['childId'] as String?,
+      ),
     );
   }
 

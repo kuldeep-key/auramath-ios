@@ -505,6 +505,18 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// The sitting reached its cap: show "That's today's time!".
   bool timeUp = false;
 
+  /// SES-01: none of the child's time is left today, on any family phone:
+  /// the server's 409 to a new lesson, or its day said so before the
+  /// lesson opened ([timesUpBeforeStart]). "That's today's time!" with no
+  /// lesson behind it.
+  bool get timesUpToday => _timesUpToday || (startError?.timesUp ?? false);
+  bool _timesUpToday = false;
+
+  void timesUpBeforeStart() {
+    _timesUpToday = true;
+    notifyListeners();
+  }
+
   /// Home was tapped mid-lesson: ask "Take a break?" first.
   bool askingBreak = false;
 

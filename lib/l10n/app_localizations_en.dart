@@ -2680,4 +2680,102 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lessonNeedInternetAsk =>
       'Ask your family to check the Wi-Fi. Then tap Check again.';
+
+  @override
+  String get guSetNoLimit => 'No limit';
+
+  @override
+  String get guSetThisPhone => 'This phone';
+
+  @override
+  String get guSetOffline =>
+      'Not saved. Check the internet, then change it again.';
+
+  @override
+  String get guSetNotSaved => 'That didn\'t save. Please change it again.';
+
+  @override
+  String get guSetCantRead =>
+      'These settings can\'t be read right now. Check the internet and come back.';
+
+  @override
+  String get reportProblemRow => 'Report a problem';
+
+  @override
+  String get reportProblemRowDetail => 'A lesson, a note or the app';
+
+  @override
+  String get reportTitle => 'Report a problem';
+
+  @override
+  String get reportIntro => 'A person on the Auramath team reads every report.';
+
+  @override
+  String get reportAbout => 'What is it about?';
+
+  @override
+  String get reportCaseLabel => 'A story problem';
+
+  @override
+  String reportCaseWhen(String child, String when) {
+    return '$child, $when';
+  }
+
+  @override
+  String get reportNoCases =>
+      'No lessons to pick from yet. Something else is always there.';
+
+  @override
+  String get reportSomethingElse => 'Something else';
+
+  @override
+  String get reportSomethingElseDetail => 'The app, a note or an email';
+
+  @override
+  String get reportWhatHappened => 'What happened?';
+
+  @override
+  String get reportNoteLabel => 'Your note (you can leave it out)';
+
+  @override
+  String get reportNoteHint => 'A sentence or two is plenty.';
+
+  @override
+  String get reportNoNames => 'Please don\'t include names.';
+
+  @override
+  String get reportSend => 'Send';
+
+  @override
+  String get reportOffline =>
+      'Not sent. Check the internet, then send it again. Your note is still here.';
+
+  @override
+  String get reportTooMany =>
+      'That\'s a lot of reports in one hour. Please send this one a little later. Your note is still here.';
+
+  @override
+  String get reportGone =>
+      'That lesson can\'t be found any more. Pick another, or Something else.';
+
+  @override
+  String get reportNotSent =>
+      'That couldn\'t be sent. Please check the note, then send it again.';
+
+  @override
+  String get reportThanksTitle => 'Thank you';
+
+  @override
+  String get reportThanksBody =>
+      'We have your report. A person at Key will look at it.';
+
+  @override
+  String get reportSentTitle => 'Sent';
+
+  @override
+  String get reportSentBody =>
+      'It goes into the team\'s weekly review of what the tutor wrote and said.';
+
+  @override
+  String get reportBackToFamily => 'Back to the Family area';
 }

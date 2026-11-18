@@ -40,6 +40,11 @@ class LessonFlow extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: vm,
     builder: (context, _) {
+      if (vm.timesUpToday) {
+        // SES-01: none of the child's time is left today, as the server
+        // counts it on every family phone; no lesson opens
+        return Scaffold(body: TimeUpView(onStop: onHome));
+      }
       if (vm.offerLeft case final left?) {
         return Scaffold(
           body: OfferLeftView(
