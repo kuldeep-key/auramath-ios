@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
+import '../models/child_settings.dart';
 import '../models/lesson_event.dart';
 import 'api.dart';
 
@@ -78,7 +79,7 @@ class ApiClient {
         await _http.send(request).timeout(timeout ?? this.timeout),
       );
     } on Exception catch (e) {
-      throw ApiException("Can't reach the server ($e)");
+      throw ApiException.unreachable(e);
     }
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return (bytes: response.bodyBytes, headers: response.headers);
@@ -145,7 +146,7 @@ class ApiClient {
       );
     } on Exception catch (e) {
       // socket, TLS, timeout: the server never answered
-      throw ApiException("Can't reach the server ($e)");
+      throw ApiException.unreachable(e);
     }
     onResponse?.call(response);
 
@@ -165,7 +166,7 @@ class ApiClient {
     final message = json is Map && json['error'] is String
         ? json['error']! as String
         : 'HTTP ${response.statusCode}';
-    throw ApiException(message, status: response.statusCode);
+    throw ApiException(message, status: response.statusCode, body: json);
   }
 
   void close() => _http.close();
@@ -204,6 +205,11 @@ class HttpApi implements Api {
       sittingId: json['sittingId'] as String?,
       todaySuggestion: todaySuggestionFromJson(json['todaySuggestion']),
       welcomeBack: welcomeBackFromJson(json['welcomeBack']),
+      dailyTime: dailyTimeFromJson(json['dailyTime']),
+      settings: ChildSettings.fromJson(
+        json['settings'],
+        childId: json['childId'] as String?,
+      ),
     );
   }
 

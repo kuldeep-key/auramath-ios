@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:auramath/data/repositories/recent_notes_repository.dart';
+import 'package:auramath/data/services/sound_effects.dart';
 import 'package:auramath/data/repositories/report_email_repository.dart';
 import 'package:auramath/routing/paths.dart';
 import 'package:auramath/ui/features/grown_ups/views/email_frequency_screen.dart';
@@ -403,6 +406,13 @@ void main() {
       family: g.deps.family,
       repo: g.repo,
       email: ReportEmailRepository(g.deps.client),
+      settings: g.settings,
+    );
+
+    /// The row [label] in [child]'s settings card.
+    Finder inCard(String childId, String label) => find.descendant(
+      of: find.byKey(ValueKey('settings-$childId')),
+      matching: find.text(label),
     );
 
     testWidgets('at every size, without Membership, plan or pad choice', (
@@ -414,34 +424,186 @@ void main() {
       expect(find.text("Aarav's plan"), findsNothing);
       expect(find.text('Number pad'), findsNothing); // ours only (D-41)
       expect(find.text('Bigger number pad'), findsOneWidget);
-      // the switches (`.sw`), and the family rows moved to the Family area
-      expect(find.byType(AuraSwitch), findsNWidgets(3));
+      // read-aloud for each child, the bigger pad and the report email;
+      // the family rows moved to the Family area
+      expect(find.byType(AuraSwitch), findsNWidgets(4));
       expect(find.text('Sign out'), findsNothing);
     });
 
-    testWidgets('a lesson setting changes on tap and is kept on this phone', (
+    testWidgets("each child's settings come from the server (PAR-05)", (
       tester,
     ) async {
       final g = await Gu.make(tester);
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
-      expect(find.text('15 min'), findsOneWidget);
+      // Aarav's from the list of children, Maya's asked for on its own
+      expect(find.text('AARAV'), findsOneWidget);
+      expect(find.text('MAYA'), findsOneWidget);
+      expect(inCard('child-1', '15 min'), findsOneWidget);
+      expect(inCard('child-2', 'No limit'), findsOneWidget);
+      expect(g.calls, contains('GET /api/children/child-2/settings'));
+      expect(g.calls, isNot(contains('GET /api/children/child-1/settings')));
+      // both kept on this phone for when the server can't be reached
+      expect(g.store.values['childSettings.child-1'], contains('15'));
+      expect(g.store.values['childSettings.child-2'], isNotNull);
+    });
+
+    testWidgets('a time each day is saved on the server, per child', (
+      tester,
+    ) async {
+      final g = await Gu.make(tester);
+      g.server.on('PUT /api/children/child-2/settings', {
+        'childId': 'child-2',
+        'dailyLimitMinutes': 20,
+        'dailyLimitIsDefault': false,
+        'readAloud': true,
+        'readAloudIsDefault': true,
+      });
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
       // Time each day opens the picker sheet (the prototype's `pick`)
-      await tester.tap(find.text('Time each day'));
+      await tester.tap(inCard('child-2', 'Time each day'));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('auraSheet')), findsOneWidget);
       await tester.tap(find.text('20 minutes'));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('auraSheet')), findsNothing);
-      await tester.tap(find.text('Read aloud'));
-      await tester.pumpAndSettle();
+      expect(g.bodyOf('PUT /api/children/child-2/settings'), {
+        'dailyLimitMinutes': 20,
+      });
       expect(find.text('Saved'), findsOneWidget);
-      expect(find.text('20 min'), findsOneWidget);
-      expect(g.store.values['lesson.minutes'], '20');
-      expect(g.store.values['lesson.readAloud'], '0');
+      expect(inCard('child-2', '20 min'), findsOneWidget);
+      expect(inCard('child-1', '15 min'), findsOneWidget);
+      // nothing about the time is kept as the phone's own any more
+      expect(g.store.values['lesson.minutes'], isNull);
+    });
+
+    testWidgets('no limit is sent as null', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.on('PUT /api/children/child-1/settings', {
+        'childId': 'child-1',
+        'dailyLimitMinutes': null,
+        'dailyLimitIsDefault': false,
+        'readAloud': true,
+        'readAloudIsDefault': true,
+      });
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.tap(inCard('child-1', 'Time each day'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('No limit').last);
+      await tester.pumpAndSettle();
+      final body = g.bodyOf('PUT /api/children/child-1/settings');
+      expect(body, {'dailyLimitMinutes': null});
+      expect(inCard('child-1', 'No limit'), findsOneWidget);
+    });
+
+    testWidgets('read aloud is saved on the server', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.on('PUT /api/children/child-1/settings', {
+        'childId': 'child-1',
+        'dailyLimitMinutes': 15,
+        'dailyLimitIsDefault': false,
+        'readAloud': false,
+        'readAloudIsDefault': false,
+      });
+      addTearDown(() => AuraSound.soundOn.value = true);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.tap(inCard('child-1', 'Read aloud'));
+      await tester.pumpAndSettle();
+      expect(g.bodyOf('PUT /api/children/child-1/settings'), {
+        'readAloud': false,
+      });
+      final sw = find.descendant(
+        of: find.byKey(const ValueKey('settings-child-1')),
+        matching: find.byType(AuraSwitch),
+      );
+      expect(tester.widget<AuraSwitch>(sw).value, isFalse);
+      expect(find.text('Saved'), findsOneWidget);
+      expect(g.store.values['lesson.readAloud'], isNull);
+    });
+
+    testWidgets('offline, a change goes back and says so', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.routes['PUT /api/children/child-1/settings'] = (_) =>
+          throw const SocketException('offline');
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.tap(inCard('child-1', 'Read aloud'));
+      await tester.pumpAndSettle();
+      final sw = find.descendant(
+        of: find.byKey(const ValueKey('settings-child-1')),
+        matching: find.byType(AuraSwitch),
+      );
+      expect(tester.widget<AuraSwitch>(sw).value, isTrue);
+      expect(
+        find.text('Not saved. Check the internet, then change it again.'),
+        findsOneWidget,
+      );
+      expect(find.text('Saved'), findsNothing);
+      // an error, so not the tick that says Saved
+      expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
+      expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+    });
+
+    testWidgets('opened offline, it shows the settings this phone kept '
+        '(PAR-05)', (tester) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      // the server goes away; Settings is opened again
+      g.server.routes['GET /api/children'] = (_) =>
+          throw const SocketException('offline');
+      g.server.routes['GET /api/children/child-2/settings'] = (_) =>
+          throw const SocketException('offline');
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.textContaining("Can't reach the server"), findsNothing);
+      expect(find.text('AARAV'), findsOneWidget);
+      expect(find.text('MAYA'), findsOneWidget);
+      expect(inCard('child-1', '15 min'), findsOneWidget);
+      expect(inCard('child-2', 'No limit'), findsOneWidget);
+    });
+
+    testWidgets('opened offline with nothing kept, it says so with Try '
+        'again', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.routes['GET /api/children'] = (_) =>
+          throw const SocketException('offline');
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      expect(find.text('Try again'), findsOneWidget);
+    });
+
+    testWidgets('a refused change goes back too', (tester) async {
+      final g = await Gu.make(tester);
+      g.server.on('PUT /api/children/child-1/settings', {
+        'error': 'dailyLimitMinutes is whole minutes from 5 to 240',
+      }, status: 400);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.tap(inCard('child-1', 'Time each day'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('30 minutes'));
+      await tester.pumpAndSettle();
+      expect(inCard('child-1', '15 min'), findsOneWidget);
+      expect(
+        find.text("That didn't save. Please change it again."),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the bigger pad stays on this phone', (tester) async {
+      final g = await Gu.make(tester);
+      await tester.pumpWidget(shotApp(screen(g)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bigger number pad'));
+      await tester.pumpAndSettle();
+      expect(g.store.values['lesson.biggerPad'], '1');
       final prefs = await tester.runAsync(g.repo.loadPrefs);
-      expect(prefs!.minutes, 20);
-      expect(prefs.readAloud, isFalse);
+      expect(prefs!.biggerPad, isTrue);
     });
 
     testWidgets('report email on: one tap turns it off (PAR-05)', (
@@ -454,6 +616,9 @@ void main() {
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Report email'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Report email'));
+      await tester.pumpAndSettle();
       expect(find.text('Every email also has a link to stop them.'), findsOne);
       g.server.on('GET /api/family/settings/reports', {'frequency': 'off'});
       await tester.tap(find.text('Report email'));
@@ -479,6 +644,9 @@ void main() {
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Report email'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Report email'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Report email'));
       await tester.pumpAndSettle();
       expect(find.text('went to ${Paths.notify}'), findsOneWidget);
@@ -493,6 +661,9 @@ void main() {
       await tester.pumpWidget(shotApp(screen(g)));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('How often'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('How often'));
+      await tester.pumpAndSettle();
       expect(find.text('Once a week'), findsOneWidget);
       await tester.tap(find.text('How often'));
       await tester.pumpAndSettle();

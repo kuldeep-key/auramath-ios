@@ -2812,7 +2812,7 @@ abstract class AppLocalizations {
   /// **'Burger cases'**
   String get kidStopTotalAndDifference;
 
-  /// No description provided for @kidReachedTop.
+  /// DRAFT (Figma section 15 LevelUp, 17 Nov): the heading of the peak moment for the last level. Nothing after it is promised.
   ///
   /// In en, this message translates to:
   /// **'You reached the top!'**
@@ -4707,6 +4707,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask your family to check the Wi-Fi. Then tap Check again.'**
   String get lessonNeedInternetAsk;
+
+  /// DRAFT (PAR-05): Time each day with no daily limit; the session cap still ends each lesson.
+  ///
+  /// In en, this message translates to:
+  /// **'No limit'**
+  String get guSetNoLimit;
+
+  /// DRAFT (PAR-05): the label over the settings kept on this phone only (the bigger pad).
+  ///
+  /// In en, this message translates to:
+  /// **'This phone'**
+  String get guSetThisPhone;
+
+  /// DRAFT (PAR-05): a child's setting couldn't reach the server; it goes back to what it was.
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved. Check the internet, then change it again.'**
+  String get guSetOffline;
+
+  /// DRAFT (PAR-05): the server refused a child's setting; it goes back to what it was.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t save. Please change it again.'**
+  String get guSetNotSaved;
+
+  /// DRAFT (PAR-05): a child's settings couldn't be read and none are kept on this phone.
+  ///
+  /// In en, this message translates to:
+  /// **'These settings can\'t be read right now. Check the internet and come back.'**
+  String get guSetCantRead;
+
+  /// DRAFT (PAR-13, Figma 1046:7536 Settings): the row that opens Report a problem.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get reportProblemRow;
+
+  /// DRAFT (PAR-13, Figma 1046:7536 Settings): under Report a problem.
+  ///
+  /// In en, this message translates to:
+  /// **'A lesson, a note or the app'**
+  String get reportProblemRowDetail;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): the screen's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get reportTitle;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'A person on the Auramath team reads every report.'**
+  String get reportIntro;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): the label over the cases to pick from.
+  ///
+  /// In en, this message translates to:
+  /// **'What is it about?'**
+  String get reportAbout;
+
+  /// DRAFT (PAR-13): a case from the last sessions when this phone doesn't know its story. Never an id.
+  ///
+  /// In en, this message translates to:
+  /// **'A story problem'**
+  String get reportCaseLabel;
+
+  /// DRAFT (PAR-13): under a case: the child's first name and when it was shown ("Aarav, Wed, 18 Nov 4:05 pm"). On the parent's screen only.
+  ///
+  /// In en, this message translates to:
+  /// **'{child}, {when}'**
+  String reportCaseWhen(String child, String when);
+
+  /// DRAFT (PAR-13): no session problems to report yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No lessons to pick from yet. Something else is always there.'**
+  String get reportNoCases;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): a report not about one problem.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get reportSomethingElse;
+
+  /// DRAFT (PAR-13): under Something else.
+  ///
+  /// In en, this message translates to:
+  /// **'The app, a note or an email'**
+  String get reportSomethingElseDetail;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): the label over the note.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened?'**
+  String get reportWhatHappened;
+
+  /// DRAFT (PAR-13): the note's field label; the note is optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Your note (you can leave it out)'**
+  String get reportNoteLabel;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): the note's placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'A sentence or two is plenty.'**
+  String get reportNoteHint;
+
+  /// DRAFT (PAR-13, D-15): the note screen asks people not to include names.
+  ///
+  /// In en, this message translates to:
+  /// **'Please don\'t include names.'**
+  String get reportNoNames;
+
+  /// DRAFT (PAR-13, Figma 1046:7734 Report): sends the report.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get reportSend;
+
+  /// DRAFT (PAR-13): the report couldn't reach the server.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent. Check the internet, then send it again. Your note is still here.'**
+  String get reportOffline;
+
+  /// DRAFT (PAR-13): the server's 429, too many reports this hour.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s a lot of reports in one hour. Please send this one a little later. Your note is still here.'**
+  String get reportTooMany;
+
+  /// DRAFT (PAR-13): the server's 404 for the session picked.
+  ///
+  /// In en, this message translates to:
+  /// **'That lesson can\'t be found any more. Pick another, or Something else.'**
+  String get reportGone;
+
+  /// DRAFT (PAR-13): the server refused the report (400).
+  ///
+  /// In en, this message translates to:
+  /// **'That couldn\'t be sent. Please check the note, then send it again.'**
+  String get reportNotSent;
+
+  /// DRAFT (PAR-13, Figma 1046:7814 ReportSent): the title once sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you'**
+  String get reportThanksTitle;
+
+  /// DRAFT (PAR-13, Figma 1046:7814): says Key will look at it. Figma's 'will write back' is left out: the backend doesn't promise a reply.
+  ///
+  /// In en, this message translates to:
+  /// **'We have your report. A person at Key will look at it.'**
+  String get reportThanksBody;
+
+  /// DRAFT (PAR-13, Figma 1046:7814 ReportSent): the card's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get reportSentTitle;
+
+  /// DRAFT (PAR-13, OPS-02): the card's line.
+  ///
+  /// In en, this message translates to:
+  /// **'It goes into the team\'s weekly review of what the tutor wrote and said.'**
+  String get reportSentBody;
+
+  /// DRAFT (PAR-13, Figma 1046:7814 ReportSent): the button once sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the Family area'**
+  String get reportBackToFamily;
+
+  /// DRAFT (REW-15, Figma CB1 1043:11224): the Home tile beside My trail and My badges, and the casebook's title. Never a count.
+  ///
+  /// In en, this message translates to:
+  /// **'My casebook'**
+  String get kidMyCasebook;
+
+  /// DRAFT (REW-15, Figma CB1): the heading over today's solved cases (the family's home time zone).
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get kidCasebookToday;
+
+  /// DRAFT (REW-15, Figma CB1): the heading over the newest day before today. Older days show their date.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time'**
+  String get kidCasebookLastTime;
+
+  /// DRAFT (REW-15, Figma CB1): a day's heading with that day's session badge, e.g. 'Last time · badge: Checked it'. Never a count.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} · badge: {badge}'**
+  String kidCasebookDayBadge(String day, String badge);
+
+  /// DRAFT (REW-15): the casebook with no solved case yet, under the tutor. No count, no outline.
+  ///
+  /// In en, this message translates to:
+  /// **'Your solved cases will live here.'**
+  String get kidCasebookEmpty;
+
+  /// DRAFT (REW-15, Figma CB2 1043:11315): the label over the case's final drawing (shown in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'Your drawing'**
+  String get kidCaseDrawing;
+
+  /// DRAFT (REW-15): in place of the drawing for a case solved with nothing placed on the board.
+  ///
+  /// In en, this message translates to:
+  /// **'You solved this one in your head.'**
+  String get kidCaseInYourHead;
+
+  /// DRAFT (REW-15): what a screen reader says for a case's story sticker, e.g. 'lemon tree sticker'.
+  ///
+  /// In en, this message translates to:
+  /// **'{object} sticker'**
+  String kidCaseSticker(String object);
+
+  /// DRAFT (REW-15, Figma CB2): back from one case to where it was opened (the casebook or My badges).
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get kidBack;
+
+  /// DRAFT (PAR-14): a Family area screen couldn't reach the server (no internet, or the server didn't answer). Plain words for a parent or carer; never the technical detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t connect right now. Please check the internet.'**
+  String get guOffline;
+
+  /// DRAFT (PAR-14): a Family area screen got an answer it couldn't use (a server error, or something unexpected). Plain words; never the technical detail.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t work just now. Please give it a moment, then have another go.'**
+  String get guSomethingWrong;
+
+  /// DRAFT (Figma section 15, 17 Nov): the sign at a land's last stop, its peak with the summit flag (or its medal once the level is passed). Never a number.
+  ///
+  /// In en, this message translates to:
+  /// **'The peak'**
+  String get kidThePeak;
+
+  /// DRAFT (Figma section 15, 17 Nov): the sign where the child stands once every land is climbed (the last level's peak). Nothing is promised after it.
+  ///
+  /// In en, this message translates to:
+  /// **'The top'**
+  String get kidTheTop;
+
+  /// DRAFT (Figma section 15 LevelUp, 17 Nov): the heading of the peak moment when the child passes a level. Replaces 'A new medal!'. No level number (REW-03).
+  ///
+  /// In en, this message translates to:
+  /// **'You reached the peak!'**
+  String get kidReachedPeak;
+
+  /// DRAFT (Figma section 15 LevelUp, 17 Nov): the line under the peak moment, naming the next level's land. The Figma line with the level number switch off ('Level 3 opens: ...' is not used: no level on the child's side, REW-03).
+  ///
+  /// In en, this message translates to:
+  /// **'A new land opens: {name}.'**
+  String kidNewLandOpens(String name);
+
+  /// DRAFT (Figma section 15 LevelUp, 17 Nov): the line under the last peak, e.g. 'You climbed every land in the Orchard!'. path is the trail's name.
+  ///
+  /// In en, this message translates to:
+  /// **'You climbed every land in {path}!'**
+  String kidClimbedEveryLand(String path);
 }
 
 class _AppLocalizationsDelegate

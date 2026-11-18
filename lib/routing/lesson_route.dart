@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
+import '../data/models/child_settings.dart';
 import '../data/repositories/account_repository.dart';
+import '../data/repositories/child_settings_repository.dart';
 import '../data/repositories/grown_up_repository.dart';
 import '../data/repositories/partner_intro_repository.dart';
 import '../data/services/api.dart';
+import '../data/services/sound_effects.dart';
 import '../config/env.dart';
 import '../deps.dart';
 import '../ui/features/lesson/view_models/lesson_view_model.dart';
@@ -109,8 +112,7 @@ class _LessonRouteState extends State<_LessonRoute> {
     sessions: widget.deps.sessions,
     voice: widget.deps.voice,
     // REW-01: the sitting's open session, else a new one
-    openSession: () =>
-        widget.deps.sessions.openOrGoOn(childId: widget.deps.account.childId),
+    openSession: _open,
     nextProblem: Env.serverProblems
         ? (sessionId, {level}) => widget.deps.sessions.nextProblem(
             widget.deps.pack,
@@ -123,6 +125,22 @@ class _LessonRouteState extends State<_LessonRoute> {
 
   late final AppLifecycleListener _lifecycle;
 
+  /// The sitting's open session, else a new one; a new one says what is
+  /// left of the child's day (SES-01) and the settings it runs with
+  /// (PAR-05), which the lesson then runs with.
+  Future<String> _open() async {
+    final deps = widget.deps;
+    final id = await deps.sessions.openOrGoOn(childId: deps.account.childId);
+    if (deps.sessions.takeDailyTime(id) case final day?) {
+      deps.sitting.runFor(day.capMs);
+    }
+    if (deps.sessions.takeSettings(id) case final s?) {
+      await ChildSettingsRepository(deps.client, deps.store).remember(s);
+      _vm.readAloud = deps.flags.on('read_aloud') && s.readAloud;
+    }
+    return id;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -134,21 +152,28 @@ class _LessonRouteState extends State<_LessonRoute> {
     );
   }
 
-  /// The grown-up's lesson settings for this phone and the server's flags,
-  /// then the lesson.
+  /// The child's settings from the server (PAR-05), this phone's bigger
+  /// pad and the server's flags, then the lesson.
   Future<void> _begin() async {
     final deps = widget.deps;
     await deps.flags.refresh();
     final prefs = await GrownUpRepository(deps.client, deps.store).loadPrefs();
+    final settings = await _settings();
     final flags = deps.flags;
-    final age = prefs.readAloud == null || flags.on('self_rating')
+    final age = settings == null || flags.on('self_rating')
         ? await _childAge()
         : null;
     if (!mounted) return;
+    // the sound effects follow the grown-up's read-aloud, once it is set
+    if (settings != null && !settings.readAloudIsDefault) {
+      AuraSound.soundOn.value = settings.readAloud;
+    }
     _vm
+      // the server's read-aloud has the flag and the age default in it;
+      // without it, the age default as before (TTR-03)
       ..readAloud =
           flags.on('read_aloud') &&
-          (prefs.readAloud ??
+          (settings?.readAloud ??
               (age == null || flags.readAloudAges.contains(age)))
       ..readQuestionAloud = flags.on('read_question_aloud')
       ..readAloudFlag = flags.on('read_aloud')
@@ -187,9 +212,29 @@ class _LessonRouteState extends State<_LessonRoute> {
     }, addingUp: flags.on('adding_up_option'));
     // each child's own day's time, not the phone's (SES-01)
     await widget.deps.sitting.forChild(deps.account.childId);
-    widget.deps.sitting.useMinutes(prefs.minutes);
+    // the grown-up's time each day, as the server keeps it (PAR-05)
+    widget.deps.sitting.useMinutes(settings?.dailyLimitMinutes);
     if (!mounted) return;
+    // SES-01: what is left of the child's day on every family phone; with
+    // none left the server opens no lesson, so none is asked for
+    if (settings?.today case final today?) {
+      if (today.timesUp) return _vm.timesUpBeforeStart();
+      widget.deps.sitting.runFor(today.capMs);
+    }
     await (widget.resumeSessionId != null ? _vm.restore() : _vm.start());
+  }
+
+  /// The child's time each day and read-aloud (PAR-05): the server's,
+  /// else what this phone kept from it; null when neither is known.
+  Future<ChildSettings?> _settings() async {
+    final id = widget.deps.account.childId;
+    if (id == null) return null;
+    final repo = ChildSettingsRepository(widget.deps.client, widget.deps.store);
+    try {
+      return await repo.load(id);
+    } on ApiException {
+      return repo.cached(id);
+    }
   }
 
   /// The child's age, which sets read-aloud's default; null when it can't

@@ -81,4 +81,52 @@ void main() {
     expect(s.svg, contains('Look back'));
     expect('<g class="medal">'.allMatches(s.svg).length, 3);
   });
+
+  test('section 15: a level is one land of five stops, a way in only where '
+      'a new land starts, the peak flagged, and open sky at the top', () {
+    for (var g = 10; g < 15; g++) {
+      expect(olandInLevel(g).fam, 'orchard', reason: 'stop $g');
+      expect(olandInLevel(g).mood, oland(2).mood);
+    }
+    expect(olandInLevel(10).ent, oland(2).ent);
+    expect([
+      for (var g = 11; g < 15; g++) olandInLevel(g).ent,
+    ], everyElement('soft'));
+    expect(olandInLevel(9).fam, 'nursery');
+    expect(
+      [for (var g = 8; g < 12; g++) wayInBelow(g)],
+      [false, false, true, false],
+    );
+    OrchardScene land({bool top = false}) => orchardSVG(
+      lo: 9,
+      here: 10,
+      stops: const [
+        OrchardStop('The peak', 'peakEarned', sub: ''),
+        OrchardStop('Orchard Gate', 'here'),
+        OrchardStop('Next stop', 'next', sub: ''),
+        OrchardStop('', 'ahead'),
+        OrchardStop('', 'ahead'),
+        OrchardStop('The peak', 'peak', sub: ''),
+      ],
+      bloom: 2,
+      words: words,
+      landAt: olandInLevel,
+      wayIn: wayInBelow,
+      top: top,
+    );
+    final s = land();
+    final texts = RegExp(
+      r'<text[^>]*>([^<]*)</text>',
+    ).allMatches(s.svg).map((m) => m.group(1)).toList();
+    expect(texts, [
+      'The peak',
+      'Orchard Gate',
+      'You are here',
+      'Next stop',
+      'The peak',
+      'Look back',
+    ]);
+    expect(s.svg, contains('url(#ofog)'));
+    expect(land(top: true).svg, isNot(contains('id="oteaser"')));
+  });
 }

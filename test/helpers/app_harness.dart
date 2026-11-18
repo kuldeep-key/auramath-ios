@@ -6,6 +6,7 @@ import 'package:auramath/data/models/journey_config.dart';
 import 'package:auramath/data/repositories/account_repository.dart';
 import 'package:auramath/data/repositories/family_repository.dart';
 import 'package:auramath/data/repositories/session_repository.dart';
+import 'package:auramath/data/services/fake_api.dart';
 import 'package:auramath/data/services/api_client.dart';
 import 'package:auramath/data/services/device_lock.dart';
 import 'package:auramath/data/services/flags.dart';
@@ -83,6 +84,9 @@ class FakeDeviceLock implements DeviceLock {
 Future<(Deps, FakeServer)> testDeps({
   Map<String, String> stored = const {},
   Map<String, Object?> flags = allScreensOn,
+
+  /// The lesson's fake backend, for a test that sets what it answers.
+  void Function(FakeApi api)? api,
 }) async {
   final server = FakeServer();
   final store = MemoryKeyStore()..values.addAll(stored);
@@ -99,7 +103,8 @@ Future<(Deps, FakeServer)> testDeps({
   );
   account.client = client;
   await account.load();
-  final (SessionRepository sessions, outbox, _) = await memorySessions();
+  final (SessionRepository sessions, outbox, fakeApi) = await memorySessions();
+  api?.call(fakeApi);
   return (
     Deps(
       account: account,

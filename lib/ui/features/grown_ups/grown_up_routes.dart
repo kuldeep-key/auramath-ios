@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 
+import '../../../data/repositories/child_settings_repository.dart';
 import '../../../data/repositories/grown_up_repository.dart';
+import '../../../data/repositories/problem_report_repository.dart';
 import '../../../data/repositories/recent_notes_repository.dart';
 import '../../../data/repositories/report_email_repository.dart';
 import '../../../data/repositories/setup_repository.dart';
@@ -25,6 +27,7 @@ import 'views/passcode_screen.dart';
 import 'views/plan_screen.dart';
 import 'views/recent_notes_screen.dart';
 import 'views/remove_phone_screen.dart';
+import 'views/report_problem_screen.dart';
 import 'views/report_screen.dart';
 import 'views/rights_screen.dart';
 import 'views/settings_screen.dart';
@@ -65,8 +68,24 @@ List<RouteBase> grownUpRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.settings,
-      builder: (_, _) =>
-          SettingsScreen(family: family, repo: repo, email: email),
+      builder: (_, _) => SettingsScreen(
+        family: family,
+        repo: repo,
+        email: email,
+        settings: ChildSettingsRepository(deps.client, deps.store),
+      ),
+    ),
+    GoRoute(
+      path: Paths.reportProblem,
+      builder: (_, _) => ReportProblemScreen(
+        reports: ProblemReportRepository(deps.client),
+        family: family,
+        // a case this phone drew is named by its story, never an id
+        storyOf: (id) => switch (deps.pack.problems[id]) {
+          final p? => '${p.a.name} and ${p.b.name}',
+          null => null,
+        },
+      ),
     ),
     GoRoute(
       path: Paths.emailFrequency,

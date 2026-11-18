@@ -1,3 +1,4 @@
+import 'package:auramath/data/repositories/problem_report_repository.dart';
 import 'package:auramath/data/repositories/recent_notes_repository.dart';
 import 'package:auramath/data/repositories/report_email_repository.dart';
 import 'package:auramath/ui/core/theme/app_theme.dart';
@@ -6,6 +7,7 @@ import 'package:auramath/ui/features/child_home/views/home_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/book_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/email_frequency_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/recent_notes_screen.dart';
+import 'package:auramath/ui/features/grown_ups/views/report_problem_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/report_screen.dart';
 import 'package:auramath/ui/features/grown_ups/views/settings_screen.dart';
 import 'package:auramath_engine/auramath_engine.dart';
@@ -166,8 +168,30 @@ void main() {
           family: g.deps.family,
           repo: g.repo,
           email: ReportEmailRepository(g.deps.client),
+          settings: g.settings,
         ),
       );
+    });
+
+    testWidgets('Report a problem (PAR-13)', (tester) async {
+      await grownUp(tester, (g) {
+        g.server.on('GET /api/family/problem-reports/choices', {
+          'choices': [
+            {
+              'sessionId': 's1',
+              'childId': 'child-1',
+              'startedAt': 1791400000000,
+              'problemId': 'g_1',
+              'contentVersion': '1.0.0',
+              'shownAt': 1791400000000,
+            },
+          ],
+        });
+        return ReportProblemScreen(
+          reports: ProblemReportRepository(g.deps.client),
+          family: g.deps.family,
+        );
+      });
     });
 
     testWidgets('How often the email comes', (tester) async {

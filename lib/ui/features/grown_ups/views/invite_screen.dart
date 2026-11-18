@@ -48,7 +48,7 @@ class _InviteScreenState extends State<InviteScreen> {
       await widget.repo.invite(email);
       if (mounted) setState(() => _sent = true);
     } on ApiException catch (e) {
-      if (mounted) setState(() => _error = e.message);
+      if (mounted) setState(() => _error = ErrorNote.message(e, l));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

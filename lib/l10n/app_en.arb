@@ -1217,5 +1217,145 @@
   "lessonNeedInternetAsk": "Ask your family to check the Wi-Fi. Then tap Check again.",
   "@lessonNeedInternetAsk": {
     "description": "DRAFT (PLAT-09, prototype NeedNet)."
+  },
+  "guSetNoLimit": "No limit",
+  "@guSetNoLimit": {
+    "description": "DRAFT (PAR-05): Time each day with no daily limit; the session cap still ends each lesson."
+  },
+  "guSetThisPhone": "This phone",
+  "@guSetThisPhone": {
+    "description": "DRAFT (PAR-05): the label over the settings kept on this phone only (the bigger pad)."
+  },
+  "guSetOffline": "Not saved. Check the internet, then change it again.",
+  "@guSetOffline": {
+    "description": "DRAFT (PAR-05): a child's setting couldn't reach the server; it goes back to what it was."
+  },
+  "guSetNotSaved": "That didn't save. Please change it again.",
+  "@guSetNotSaved": {
+    "description": "DRAFT (PAR-05): the server refused a child's setting; it goes back to what it was."
+  },
+  "guSetCantRead": "These settings can't be read right now. Check the internet and come back.",
+  "@guSetCantRead": {
+    "description": "DRAFT (PAR-05): a child's settings couldn't be read and none are kept on this phone."
+  },
+  "reportProblemRow": "Report a problem",
+  "@reportProblemRow": {"description": "DRAFT (PAR-13, Figma 1046:7536 Settings): the row that opens Report a problem."},
+  "reportProblemRowDetail": "A lesson, a note or the app",
+  "@reportProblemRowDetail": {"description": "DRAFT (PAR-13, Figma 1046:7536 Settings): under Report a problem."},
+  "reportTitle": "Report a problem",
+  "@reportTitle": {"description": "DRAFT (PAR-13, Figma 1046:7734 Report): the screen's title."},
+  "reportIntro": "A person on the Auramath team reads every report.",
+  "@reportIntro": {"description": "DRAFT (PAR-13, Figma 1046:7734 Report): under the title."},
+  "reportAbout": "What is it about?",
+  "@reportAbout": {"description": "DRAFT (PAR-13, Figma 1046:7734 Report): the label over the cases to pick from."},
+  "reportCaseLabel": "A story problem",
+  "@reportCaseLabel": {"description": "DRAFT (PAR-13): a case from the last sessions when this phone doesn't know its story. Never an id."},
+  "reportCaseWhen": "{child}, {when}",
+  "@reportCaseWhen": {"description": "DRAFT (PAR-13): under a case: the child's first name and when it was shown (\"Aarav, Wed, 18 Nov 4:05 pm\"). On the parent's screen only.", "placeholders": {"child": {"type": "String"}, "when": {"type": "String"}}},
+  "reportNoCases": "No lessons to pick from yet. Something else is always there.",
+  "@reportNoCases": {"description": "DRAFT (PAR-13): no session problems to report yet."},
+  "reportSomethingElse": "Something else",
+  "@reportSomethingElse": {"description": "DRAFT (PAR-13, Figma 1046:7734 Report): a report not about one problem."},
+  "reportSomethingElseDetail": "The app, a note or an email",
+  "@reportSomethingElseDetail": {"description": "DRAFT (PAR-13): under Something else."},
+  "reportWhatHappened": "What happened?",
+  "@reportWhatHappened": {"description": "DRAFT (PAR-13, Figma 1046:7734 Report): the label over the note."},
+  "reportNoteLabel": "Your note (you can leave it out)",
+  "@reportNoteLabel": {"description": "DRAFT (PAR-13): the note's field label; the note is optional."},
+  "reportNoteHint": "A sentence or two is plenty.",
+  "@reportNoteHint": {"description": "DRAFT (PAR-13, Figma 1046:7734 Report): the note's placeholder."},
+  "reportNoNames": "Please don't include names.",
+  "@reportNoNames": {"description": "DRAFT (PAR-13, D-15): the note screen asks people not to include names."},
+  "reportSend": "Send",
+  "@reportSend": {"description": "DRAFT (PAR-13, Figma 1046:7734 Report): sends the report."},
+  "reportOffline": "Not sent. Check the internet, then send it again. Your note is still here.",
+  "@reportOffline": {"description": "DRAFT (PAR-13): the report couldn't reach the server."},
+  "reportTooMany": "That's a lot of reports in one hour. Please send this one a little later. Your note is still here.",
+  "@reportTooMany": {"description": "DRAFT (PAR-13): the server's 429, too many reports this hour."},
+  "reportGone": "That lesson can't be found any more. Pick another, or Something else.",
+  "@reportGone": {"description": "DRAFT (PAR-13): the server's 404 for the session picked."},
+  "reportNotSent": "That couldn't be sent. Please check the note, then send it again.",
+  "@reportNotSent": {"description": "DRAFT (PAR-13): the server refused the report (400)."},
+  "reportThanksTitle": "Thank you",
+  "@reportThanksTitle": {"description": "DRAFT (PAR-13, Figma 1046:7814 ReportSent): the title once sent."},
+  "reportThanksBody": "We have your report. A person at Key will look at it.",
+  "@reportThanksBody": {"description": "DRAFT (PAR-13, Figma 1046:7814): says Key will look at it. Figma's 'will write back' is left out: the backend doesn't promise a reply."},
+  "reportSentTitle": "Sent",
+  "@reportSentTitle": {"description": "DRAFT (PAR-13, Figma 1046:7814 ReportSent): the card's title."},
+  "reportSentBody": "It goes into the team's weekly review of what the tutor wrote and said.",
+  "@reportSentBody": {"description": "DRAFT (PAR-13, OPS-02): the card's line."},
+  "reportBackToFamily": "Back to the Family area",
+  "@reportBackToFamily": {"description": "DRAFT (PAR-13, Figma 1046:7814 ReportSent): the button once sent."},
+  "kidMyCasebook": "My casebook",
+  "@kidMyCasebook": {
+    "description": "DRAFT (REW-15, Figma CB1 1043:11224): the Home tile beside My trail and My badges, and the casebook's title. Never a count."
+  },
+  "kidCasebookToday": "Today",
+  "@kidCasebookToday": {
+    "description": "DRAFT (REW-15, Figma CB1): the heading over today's solved cases (the family's home time zone)."
+  },
+  "kidCasebookLastTime": "Last time",
+  "@kidCasebookLastTime": {
+    "description": "DRAFT (REW-15, Figma CB1): the heading over the newest day before today. Older days show their date."
+  },
+  "kidCasebookDayBadge": "{day} · badge: {badge}",
+  "@kidCasebookDayBadge": {
+    "description": "DRAFT (REW-15, Figma CB1): a day's heading with that day's session badge, e.g. 'Last time · badge: Checked it'. Never a count.",
+    "placeholders": {"day": {"type": "String"}, "badge": {"type": "String"}}
+  },
+  "kidCasebookEmpty": "Your solved cases will live here.",
+  "@kidCasebookEmpty": {
+    "description": "DRAFT (REW-15): the casebook with no solved case yet, under the tutor. No count, no outline."
+  },
+  "kidCaseDrawing": "Your drawing",
+  "@kidCaseDrawing": {
+    "description": "DRAFT (REW-15, Figma CB2 1043:11315): the label over the case's final drawing (shown in capitals)."
+  },
+  "kidCaseInYourHead": "You solved this one in your head.",
+  "@kidCaseInYourHead": {
+    "description": "DRAFT (REW-15): in place of the drawing for a case solved with nothing placed on the board."
+  },
+  "kidCaseSticker": "{object} sticker",
+  "@kidCaseSticker": {
+    "description": "DRAFT (REW-15): what a screen reader says for a case's story sticker, e.g. 'lemon tree sticker'.",
+    "placeholders": {"object": {"type": "String"}}
+  },
+  "kidBack": "Back",
+  "@kidBack": {
+    "description": "DRAFT (REW-15, Figma CB2): back from one case to where it was opened (the casebook or My badges)."
+  },
+  "guOffline": "Can't connect right now. Please check the internet.",
+  "@guOffline": {
+    "description": "DRAFT (PAR-14): a Family area screen couldn't reach the server (no internet, or the server didn't answer). Plain words for a parent or carer; never the technical detail."
+  },
+  "guSomethingWrong": "That didn't work just now. Please give it a moment, then have another go.",
+  "@guSomethingWrong": {
+    "description": "DRAFT (PAR-14): a Family area screen got an answer it couldn't use (a server error, or something unexpected). Plain words; never the technical detail."
+  },
+  "kidThePeak": "The peak",
+  "@kidThePeak": {
+    "description": "DRAFT (Figma section 15, 17 Nov): the sign at a land's last stop, its peak with the summit flag (or its medal once the level is passed). Never a number."
+  },
+  "kidTheTop": "The top",
+  "@kidTheTop": {
+    "description": "DRAFT (Figma section 15, 17 Nov): the sign where the child stands once every land is climbed (the last level's peak). Nothing is promised after it."
+  },
+  "kidReachedPeak": "You reached the peak!",
+  "@kidReachedPeak": {
+    "description": "DRAFT (Figma section 15 LevelUp, 17 Nov): the heading of the peak moment when the child passes a level. Replaces 'A new medal!'. No level number (REW-03)."
+  },
+  "kidReachedTop": "You reached the top!",
+  "@kidReachedTop": {
+    "description": "DRAFT (Figma section 15 LevelUp, 17 Nov): the heading of the peak moment for the last level. Nothing after it is promised."
+  },
+  "kidNewLandOpens": "A new land opens: {name}.",
+  "@kidNewLandOpens": {
+    "description": "DRAFT (Figma section 15 LevelUp, 17 Nov): the line under the peak moment, naming the next level's land. The Figma line with the level number switch off ('Level 3 opens: ...' is not used: no level on the child's side, REW-03).",
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "kidClimbedEveryLand": "You climbed every land in {path}!",
+  "@kidClimbedEveryLand": {
+    "description": "DRAFT (Figma section 15 LevelUp, 17 Nov): the line under the last peak, e.g. 'You climbed every land in the Orchard!'. path is the trail's name.",
+    "placeholders": {"path": {"type": "String"}}
   }
 }

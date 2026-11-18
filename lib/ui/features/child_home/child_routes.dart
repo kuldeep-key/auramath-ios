@@ -4,7 +4,9 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../data/repositories/child_settings_repository.dart';
 import '../../../data/repositories/account_repository.dart';
+import '../../../data/repositories/casebook_repository.dart';
 import '../../../data/repositories/celebration_repository.dart';
 import '../../../data/repositories/look_repository.dart';
 import '../../../data/repositories/partner_intro_repository.dart';
@@ -17,6 +19,8 @@ import '../../../routing/paths.dart';
 import 'views/after_case_screen.dart';
 import 'views/badge_screen.dart';
 import 'views/badges_screen.dart';
+import 'views/case_screen.dart';
+import 'views/casebook_screen.dart';
 import 'views/check_screen.dart';
 import 'views/choose_today_screen.dart';
 import 'views/home_moments.dart';
@@ -55,6 +59,13 @@ List<RouteBase> childRoutes(Deps deps) {
   );
 
   final rewards = RewardsRepository(deps.client);
+  final casebook = CasebookRepository(deps.client);
+
+  /// REW-15: the stories' pictures by object name, for the stickers.
+  final pictures = {
+    for (final p in deps.pack.problems.values)
+      for (final item in [p.a, p.b]) item.name.toLowerCase(): item.pic,
+  };
 
   /// REW-06: the level badges last served, by id, for the badge's own screen.
   final levelBadges = <String, BadgeInfo>{};
@@ -215,16 +226,36 @@ List<RouteBase> childRoutes(Deps deps) {
   /// case the smaller first (Ashutosh, daily catch-up 16 Nov).
   final bigShown = <String>{};
   Future<List<CelebrationSpec>> bigBadge(AppLocalizations l) async {
-    final session = deps.sessions.lastStop.value?.sessionId;
-    if (session == null) return const [];
     // the case's last batch, and its answer, first
     await deps.sessions.syncNow();
     final due = [
-      for (final a in deps.sessions.awardsFor(session))
+      for (final a in deps.sessions.awardsDue(deps.account.childId))
         if (bigShown.add(a.badgeId)) a,
     ];
     final r = momentsFor();
-    return [for (final a in due) await r.bigBadge(a, l: l)];
+    // a passed level's peak moment names the land that opens next
+    // (Figma section 15), from the server's path
+    final id = deps.account.childId;
+    final levels = due.any((a) => a.kind == 'skill_mastered') && id != null
+        ? (await rewards.read(
+            id,
+          )).lands?.where((x) => x.current || !x.teaser).firstOrNull
+        : null;
+    PeakNext? peakOf(Award a) {
+      final stops = levels?.stops;
+      if (stops == null) return null;
+      var i = stops.indexWhere((s) => s.stopId == a.badgeId);
+      if (i < 0) i = stops.indexWhere((s) => s.name == a.name);
+      if (i < 0) return null;
+      final last = i == stops.length - 1;
+      return (
+        next: last ? null : stops[i + 1].name,
+        last: last,
+        path: levels!.name,
+      );
+    }
+
+    return [for (final a in due) await r.bigBadge(a, l: l, peak: peakOf(a))];
   }
 
   /// The end of the session just stopped, in rules.yaml's order
@@ -345,6 +376,7 @@ List<RouteBase> childRoutes(Deps deps) {
                 badges:
                     deps.flags.on('badge_cabinet') ||
                     deps.flags.on('mastery_badges'),
+                casebook: deps.flags.on('casebook'),
                 avatar: progress.cachedAvatar,
                 // Choose today first, with Quick sums on (LES-14)
                 play: deps.flags.on('quick_sums')
@@ -429,6 +461,12 @@ List<RouteBase> childRoutes(Deps deps) {
           final cabinet = read?.cabinet;
           levelBadges.clear();
           final List<String> earned;
+          // REW-12: with the casebook on, a badge opens its case
+          final cases = <String, String>{
+            if (deps.flags.on('casebook'))
+              for (final b in cabinet ?? const <CabinetBadge>[])
+                b.badgeId: ?b.problemId,
+          };
           if (cabinet != null) {
             levelBadges.addAll({
               for (final b in cabinet)
@@ -452,16 +490,25 @@ List<RouteBase> childRoutes(Deps deps) {
           }
           // logged, never shown: how many it showed (REW-20)
           unawaited(deps.visits.record(id, [cabinetOpened(earned.length)]));
-          return (earned: earned, world: read?.world ?? 'detective');
+          return (
+            earned: earned,
+            world: read?.world ?? 'detective',
+            cases: cases,
+          );
         },
         builder: (c) => BadgesScreen(
           earned: c.earned,
+          cases: c.cases,
           badges: {...deps.pack.badges, ...levelBadges},
           world: c.world,
           tutorId: tutorNow().id,
           tutorKind: tutorNow().kind,
           onOpen: (badge) => deps.visits.record(deps.account.childId, [
-            badgeOpened(badge, from: BadgeOpenedFrom.cabinet),
+            badgeOpened(
+              badge,
+              from: BadgeOpenedFrom.cabinet,
+              openedCase: c.cases.containsKey(badge) ? true : null,
+            ),
           ]),
         ),
       ),
@@ -515,6 +562,66 @@ List<RouteBase> childRoutes(Deps deps) {
       ),
     ),
     GoRoute(path: Paths.trailTop, builder: (_, _) => const TrailTopScreen()),
+    GoRoute(
+      path: Paths.casebook,
+      // REW-15: behind the casebook switch; Home has no tile while it's off
+      redirect: (_, _) => deps.flags.on('casebook') ? null : Paths.home,
+      builder: (_, _) => Loaded(
+        load: () async {
+          final id = deps.account.childId;
+          if (id == null) {
+            return (world: 'detective', days: const <CasebookDay>[]);
+          }
+          final read = await casebook.days(id);
+          return (world: read.world, days: read.days ?? const <CasebookDay>[]);
+        },
+        builder: (c) => CasebookScreen(
+          days: c.days,
+          today: DateTime.now(),
+          pictures: pictures,
+          world: c.world,
+          tutorId: tutorNow().id,
+          tutorKind: tutorNow().kind,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/casebook/cases/:problemId',
+      // with the casebook off, a badge shows alone (REW-12)
+      redirect: (_, state) {
+        if (deps.flags.on('casebook')) return null;
+        final badge = state.uri.queryParameters['badge'];
+        return badge == null ? Paths.home : Paths.badge(badge);
+      },
+      pageBuilder: (_, state) {
+        final problemId = state.pathParameters['problemId']!;
+        final badge = state.uri.queryParameters['badge'];
+        return MotionPage(
+          key: state.pageKey,
+          arrive: Arrive.zoom,
+          child: Loaded(
+            load: () async {
+              final id = deps.account.childId;
+              return id == null ? null : await casebook.caseOf(id, problemId);
+            },
+            builder: (view) => switch (view) {
+              final v? => CaseScreen(
+                view: v,
+                pictures: pictures,
+                world: worldNow(),
+              ),
+              // not in this casebook (404): the badge alone, or the casebook
+              _ when badge != null && badgeInfo(badge) != null => BadgeScreen(
+                id: badge,
+                badge: badgeInfo(badge)!,
+                world: worldNow(),
+              ),
+              _ => const _GoHome(to: Paths.casebook),
+            },
+          ),
+        );
+      },
+    ),
     GoRoute(
       path: Paths.avatar,
       pageBuilder: (context, s) {
@@ -688,7 +795,19 @@ List<RouteBase> childRoutes(Deps deps) {
     GoRoute(path: Paths.check, builder: (_, _) => const CheckScreen()),
     GoRoute(
       path: Paths.chooseToday,
-      redirect: (_, _) => deps.flags.on('quick_sums') ? null : Paths.lessonNext,
+      redirect: (_, _) async {
+        if (!deps.flags.on('quick_sums')) return Paths.lessonNext;
+        // SES-01: none of the child's time is left today (on any family
+        // phone): the lesson says "That's today's time!" instead of
+        // offering a choice that can't open
+        final childId = deps.account.childId;
+        if (childId == null) return null;
+        final today = await ChildSettingsRepository(
+          deps.client,
+          deps.store,
+        ).today(childId);
+        return today?.timesUp == true ? Paths.lessonNext : null;
+      },
       pageBuilder: (_, s) => MotionPage(
         key: s.pageKey,
         arrive: Arrive.fade,
@@ -790,7 +909,9 @@ List<RouteBase> childRoutes(Deps deps) {
 
 /// Home, once a waiting badge has shown.
 class _GoHome extends StatefulWidget {
-  const _GoHome();
+  const _GoHome({this.to = Paths.home});
+
+  final String to;
 
   @override
   State<_GoHome> createState() => _GoHomeState();
@@ -801,7 +922,7 @@ class _GoHomeState extends State<_GoHome> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.go(Paths.home);
+      if (mounted) context.go(widget.to);
     });
   }
 

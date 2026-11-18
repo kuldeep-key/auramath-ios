@@ -15,7 +15,7 @@ import 'play_icon_button.dart';
 /// The child's home (JRN-02): their look and name small at the top (tap:
 /// the Me screen), the Family area lock, their tutor large with its spoken
 /// greeting (never the child's name, NFR-08), Keep going, and the Trail and
-/// Badges tiles while their switches are on. Figma: Home (649:2).
+/// Badges tiles while their switches are on, and My casebook (REW-15). Figma: Home (649:2).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -23,6 +23,7 @@ class HomeScreen extends StatefulWidget {
     required this.grownUps,
     this.trail = true,
     this.badges = true,
+    this.casebook = false,
     this.play = Paths.lessonNext,
     this.moment,
     this.avatar,
@@ -64,6 +65,10 @@ class HomeScreen extends StatefulWidget {
   final bool trail;
   final bool badges;
 
+  /// My casebook (REW-15), behind `casebook`: beside the other two where
+  /// there is room, else under them; Home is whole without it.
+  final bool casebook;
+
   /// Where Keep going leads: the next case, or Choose today (LES-14).
   final String play;
 
@@ -91,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
       :grownUps,
       :trail,
       :badges,
+      :casebook,
       :play,
       :moment,
       :lookId,
@@ -98,6 +104,13 @@ class _HomeScreenState extends State<HomeScreen> {
       :tutorId,
       :greeting,
     ) = widget;
+    // REW-15: with the casebook's tile under the other two, a small phone
+    // at large text has no room for the full-size figure: it shrinks, so
+    // the greeting stays whole above Keep going (NFR-04)
+    final small =
+        casebook &&
+        MediaQuery.sizeOf(context).height < 700 &&
+        MediaQuery.textScalerOf(context).scale(1) > 1;
     Widget me(double size) => lookId == null
         ? AvatarDisc(avatar: avatar, size: size)
         : LookPortrait(lookId: lookId, world: world, size: size);
@@ -156,12 +169,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   tutorId: tutorId,
                   kind: widget.tutorKind,
                   world: world,
-                  size: moment == null ? 220 : 110,
+                  size: moment != null ? 110 : (small ? 170 : 220),
                 ),
               ),
             )
           else
-            Float(child: me(moment == null ? 210 : 120)),
+            Float(child: me(moment != null ? 120 : (small ? 160 : 210))),
           ?moment,
           Ribbon(text: greeting ?? l.readyForNewCase),
         ],
@@ -182,32 +195,47 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           // Figma's icons don't fit beside the labels in a half-width button
           // on a phone; they show where there is room (iPad).
-          if (trail || badges)
+          if (trail || badges || casebook)
             LayoutBuilder(
               builder: (context, c) {
                 final roomy = c.maxWidth >= 420;
-                return Row(
+                final tiles = [
+                  if (trail)
+                    AuraButton(
+                      label: l.kidMyTrail,
+                      icon: roomy ? Icons.route_rounded : null,
+                      color: AuraButtonColor.white,
+                      onPressed: () => context.push(Paths.trail),
+                    ),
+                  if (badges)
+                    AuraButton(
+                      label: l.kidMyBadges,
+                      icon: roomy ? Icons.military_tech_rounded : null,
+                      color: AuraButtonColor.white,
+                      onPressed: () => context.push(Paths.badges),
+                    ),
+                  if (casebook)
+                    AuraButton(
+                      key: const Key('casebookTile'),
+                      label: l.kidMyCasebook,
+                      icon: roomy ? Icons.auto_stories_rounded : null,
+                      color: AuraButtonColor.white,
+                      onPressed: () => context.push(Paths.casebook),
+                    ),
+                ];
+                // three side by side only where each keeps its width (an
+                // iPad); on a phone the third goes under the first two
+                Widget row(List<Widget> ts) => Row(
                   spacing: 10,
-                  children: [
-                    if (trail)
-                      Expanded(
-                        child: AuraButton(
-                          label: l.kidMyTrail,
-                          icon: roomy ? Icons.route_rounded : null,
-                          color: AuraButtonColor.white,
-                          onPressed: () => context.push(Paths.trail),
-                        ),
-                      ),
-                    if (badges)
-                      Expanded(
-                        child: AuraButton(
-                          label: l.kidMyBadges,
-                          icon: roomy ? Icons.military_tech_rounded : null,
-                          color: AuraButtonColor.white,
-                          onPressed: () => context.push(Paths.badges),
-                        ),
-                      ),
-                  ],
+                  children: [for (final t in ts) Expanded(child: t)],
+                );
+                if (tiles.length < 3 || c.maxWidth >= 3 * 140 + 20) {
+                  return row(tiles);
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 12,
+                  children: [row(tiles.sublist(0, 2)), tiles[2]],
                 );
               },
             ),

@@ -34,12 +34,16 @@ typedef CabinetBadge = ({
 typedef PathStop = ({String stopId, String name, String state, bool polishMe});
 
 /// A land on the path: the one the child is in ([current], every stop),
-/// or the one teaser of the next ([teaser], no stops).
+/// or the one teaser of the next ([teaser], no stops). [stopInLevel] (0 to
+/// 3, the current land's `stopInLevel`) is how many of the four stops
+/// before the current level's peak the child has walked, as the server's
+/// move-up gate decides (never a count of cases); 0 when it is absent.
 typedef PathLand = ({
   String landId,
   String name,
   bool current,
   bool teaser,
+  int stopInLevel,
   List<PathStop> stops,
 });
 
@@ -251,6 +255,10 @@ class Rewards {
             name: l['name'] as String? ?? '',
             current: l['current'] == true,
             teaser: l['teaser'] == true,
+            stopInLevel: switch (l['stopInLevel']) {
+              final num n => n.toInt().clamp(0, 3),
+              _ => 0,
+            },
             stops: [
               for (final s
                   in (l['stops'] as List? ?? const []).whereType<Map>())

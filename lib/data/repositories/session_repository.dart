@@ -5,6 +5,7 @@ import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/child_settings.dart';
 import '../models/lesson_event.dart';
 import '../models/server_problem.dart';
 import '../services/api.dart';
@@ -126,6 +127,14 @@ class SessionRepository {
   final Map<String, List<Award>> _awards = {};
   List<Award> awardsFor(String sessionId) => _awards[sessionId] ?? const [];
 
+  /// The big badges due for [childId] now: what waited, under the last
+  /// session stopped, then the case just solved, in the sitting's open
+  /// session (one session a sitting).
+  List<Award> awardsDue(String? childId) => [
+    for (final id in {lastStop.value?.sessionId, _openFor[childId ?? '']})
+      if (id != null) ...awardsFor(id),
+  ];
+
   /// SES-01: the continuation the server stored a session's work in after
   /// its `session_ended {time_up}` (`continuedIn`). Problems and decisions
   /// for that work go there: the ended session refuses them.
@@ -228,6 +237,15 @@ class SessionRepository {
   WelcomeBack? welcomeBack(String sessionId) => _welcomeBacks[sessionId];
   final Map<String, WelcomeBack> _welcomeBacks = {};
 
+  /// SES-01: what was left of the child's day when [sessionId] opened,
+  /// once (a session carried on by a later case doesn't run it again).
+  DailyTime? takeDailyTime(String sessionId) => _dailyTimes.remove(sessionId);
+  final Map<String, DailyTime> _dailyTimes = {};
+
+  /// PAR-05: the settings [sessionId] opened with, once.
+  ChildSettings? takeSettings(String sessionId) => _settings.remove(sessionId);
+  final Map<String, ChildSettings> _settings = {};
+
   /// The child was greeted back this launch (Home's WelcomeBack, or the
   /// lesson's from the server's `welcomeBack`): once is enough.
   bool greeted = false;
@@ -267,6 +285,8 @@ class SessionRepository {
     if (s.reviewDue.isNotEmpty) _reviewDue[s.sessionId] = s.reviewDue;
     if (s.sittingId != null) _sittings[s.sessionId] = s.sittingId!;
     if (s.welcomeBack case final w?) _welcomeBacks[s.sessionId] = w;
+    if (s.dailyTime case final d?) _dailyTimes[s.sessionId] = d;
+    if (s.settings case final c?) _settings[s.sessionId] = c;
     if (s.todaySuggestion case final t?) {
       _suggestions[s.sessionId] = lastSuggestion = t;
     }

@@ -153,9 +153,7 @@ class _RightsScreenState extends State<RightsScreen> {
               if (snap.hasError) {
                 // the fixed title, then the server's own reason
                 return ErrorNote(
-                  ApiException(
-                    '${l.guConsentError}: ${ErrorNote.message(snap.error!)}',
-                  ),
+                  '${l.guConsentError}: ${ErrorNote.message(snap.error!, l)}',
                   onRetry: _rereadConsent,
                 );
               }
