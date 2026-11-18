@@ -84,8 +84,10 @@ void main() {
       find.text('A new stop opened on your trail: Tricky word cases.'),
       findsOneWidget,
     );
-    await tapAndSettle(tester, find.text('See my trail'));
-    expect(find.text('went to ${Paths.trail}'), findsOneWidget);
+    // the trail opens only from Home (JRN-03): no way in from here
+    expect(find.text('See my trail'), findsNothing);
+    await tapAndSettle(tester, find.text('Next'));
+    expect(find.text('went to ${Paths.trail}'), findsNothing);
   });
 
   testWidgets('with nothing to add, X1 shows the next case at once', (

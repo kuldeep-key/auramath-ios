@@ -101,13 +101,8 @@ class _AfterCaseScreenState extends State<AfterCaseScreen> {
           const BadgeDisc(art: '🧗', size: 190, look: BadgeLook.blue),
           PlayLine(l.kidNewStopOpened(a.opened!.label(l))),
         ],
-        bottom: AuraButton(
-          label: l.kidSeeMyTrail,
-          onPressed: () {
-            _next();
-            context.push(Paths.trail);
-          },
-        ),
+        // the trail opens only from Home (JRN-03), so no way in here
+        bottom: AuraButton(label: l.next, onPressed: _next),
       ),
       _Step.closed => _CaseClosed(solved: a.solved, next: a.next),
     };
