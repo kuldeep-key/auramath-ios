@@ -274,4 +274,48 @@ void main() {
     await v.say('Hello');
     expect(clips.played, hasLength(1));
   });
+
+  group('NoVoice: no voice on the phone (19 Nov)', () {
+    test(
+      'a line it is given is not read: the voice rests, words big',
+      () async {
+        final none = NoVoice();
+        await none.say('  ');
+        expect(none.resting.value, isFalse);
+        await none.say('How tall is the fig tree?');
+        expect(none.resting.value, isTrue);
+        expect(none.speaking.value, isFalse);
+      },
+    );
+
+    test("the server's voice failing: the lesson rests; the next lesson "
+        'wakes it and asks the server again', () async {
+      final none = NoVoice();
+      var down = true;
+      final v = CloudVoice(
+        fetch: (text, _) async {
+          asked.add(text);
+          if (down) throw const ApiException('down', status: 503);
+          return Uint8List.fromList([1]);
+        },
+        warmer: (_, _) async {},
+        player: clips,
+        fallback: none,
+        wait: const Duration(milliseconds: 50),
+      );
+      v.beginLesson();
+      await v.say('First line');
+      expect(v.lock, VoiceLock.phone);
+      expect(v.resting.value, isTrue);
+      expect(clips.played, isEmpty);
+
+      down = false;
+      v.beginLesson();
+      expect(v.resting.value, isFalse);
+      await v.say('First line');
+      expect(v.lock, VoiceLock.cloud);
+      expect(clips.played, hasLength(1));
+      expect(v.resting.value, isFalse);
+    });
+  });
 }
