@@ -37,8 +37,9 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 20));
     });
     await tester.pumpAndSettle();
-    // REW-01: the session's badge first, within its length (REW-16)
-    expect(find.byKey(const Key('celebration')), findsOneWidget);
+    // H6: a break, and the server named no badge for it: none made up here
+    // (REW-01's badge shows when the server names it, or next open)
+    expect(find.byKey(const Key('celebration')), findsNothing);
     await tester.pump(const Duration(milliseconds: 1600));
     await tester.pumpAndSettle();
     // Home's tutor greets on the ribbon (the prototype's Home)

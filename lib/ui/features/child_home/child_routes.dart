@@ -304,6 +304,11 @@ List<RouteBase> childRoutes(Deps deps) {
         final b? => (id: b.badgeId, name: b.name, says: b.subtitle),
         null => null,
       },
+      // H6: a late answer to the batch that ended it, a moment at most
+      settle: () => deps.sessions.syncNow().timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {},
+      ),
       streakOn: deps.flags.on('streak_moment'),
       // DAT-03: logged after the child's last lesson
       onStreak: (m) => deps.sessions.recordAfterLesson(
@@ -315,7 +320,8 @@ List<RouteBase> childRoutes(Deps deps) {
       ),
     );
     final r = momentsFor();
-    final badge = m.badge;
+    // H6: only the badge the server named, never one made up here
+    final badge = m.badge?.served;
     return [
       for (final moment in deps.journey.endOfSessionOrder)
         if (moment == 'streak_moment' && m.streak)
@@ -323,15 +329,12 @@ List<RouteBase> childRoutes(Deps deps) {
         else if (moment == 'session_badge' && badge != null)
           await r.sessionBadge(
             (
-              // none served yet: shown, not logged as a badge
-              badgeId: badge.served?.id ?? '',
+              badgeId: badge.id,
               kind: 'session',
-              name:
-                  badge.served?.name ??
-                  HomeMomentCard.draftName(l, badge.reason),
+              name: badge.name,
               forWhat: null,
-              draftName: badge.served == null,
-              subtitle: badge.served?.says,
+              draftName: false,
+              subtitle: badge.says,
             ),
             l: l,
             reminder: reminder,

@@ -1546,18 +1546,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Back on the case again! Detectives keep at it.';
 
   @override
-  String get kidSessionBadgeFinished => 'Case cracked';
-
-  @override
-  String get kidSessionBadgeTimeUp => 'Detective at work';
-
-  @override
-  String get kidSessionBadgeLeft => 'Tried a tricky case';
-
-  @override
-  String get kidSessionBadgePaused => 'Good start on a case';
-
-  @override
   String get kidNoBadgesYet => 'Crack a case to earn your first badge!';
 
   @override

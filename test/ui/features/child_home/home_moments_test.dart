@@ -98,23 +98,43 @@ void main() {
       expect(b!.served!.name, 'Lemon Case');
     });
 
-    test('no server badge yet: still a badge, never zero', () async {
-      final (m, _) = await source();
+    test('H6: no server badge yet: none made up now, after a short wait; '
+        'a later visit shows the one the server names', () async {
+      final (m, server) = await source();
+      var waited = 0;
       for (final reason in ['finished', 'time_up', 'left', 'paused']) {
         final b = (await m.next(
           lastStop: (sessionId: 's-$reason', reason: reason),
+          childId: 'c1',
+          settle: () async => waited++,
         )).badge;
-        expect(b, isNotNull, reason: reason);
-        expect(b!.served, isNull);
+        expect(b, isNull, reason: reason);
       }
+      expect(waited, 4);
+      server.on('GET /api/children/c1/rewards', {
+        'sessionBadges': [
+          {
+            'badgeId': 'session.kept_going',
+            'kind': 'session',
+            'name': 'Kept going',
+            'sessionId': 's-time_up',
+          },
+        ],
+      });
+      final later = await m.next(
+        lastStop: (sessionId: 's-time_up', reason: 'time_up'),
+        childId: 'c1',
+      );
+      expect(later.badge?.served?.name, 'Kept going');
     });
   });
 
+  // H6: the server's names (catalogue.yaml), never the phone's own
   for (final (reason, name) in [
-    ('time_up', 'Detective at work'),
-    ('left', 'Tried a tricky case'),
-    ('paused', 'Good start on a case'),
-    ('finished', 'Case cracked'),
+    ('time_up', 'Kept going'),
+    ('left', 'Back on track'),
+    ('paused', 'Good start'),
+    ('finished', 'Case cracked!'),
   ]) {
     testWidgets('Home after a $reason session shows its badge', (tester) async {
       await shots(
@@ -125,7 +145,11 @@ void main() {
           grownUps: Paths.kids,
           moment: HomeMomentCard(
             moments: (
-              badge: (sessionId: 's1', reason: reason, served: null),
+              badge: (
+                sessionId: 's1',
+                reason: reason,
+                served: (id: 'session.x', name: name, says: null),
+              ),
               streak: false,
             ),
           ),
@@ -135,6 +159,27 @@ void main() {
       expect(find.text('Your badge for this session'), findsOneWidget);
     });
   }
+
+  testWidgets('H6: a badge the server hasn\'t named shows nothing', (
+    tester,
+  ) async {
+    await shots(
+      tester,
+      'child_home_session_badge_unnamed',
+      const HomeScreen(
+        name: 'Mira',
+        grownUps: Paths.kids,
+        moment: HomeMomentCard(
+          moments: (
+            badge: (sessionId: 's1', reason: 'finished', served: null),
+            streak: false,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Your badge for this session'), findsNothing);
+    expect(find.text('Case cracked'), findsNothing);
+  });
 
   group('REW-05: a kind streak moment', () {
     test('only with the flag, when the server says, once a day', () async {
