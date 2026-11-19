@@ -898,6 +898,11 @@ List<RouteBase> childRoutes(Deps deps) {
             if (first) {
               await chosen(context, 'meet', true);
             } else {
+              // H7: the server's first run is where it's kept, for every
+              // phone
+              final id = deps.account.childId;
+              if (id != null) await deps.looks.stepDone(id, 'meet');
+              if (!context.mounted) return;
               context.go(Paths.lessonNext);
             }
           },

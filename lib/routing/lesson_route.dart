@@ -22,8 +22,7 @@ List<RouteBase> lessonRoutes(Deps deps) => [
     path: Paths.lessonNext,
     redirect: (context, state) async {
       // the case partner says what it is first, once per child (AI-07)
-      if (deps.flags.on('case_partner_intro') &&
-          !await PartnerIntroRepository(deps.store).met(deps.account.childId)) {
+      if (deps.flags.on('case_partner_intro') && await _meetDue(deps)) {
         return Paths.meetPartner;
       }
       final next = await deps.sessions.whereNext(
@@ -75,6 +74,17 @@ List<RouteBase> lessonRoutes(Deps deps) => [
     ),
   ),
 ];
+
+/// H7: the child still has to meet their partner, as the server's first
+/// run says (`needsFirstRun` has `meet`), so a child who met it on another
+/// phone doesn't meet it again here. A phone with no child chosen asks its
+/// own record.
+Future<bool> _meetDue(Deps deps) async {
+  final id = deps.account.childId;
+  if (id == null) return !await PartnerIntroRepository(deps.store).met(null);
+  final look = deps.looks.cached(id) ?? await deps.looks.read(id);
+  return look.needsFirstRun.contains('meet');
+}
 
 /// Owns one lesson's view model for as long as the lesson is on screen.
 class _LessonRoute extends StatefulWidget {

@@ -113,6 +113,15 @@ void main() {
         {'id': 'child-1', 'displayName': 'Mira'},
       ],
     });
+    // the server's first run: only meeting the partner is left (H7)
+    server.on('GET /api/children/child-1/look', {
+      'childId': 'child-1',
+      'needsFirstRun': ['meet'],
+    });
+    server.on('POST /api/children/child-1/first-run', {
+      'childId': 'child-1',
+      'needsFirstRun': <String>[],
+    });
     await tester.pumpWidget(
       AuraApp(deps: deps, initialLocation: Paths.lessonNext),
     );
@@ -130,5 +139,34 @@ void main() {
       ),
       isTrue,
     );
+  });
+
+  testWidgets('H7: a child who met the partner on another phone (the '
+      "server's first run says so) doesn't meet it again here", (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final (deps, server) =
+        await tester.runAsync(
+          () => testDeps(
+            stored: pairedChildPhone,
+            flags: {...allScreensOn, 'case_partner_intro': true},
+          ),
+        ) ??
+        (throw StateError('no deps'));
+    server.on('GET /api/children', {
+      'children': [
+        {'id': 'child-1', 'displayName': 'Mira'},
+      ],
+    });
+    server.on('GET /api/children/child-1/look', {
+      'childId': 'child-1',
+      'needsFirstRun': <String>[],
+    });
+    await tester.pumpWidget(
+      AuraApp(deps: deps, initialLocation: Paths.lessonNext),
+    );
+    await settle(tester);
+    expect(find.byType(MeetPartnerScreen), findsNothing);
   });
 }
