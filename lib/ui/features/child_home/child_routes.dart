@@ -325,6 +325,23 @@ List<RouteBase> childRoutes(Deps deps) {
     ];
   }
 
+  /// H4: whether each child's cabinet has a badge in it, as the server
+  /// last said (REW-12), asked once per visit to Home. My badges opens
+  /// only on the server's cabinet (`badge_cabinet`), never an empty one.
+  final cabinetHas = <String, bool>{};
+  final cabinetAsked = <LocalKey>{};
+  bool cabinetKnown() =>
+      deps.flags.on('badge_cabinet') &&
+      (cabinetHas[deps.account.childId] ?? false);
+  Future<bool> cabinetShows(LocalKey visit) async {
+    final id = deps.account.childId;
+    if (id == null || !deps.flags.on('badge_cabinet')) return false;
+    if (cabinetAsked.add(visit)) {
+      cabinetHas[id] = (await rewards.read(id)).cabinet?.isNotEmpty ?? false;
+    }
+    return cabinetKnown();
+  }
+
   Widget named(Widget Function(String? name) screen) => FutureBuilder(
     initialData: progress.cachedName,
     future: progress.childName(),
@@ -367,40 +384,42 @@ List<RouteBase> childRoutes(Deps deps) {
             onShown: (spec, r) => momentsFor().shown(spec, r),
             child: ListenableBuilder(
               listenable: Listenable.merge([deps.flags, deps.looks]),
-              builder: (context, _) => HomeScreen(
-                // AVT-02, JRN-02: the look and the tutor, as they are now
-                lookId:
-                    deps.looks.cached(deps.account.childId)?.avatarId ??
-                    (progress.cachedAvatar == null
-                        ? null
-                        : lookIdFor(progress.cachedAvatar)),
-                world: worldNow(),
-                tutorId: tutorNow().id,
-                tutorKind: tutorNow().kind,
-                greeting: tutorLine(context, 'line.home.greeting'),
-                // spoken once as this Home opens, again on a tap
-                onGreet: ({required tapped}) {
-                  if (!tapped && !greeted.add(s.pageKey)) return;
-                  speak(
-                    tutorLine(context, 'line.home.greeting'),
-                    'line.home.greeting',
-                    tapped: tapped,
-                  );
-                },
-                name: name,
-                grownUps: deps.account.role == Role.device
-                    ? Paths.signIn
-                    : Paths.kids,
-                trail: deps.flags.on('trail'),
-                badges:
-                    deps.flags.on('badge_cabinet') ||
-                    deps.flags.on('mastery_badges'),
-                casebook: deps.flags.on('casebook'),
-                avatar: progress.cachedAvatar,
-                // Choose today first, with Quick sums on (LES-14)
-                play: deps.flags.on('quick_sums')
-                    ? Paths.chooseToday
-                    : Paths.lessonNext,
+              builder: (context, _) => FutureBuilder(
+                initialData: cabinetKnown(),
+                future: cabinetShows(s.pageKey),
+                builder: (context, cabinet) => HomeScreen(
+                  // AVT-02, JRN-02: the look and the tutor, as they are now
+                  lookId:
+                      deps.looks.cached(deps.account.childId)?.avatarId ??
+                      (progress.cachedAvatar == null
+                          ? null
+                          : lookIdFor(progress.cachedAvatar)),
+                  world: worldNow(),
+                  tutorId: tutorNow().id,
+                  tutorKind: tutorNow().kind,
+                  greeting: tutorLine(context, 'line.home.greeting'),
+                  // spoken once as this Home opens, again on a tap
+                  onGreet: ({required tapped}) {
+                    if (!tapped && !greeted.add(s.pageKey)) return;
+                    speak(
+                      tutorLine(context, 'line.home.greeting'),
+                      'line.home.greeting',
+                      tapped: tapped,
+                    );
+                  },
+                  name: name,
+                  grownUps: deps.account.role == Role.device
+                      ? Paths.signIn
+                      : Paths.kids,
+                  trail: deps.flags.on('trail'),
+                  badges: cabinet.data ?? false,
+                  casebook: deps.flags.on('casebook'),
+                  avatar: progress.cachedAvatar,
+                  // Choose today first, with Quick sums on (LES-14)
+                  play: deps.flags.on('quick_sums')
+                      ? Paths.chooseToday
+                      : Paths.lessonNext,
+                ),
               ),
             ),
           ),
@@ -472,41 +491,26 @@ List<RouteBase> childRoutes(Deps deps) {
       path: Paths.badges,
       builder: (_, _) => Loaded(
         // REW-12: the server's cabinet, earned badges only (behind
-        // badge_cabinet); a server before it: the case badges earned on
-        // this phone, then the level badges it says were earned (REW-06)
+        // badge_cabinet); none served, none shown: never this phone's own
+        // v4 case badges (H4)
         load: () async {
           final id = deps.account.childId;
           final read = id == null ? null : await rewards.read(id);
           final cabinet = read?.cabinet;
           levelBadges.clear();
-          final List<String> earned;
           // REW-12: with the casebook on, a badge opens its case
           final cases = <String, String>{
             if (deps.flags.on('casebook'))
               for (final b in cabinet ?? const <CabinetBadge>[])
                 b.badgeId: ?b.problemId,
           };
-          if (cabinet != null) {
-            levelBadges.addAll({
-              for (final b in cabinet)
-                b.badgeId: BadgeInfo(name: b.name, says: b.name),
-            });
-            earned = [for (final b in cabinet) b.badgeId];
-          } else {
-            final mine = await progress.earnedBadges();
-            final levels = id == null
-                ? const <ServedBadge>[]
-                : await rewards.levelBadges(id);
-            levelBadges.addAll({
-              for (final b in levels)
-                b.id: BadgeInfo(name: b.name, says: b.says ?? b.name),
-            });
-            earned = [
-              ...mine,
-              for (final b in levels)
-                if (!mine.contains(b.id)) b.id,
-            ];
-          }
+          levelBadges.addAll({
+            for (final b in cabinet ?? const <CabinetBadge>[])
+              b.badgeId: BadgeInfo(name: b.name, says: b.name),
+          });
+          final earned = [
+            for (final b in cabinet ?? const <CabinetBadge>[]) b.badgeId,
+          ];
           // logged, never shown: how many it showed (REW-20)
           unawaited(deps.visits.record(id, [cabinetOpened(earned.length)]));
           return (
@@ -518,7 +522,7 @@ List<RouteBase> childRoutes(Deps deps) {
         builder: (c) => BadgesScreen(
           earned: c.earned,
           cases: c.cases,
-          badges: {...deps.pack.badges, ...levelBadges},
+          badges: {...levelBadges},
           world: c.world,
           tutorId: tutorNow().id,
           tutorKind: tutorNow().kind,

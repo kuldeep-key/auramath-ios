@@ -16,12 +16,13 @@ void main() {
     Map<String, String> stored = pairedChildPhone,
     List<SpecEvent> saved = const [],
     void Function(FakeServer server)? serve,
+    Map<String, Object?> flags = allScreensOn,
   }) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final (deps, server) =
-        await tester.runAsync(() => testDeps(stored: stored)) ??
+        await tester.runAsync(() => testDeps(stored: stored, flags: flags)) ??
         (throw StateError('no deps'));
     server.on('GET /api/children', {
       'children': [
@@ -38,9 +39,8 @@ void main() {
     return deps;
   }
 
-  testWidgets('My badges adds the level badges the server served (REW-06)', (
-    tester,
-  ) async {
+  testWidgets('H4: with no server cabinet, My badges shows none: not the '
+      'levelBadges of a server before it, nor v4 case badges', (tester) async {
     await boot(
       tester,
       Paths.badges,
@@ -60,18 +60,41 @@ void main() {
         ],
       }),
     );
-    expect(find.text('Taller and shorter, up to 1000'), findsOneWidget);
-    await tester.tap(find.text('Taller and shorter, up to 1000'));
-    await settle(tester);
-    expect(find.text('Taller and shorter, up to 1000'), findsWidgets);
-    expect(find.text('My badges'), findsNothing); // its own screen
+    expect(find.text('Taller and shorter, up to 1000'), findsNothing);
+    expect(find.text('Tree Detective'), findsNothing);
+    expect(find.text('Your badges will live here.'), findsOneWidget);
   });
 
-  testWidgets('no level badges served: only what this phone earned', (
+  testWidgets('no level badges served: none of this phone\'s own', (
     tester,
   ) async {
     await boot(tester, Paths.badges);
     expect(find.text('Your badges will live here.'), findsOneWidget);
+  });
+
+  testWidgets('H4: Home offers My badges only with badge_cabinet on and a '
+      'badge in the server\'s cabinet', (tester) async {
+    // mastery_badges on, badge_cabinet off (dev): no tile
+    await boot(tester, Paths.home);
+    expect(find.text('My badges'), findsNothing);
+
+    Future<void> withCabinet(List<Object?> cabinet) => boot(
+      tester,
+      Paths.home,
+      flags: {...allScreensOn, 'badge_cabinet': true},
+      serve: (s) =>
+          s.on('GET /api/children/child-1/rewards', {'cabinet': cabinet}),
+    );
+    await withCabinet(const []);
+    expect(find.text('My badges'), findsNothing);
+    await withCabinet(const [
+      {
+        'badgeId': 'stop.orchard.l1',
+        'kind': 'skill_mastered',
+        'name': 'Seedling Path',
+      },
+    ]);
+    expect(find.text('My badges'), findsOneWidget);
   });
 
   testWidgets('Home shows the child named by the server', (tester) async {
