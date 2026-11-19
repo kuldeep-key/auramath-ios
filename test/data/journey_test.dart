@@ -342,7 +342,12 @@ void main() {
         ms: 3000,
         skipped: false,
         reducedMotion: false,
-        badge: (badgeId: 'stop.orchard.l1', queued: false, problemId: null),
+        badge: (
+          badgeId: 'stop.orchard.l1',
+          queued: false,
+          problemId: null,
+          alsoBadgeId: null,
+        ),
       );
       final log = await deps.outbox.forSession(id);
       expect(log.map((e) => e.name), [

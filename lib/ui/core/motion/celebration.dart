@@ -24,6 +24,7 @@ class CelebrationSpec {
     this.subtitle,
     this.skippable = false,
     this.badgeId,
+    this.alsoBadgeId,
     this.queued = false,
     this.problemId,
     this.side,
@@ -62,7 +63,7 @@ class CelebrationSpec {
   final Widget? walker;
 
   /// Which prototype screen draws it, when not its [moment]'s own: a last
-  /// stop with its land is a `stop_badge` moment drawn as `land_badge`.
+  /// stop with its land plays as `land_badge` (H3).
   final String? layout;
 
   /// rules.yaml `celebrations.moments.<moment>.max_ms`: it ends by itself
@@ -75,6 +76,10 @@ class CelebrationSpec {
 
   /// The badge it shows, logged as `badge_shown` (REW-11).
   final String? badgeId;
+
+  /// A second badge the same moment shows, logged as `badge_shown` too: a
+  /// last stop shown with its land's trophy (H3).
+  final String? alsoBadgeId;
   final bool queued;
   final String? problemId;
 }

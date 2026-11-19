@@ -4,7 +4,14 @@ import '../services/key_store.dart';
 import 'visit_repository.dart';
 
 /// A badge a celebration shows (REW-11): logged as `badge_shown` with it.
-typedef ShownBadge = ({String badgeId, bool queued, String? problemId});
+/// [alsoBadgeId]: a second badge the same moment shows (a last stop with
+/// its land, H3), logged too.
+typedef ShownBadge = ({
+  String badgeId,
+  bool queued,
+  String? problemId,
+  String? alsoBadgeId,
+});
 
 /// What the phone remembers about celebrations (rewards/rules.yaml
 /// `celebrations.global`), and how each one is logged:
@@ -73,6 +80,8 @@ class CelebrationRepository {
         skipped: skipped,
         reducedMotion: reducedMotion,
       ),
+      if (badge?.alsoBadgeId case final also?)
+        badgeShown(also, queued: badge!.queued),
       if (badge != null) badgeShown(badge.badgeId, queued: badge.queued),
     ];
     if (await inSitting?.call(childId, events) ?? false) return;

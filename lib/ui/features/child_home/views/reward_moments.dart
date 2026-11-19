@@ -54,6 +54,7 @@ class RewardMoments {
     required Widget art,
     String? subtitle,
     String? badgeId,
+    String? alsoBadgeId,
     bool queued = false,
     String? problemId,
     Widget? side,
@@ -83,6 +84,7 @@ class RewardMoments {
       maxDuration: config.maxFor(moment),
       skippable: id != null && await celebrations.seen(id, moment),
       badgeId: badgeId,
+      alsoBadgeId: alsoBadgeId,
       queued: queued,
       problemId: problemId,
     );
@@ -150,9 +152,10 @@ class RewardMoments {
             _ => a.celebration,
           };
     return _spec(
-      // the server's moment: a last stop and its land come as one
-      // stop_badge moment with alsoLand (the land's trophy, the stop named)
-      a.celebration,
+      // the server's moment; a last stop and its land come as one award
+      // with alsoLand, which plays as the land's moment (its trophy, the
+      // stop named, land_badge's length) and logs both as shown (H3)
+      land != null ? 'land_badge' : a.celebration,
       layout: layout,
       title: layout == 'first_badge'
           ? (l?.kidIntoYourBadges ?? a.name)
@@ -163,6 +166,7 @@ class RewardMoments {
           ? a.name
           : null,
       badgeId: id,
+      alsoBadgeId: land != null ? a.badgeId : null,
       queued: a.queued,
       problemId: a.problemId,
       heading: layout == 'stop_badge'
@@ -224,6 +228,7 @@ class RewardMoments {
               badgeId: spec.badgeId!,
               queued: spec.queued,
               problemId: spec.problemId,
+              alsoBadgeId: spec.alsoBadgeId,
             ),
     );
   }

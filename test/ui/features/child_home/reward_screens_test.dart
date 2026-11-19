@@ -206,6 +206,50 @@ void main() {
       },
     );
 
+    test('H3: a last stop with its land plays as the land moment, for the '
+        "land's length, and logs both badges as shown", () async {
+      final visits = VisitRepository(
+        ApiClient(baseUrl: 'http://test', bearer: () => null),
+        deviceId: () => 'dv_test',
+        appVersion: '0.1.0',
+      );
+      final r = RewardMoments(
+        celebrations: CelebrationRepository(MemoryKeyStore(), visits),
+        config: const JourneyConfig(
+          celebrationMs: {'stop_badge': 3000, 'land_badge': 8000},
+        ),
+        childId: 'kid12345',
+      );
+      final s = await r.bigBadge((
+        badgeId: 'stop.orchard.l5',
+        kind: 'skill_mastered',
+        name: 'Twisty Tree',
+        problemId: null,
+        celebration: 'stop_badge',
+        queued: false,
+        alsoLand: (badgeId: 'land.orchard', name: 'The Orchard'),
+      ), l: l);
+      expect(s.moment, 'land_badge');
+      expect(s.layout, 'land_badge');
+      expect(s.maxDuration, const Duration(milliseconds: 8000));
+      expect(s.title, 'The Orchard');
+      r.shown(s, (ms: 8000, skipped: false, reducedMotion: false));
+      await pumpEventQueue();
+      expect(
+        [
+          for (final e in visits.written)
+            if (e.name == 'badge_shown') e.payload['badge_id'],
+        ],
+        ['stop.orchard.l5', 'land.orchard'],
+      );
+      expect(
+        visits.written
+            .singleWhere((e) => e.name == 'celebration_shown')
+            .payload['moment'],
+        'land_badge',
+      );
+    });
+
     test('offline (no path): the peak and its land, no line', () async {
       final s = await moments().bigBadge(award, l: l);
       expect(s.heading, 'You reached the peak!');
