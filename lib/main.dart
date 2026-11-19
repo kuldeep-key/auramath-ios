@@ -22,6 +22,7 @@ import 'data/services/content_bundle.dart';
 import 'data/services/content_versions.dart';
 import 'data/services/device_lock.dart';
 import 'data/services/error_reporter.dart';
+import 'data/repositories/visit_repository.dart';
 import 'data/services/flags.dart';
 import 'data/services/key_store.dart';
 import 'data/services/outbox_db.dart';
@@ -211,6 +212,16 @@ Future<void> main() async {
   void voiceOfChild() => voice.voiceId = looks.cached(account.childId)?.voiceId;
   looks.addListener(voiceOfChild);
   account.addListener(voiceOfChild);
+  // events outside a lesson (D-60), kept in the outbox until sent (H5);
+  // what an earlier open left waiting goes now
+  final visits = VisitRepository(
+    client,
+    deviceId: () => account.deviceRef,
+    appVersion: Env.appVersion,
+    outbox: db,
+    onRefused: (message) => errors.report('error', message, screen: 'visit'),
+  );
+  if (account.bearer != null) unawaited(visits.sendWaiting());
   runApp(
     AuraApp(
       deps: Deps(
@@ -230,6 +241,7 @@ Future<void> main() async {
         flags: flags,
         journey: journey,
         looks: looks,
+        visits: visits,
         timeZone: () async =>
             (await FlutterTimezone.getLocalTimezone()).identifier,
       ),

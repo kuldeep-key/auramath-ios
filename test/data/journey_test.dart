@@ -1,13 +1,17 @@
+import 'dart:async';
+
 import 'package:auramath/data/models/journey_config.dart';
+import 'package:auramath/data/repositories/celebration_repository.dart';
 import 'package:auramath/data/repositories/look_repository.dart';
 import 'package:auramath/data/repositories/session_repository.dart';
 import 'package:auramath/data/repositories/visit_repository.dart';
 import 'package:auramath/data/services/api_client.dart';
+import 'package:auramath/data/services/outbox_db.dart';
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/app_harness.dart';
-import 'helpers.dart' show expectContract, WithSession;
+import 'helpers.dart' show expectContract, memoryOutbox, WithSession;
 
 /// D-59, D-60: the journey's settings from the bundled spec files, the
 /// child's look as the server keeps it, and the events outside a lesson.
@@ -219,6 +223,151 @@ void main() {
       await visits.record('c1', [cabinetOpened(0)]);
       final last = server.calls.last.$2['events']! as List;
       expect(last, hasLength(2));
+    });
+  });
+
+  group('H5: visit events are kept until the server answers for them', () {
+    late FakeServer server;
+    late OutboxDb db;
+    var n = 0;
+    VisitRepository visits({void Function(String)? onRefused}) =>
+        VisitRepository(
+          ApiClient(
+            baseUrl: 'http://test',
+            bearer: () => 'device-token',
+            client: server.client,
+          ),
+          deviceId: () => 'dv_test1234',
+          appVersion: '0.1.0',
+          outbox: db,
+          onRefused: onRefused,
+          newId: () => 'id${n++}',
+        );
+
+    setUp(() async {
+      server = FakeServer();
+      db = await memoryOutbox();
+    });
+    tearDown(() => db.close());
+
+    test('offline, then the app is killed: the next open sends them under '
+        'their own visit', () async {
+      final first = visits();
+      server.routes['POST /api/visits/${first.visitId}/events'] = (_) =>
+          (503, {'error': 'down'});
+      await first.record('c1', [trailOpened]);
+      // a new app open, the server back
+      final next = visits();
+      server.on('POST /api/visits/${first.visitId}/events', {'added': 1});
+      await next.sendWaiting();
+      final (route, body) = server.calls.last;
+      expect(route, 'POST /api/visits/${first.visitId}/events');
+      expect(
+        [for (final e in body['events']! as List) (e as Map)['name']],
+        ['trail_opened'],
+      );
+      expect(await db.visitEvents('c1'), isEmpty);
+    });
+
+    test('a 400 is final: dropped and reported, not sent again', () async {
+      final refused = <String>[];
+      final v = visits(onRefused: refused.add);
+      final route = 'POST /api/visits/${v.visitId}/events';
+      server.on(route, {'error': 'childId is required'}, status: 400);
+      await v.record('c1', [trailOpened]);
+      expect(refused.single, contains('400'));
+      expect(await db.visitEvents('c1'), isEmpty);
+      server.on(route, {'added': 1});
+      await v.record('c1', [cabinetOpened(0)]);
+      final last = server.calls.last.$2['events']! as List;
+      expect([for (final e in last) (e as Map)['name']], ['cabinet_opened']);
+    });
+
+    test("a 200's rejected events are reported and not sent again", () async {
+      final refused = <String>[];
+      final v = visits(onRefused: refused.add);
+      server.on('POST /api/visits/${v.visitId}/events', {
+        'added': 1,
+        'rejected': [
+          {
+            'index': 1,
+            'name': 'cabinet_opened',
+            'reasons': ['payload.count: required'],
+          },
+        ],
+      });
+      await v.record('c1', [trailOpened, cabinetOpened(0)]);
+      expect(refused.single, contains('cabinet_opened'));
+      expect(await db.visitEvents('c1'), isEmpty);
+      await v.record('c1', [trailOpened]);
+      expect(server.calls.last.$2['events'], hasLength(1));
+    });
+
+    test("one child's send waiting doesn't hold another's", () async {
+      final v = visits();
+      final route = 'POST /api/visits/${v.visitId}/events';
+      server.routes[route] = (body) => (200, {'added': 1});
+      // c1's batch hangs
+      server.silent.add(route);
+      unawaited(v.record('c1', [trailOpened]));
+      await pumpEventQueue();
+      server.silent.clear();
+      await v.record('c2', [trailOpened]);
+      expect([for (final (_, b) in server.calls) b['childId']], ['c1', 'c2']);
+      expect(await db.visitEvents('c2'), isEmpty);
+    });
+  });
+
+  group('H1: a celebration between cases goes with the lesson', () {
+    test("in the child's open sitting: badge_shown and celebration_shown "
+        "are in its session's log, not the visit's", () async {
+      final (deps, server) = await testDeps(
+        stored: {...pairedChildPhone, 'childId': 'kid12345'},
+      );
+      server.on('POST /api/visits/${deps.visits.visitId}/events', {});
+      final repo = CelebrationRepository(
+        deps.store,
+        deps.visits,
+        inSitting: deps.sessions.recordInSitting,
+      );
+      final id = await deps.sessions.openOrGoOn(childId: 'kid12345');
+      await deps.sessions.record(id, 0, const [
+        SpecEvent('step_entered', {'step_id': 'draw_known_bar'}),
+      ]);
+      await repo.shown(
+        'kid12345',
+        moment: 'stop_badge',
+        variant: 1,
+        world: 'detective',
+        ms: 3000,
+        skipped: false,
+        reducedMotion: false,
+        badge: (badgeId: 'stop.orchard.l1', queued: false, problemId: null),
+      );
+      final log = await deps.outbox.forSession(id);
+      expect(log.map((e) => e.name), [
+        'step_entered',
+        'celebration_shown',
+        'badge_shown',
+      ]);
+      expect(log[1].seq, greaterThan(log[0].seq));
+      expectContract(log);
+      expect(deps.visits.written, isEmpty);
+      // the next case in the sitting follows on past them
+      expect(deps.sessions.nextSeq(id), log.last.seq + 1);
+
+      // Home: the sitting is over, so the visit takes them
+      await deps.sessions.endSitting('kid12345');
+      await repo.shown(
+        'kid12345',
+        moment: 'session_badge',
+        variant: 1,
+        world: 'detective',
+        ms: 3000,
+        skipped: false,
+        reducedMotion: false,
+      );
+      expect(deps.visits.written.map((e) => e.name), ['celebration_shown']);
     });
   });
 

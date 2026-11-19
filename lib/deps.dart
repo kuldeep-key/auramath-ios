@@ -43,6 +43,7 @@ class Deps {
              client,
              deviceId: () => account.deviceRef,
              appVersion: sessions.identity.appVersion,
+             outbox: outbox,
            ) {
     // every session records the child's look, tutor, voice and world
     sessions.lookFor = (childId) => this.looks.sessionLook(childId);

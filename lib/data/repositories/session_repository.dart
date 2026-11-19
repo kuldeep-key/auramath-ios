@@ -566,6 +566,26 @@ class SessionRepository {
     await syncNow();
   }
 
+  /// H1: what a lesson shows between its cases (`badge_shown`,
+  /// `celebration_shown` at after-case) goes in [childId]'s sitting's open
+  /// session, so the server reads it with the lesson (the family note, the
+  /// weekly email, the replay queue). Its seqs start [inSittingGap] past
+  /// every one saved: the case just solved may still log a little from
+  /// seqs it holds, and the next case follows on past these. False, and
+  /// nothing written, when no sitting of theirs is open.
+  Future<bool> recordInSitting(String? childId, List<SpecEvent> events) async {
+    final id = _openFor[childId ?? ''];
+    if (id == null || ended.value == id || events.isEmpty) return false;
+    final saved = await _db.forSession(id);
+    final last = saved.isEmpty ? -1 : saved.map((e) => e.seq).reduce(math.max);
+    final first = math.max(nextSeq(id), last + 1) + inSittingGap;
+    await record(id, first, events);
+    return true;
+  }
+
+  /// The seqs [recordInSitting] leaves free for the case before.
+  static const inSittingGap = 20;
+
   /// DAT-03: an event outside a lesson for [childId] (Home's streak moment,
   /// Y4's badge sent to the grown-up, an avatar picked). Every event needs
   /// a session, so it goes after the end of the child's last lesson on

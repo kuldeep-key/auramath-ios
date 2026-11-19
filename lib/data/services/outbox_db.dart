@@ -12,12 +12,13 @@ class OutboxDb {
   static Future<OutboxDb> open(String path) async {
     final db = await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: (db, _) async {
         await _create(db);
         await _createV3(db);
         await _createV4(db);
         await _createV5(db);
+        await _createV6(db);
       },
       onUpgrade: (db, from, _) async {
         // v1 held the pre-contract event shape; no real family has used the
@@ -29,6 +30,7 @@ class OutboxDb {
         if (from < 3) await _createV3(db);
         if (from < 4) await _createV4(db);
         if (from < 5) await _createV5(db);
+        if (from < 6) await _createV6(db);
       },
     );
     return OutboxDb._(db);
@@ -70,6 +72,60 @@ class OutboxDb {
   static Future<void> _createV5(Database db) => db.execute(
     'ALTER TABLE events ADD COLUMN dead INTEGER NOT NULL DEFAULT 0',
   );
+
+  /// `visits`: events outside a lesson (D-60) the server hasn't taken yet,
+  /// by child, so a killed app or a long time offline doesn't lose them
+  /// (H5). Gone once the server answers for them.
+  static Future<void> _createV6(Database db) => db.execute('''
+    CREATE TABLE visits(
+      visit_id TEXT NOT NULL,
+      seq INTEGER NOT NULL,
+      child_id TEXT NOT NULL,
+      body TEXT NOT NULL,
+      PRIMARY KEY(visit_id, seq)
+    )''');
+
+  /// Keeps a visit event for [childId] until the server answers for it.
+  Future<void> saveVisitEvent(String childId, LessonEvent e) =>
+      _db.insert('visits', {
+        'visit_id': e.sessionId,
+        'seq': e.seq,
+        'child_id': childId,
+        'body': jsonEncode(e.toJson()),
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+  /// [childId]'s visit events still to send, oldest first, any visit.
+  Future<List<LessonEvent>> visitEvents(String childId) async => [
+    for (final r in await _db.query(
+      'visits',
+      where: 'child_id = ?',
+      whereArgs: [childId],
+      orderBy: 'rowid',
+    ))
+      _row(r),
+  ];
+
+  /// The children with visit events still to send.
+  Future<List<String>> visitChildren() async => [
+    for (final r in await _db.query(
+      'visits',
+      columns: ['child_id'],
+      distinct: true,
+    ))
+      r['child_id']! as String,
+  ];
+
+  /// The server answered for [events] (taken, refused, or never will be).
+  Future<void> dropVisitEvents(List<LessonEvent> events) =>
+      _db.transaction((tx) async {
+        for (final e in events) {
+          await tx.delete(
+            'visits',
+            where: 'visit_id = ? AND seq = ?',
+            whereArgs: [e.sessionId, e.seq],
+          );
+        }
+      });
 
   Future<void> saveCarried(String sessionId, String fromId) => _db.insert(
     'carried',
@@ -203,6 +259,7 @@ class OutboxDb {
     await _db.delete('ended');
     await _db.delete('problems');
     await _db.delete('carried');
+    await _db.delete('visits');
   }
 
   Future<void> close() => _db.close();

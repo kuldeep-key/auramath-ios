@@ -15,13 +15,20 @@ typedef ShownBadge = ({String badgeId, bool queued, String? problemId});
 /// - whether the child has seen a moment before: tap to skip only after
 ///   the first time (`tap_to_skip: after_first_view`). The rules count that
 ///   per child across devices; this phone knows its own views only
-/// - `celebration_shown` (and `badge_shown` for a badge) through the
-///   visit's events (D-60), from R1
+/// - `celebration_shown` (and `badge_shown` for a badge): in the child's
+///   sitting's open session while there is one ([inSitting], H1), so the
+///   server reads them with the lesson; else through the visit's events
+///   (D-60)
 class CelebrationRepository {
-  CelebrationRepository(this._store, this._visits);
+  CelebrationRepository(this._store, this._visits, {this.inSitting});
 
   final KeyStore _store;
   final VisitRepository _visits;
+
+  /// Writes events in the child's open sitting's session; false when none
+  /// is open (`SessionRepository.recordInSitting`).
+  final Future<bool> Function(String childId, List<SpecEvent> events)?
+  inSitting;
 
   /// rules.yaml `variants_per_world_at_least`.
   static const variants = 3;
@@ -57,7 +64,7 @@ class CelebrationRepository {
   }) async {
     if (childId == null) return;
     await _store.write('celebration.seen.$childId.$moment', '1');
-    await _visits.record(childId, [
+    final events = [
       celebrationShown(
         moment: moment,
         variant: variant,
@@ -67,6 +74,8 @@ class CelebrationRepository {
         reducedMotion: reducedMotion,
       ),
       if (badge != null) badgeShown(badge.badgeId, queued: badge.queued),
-    ]);
+    ];
+    if (await inSitting?.call(childId, events) ?? false) return;
+    await _visits.record(childId, events);
   }
 }

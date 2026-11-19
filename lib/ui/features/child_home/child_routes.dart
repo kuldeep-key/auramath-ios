@@ -71,7 +71,12 @@ List<RouteBase> childRoutes(Deps deps) {
   final levelBadges = <String, BadgeInfo>{};
   BadgeInfo? badgeInfo(String? id) => deps.pack.badges[id] ?? levelBadges[id];
   final moments = HomeMomentsSource(rewards: rewards);
-  final celebrations = CelebrationRepository(deps.store, deps.visits);
+  final celebrations = CelebrationRepository(
+    deps.store,
+    deps.visits,
+    // H1: between cases, in the sitting's session, with the lesson
+    inSitting: deps.sessions.recordInSitting,
+  );
 
   /// REW-01: the session badge the server holds as not yet shown, read
   /// once per launch for each child.
