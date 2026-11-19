@@ -188,7 +188,7 @@ Future<void> main() async {
   // the chosen child's own day's time (SES-01)
   sitting.child = account.childId;
   await sitting.load();
-  // the case partner's voice from the server; the phone's own voice
+  // the case partner's voice from the server; no voice, the words big,
   // whenever the server reads nothing aloud or a line can't go out
   final voice = CloudVoice(
     // the child's voice from their tutor (TTR-02): voiceId, one of
@@ -200,7 +200,7 @@ Future<void> main() async {
     warmer: (lines, voiceId) =>
         client.post('/api/voice/warm', {'lines': lines, 'voiceId': ?voiceId}),
     player: FileClipPlayer(),
-    fallback: DeviceVoice(),
+    fallback: NoVoice(),
   );
   // which of Apoorv's art files this build holds (placeholders until then)
   await ArtAssets.load();

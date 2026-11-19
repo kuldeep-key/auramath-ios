@@ -3,16 +3,15 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'api.dart';
 
 /// Reads a line aloud: the case partner's voice from the server
-/// ([CloudVoice]), and the phone's own voice ([DeviceVoice]) whenever that
-/// is off, slow or refuses a line.
+/// ([CloudVoice]); whenever that is off, slow or refuses a line, nothing
+/// is read and the words show big ([NoVoice]). No voice on the phone reads
+/// a line: no AI voice anywhere (19 Nov).
 abstract interface class Voice {
   Future<void> say(String text);
 
@@ -25,7 +24,7 @@ abstract interface class Voice {
   /// line starts them now. Never throws.
   Future<void> warm(List<String> lines);
 
-  /// True once the phone's voice failed to speak: the lesson says so
+  /// True once the voice couldn't read a line: the lesson says so
   /// (NoVoice 659:39) and shows its words big instead.
   ValueListenable<bool> get resting;
 
@@ -33,89 +32,30 @@ abstract interface class Voice {
   ValueListenable<bool> get speaking;
 }
 
-/// The device's built-in voice: on the phone, no network, no child data out.
-class DeviceVoice implements Voice {
-  DeviceVoice() {
-    _tts.setLanguage('en-AU');
-    _tts.setSpeechRate(0.45);
-    // a touch brighter than the phone's default, for 6-10 year olds
-    _tts.setPitch(1.1);
-    _tts
-      ..setErrorHandler((_) {
-        speaking.value = false;
-        resting.value = true;
-      })
-      ..setStartHandler(() => speaking.value = true)
-      ..setCompletionHandler(() => speaking.value = false)
-      ..setCancelHandler(() => speaking.value = false);
-    _pickBestVoice();
-  }
-
-  final _tts = FlutterTts();
-
+/// No voice: a line it is given is not read, and the voice is resting, so
+/// the lesson shows its words big (NoVoice 659:39). A new lesson wakes it,
+/// and the server's voice is tried again.
+class NoVoice implements Voice, LessonVoice {
   @override
   final ValueNotifier<bool> resting = ValueNotifier(false);
 
   @override
   final ValueNotifier<bool> speaking = ValueNotifier(false);
 
-  /// The best installed English voice: Australian first, and on iPhone a
-  /// premium or enhanced one when the phone has it. Keeps the phone's
-  /// default when it lists none.
-  Future<void> _pickBestVoice() async {
-    try {
-      final listed = await _tts.getVoices;
-      if (listed is! List) return;
-      final voices = listed.whereType<Map>().toList();
-      int rank(Map v) {
-        final locale = '${v['locale']}'.replaceAll('_', '-');
-        final quality = '${v['quality'] ?? ''}';
-        final where = switch (locale) {
-          'en-AU' => 0,
-          'en-GB' => 1,
-          'en-NZ' => 2,
-          'en-US' => 3,
-          _ => 9,
-        };
-        final how = switch (quality) {
-          'premium' => 0,
-          'enhanced' => 1,
-          _ => 2,
-        };
-        return where * 10 + how;
-      }
-
-      voices.sort((a, b) => rank(a).compareTo(rank(b)));
-      if (voices.isEmpty || rank(voices.first) >= 90) return;
-      final best = voices.first;
-      await _tts.setVoice({
-        'name': '${best['name']}',
-        'locale': '${best['locale']}',
-      });
-    } on PlatformException {
-      // keep the default voice
-    }
-  }
+  @override
+  void beginLesson() => resting.value = false;
 
   @override
   Future<void> say(String text) async {
-    try {
-      await _tts.stop();
-      // 1 is success on both platforms
-      if (await _tts.speak(text) != 1) resting.value = true;
-    } on PlatformException {
-      resting.value = true;
-    }
+    if (text.trim().isNotEmpty) resting.value = true;
   }
 
-  /// The phone has one voice.
   @override
   Future<void> sayIn(String text, String? voiceId) => say(text);
 
   @override
-  Future<void> stop() => _tts.stop();
+  Future<void> stop() async {}
 
-  /// The phone's voice needs nothing made ahead.
   @override
   Future<void> warm(List<String> lines) async {}
 }
@@ -159,7 +99,7 @@ enum VoiceLock {
   /// The case partner's voice from the server, for every line.
   cloud,
 
-  /// The phone's voice, for every line.
+  /// The fallback for every line: no voice ([NoVoice]), the words big.
   phone,
 }
 
@@ -200,6 +140,10 @@ enum VoiceLock {
 /// A 404 for a chosen voice means it has no service voice yet: the phone
 /// reads that voice's lines. A 404 with no voice chosen means the server
 /// reads nothing aloud; the phone's voice reads every line after it.
+///
+/// "The phone's voice" here is [fallback], which the app makes [NoVoice]
+/// (19 Nov: no voice on the phone reads a line): the line is not read and
+/// its words show big. [beginLesson] wakes it too.
 class CloudVoice implements Voice, LessonVoice {
   CloudVoice({
     required this.fetch,
@@ -247,7 +191,10 @@ class CloudVoice implements Voice, LessonVoice {
   var _lock = VoiceLock.open;
 
   @override
-  void beginLesson() => _lock = VoiceLock.open;
+  void beginLesson() {
+    _lock = VoiceLock.open;
+    if (fallback case final LessonVoice f) f.beginLesson();
+  }
 
   /// Lines already fetched this run: "say it again" plays at once.
   final _clips = <String, Uint8List>{};
