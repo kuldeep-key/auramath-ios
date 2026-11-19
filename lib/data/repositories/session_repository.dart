@@ -276,6 +276,12 @@ class SessionRepository {
   Future<void>? _inFlight;
   bool _again = false;
 
+  /// H8: an events batch is sent again only when the server may take it
+  /// later: no connection, a timeout (408), too many requests (429) or a
+  /// server error (5xx). Any other 4xx is final.
+  static bool retries(ApiException e) =>
+      e.offline || e.status == 408 || e.status == 429 || e.status! >= 500;
+
   /// 2 s, doubling, capped at 30 s.
   static Duration retryDelay(int failures) =>
       Duration(seconds: math.min(30, 2 << math.min(failures - 1, 4)));
@@ -687,7 +693,22 @@ class SessionRepository {
           batch = await _db.unsent()
         ) {
           for (final (sessionId, events) in _bySession(batch)) {
-            final reply = await _api.sendEvents(sessionId, events);
+            final EventsReply reply;
+            try {
+              reply = await _api.sendEvents(sessionId, events);
+            } on ApiException catch (e) {
+              if (retries(e)) rethrow;
+              // H8: resending can't fix it (no such session, a body the
+              // server can't read): reported, set aside, and the rest go on
+              await _db.markDead(events);
+              failed(
+                sessionId,
+                'events batch refused for good (${e.status}, '
+                '${events.length} events, seq ${events.first.seq}-'
+                '${events.last.seq}): ${e.message}',
+              );
+              continue;
+            }
             await _db.markSent(events);
             if (reply.rejected.isNotEmpty) {
               debugPrint('events refused in $sessionId: ${reply.rejected}');

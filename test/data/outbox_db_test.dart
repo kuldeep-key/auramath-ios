@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:auramath/data/models/lesson_event.dart';
 import 'package:auramath/data/services/outbox_db.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'helpers.dart';
 
@@ -41,6 +45,43 @@ void main() {
     expect(await db.lastSessionId(childRef: 'ch_b'), 'b1');
     expect(await db.lastSessionId(childRef: 'ch_c'), isNull);
   });
+
+  test(
+    'H8: a dead event is kept but never unsent; v4 phones upgrade',
+    () async {
+      await db.insert(ev('s1', 1));
+      await db.insert(ev('s1', 2));
+      await db.markDead([ev('s1', 1)]);
+      expect((await db.unsent()).map((e) => e.seq), [2]);
+      expect(await db.forSession('s1'), hasLength(2));
+
+      // a phone on the v4 outbox keeps its unsent events
+      final path = '${Directory.systemTemp.createTempSync().path}/outbox.db';
+      final old = await databaseFactory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          version: 4,
+          onCreate: (d, _) => d.execute('''
+          CREATE TABLE events(
+            session_id TEXT NOT NULL,
+            seq INTEGER NOT NULL,
+            body TEXT NOT NULL,
+            sent INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY(session_id, seq)
+          )'''),
+        ),
+      );
+      await old.insert('events', {
+        'session_id': 's9',
+        'seq': 0,
+        'body': jsonEncode(ev('s9', 0).toJson()),
+      });
+      await old.close();
+      final upgraded = await OutboxDb.open(path);
+      expect((await upgraded.unsent()).map((e) => e.sessionId), ['s9']);
+      await upgraded.close();
+    },
+  );
 
   test('duplicate session_id+seq is ignored', () async {
     await db.insert(ev('s1', 1));

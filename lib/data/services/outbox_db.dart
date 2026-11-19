@@ -12,11 +12,12 @@ class OutboxDb {
   static Future<OutboxDb> open(String path) async {
     final db = await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, _) async {
         await _create(db);
         await _createV3(db);
         await _createV4(db);
+        await _createV5(db);
       },
       onUpgrade: (db, from, _) async {
         // v1 held the pre-contract event shape; no real family has used the
@@ -27,6 +28,7 @@ class OutboxDb {
         }
         if (from < 3) await _createV3(db);
         if (from < 4) await _createV4(db);
+        if (from < 5) await _createV5(db);
       },
     );
     return OutboxDb._(db);
@@ -59,6 +61,14 @@ class OutboxDb {
   /// first (SES-01, SES-04).
   static Future<void> _createV4(Database db) => db.execute(
     'CREATE TABLE carried(session_id TEXT PRIMARY KEY, from_id TEXT NOT NULL)',
+  );
+
+  /// `dead`: an event whose batch the server refused for good (a 4xx that
+  /// isn't 408 or 429: no such session, a body it can't read). It was
+  /// reported, is never sent again and doesn't count as unsent, so one bad
+  /// batch can't hold up the rest, nor sign-out (H8).
+  static Future<void> _createV5(Database db) => db.execute(
+    'ALTER TABLE events ADD COLUMN dead INTEGER NOT NULL DEFAULT 0',
   );
 
   Future<void> saveCarried(String sessionId, String fromId) => _db.insert(
@@ -102,11 +112,11 @@ class OutboxDb {
     'body': jsonEncode(e.toJson()),
   }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-  /// Unconfirmed events, oldest first.
+  /// Unconfirmed events, oldest first; none the server refused for good.
   Future<List<LessonEvent>> unsent({int limit = 50}) async => [
     for (final r in await _db.query(
       'events',
-      where: 'sent = 0',
+      where: 'sent = 0 AND dead = 0',
       orderBy: 'rowid',
       limit: limit,
     ))
@@ -119,6 +129,20 @@ class OutboxDb {
           await tx.update(
             'events',
             {'sent': 1},
+            where: 'session_id = ? AND seq = ?',
+            whereArgs: [e.sessionId, e.seq],
+          );
+        }
+      });
+
+  /// The server refused [events]' batch for good: they stay on the phone
+  /// (the lesson's own record) but are never sent again (H8).
+  Future<void> markDead(List<LessonEvent> events) =>
+      _db.transaction((tx) async {
+        for (final e in events) {
+          await tx.update(
+            'events',
+            {'dead': 1},
             where: 'session_id = ? AND seq = ?',
             whereArgs: [e.sessionId, e.seq],
           );

@@ -229,6 +229,70 @@ void main() {
       await db.close();
     });
 
+    test(
+      'H8: a batch the server refuses for good is reported and set '
+      'aside: the rest send, the app is online, and sign-out goes on',
+      () async {
+        final db = await memoryOutbox();
+        final api = FakeApi();
+        final failed = <String>[];
+        final repo = SessionRepository(
+          db: db,
+          api: api,
+          identity: testIdentity,
+          nowMs: () => 5,
+          onFailed: (s, m) => failed.add('$s: $m'),
+        );
+        await repo.open(); // s1
+        await repo.open(); // s2
+        // dev was reset: s1 is gone from the server
+        api.eventsError['s1'] = const ApiException(
+          'no such session',
+          status: 404,
+        );
+        await repo.record('s1', 1, const [step]);
+        await repo.record('s2', 1, const [step]);
+        expect(api.received.map((e) => e.sessionId), ['s2']);
+        expect(repo.online.value, isTrue);
+        expect(await db.unsent(), isEmpty);
+        expect(failed.single, startsWith('s1: events batch refused for good'));
+        // never sent again
+        await repo.syncNow();
+        expect(api.batches.where((b) => b.$1 == 's1'), isEmpty);
+        await repo.sendAllThenForget();
+        expect(await db.all(), isEmpty);
+        repo.dispose();
+        await db.close();
+      },
+    );
+
+    for (final status in [408, 429, 500, 503]) {
+      test('H8: a $status is sent again later, and holds sign-out', () async {
+        final db = await memoryOutbox();
+        final api = FakeApi();
+        final repo = SessionRepository(
+          db: db,
+          api: api,
+          identity: testIdentity,
+          nowMs: () => 5,
+        );
+        await repo.open();
+        api.eventsError['s1'] = ApiException('busy', status: status);
+        await repo.record('s1', 1, const [step]);
+        expect(repo.online.value, isFalse);
+        expect(await db.unsent(), hasLength(1));
+        await expectLater(
+          repo.sendAllThenForget(),
+          throwsA(isA<ApiException>()),
+        );
+        api.eventsError.clear();
+        await repo.syncNow();
+        expect(api.received.map((e) => e.seq), [1]);
+        repo.dispose();
+        await db.close();
+      });
+    }
+
     test('forget clears everything without sending', () async {
       final db = await memoryOutbox();
       final api = FakeApi();

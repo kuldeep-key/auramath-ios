@@ -213,6 +213,10 @@ class FakeApi implements Api {
   /// with (REW-11).
   List<Award> awards = const [];
 
+  /// Sessions whose events the server answers with this error instead
+  /// (a 404 "no such session", a 400, a 5xx).
+  final Map<String, ApiException> eventsError = {};
+
   /// How long each events upload takes: a slow connection.
   Duration eventsDelay = Duration.zero;
 
@@ -226,6 +230,7 @@ class FakeApi implements Api {
       failNext--;
       throw const ApiException('offline');
     }
+    if (eventsError[sessionId] case final e?) throw e;
     batches.add((sessionId, events));
     String? continued;
     var ends = false;
