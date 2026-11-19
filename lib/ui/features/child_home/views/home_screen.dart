@@ -146,7 +146,9 @@ class _HomeScreenState extends State<HomeScreen> {
             PlayIconButton(
               icon: Icons.lock_rounded,
               tooltip: l.kidForGrownUps,
-              onPressed: () => context.go(grownUps),
+              // pushed: back (or Android back) from the passcode is Home
+              // again, not the picker that sends them back to it (H11)
+              onPressed: () => context.push(grownUps),
             ),
           ],
         ),

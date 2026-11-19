@@ -97,6 +97,23 @@ void main() {
     expect(find.text('My badges'), findsOneWidget);
   });
 
+  testWidgets('H11: a child who opens the passcode from Home gets back to '
+      'Home, never stuck on it', (tester) async {
+    await boot(
+      tester,
+      Paths.home,
+      stored: {...parentPhone, 'childId': 'child-1'},
+      serve: (s) =>
+          s.on('GET /api/family/passcode', {'set': true, 'length': 4}),
+    );
+    await tester.tap(find.byIcon(Icons.lock_rounded));
+    await settle(tester);
+    expect(find.text('Mira'), findsNothing, reason: 'on the passcode');
+    await tester.tap(find.byTooltip('Back'));
+    await settle(tester);
+    expect(find.text('Mira'), findsOneWidget, reason: 'Home again');
+  });
+
   testWidgets('Home shows the child named by the server', (tester) async {
     await boot(tester, Paths.home);
     expect(find.text('Mira'), findsOneWidget);

@@ -217,7 +217,11 @@ class _PasscodeScreenState extends State<PasscodeScreen> {
     };
     final length = _length;
     final page = AuraPage(
-      top: const AuraTopBar(fallback: Paths.kids),
+      // H11: a child who reached this from Home goes back to Home (the
+      // picker would only send them here again)
+      top: AuraTopBar(
+        fallback: widget.account.childId != null ? Paths.home : Paths.kids,
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
