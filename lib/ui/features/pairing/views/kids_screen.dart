@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../data/repositories/account_repository.dart';
 import '../../../../data/repositories/family_repository.dart';
+import '../../../../data/services/api.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../routing/paths.dart';
 import '../../../core/motion/motion.dart';
@@ -11,6 +12,7 @@ import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/avatar.dart';
 import '../../../core/parts/ribbon.dart';
 import '../../../core/theme/tokens.dart';
+import '../../setup/setup_paths.dart';
 import 'play_message.dart';
 
 /// The shared phone's picker: a child taps their picture, a grown-up taps
@@ -64,8 +66,29 @@ class _KidsScreenState extends State<KidsScreen> {
   }
 
   Future<void> _pick(Child c) async {
+    // H10: a grown-up's phone goes to a child only once the family has a
+    // passcode, so the child can't choose one; until then (setup left at
+    // Ready, Lock or Passcode, or by Own phone) the grown-up sets it first
+    if (widget.account.role == Role.parent && !await _hasPasscode()) {
+      if (mounted) {
+        context.go(
+          SetupPaths.withChild(Paths.setupLock, id: c.id, name: c.name),
+        );
+      }
+      return;
+    }
     await widget.account.chooseChild(c.id);
     if (mounted) context.go(Paths.home);
+  }
+
+  /// False when the family has no passcode, or the server can't say (then
+  /// the passcode screen asks again).
+  Future<bool> _hasPasscode() async {
+    try {
+      return (await widget.family.passcodeStatus()).set;
+    } on ApiException {
+      return false;
+    }
   }
 
   @override

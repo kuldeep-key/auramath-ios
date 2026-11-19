@@ -11,6 +11,7 @@ import '../../../core/parts/aura_button.dart';
 import '../../../core/parts/aura_page.dart';
 import '../../../core/parts/code_boxes.dart';
 import '../../../core/theme/tokens.dart';
+import '../setup_paths.dart';
 import 'setup_parts.dart';
 
 /// JoinCode (644:75): a one-time code for the child's own phone. Watches
@@ -20,12 +21,16 @@ class JoinCodeScreen extends StatefulWidget {
     super.key,
     required this.repo,
     required this.name,
+    this.childId = '',
     this.now = DateTime.now,
     this.pollEvery = const Duration(seconds: 3),
   });
 
   final SetupRepository repo;
   final String name;
+
+  /// The child just added, whose hand-over waits for the passcode (H10).
+  final String childId;
   final DateTime Function() now;
   final Duration pollEvery;
 
@@ -75,6 +80,17 @@ class _JoinCodeScreenState extends State<JoinCodeScreen> {
     }
   }
 
+  /// H10: on to Lock and the passcode, never straight to the children: this
+  /// phone is the grown-up's, so it isn't the child's until the family has
+  /// a passcode.
+  void _done() => context.go(
+    SetupPaths.withChild(
+      Paths.setupLock,
+      id: widget.childId,
+      name: widget.name,
+    ),
+  );
+
   Future<void> _checkJoined() async {
     final known = _known;
     if (known == null || _polling) return;
@@ -83,7 +99,7 @@ class _JoinCodeScreenState extends State<JoinCodeScreen> {
       final ids = await widget.repo.deviceIds();
       if (!mounted) return;
       if (ids.difference(known).isNotEmpty) {
-        context.go(Paths.kids);
+        _done();
       } else if (_pollError != null) {
         setState(() => _pollError = null);
       }
@@ -161,10 +177,7 @@ class _JoinCodeScreenState extends State<JoinCodeScreen> {
           const SizedBox(height: 4),
           Align(
             alignment: Alignment.centerLeft,
-            child: AuraLink(
-              label: l.setupJoinDone,
-              onPressed: () => context.go(Paths.kids),
-            ),
+            child: AuraLink(label: l.setupJoinDone, onPressed: _done),
           ),
         ],
       ),

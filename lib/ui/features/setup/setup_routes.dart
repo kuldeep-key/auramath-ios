@@ -112,8 +112,11 @@ List<RouteBase> setupRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.setupJoinCode,
-      builder: (_, s) =>
-          JoinCodeScreen(repo: SetupRepository(deps.client), name: name(s)),
+      builder: (_, s) => JoinCodeScreen(
+        repo: SetupRepository(deps.client),
+        name: name(s),
+        childId: child(s),
+      ),
     ),
     GoRoute(
       path: Paths.signIn,

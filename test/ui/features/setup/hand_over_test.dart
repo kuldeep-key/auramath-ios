@@ -214,6 +214,7 @@ void main() {
         JoinCodeScreen(
           repo: SetupRepository(deps.client),
           name: 'Aarav',
+          childId: 'child-9',
           now: () => now,
         ),
         server,
@@ -234,7 +235,8 @@ void main() {
       expect(find.text("Join Aarav's phone"), findsOneWidget);
     });
 
-    testWidgets('moves on when a new phone joins', (tester) async {
+    testWidgets('H10: moves on to Lock and the passcode when a new phone '
+        'joins, never straight to the children', (tester) async {
       final (screen, server) = await joinCode(tester);
       await show(tester, screen);
       await settle(tester);
@@ -245,7 +247,21 @@ void main() {
       });
       await tester.pump(const Duration(seconds: 3));
       await settle(tester);
-      expect(find.text('went to /kids'), findsOneWidget);
+      expect(
+        find.text('went to /setup/lock?child=child-9&name=Aarav'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('H10: Done goes to Lock too', (tester) async {
+      final (screen, _) = await joinCode(tester);
+      await show(tester, screen);
+      await settle(tester);
+      await tapAndWait(tester, find.text('Done'));
+      expect(
+        find.text('went to /setup/lock?child=child-9&name=Aarav'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Show a new code asks for another', (tester) async {

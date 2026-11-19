@@ -10,6 +10,7 @@ import '../../../helpers/shots.dart';
 import 'pairing_helpers.dart';
 
 const _children = 'GET /api/children';
+const _passcode = 'GET /api/family/passcode';
 
 void main() {
   Future<(Deps, FakeServer)> setUp(WidgetTester tester) async =>
@@ -28,6 +29,7 @@ void main() {
   testWidgets('a child taps their picture and goes home', (tester) async {
     final (deps, server) = await setUp(tester);
     server.on(_children, familyJson(['Sam', 'Ari']));
+    server.on(_passcode, {'set': true, 'length': 4});
     await tester.pumpWidget(shotApp(screen(deps)));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Ari'));
@@ -41,10 +43,36 @@ void main() {
   ) async {
     final (deps, server) = await setUp(tester);
     server.on(_children, familyJson(['Sam']));
+    server.on(_passcode, {'set': true, 'length': 4});
     await tester.pumpWidget(shotApp(screen(deps)));
     await tester.pumpAndSettle();
     expect(deps.account.childId, 'c0');
     expect(find.text('went to ${Paths.home}'), findsOneWidget);
+  });
+
+  testWidgets('H10: no family passcode yet (setup left at Ready, Lock or '
+      'Passcode): not handed over; the grown-up sets one first', (
+    tester,
+  ) async {
+    final (deps, server) = await setUp(tester);
+    server.on(_children, familyJson(['Sam']));
+    server.on(_passcode, {'set': false, 'length': 4});
+    await tester.pumpWidget(shotApp(screen(deps)));
+    await tester.pumpAndSettle();
+    expect(deps.account.childId, isNull);
+    expect(find.text('went to /setup/lock?child=c0&name=Sam'), findsOneWidget);
+
+    // two children, one tapped: the same
+    final (two, server2) = await setUp(tester);
+    server2.on(_children, familyJson(['Sam', 'Ari']));
+    server2.on(_passcode, {'set': false, 'length': 4});
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(shotApp(screen(two)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ari'));
+    await tester.pumpAndSettle();
+    expect(two.account.childId, isNull);
+    expect(find.text('went to /setup/lock?child=c1&name=Ari'), findsOneWidget);
   });
 
   testWidgets('one child already chosen: the picker stays, so the Family '
