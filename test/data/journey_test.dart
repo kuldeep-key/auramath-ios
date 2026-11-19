@@ -5,6 +5,7 @@ import 'package:auramath/data/repositories/celebration_repository.dart';
 import 'package:auramath/data/repositories/look_repository.dart';
 import 'package:auramath/data/repositories/session_repository.dart';
 import 'package:auramath/data/repositories/visit_repository.dart';
+import 'package:auramath/data/services/api.dart';
 import 'package:auramath/data/services/api_client.dart';
 import 'package:auramath/data/services/outbox_db.dart';
 import 'package:auramath_engine/auramath_engine.dart';
@@ -149,6 +150,28 @@ void main() {
       expect(server.calls.last.$1, 'POST /api/children/c1/first-run');
       expect(server.calls.last.$2, {'step': 'look'});
       expect(looks.cached('c1')?.needsFirstRun, ['tutor', 'meet']);
+    });
+
+    test('consent withdrawn (403): a first-run step is kept on this phone, '
+        'so first run goes on; a choice throws, so the picker asks for a '
+        'grown-up (as BE-20)', () async {
+      server.on('GET /api/children/c1/look', {
+        'avatarId': 'look_01',
+        'needsFirstRun': ['look', 'tutor'],
+      });
+      server.on('PUT /api/children/c1/look', {
+        'error': 'parental consent for this account has been withdrawn',
+      }, status: 403);
+      server.on('POST /api/children/c1/first-run', {
+        'error': 'parental consent for this account has been withdrawn',
+      }, status: 403);
+      await looks.read('c1');
+      await looks.stepDone('c1', 'look');
+      expect(looks.cached('c1')?.needsFirstRun, ['tutor']);
+      await expectLater(
+        looks.save('c1', avatarId: 'look_03'),
+        throwsA(isA<ApiException>().having((e) => e.status, 'status', 403)),
+      );
     });
 
     test('old avatars map to the first six looks', () {

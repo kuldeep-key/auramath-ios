@@ -45,6 +45,14 @@ void main() {
     expect((await r.days('c1')).days, isNull);
   });
 
+  test('a deleted child (404): no casebook, not an error', () async {
+    final (r, server) = repo();
+    server.on('GET /api/children/c1/casebook', {
+      'error': 'no such child',
+    }, status: 404);
+    expect((await r.days('c1')).days, isNull);
+  });
+
   test(
     'REW-15: offline or refused, the day view throws for ErrChild',
     () async {

@@ -113,11 +113,16 @@ class CasebookRepository {
 
   final ApiClient _client;
 
-  /// The days, newest first; null while the server's casebook is off.
-  /// Throws [ApiException] when offline or refused.
+  /// The days, newest first; null while the server's casebook is off, or
+  /// the child is no longer the family's (a 404: deleted). Throws
+  /// [ApiException] when offline or refused otherwise.
   Future<({String world, List<CasebookDay>? days})> days(String childId) async {
-    final j = await _client.get('/api/children/$childId/casebook');
-    return daysFrom(j);
+    try {
+      return daysFrom(await _client.get('/api/children/$childId/casebook'));
+    } on ApiException catch (e) {
+      if (e.status == 404) return (world: 'detective', days: null);
+      rethrow;
+    }
   }
 
   /// One case; null when the server has no such case for this child, or
