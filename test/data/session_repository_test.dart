@@ -509,6 +509,57 @@ void main() {
       repo.dispose();
       await db.close();
     });
+
+    test("B2: a sibling's open case is never this child's", () async {
+      final db = await memoryOutbox();
+      final api = FakeApi();
+      final repo = SessionRepository(
+        db: db,
+        api: api,
+        identity: testIdentity,
+        nowMs: () => 5,
+      );
+      final lemon = pack.problems['lemon']!;
+      // A left a case part way on this phone
+      final s1 = await repo.open(childId: 'kidA');
+      await repo.record(
+        s1,
+        0,
+        lessonEvents(pack, lemon, const [Started(), BarADrawn()]),
+      );
+      // the server names A's open case too (asked for any child)
+      final spec = lessonEvents(pack, lemon, const [Started()]);
+      api.openCase = (
+        events: [
+          for (final (i, e) in spec.indexed)
+            LessonEvent(
+              eventId: 'srv-$i',
+              sessionId: 'srv',
+              seq: i,
+              at: 5,
+              name: e.name,
+              childRef: childRefFor('kidA'),
+              deviceId: 'dv_other',
+              appVersion: '0.1.0',
+              payload: e.payload,
+            ),
+        ],
+        sameDevice: false,
+        startedOn: 'Phone A',
+        closed: false,
+        closedReason: null,
+        carried: const [],
+      );
+      expect(await repo.whereNext(pack, childId: 'kidB'), isNull);
+      expect(await db.forSession('srv'), isEmpty, reason: 'not copied');
+      expect(
+        (await repo.whereNext(pack, childId: 'kidA'))?.resumeSessionId,
+        'srv',
+        reason: "A's own case still resumes",
+      );
+      repo.dispose();
+      await db.close();
+    });
   });
 
   group('@SES-04 a case the server ended', () {

@@ -174,12 +174,31 @@ void main() {
   test('WelcomeBack once per launch, only with a case left open', () async {
     final repo = _repo(deps, []);
     final lemon = deps.pack.problems['lemon']!;
-    await deps.sessions.record('s1', 0, [problemShown(lemon)]);
+    // the server names the phone's child (child-1) for its session
+    final s = await deps.sessions.open(childId: 'child-1');
+    await deps.sessions.record(s, 0, [problemShown(lemon)]);
     expect(await repo.welcomeBackDue(), isTrue);
     expect(await repo.welcomeBackDue(), isFalse);
 
     final fresh = await testDeps(stored: pairedChildPhone);
     expect(await _repo(fresh.$1, []).welcomeBackDue(), isFalse);
+  });
+
+  test("B2: WelcomeBack is each child's own, never a sibling's case", () async {
+    final repo = _repo(deps, []);
+    final lemon = deps.pack.problems['lemon']!;
+    // child-1 left a case on this shared phone
+    await deps.sessions.record(
+      await deps.sessions.open(childId: 'child-1'),
+      0,
+      [problemShown(lemon)],
+    );
+    await deps.account.chooseChild('child-2');
+    expect(await repo.welcomeBackDue(), isFalse, reason: "child-1's case");
+    expect(repo.caseWaiting, isFalse);
+    await deps.account.chooseChild('child-1');
+    expect(await repo.welcomeBackDue(), isTrue, reason: 'once per child');
+    expect(repo.caseWaiting, isTrue);
   });
 
   test(

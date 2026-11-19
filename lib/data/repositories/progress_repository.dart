@@ -152,19 +152,23 @@ class ProgressRepository {
     );
   }
 
-  bool _welcomed = false;
+  /// The children WelcomeBack was asked for this launch (B2: each child on
+  /// a shared phone is greeted for themselves).
+  final Set<String?> _welcomed = {};
 
   /// Whether the WelcomeBack just due has a case waiting (carry on first),
   /// or the child is back on a later day with none (SES-07).
   bool caseWaiting = false;
 
-  /// True once per app launch, on the first Home, when the child is back
-  /// on a later day than their last lesson (SES-07), or a case was left
-  /// unfinished: WelcomeBack greets the child instead of Home.
+  /// True once per app launch for each child, on their first Home, when
+  /// the child is back on a later day than their last lesson (SES-07), or
+  /// a case of theirs was left unfinished: WelcomeBack greets the child
+  /// instead of Home. Only the child's own case counts, never a sibling's
+  /// (B2).
   Future<bool> welcomeBackDue() async {
-    if (_welcomed) return false;
-    _welcomed = true;
-    final next = await _sessions.whereNext(_pack);
+    final childId = _account.childId;
+    if (!_welcomed.add(childId)) return false;
+    final next = await _sessions.whereNext(_pack, childId: childId);
     caseWaiting = next?.resumeSessionId != null || next?.carryFrom != null;
     final due = caseWaiting || await _laterDay();
     // the lesson needn't greet again from the server's welcomeBack

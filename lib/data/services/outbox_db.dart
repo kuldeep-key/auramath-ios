@@ -142,14 +142,35 @@ class OutboxDb {
   ];
 
   /// The session the newest event belongs to, or null when nothing is saved.
-  Future<String?> lastSessionId() async {
-    final rows = await _db.query(
-      'events',
-      columns: ['session_id'],
-      orderBy: 'rowid DESC',
-      limit: 1,
-    );
-    return rows.isEmpty ? null : rows.single['session_id']! as String;
+  /// With [childRef], the newest of that child's: on a shared phone (or a
+  /// child's own phone that copied a sibling's case) another child's
+  /// session is never theirs (B2).
+  Future<String?> lastSessionId({String? childRef}) async {
+    if (childRef == null) {
+      final rows = await _db.query(
+        'events',
+        columns: ['session_id'],
+        orderBy: 'rowid DESC',
+        limit: 1,
+      );
+      return rows.isEmpty ? null : rows.single['session_id']! as String;
+    }
+    // the child is in the body only: read back from the newest, a page at
+    // a time, until one of theirs
+    const page = 200;
+    for (var offset = 0; ; offset += page) {
+      final rows = await _db.query(
+        'events',
+        columns: ['session_id', 'body'],
+        orderBy: 'rowid DESC',
+        limit: page,
+        offset: offset,
+      );
+      for (final r in rows) {
+        if (_row(r).childRef == childRef) return r['session_id']! as String;
+      }
+      if (rows.length < page) return null;
+    }
   }
 
   /// Forgets every lesson on this phone (DEV-06).

@@ -759,12 +759,19 @@ class SessionRepository {
   /// saved or the pack no longer has that problem. A case whose session
   /// ended (time up, or the server ended it) is [WhereNext.carryFrom]: it
   /// carries on in a new session, its board rebuilt (SES-01, SES-04).
+  ///
+  /// B2: with [childId], only that child's case: the server is asked for
+  /// theirs, a case it names for another child is not copied here, and
+  /// this phone's log is read for their last session, not a sibling's.
   Future<WhereNext?> whereNext(Pack pack, {String? childId}) async {
+    final childRef = childId == null ? null : childRefFor(childId);
     // set when the server's open case was started on another phone
     ({String sessionId, String label})? elsewhere;
     try {
       final open = await _api.resumable(childId: childId);
-      if (open != null && open.events.isNotEmpty) {
+      if (open != null &&
+          open.events.isNotEmpty &&
+          (childRef == null || open.events.first.childRef == childRef)) {
         // SES-01: the time_up sessions it carries on first, oldest first,
         // each linked to the next, so the board is rebuilt whole here too
         String? before;
@@ -797,7 +804,7 @@ class SessionRepository {
     } on ApiException {
       // can't ask: this phone's own log still knows its last case
     }
-    final sessionId = await _db.lastSessionId();
+    final sessionId = await _db.lastSessionId(childRef: childRef);
     if (sessionId == null) return null;
     final (:events, lastSeq: _) = await resume(sessionId);
     final shown = events.firstOrNull;

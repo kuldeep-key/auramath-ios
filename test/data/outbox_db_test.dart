@@ -19,6 +19,29 @@ void main() {
     },
   );
 
+  test("B2: lastSessionId for a child is that child's newest", () async {
+    LessonEvent of(String s, int seq, String ref) => LessonEvent(
+      eventId: '$s-$seq',
+      sessionId: s,
+      seq: seq,
+      at: seq,
+      name: 'step_entered',
+      childRef: ref,
+      deviceId: 'dv_test1234',
+      appVersion: '0.1.0',
+      payload: const {},
+    );
+    await db.insert(of('a1', 0, 'ch_a'));
+    await db.insert(of('b1', 0, 'ch_b'));
+    for (var i = 1; i < 450; i++) {
+      await db.insert(of('a2', i, 'ch_a'));
+    }
+    expect(await db.lastSessionId(), 'a2');
+    expect(await db.lastSessionId(childRef: 'ch_a'), 'a2');
+    expect(await db.lastSessionId(childRef: 'ch_b'), 'b1');
+    expect(await db.lastSessionId(childRef: 'ch_c'), isNull);
+  });
+
   test('duplicate session_id+seq is ignored', () async {
     await db.insert(ev('s1', 1));
     await db.insert(ev('s1', 1, 'step_committed'));

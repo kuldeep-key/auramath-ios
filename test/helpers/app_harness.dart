@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:auramath/data/models/journey_config.dart';
+import 'package:auramath/data/models/lesson_event.dart';
 
 import 'package:auramath/data/repositories/account_repository.dart';
 import 'package:auramath/data/repositories/family_repository.dart';
@@ -108,7 +109,10 @@ Future<(Deps, FakeServer)> testDeps({
   );
   account.client = client;
   await account.load();
-  final (SessionRepository sessions, outbox, fakeApi) = await memorySessions();
+  final child = stored['childId'];
+  final (SessionRepository sessions, outbox, fakeApi) = await memorySessions(
+    childRef: child == null ? null : childRefFor(child),
+  );
   api?.call(fakeApi);
   return (
     Deps(

@@ -71,8 +71,13 @@ final failedReports = <String>[];
 
 Future<(SessionRepository, OutboxDb, FakeApi)> memorySessions({
   bool withTemplate = false,
+
+  /// The child the server names for the session opened here (and any
+  /// opened with no child): the phone's chosen child, as on a real phone.
+  String? childRef,
 }) async {
   final api = FakeApi();
+  if (childRef != null) api.childRef = childRef;
   final db = await memoryOutbox();
   final sessions = SessionRepository(
     db: db,
