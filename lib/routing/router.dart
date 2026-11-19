@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../data/repositories/grown_up_repository.dart';
 import '../data/services/voice.dart';
 import '../deps.dart';
 import '../ui/features/child_home/child_routes.dart';
@@ -11,6 +12,7 @@ import '../ui/features/pairing/pairing_routes.dart';
 import '../ui/features/quick_sums/quick_sums_routes.dart';
 import '../ui/features/setup/setup_routes.dart';
 import 'lesson_route.dart';
+import 'paths.dart';
 import 'redirect.dart';
 
 /// The app's one navigator.
@@ -24,7 +26,7 @@ GoRouter buildRouter(Deps deps, {String? initialLocation}) => GoRouter(
   // a new screen hushes the last one's line (the prototype's go(): hush())
   observers: [HushOnLeave(deps.voice)],
   refreshListenable: deps.account,
-  redirect: (context, state) => redirectFor(
+  redirect: (context, state) async => redirectFor(
     uri: state.uri,
     role: deps.account.role,
     removed: deps.account.removed,
@@ -32,6 +34,10 @@ GoRouter buildRouter(Deps deps, {String? initialLocation}) => GoRouter(
     childId: deps.account.childId,
     // "I agree" given on Data and the child not saved yet: setup is signing in
     settingUp: deps.account.draft.agreed,
+    // H12: "Forgot passcode" sent a link; it signs in again on verify
+    resetting:
+        state.uri.path == Paths.verify &&
+        await GrownUpRepository.passcodeResetAsked(deps.store),
   ),
   errorBuilder: (context, state) => _NotFound(state.uri.toString()),
   routes: [

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../data/repositories/account_repository.dart';
+import '../../../../data/repositories/grown_up_repository.dart';
 import '../../../../data/services/api.dart';
 import '../../../../deps.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -45,9 +47,14 @@ class _VerifyScreenState extends State<VerifyScreen> {
       context.go(SetupPaths.checkEmail(Paths.setupCheckEmail, token: token));
       return;
     }
+    // H12: the link "Forgot passcode" sent: signed in afresh, the
+    // passcode screen lets a new one be chosen
+    final reset =
+        widget.deps.account.role == Role.parent &&
+        await GrownUpRepository.passcodeResetAsked(widget.deps.store);
     try {
       await widget.deps.account.verifyEmailLink(token);
-      if (mounted) context.go(Paths.kids);
+      if (mounted) context.go(reset ? Paths.grownUpsPass : Paths.kids);
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
     }

@@ -10,6 +10,7 @@ String? go(
   bool unlocked = false,
   String? childId,
   bool settingUp = false,
+  bool resetting = false,
 }) => redirectFor(
   uri: Uri.parse(loc),
   role: role,
@@ -17,6 +18,7 @@ String? go(
   grownUpsUnlocked: unlocked,
   childId: childId,
   settingUp: settingUp,
+  resetting: resetting,
 );
 
 void main() {
@@ -149,5 +151,16 @@ void main() {
     test('a plain sign-in still goes on to the picker', () {
       expect(go(Paths.signIn, role: Role.parent), Paths.kids);
     });
+  });
+
+  test('H12: a signed-in grown-up resetting the passcode may open the '
+      "emailed link's verify; otherwise it goes to the start", () {
+    final verify = '${Paths.verify}?m=tok';
+    expect(go(verify, role: Role.parent), Paths.kids);
+    expect(go(verify, role: Role.parent, resetting: true), isNull);
+    expect(
+      go(verify, role: Role.parent, childId: 'c1', resetting: true),
+      isNull,
+    );
   });
 }

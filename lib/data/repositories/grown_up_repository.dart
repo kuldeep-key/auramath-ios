@@ -445,15 +445,23 @@ class GrownUpRepository {
   /// Remembers that a sign-in link was sent to reset the passcode, and
   /// which credential asked, so only a *fresh* sign-in may choose a new one.
   Future<void> startPasscodeReset(String? bearer) =>
-      _store.write('passcodeReset', _hash(bearer));
+      _store.write(_resetKey, _hash(bearer));
+
+  static const _resetKey = 'passcodeReset';
+
+  /// H12: a passcode reset was asked for on this phone and not finished:
+  /// its emailed link may sign in again here, though a grown-up is signed
+  /// in already.
+  static Future<bool> passcodeResetAsked(KeyStore store) async =>
+      await store.read(_resetKey) != null;
 
   /// True once the grown-up has signed in again since asking.
   Future<bool> passcodeResetReady(String? bearer) async {
-    final asked = await _store.read('passcodeReset');
+    final asked = await _store.read(_resetKey);
     return asked != null && asked != _hash(bearer);
   }
 
-  Future<void> endPasscodeReset() => _store.write('passcodeReset', null);
+  Future<void> endPasscodeReset() => _store.write(_resetKey, null);
 
   static String _hash(String? s) =>
       sha256.convert(utf8.encode(s ?? '')).toString();

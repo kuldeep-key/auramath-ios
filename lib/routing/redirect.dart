@@ -12,6 +12,10 @@ String? redirectFor({
   required bool grownUpsUnlocked,
   required String? childId,
   bool settingUp = false,
+
+  /// H12: a passcode reset is waiting for its emailed link: a signed-in
+  /// grown-up may open verify, so the link signs in again.
+  bool resetting = false,
 }) {
   final loc = uri.path;
   // `auramath://auth/verify?m=…`: the platform reads "auth" as the host,
@@ -62,6 +66,7 @@ String? redirectFor({
       // setup screens too, Open included: sent to the picker from there,
       // the picker picked the one new child at once, and Ready, the
       // hand-over and the passcode were skipped.
+      if (resetting && loc == Paths.verify) return null;
       if (settingUp &&
           (loc == Paths.open ||
               loc == Paths.welcome ||

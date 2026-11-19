@@ -1,4 +1,6 @@
+import 'package:auramath/app.dart';
 import 'package:auramath/data/repositories/account_repository.dart';
+import 'package:auramath/data/repositories/grown_up_repository.dart';
 import 'package:auramath/deps.dart';
 import 'package:auramath/ui/features/setup/setup_paths.dart';
 import 'package:auramath/ui/features/setup/views/check_email_screen.dart';
@@ -321,6 +323,28 @@ void main() {
       await settle(tester);
       expect(server.calls.single.$2, {'token': 'tok5'});
       expect(find.text('went to /kids'), findsOneWidget);
+    });
+
+    testWidgets('H12: the Forgot passcode link signs in afresh on a phone '
+        'already signed in, then a new passcode is chosen', (tester) async {
+      final (deps, server) = await setupDeps(tester, stored: parentPhone);
+      server
+        ..on('POST /api/auth/email-link/verify', {'token': 'fresh-token'})
+        ..on('GET /api/family/passcode', {'set': true, 'length': 4});
+      await tester.runAsync(
+        () => GrownUpRepository(
+          deps.client,
+          deps.store,
+        ).startPasscodeReset(deps.account.bearer),
+      );
+      await tester.pumpWidget(
+        AuraApp(deps: deps, initialLocation: '/verify?m=tok7'),
+      );
+      await settle(tester);
+      await settle(tester);
+      expect(server.calls.first.$2, {'token': 'tok7'});
+      expect(deps.account.bearer, 'fresh-token');
+      expect(find.text('Set a new passcode'), findsOneWidget);
     });
 
     testWidgets('mid-setup it hands the link back to setup', (tester) async {
