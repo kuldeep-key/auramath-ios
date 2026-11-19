@@ -57,6 +57,18 @@ class CelebrationRepository {
   Future<bool> seen(String childId, String moment) async =>
       await _store.read('celebration.seen.$childId.$moment') == '1';
 
+  String _playedKey(String childId) => 'badges.played.$childId';
+
+  /// The big badges [childId] has been shown on this phone, on any launch.
+  /// The server names a big badge again (`queued: true`) until it has a
+  /// `badge_shown` for it; one already played here isn't played again
+  /// while that is on its way.
+  Future<Set<String>> played(String childId) async =>
+      (await _store.read(
+        _playedKey(childId),
+      ))?.split('\n').where((s) => s.isNotEmpty).toSet() ??
+      {};
+
   /// Logs a celebration that played [ms], skipped or not, still or moving,
   /// with the [badge] it showed.
   Future<void> shown(
@@ -71,6 +83,16 @@ class CelebrationRepository {
   }) async {
     if (childId == null) return;
     await _store.write('celebration.seen.$childId.$moment', '1');
+    if (badge != null) {
+      await _store.write(
+        _playedKey(childId),
+        {
+          ...await played(childId),
+          badge.badgeId,
+          ?badge.alsoBadgeId,
+        }.join('\n'),
+      );
+    }
     final events = [
       celebrationShown(
         moment: moment,

@@ -249,11 +249,25 @@ List<RouteBase> childRoutes(Deps deps) {
               .read(child)
               .timeout(bigBadgeWait, onTimeout: () => const Rewards(null));
     final fresh = deps.sessions.awardsDue(child);
-    final due = [
-      for (final a in read?.queued ?? const <Award>[])
-        if (!fresh.any((f) => f.badgeId == a.badgeId)) a,
-      ...fresh,
-    ].where((a) => bigShown.add((child, a.badgeId))).toList();
+    // the server names a badge again until its badge_shown arrives: one
+    // played on this phone before (any launch) isn't played again; a stop
+    // shown with its land counts for both
+    final played = child == null
+        ? const <String>{}
+        : await celebrations.played(child);
+    final due =
+        [
+              for (final a in read?.queued ?? const <Award>[])
+                if (!fresh.any((f) => f.badgeId == a.badgeId)) a,
+              ...fresh,
+            ]
+            .where(
+              (a) =>
+                  !played.contains(a.badgeId) &&
+                  !played.contains(a.alsoLand?.badgeId) &&
+                  bigShown.add((child, a.badgeId)),
+            )
+            .toList();
     final r = momentsFor();
     // a passed level's peak moment names the land that opens next
     // (Figma section 15), from the server's path

@@ -335,6 +335,93 @@ void main() {
     expect(await shown(), hasLength(2));
   });
 
+  testWidgets('a big badge the server names again (its badge_shown not '
+      'there yet) is not played again after a relaunch', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const stop = (
+      badgeId: 'stop.orchard.l2',
+      kind: 'skill_mastered',
+      name: 'Sapling Row',
+      problemId: 'lemon',
+      celebration: 'stop_badge',
+      queued: false,
+      alsoLand: null,
+    );
+    final (deps, server) =
+        await tester.runAsync(
+          () => testDeps(
+            // played on an earlier launch, its badge_shown still on its way
+            stored: {
+              ...pairedChildPhone,
+              'badges.played.child-1': 'habit.bar_builder',
+            },
+            api: (api) => api.awards = const [stop],
+          ),
+        ) ??
+        (throw StateError('no deps'));
+    server.on('GET /api/children', {
+      'children': [
+        {'id': 'child-1', 'displayName': 'Mira'},
+      ],
+    });
+    // the server's queue: a habit whose answer never reached this phone,
+    // and the stop just earned (not shown yet either)
+    server.on('GET /api/children/child-1/rewards', {
+      'queued': [
+        {
+          'badgeId': 'habit.bar_builder',
+          'kind': 'habit',
+          'name': 'Bar Builder',
+          'celebration': 'habit_badge',
+        },
+        {
+          'badgeId': 'stop.orchard.l2',
+          'kind': 'skill_mastered',
+          'name': 'Sapling Row',
+          'celebration': 'stop_badge',
+        },
+      ],
+    });
+    final session = await tester.runAsync(() async {
+      final id = await deps.sessions.openOrGoOn(childId: 'child-1');
+      await deps.sessions.record(id, 0, const [
+        SpecEvent('problem_completed', {
+          'problem_id': 'lemon',
+          'outcome': 'solved_alone',
+        }),
+      ]);
+      return id;
+    });
+    // each celebration plays to its end
+    Future<void> play() async {
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(seconds: 5));
+        await settle(tester);
+      }
+    }
+
+    await tester.pumpWidget(
+      AuraApp(deps: deps, initialLocation: Paths.afterCaseNext('mango')),
+    );
+    await play();
+    Future<List<(Object?, Object?)>> shown() async => [
+      for (final e
+          in await tester.runAsync(() => deps.outbox.forSession(session!)) ??
+              const [])
+        if (e.name == 'badge_shown')
+          (e.payload['badge_id'], e.payload['queued']),
+    ];
+    expect(await shown(), [('stop.orchard.l2', false)]);
+    // the next case's after-case: each shown once
+    GoRouter.of(
+      tester.element(find.byType(Scaffold).first),
+    ).go(Paths.afterCaseNext('lemon'));
+    await play();
+    expect(await shown(), hasLength(1));
+  });
+
   testWidgets('the trail starts at the first case stop', (tester) async {
     await boot(tester, Paths.trail);
     expect(find.text('You are here'), findsOneWidget);
