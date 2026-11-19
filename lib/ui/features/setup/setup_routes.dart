@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/repositories/account_repository.dart';
@@ -51,7 +51,13 @@ List<RouteBase> setupRoutes(Deps deps) {
   );
 
   return [
-    GoRoute(path: Paths.welcome, builder: (_, _) => const WelcomeScreen()),
+    // H9: setup starts afresh here, and a sign-in never saves a child
+    // from a setup that was backed out of
+    GoRoute(
+      path: Paths.welcome,
+      builder: (_, _) =>
+          _FreshDraft(draft: draft, child: const WelcomeScreen()),
+    ),
     GoRoute(
       path: Paths.setupName,
       builder: (_, _) {
@@ -111,7 +117,10 @@ List<RouteBase> setupRoutes(Deps deps) {
     ),
     GoRoute(
       path: Paths.signIn,
-      builder: (_, _) => SignInScreen(deps: deps),
+      builder: (_, _) => _FreshDraft(
+        draft: draft,
+        child: SignInScreen(deps: deps),
+      ),
     ),
     checkEmail(Paths.signInCheckEmail, fromSetup: false),
     GoRoute(
@@ -120,4 +129,26 @@ List<RouteBase> setupRoutes(Deps deps) {
           VerifyScreen(deps: deps, token: s.uri.queryParameters['m']),
     ),
   ];
+}
+
+/// Clears the setup draft once, as [child] opens (H9).
+class _FreshDraft extends StatefulWidget {
+  const _FreshDraft({required this.draft, required this.child});
+
+  final SetupDraft draft;
+  final Widget child;
+
+  @override
+  State<_FreshDraft> createState() => _FreshDraftState();
+}
+
+class _FreshDraftState extends State<_FreshDraft> {
+  @override
+  void initState() {
+    super.initState();
+    widget.draft.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

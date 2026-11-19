@@ -14,14 +14,7 @@ Future<void> finishSetup(BuildContext context, Deps deps) async {
   await deps.family.giveConsent();
   final child = await deps.family.addChild(draft.toChildJson());
   // Saved on the server: a later sign-in must not add the child again.
-  draft
-    ..name = null
-    ..age = null
-    ..schoolYear = null
-    ..startingPoint = null
-    ..canDo = []
-    ..goal = null
-    ..agreed = false;
+  draft.clear();
   // The weekly note goes out in the family's own evening. The child is
   // saved, so a refusal here is logged, not a failed setup.
   try {

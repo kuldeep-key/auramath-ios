@@ -37,4 +37,30 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Hand over to Aarav'), findsOneWidget);
   });
+
+  testWidgets('H9: a setup backed out of is forgotten on Welcome, Sign in '
+      'and sign-out, so a later email sign-in never adds that child', (
+    tester,
+  ) async {
+    final (deps, _) = await setupDeps(tester);
+    final draft = deps.account.draft;
+    void abandoned() => draft
+      ..name = 'Aarav'
+      ..age = 8
+      ..agreed = true;
+
+    for (final at in ['/sign-in', '/welcome']) {
+      abandoned();
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(AuraApp(deps: deps, initialLocation: at));
+      await tester.pumpAndSettle();
+      expect(draft.agreed, isFalse, reason: at);
+      expect(draft.name, isNull, reason: at);
+    }
+
+    abandoned();
+    await tester.runAsync(deps.account.signOut);
+    expect(draft.agreed, isFalse);
+    expect(draft.age, isNull);
+  });
 }

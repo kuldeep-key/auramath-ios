@@ -41,6 +41,18 @@ class SetupDraft {
   /// their own.
   SetupOptions? options;
 
+  /// Forgets what was typed (the server's lists stay): a setup backed out
+  /// of is never saved as a child by a later sign-in (H9).
+  void clear() {
+    name = null;
+    age = null;
+    schoolYear = null;
+    startingPoint = null;
+    canDo = [];
+    goal = null;
+    agreed = false;
+  }
+
   Map<String, Object?> toChildJson() => {
     'displayName': name,
     'age': ?age,
@@ -229,6 +241,7 @@ class AccountRepository extends ChangeNotifier {
     await _social.signOut();
     _parentToken = null;
     _grownUpsUnlocked = false;
+    draft.clear();
     await _store.write('parentToken', null);
     notifyListeners();
   }
