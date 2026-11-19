@@ -218,8 +218,20 @@ class Rewards {
     return (badge: b, sessionId: (j as Map)['sessionId'] as String?);
   }
 
-  /// REW-11: big badges earned and waiting to show.
-  List<Award> get queued => awardsFromJson(_j?['queued']);
+  /// REW-11: big badges earned and waiting to show (on no phone yet),
+  /// each [Award.queued]: it waited.
+  List<Award> get queued => [
+    for (final a in awardsFromJson(_j?['queued']))
+      (
+        badgeId: a.badgeId,
+        kind: a.kind,
+        name: a.name,
+        problemId: a.problemId,
+        celebration: a.celebration,
+        queued: true,
+        alsoLand: a.alsoLand,
+      ),
+  ];
 
   /// REW-12: the cabinet's badges, earned only; null while
   /// `flags.badge_cabinet` is off.

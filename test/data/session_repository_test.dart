@@ -174,6 +174,43 @@ void main() {
     await db.close();
   });
 
+  test("H2: a later answer with no awards keeps the case's awards", () async {
+    final db = await memoryOutbox();
+    final api = FakeApi();
+    final repo = SessionRepository(
+      db: db,
+      api: api,
+      identity: testIdentity,
+      nowMs: () => 5,
+    );
+    final id = await repo.openOrGoOn(childId: 'kid12345');
+    api.awards = const [
+      (
+        badgeId: 'stop.orchard.l2',
+        kind: 'skill_mastered',
+        name: 'Sapling Row',
+        problemId: 'lemon',
+        celebration: 'stop_badge',
+        queued: false,
+        alsoLand: null,
+      ),
+    ];
+    await repo.record(id, 0, const [
+      SpecEvent('problem_completed', {'problem_id': 'lemon'}),
+    ]);
+    // the next case's answer leaves awards out
+    api.awards = const [];
+    await repo.record(id, 1, const [
+      SpecEvent('problem_completed', {'problem_id': 'lemon'}),
+    ]);
+    expect(
+      [for (final a in repo.awardsDue('kid12345')) a.badgeId],
+      ['stop.orchard.l2'],
+    );
+    repo.dispose();
+    await db.close();
+  });
+
   group('signing out (DEV-06)', () {
     test('sends what is unsent, then keeps no lesson on the phone', () async {
       final db = await memoryOutbox();

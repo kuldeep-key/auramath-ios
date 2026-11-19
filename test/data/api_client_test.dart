@@ -78,6 +78,15 @@ void main() {
     expect(reply.ended, 'idle');
   });
 
+  test('H2: an answer with no awards (its rewards evaluation failed) names '
+      'none, so what the phone holds is kept', () async {
+    final api = HttpApi(
+      clientFor((_) async => http.Response('{"added":1,"total":1}', 200)),
+    );
+    final reply = await api.sendEvents('s', const []);
+    expect(reply.awards, isEmpty);
+  });
+
   test(
     'arithmetic sums are read from items, as the server worked them',
     () async {

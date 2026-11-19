@@ -4,6 +4,7 @@ import 'package:auramath/routing/paths.dart';
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../helpers/app_harness.dart';
 
@@ -221,6 +222,94 @@ void main() {
     await boot(tester, Paths.afterCaseNext('mango'));
     expect(find.text('Tree Word Problem'), findsOneWidget);
     expect(find.text('My sash'), findsNothing);
+  });
+
+  testWidgets('H2: at after-case a big badge the server holds as queued '
+      'shows first, once, beside the one just earned, never twice', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const stop = (
+      badgeId: 'stop.orchard.l2',
+      kind: 'skill_mastered',
+      name: 'Sapling Row',
+      problemId: 'lemon',
+      celebration: 'stop_badge',
+      queued: false,
+      alsoLand: null,
+    );
+    final (deps, server) =
+        await tester.runAsync(
+          () => testDeps(
+            stored: pairedChildPhone,
+            api: (api) => api.awards = const [stop],
+          ),
+        ) ??
+        (throw StateError('no deps'));
+    server.on('GET /api/children', {
+      'children': [
+        {'id': 'child-1', 'displayName': 'Mira'},
+      ],
+    });
+    // the server's queue: a habit whose answer never reached this phone,
+    // and the stop just earned (not shown yet either)
+    server.on('GET /api/children/child-1/rewards', {
+      'queued': [
+        {
+          'badgeId': 'habit.bar_builder',
+          'kind': 'habit',
+          'name': 'Bar Builder',
+          'celebration': 'habit_badge',
+        },
+        {
+          'badgeId': 'stop.orchard.l2',
+          'kind': 'skill_mastered',
+          'name': 'Sapling Row',
+          'celebration': 'stop_badge',
+        },
+      ],
+    });
+    final session = await tester.runAsync(() async {
+      final id = await deps.sessions.openOrGoOn(childId: 'child-1');
+      await deps.sessions.record(id, 0, const [
+        SpecEvent('problem_completed', {
+          'problem_id': 'lemon',
+          'outcome': 'solved_alone',
+        }),
+      ]);
+      return id;
+    });
+    // each celebration plays to its end
+    Future<void> play() async {
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(seconds: 5));
+        await settle(tester);
+      }
+    }
+
+    await tester.pumpWidget(
+      AuraApp(deps: deps, initialLocation: Paths.afterCaseNext('mango')),
+    );
+    await play();
+    Future<List<(Object?, Object?)>> shown() async => [
+      for (final e
+          in await tester.runAsync(() => deps.outbox.forSession(session!)) ??
+              const [])
+        if (e.name == 'badge_shown')
+          (e.payload['badge_id'], e.payload['queued']),
+    ];
+    expect(await shown(), [
+      ('habit.bar_builder', true),
+      ('stop.orchard.l2', false),
+    ]);
+    // the next case's after-case: each shown once
+    GoRouter.of(
+      tester.element(find.byType(Scaffold).first),
+    ).go(Paths.afterCaseNext('lemon'));
+    await play();
+    expect(await shown(), hasLength(2));
   });
 
   testWidgets('the trail starts at the first case stop', (tester) async {

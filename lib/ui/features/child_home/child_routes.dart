@@ -230,23 +230,35 @@ List<RouteBase> childRoutes(Deps deps) {
   /// order the server sent them: what waited longest first, and from one
   /// case the smaller first (Ashutosh, daily catch-up 16 Nov).
   /// By child and badge: on a shared phone each child sees their own.
+  ///
+  /// H2: the server's `queued` (earned, not yet shown on any phone) is
+  /// read here too, as a backstop: a big badge whose answer never came
+  /// (a late reply, a rewards error, an app killed mid-sequence, a case
+  /// carried on from another phone) still shows, first, as having waited.
   final bigShown = <(String?, String)>{};
+  const bigBadgeWait = Duration(seconds: 3);
   Future<List<CelebrationSpec>> bigBadge(AppLocalizations l) async {
     // the case's last batch, and its answer, first
     await deps.sessions.syncNow();
     final child = deps.account.childId;
+    // a slow answer doesn't hold the play screen: without it, what the
+    // events answers named
+    final read = child == null
+        ? null
+        : await rewards
+              .read(child)
+              .timeout(bigBadgeWait, onTimeout: () => const Rewards(null));
+    final fresh = deps.sessions.awardsDue(child);
     final due = [
-      for (final a in deps.sessions.awardsDue(child))
-        if (bigShown.add((child, a.badgeId))) a,
-    ];
+      for (final a in read?.queued ?? const <Award>[])
+        if (!fresh.any((f) => f.badgeId == a.badgeId)) a,
+      ...fresh,
+    ].where((a) => bigShown.add((child, a.badgeId))).toList();
     final r = momentsFor();
     // a passed level's peak moment names the land that opens next
     // (Figma section 15), from the server's path
-    final id = deps.account.childId;
-    final levels = due.any((a) => a.kind == 'skill_mastered') && id != null
-        ? (await rewards.read(
-            id,
-          )).lands?.where((x) => x.current || !x.teaser).firstOrNull
+    final levels = due.any((a) => a.kind == 'skill_mastered')
+        ? read?.lands?.where((x) => x.current || !x.teaser).firstOrNull
         : null;
     PeakNext? peakOf(Award a) {
       final stops = levels?.stops;
