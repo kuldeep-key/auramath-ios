@@ -5,8 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'fakes.dart';
 
-/// The sound effects follow the lesson's read-aloud: a child with the sound
-/// off hears none, and "Sound is on now" brings them back (NFR-06).
+/// The sound effects play with read-aloud off (its default since 20 Nov);
+/// the header's mute silences them, and "Sound is on now" or unmuting
+/// brings them back (NFR-06).
 void main() {
   late RecordingSfxPlayer rec;
 
@@ -40,7 +41,8 @@ void main() {
     expect(vm.offerSound, isTrue);
   });
 
-  test('read-aloud off: no effects; sound on again: effects', () async {
+  test('read-aloud off: effects still; muted: none; sound on again: '
+      'effects', () async {
     final (sessions, _, _) = await memorySessions();
     final vm = LessonViewModel(
       pack: samplePack(),
@@ -56,9 +58,12 @@ void main() {
     addTearDown(vm.dispose);
     await vm.start();
     AuraSound.right();
-    expect(rec.played, isEmpty);
-    await vm.soundAnswered('sound_on');
+    expect(rec.played, [Sfx.right]);
+    vm.sound(false);
     AuraSound.right();
     expect(rec.played, [Sfx.right]);
+    await vm.soundAnswered('sound_on');
+    AuraSound.right();
+    expect(rec.played, [Sfx.right, Sfx.right]);
   });
 }

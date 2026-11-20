@@ -60,6 +60,16 @@ class NoVoice implements Voice, LessonVoice {
   Future<void> warm(List<String> lines) async {}
 }
 
+/// A line the child asked for, or one outside a lesson: [voice] chooses
+/// again ([LessonVoice.beginLesson]) rather than keep a failure from an
+/// earlier line, so a tap always tries the case partner's voice (NFR-06).
+/// There is no other voice to mix with it (19 Nov), so one voice a lesson
+/// still holds.
+Future<void> sayAfresh(Voice voice, String text) {
+  if (voice case final LessonVoice v) v.beginLesson();
+  return voice.say(text);
+}
+
 /// Plays a clip's MP3 bytes; completes when it ends or is stopped.
 abstract interface class ClipPlayer {
   Future<void> play(Uint8List mp3);
@@ -143,7 +153,9 @@ enum VoiceLock {
 ///
 /// "The phone's voice" here is [fallback], which the app makes [NoVoice]
 /// (19 Nov: no voice on the phone reads a line): the line is not read and
-/// its words show big. [beginLesson] wakes it too.
+/// its words show big. [beginLesson] wakes it too, and so does a line the
+/// child taps or one outside a lesson ([sayAfresh], 20 Nov), so a failure
+/// never silences the speakers.
 class CloudVoice implements Voice, LessonVoice {
   CloudVoice({
     required this.fetch,

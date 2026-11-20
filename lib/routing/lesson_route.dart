@@ -105,23 +105,27 @@ class _LessonRoute extends StatefulWidget {
 }
 
 class _LessonRouteState extends State<_LessonRoute> {
-  late final _vm = LessonViewModel(
-    pack: widget.deps.pack,
-    problemId: widget.problemId,
-    sessionId: widget.resumeSessionId,
-    sessions: widget.deps.sessions,
-    voice: widget.deps.voice,
-    // REW-01: the sitting's open session, else a new one
-    openSession: _open,
-    nextProblem: Env.serverProblems
-        ? (sessionId, {level}) => widget.deps.sessions.nextProblem(
-            widget.deps.pack,
-            sessionId,
-            level: level,
-          )
-        : null,
-    sitting: widget.deps.sitting,
-  );
+  late final _vm =
+      LessonViewModel(
+          pack: widget.deps.pack,
+          problemId: widget.problemId,
+          sessionId: widget.resumeSessionId,
+          sessions: widget.deps.sessions,
+          voice: widget.deps.voice,
+          // REW-01: the sitting's open session, else a new one
+          openSession: _open,
+          nextProblem: Env.serverProblems
+              ? (sessionId, {level}) => widget.deps.sessions.nextProblem(
+                  widget.deps.pack,
+                  sessionId,
+                  level: level,
+                )
+              : null,
+          sitting: widget.deps.sitting,
+        )
+        // off until the child's settings are read (_begin): a resumed case's
+        // question shows, and would be read, before then (20 Nov)
+        ..readAloud = false;
 
   late final AppLifecycleListener _lifecycle;
 
@@ -164,10 +168,12 @@ class _LessonRouteState extends State<_LessonRoute> {
         ? await _childAge()
         : null;
     if (!mounted) return;
-    // the sound effects follow the grown-up's read-aloud, once it is set
-    if (settings != null && !settings.readAloudIsDefault) {
-      AuraSound.soundOn.value = settings.readAloud;
-    }
+    // the sound effects follow the grown-up's read-aloud once it is set;
+    // until then (off by default, 20 Nov) they play, whatever a past
+    // lesson's mute left
+    AuraSound.soundOn.value = settings == null || settings.readAloudIsDefault
+        ? true
+        : settings.readAloud;
     _vm
       // the server's read-aloud has the flag and the age default in it;
       // without it, the age default (TTR-03): off for every age since

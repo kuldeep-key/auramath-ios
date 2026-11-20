@@ -71,9 +71,10 @@ class AssetSfxPlayer implements SfxPlayer {
 
 /// The app's sound effects, for every area: taps, right, wrong and the big
 /// moments. They follow the app's sound setting ([soundOn]): with the sound
-/// off (the grown-up's read-aloud off, or the child answering "I'll read"
-/// on the Sound screen) nothing plays, as the prototype's
-/// `if(!S.sound) return`. They never wait and never throw.
+/// off (a grown-up who turned read-aloud off, or the child muting the
+/// lesson's speaker) nothing plays, as the prototype's `if(!S.sound)
+/// return`. Read-aloud off by default (20 Nov) leaves them on. They never
+/// wait and never throw.
 ///
 /// ```dart
 /// AuraSound.tap();        // a main button

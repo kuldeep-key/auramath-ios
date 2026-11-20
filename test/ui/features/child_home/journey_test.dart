@@ -159,18 +159,24 @@ void main() {
       'the next time it opens, once a grown-up has turned it on', (
     tester,
   ) async {
-    final (deps, _) = await boot(tester, Paths.home, readAloud: false);
+    final (deps, server) = await boot(tester, Paths.home, readAloud: false);
     final voice = deps.voice as FakeVoice;
     expect(voice.said, isEmpty);
-    await tester.runAsync(
-      () => ChildSettingsRepository(deps.client, deps.store).remember(
-        const ChildSettings(
-          childId: 'child-1',
-          readAloud: true,
-          readAloudIsDefault: false,
-        ),
-      ),
+    // turned on on another family phone: this one kept "off"
+    expect(
+      (await tester.runAsync(
+        () =>
+            ChildSettingsRepository(deps.client, deps.store).cached('child-1'),
+      ))?.readAloud,
+      isFalse,
     );
+    server.on('GET /api/children/child-1/settings', {
+      'childId': 'child-1',
+      'dailyLimitMinutes': null,
+      'dailyLimitIsDefault': true,
+      'readAloud': true,
+      'readAloudIsDefault': false,
+    });
     final router = GoRouter.of(tester.element(find.byType(HomeScreen)));
     router.go(Paths.me);
     await settle(tester);

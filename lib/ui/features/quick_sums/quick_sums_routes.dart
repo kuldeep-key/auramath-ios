@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/repositories/account_repository.dart';
+import '../../../data/services/voice.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
 import 'view_models/quick_sums_view_model.dart';
@@ -58,7 +59,8 @@ class _QuickSumsRouteState extends State<_QuickSumsRoute> {
   @override
   Widget build(BuildContext context) => QuickSumsScreen(
     vm: _vm,
-    onSay: widget.deps.voice.say,
+    // a tap always tries the voice, whatever an earlier line did
+    onSay: (text) => sayAfresh(widget.deps.voice, text),
     onHome: () => context.go(Paths.home),
     onStory: () => context.go(Paths.lessonNext),
   );

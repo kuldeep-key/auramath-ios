@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'data/services/voice.dart';
 import 'deps.dart';
 import 'l10n/app_localizations.dart';
 import 'routing/paths.dart';
@@ -64,8 +65,9 @@ class _AuraAppState extends State<AuraApp> {
     // Large text is honoured up to 1.3×; past that the child's screens stop
     // fitting. Every screen still scrolls rather than clips.
     builder: (context, child) => ReadAloud(
-      // the speaker on every child screen (NFR-06)
-      say: widget.deps.voice.say,
+      // the speaker on every child screen (NFR-06): a tap always tries
+      // the voice, whatever an earlier line did
+      say: (text) => sayAfresh(widget.deps.voice, text),
       speaking: widget.deps.voice.speaking,
       child: MediaQuery.withClampedTextScaling(
         maxScaleFactor: 1.3,

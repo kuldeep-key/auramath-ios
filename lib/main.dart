@@ -219,8 +219,9 @@ Future<void> main() async {
         client: client,
         sessions: sessions,
         pack: pack,
-        // the case partner's voice from the server; the phone's own voice
-        // whenever the server reads nothing aloud or a line can't go out
+        // the case partner's voice from the server; no voice (the words
+        // big) whenever the server reads nothing aloud or a line can't go
+        // out: nothing on the phone reads a line (19 Nov)
         voice: voice,
         sitting: sitting,
         config: config,

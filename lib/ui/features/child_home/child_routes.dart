@@ -14,6 +14,7 @@ import '../../../data/repositories/progress_repository.dart';
 import '../../../data/repositories/rewards_repository.dart';
 import '../../../data/models/lesson_event.dart';
 import '../../../data/services/api.dart';
+import '../../../data/services/voice.dart';
 import '../../../deps.dart';
 import '../../../routing/paths.dart';
 import 'views/after_case_screen.dart';
@@ -146,19 +147,17 @@ List<RouteBase> childRoutes(Deps deps) {
   }
 
   /// Read-aloud is on for the child now (PAR-05): the flag, and the
-  /// grown-up's switch as this phone last read it, else as the server
-  /// says. Off when neither answers: off is its default since 20 Nov.
+  /// grown-up's switch as the server says (another family phone may have
+  /// changed it), else as this phone last read it. Off when neither
+  /// answers: off is its default since 20 Nov.
   Future<bool> readAloudOn() async {
     final id = deps.account.childId;
     if (id == null || !deps.flags.on('read_aloud')) return false;
     final repo = ChildSettingsRepository(deps.client, deps.store);
-    final kept = await repo.cached(id);
-    if (kept != null) return kept.readAloud;
     try {
-      final s = await repo.load(id).timeout(_readAloudWait);
-      return s.readAloud;
+      return (await repo.load(id).timeout(_readAloudWait)).readAloud;
     } on Object {
-      return false;
+      return (await repo.cached(id))?.readAloud ?? false;
     }
   }
 
@@ -166,16 +165,20 @@ List<RouteBase> childRoutes(Deps deps) {
   /// read-aloud is on for the child, or when the child asks; in [voiceId]
   /// this once (a hello sample), else the child's own voice. Logged as
   /// `read_aloud_played` under the visit (D-60), the line's id only.
+  /// Nothing is said once [context] (the screen saying it) is gone.
   Future<void> speak(
     String? text,
     String lineId, {
     required bool tapped,
     String? voiceId,
+    BuildContext? context,
   }) async {
     if (text == null || text.isEmpty) return;
     if (!tapped && !await readAloudOn()) return;
+    if (context != null && !context.mounted) return;
     if (voiceId == null) {
-      deps.voice.say(text);
+      // outside a lesson each line tries the voice afresh
+      unawaited(sayAfresh(deps.voice, text));
     } else {
       deps.voice.sayIn(text, voiceId);
     }
@@ -389,6 +392,7 @@ List<RouteBase> childRoutes(Deps deps) {
                     tutorLine(context, 'line.home.greeting'),
                     'line.home.greeting',
                     tapped: tapped,
+                    context: context,
                   );
                 },
                 name: name,
@@ -871,6 +875,7 @@ List<RouteBase> childRoutes(Deps deps) {
             text,
             intro == null ? 'line.intro.hello' : 'line.tutor.intro',
             tapped: tapped,
+            context: context,
           ),
           onStart: () async {
             await PartnerIntroRepository(
