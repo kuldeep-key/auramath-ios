@@ -1162,8 +1162,14 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// the Sound screen asks once a sitting (NFR-06, journey 20).
   bool readAloudFlag = false;
 
+  /// The child may turn the sound on from the Sound screen. Off since
+  /// 20 Nov: read-aloud is off by default and only a grown-up turns it
+  /// on (PAR-05), so the lesson doesn't ask the child.
+  bool childTurnsSoundOn = false;
+
   /// Read-aloud is off: offer to turn the sound on, or read it myself.
   bool get offerSound =>
+      childTurnsSoundOn &&
       readAloudFlag &&
       !readAloud &&
       !_sitting.soundAsked &&

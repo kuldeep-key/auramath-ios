@@ -63,7 +63,8 @@ void main() {
             tickEvery: null,
           )
           ..readAloud = false
-          ..readAloudFlag = true;
+          ..readAloudFlag = true
+          ..childTurnsSoundOn = true;
     addTearDown(vm.dispose);
     await tester.runAsync(vm.start);
     await tester.pumpWidget(
