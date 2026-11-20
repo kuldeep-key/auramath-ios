@@ -47,8 +47,11 @@ class FakeVoice implements Voice {
     speaking.value = false;
   }
 
+  /// Every [warm] call's lines, in order.
+  final List<List<String>> warmed = [];
+
   @override
-  Future<void> warm(List<String> lines) async {}
+  Future<void> warm(List<String> lines) async => warmed.add(lines);
 }
 
 /// The bundled pack, taught by the bundled policy, as the app loads it.

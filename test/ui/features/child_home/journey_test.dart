@@ -1,8 +1,12 @@
 import 'package:auramath/app.dart';
+import 'package:auramath/data/models/child_settings.dart';
+import 'package:auramath/data/repositories/child_settings_repository.dart';
 import 'package:auramath/deps.dart';
 import 'package:auramath/routing/paths.dart';
+import 'package:auramath/ui/features/child_home/views/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../helpers/app_harness.dart';
 import '../lesson/fakes.dart';
@@ -149,6 +153,41 @@ void main() {
       'Home greets aloud as it opens; turned off, it does not', (tester) async {
     final (on, _) = await boot(tester, Paths.home, readAloud: true);
     expect((on.voice as FakeVoice).said, ['Your case is waiting.']);
+  });
+
+  testWidgets('TTR-03, PAR-05: Home opened while read-aloud was off greets '
+      'the next time it opens, once a grown-up has turned it on', (
+    tester,
+  ) async {
+    final (deps, server) = await boot(tester, Paths.home, readAloud: false);
+    final voice = deps.voice as FakeVoice;
+    expect(voice.said, isEmpty);
+    // turned on on another family phone: this one kept "off"
+    expect(
+      (await tester.runAsync(
+        () =>
+            ChildSettingsRepository(deps.client, deps.store).cached('child-1'),
+      ))?.readAloud,
+      isFalse,
+    );
+    server.on('GET /api/children/child-1/settings', {
+      'childId': 'child-1',
+      'dailyLimitMinutes': null,
+      'dailyLimitIsDefault': true,
+      'readAloud': true,
+      'readAloudIsDefault': false,
+    });
+    final router = GoRouter.of(tester.element(find.byType(HomeScreen)));
+    router.go(Paths.me);
+    await settle(tester);
+    router.go(Paths.home);
+    await settle(tester);
+    expect(voice.said, ['Your case is waiting.']);
+    router.go(Paths.me);
+    await settle(tester);
+    router.go(Paths.home);
+    await settle(tester);
+    expect(voice.said, hasLength(1), reason: 'one greeting a visit');
   });
 
   testWidgets('TTR-03, PAR-05: read-aloud turned off, Home stays quiet', (

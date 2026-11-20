@@ -275,6 +275,25 @@ void main() {
     expect(clips.played, hasLength(1));
   });
 
+  test('20 Nov: a line that failed does not silence a later tap; '
+      'sayAfresh tries the case partner voice again', () async {
+    var fail = true;
+    final v = voice(
+      (_) async => fail
+          ? throw const ApiException('down', status: 503)
+          : Uint8List.fromList([1]),
+    );
+    await v.say('Your case is waiting.');
+    expect(v.lock, VoiceLock.phone);
+    expect(phone.said, ['Your case is waiting.']);
+    fail = false;
+    await v.say('Tap me.');
+    expect(clips.played, isEmpty, reason: 'without sayAfresh it stays off');
+    await sayAfresh(v, 'Tap me.');
+    expect(clips.played, hasLength(1));
+    expect(v.lock, VoiceLock.cloud);
+  });
+
   group('NoVoice: no voice on the phone (19 Nov)', () {
     test(
       'a line it is given is not read: the voice rests, words big',

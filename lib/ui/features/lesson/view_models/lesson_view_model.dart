@@ -539,6 +539,8 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   /// Rebuilds the lesson from its saved events: replayed through the engine,
   /// never from a snapshot.
   Future<void> restore() async {
+    // a resumed lesson chooses its voice again, as a new one does
+    if (_voice case final LessonVoice v) v.beginLesson();
     _warmVoice();
     final sessionId = _sessionId!;
     final (:events, :lastSeq) = await _sessions.resume(sessionId);
@@ -1081,21 +1083,19 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   }
 
   /// The grown-up's "Read aloud" (Settings): when off, nothing is spoken
-  /// unless the child taps a speak button. It is the app's sound setting:
-  /// the sound effects ([AuraSound]) follow it, so a child with the sound
-  /// off hears none.
-  bool get readAloud => _readAloud;
-  set readAloud(bool on) {
-    _readAloud = on;
-    AuraSound.soundOn.value = on;
-  }
-
-  bool _readAloud = true;
+  /// unless the child taps a speak button. The lesson's route sets it from
+  /// the child's settings (off by default since 20 Nov). The sound effects
+  /// ([AuraSound]) no longer follow it, as it is off for most children:
+  /// the header's mute and a grown-up's own choice (the lesson's start)
+  /// set them.
+  bool readAloud = true;
 
   /// The header's speaker: muting stops the line being read and reads
-  /// nothing more on its own until the sound is turned back on.
+  /// nothing more on its own, and no effects play, until the sound is
+  /// turned back on.
   void sound(bool on) {
     readAloud = on;
+    AuraSound.soundOn.value = on;
     if (!on) _voice.stop();
     notifyListeners();
   }
@@ -1188,6 +1188,7 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   Future<void> soundAnswered(String? choice) async {
     if (choice == 'sound_on') {
       readAloud = true;
+      AuraSound.soundOn.value = true;
       autoReadQuestion();
     }
     notifyListeners();
@@ -1660,16 +1661,17 @@ class LessonViewModel extends ChangeNotifier with _LessonGaps {
   }
 
   /// The lines this problem may read, made ahead in the case partner's
-  /// voice so they play at once. A line still missing a slot is skipped.
+  /// voice so they play at once, read-aloud on or off: with it off the
+  /// child can still tap a line, and a first line not ready in time leaves
+  /// the lesson without its voice. A line still missing a slot is skipped.
   void _warmVoice() {
     final slots = lineSlots(_problem);
     unawaited(
       _voice.warm([
         _problem.say,
-        if (readAloud)
-          for (final line in _pack.lines.values)
-            if (fillLine(line, slots) case final text when !text.contains('{'))
-              text,
+        for (final line in _pack.lines.values)
+          if (fillLine(line, slots) case final text when !text.contains('{'))
+            text,
       ]),
     );
   }

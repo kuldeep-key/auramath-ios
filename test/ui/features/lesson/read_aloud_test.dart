@@ -113,6 +113,14 @@ void main() {
     expect(log().last.payload, containsPair('target', 'hint'));
   });
 
+  test('20 Nov: read-aloud off, the lines a tap can ask for are made '
+      'ahead too, not only the question', () async {
+    final (_, off, _) = await makeVm(readAloud: false);
+    final (_, on, _) = await makeVm();
+    expect(off.warmed.single.length, greaterThan(1));
+    expect(off.warmed.single, on.warmed.single);
+  });
+
   test('TTR-03: a child action stops the line at once: stopped_early, '
       'logged before what the action wrote', () async {
     final (vm, voice, log) = await makeVm();
