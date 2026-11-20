@@ -46,7 +46,7 @@ class ChildSettings {
     required this.childId,
     this.dailyLimitMinutes,
     this.dailyLimitIsDefault = true,
-    this.readAloud = true,
+    this.readAloud = false,
     this.readAloudIsDefault = true,
     this.today,
   });
@@ -60,7 +60,7 @@ class ChildSettings {
       childId: id,
       dailyLimitMinutes: _int(j['dailyLimitMinutes']),
       dailyLimitIsDefault: j['dailyLimitIsDefault'] != false,
-      readAloud: j['readAloud'] != false,
+      readAloud: j['readAloud'] == true,
       readAloudIsDefault: j['readAloudIsDefault'] != false,
       today: dailyTimeFromJson(j['today']),
     );
@@ -73,7 +73,8 @@ class ChildSettings {
   final bool dailyLimitIsDefault;
 
   /// The server's answer already has the `read_aloud` flag and the age
-  /// default folded in (TTR-03, D-59).
+  /// default folded in (TTR-03). Off unless the server says on: since
+  /// 20 Nov it is off by default and a grown-up turns it on.
   final bool readAloud;
   final bool readAloudIsDefault;
 

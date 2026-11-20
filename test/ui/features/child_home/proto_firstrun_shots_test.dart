@@ -138,7 +138,7 @@ void main() {
       'Meet',
       MeetPartnerScreen(
         served: const [],
-        onSay: (_) {},
+        onSay: (_, {required tapped}) {},
         onStart: () {},
         figure: TutorFigure(
           tutorId: config.pickable.first.id,

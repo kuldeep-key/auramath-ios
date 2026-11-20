@@ -45,7 +45,7 @@ void main() {
     'no_voice': const NoVoiceScreen(),
     'meet_partner': MeetPartnerScreen(
       served: const [],
-      onSay: (_) {},
+      onSay: (_, {required tapped}) {},
       onStart: () {},
       readAloud: false,
     ),

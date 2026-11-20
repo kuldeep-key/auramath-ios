@@ -15,6 +15,7 @@ void main() {
     String at, {
     List<String> needs = const [],
     Map<String, Object?> flags = allScreensOn,
+    bool? readAloud,
   }) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -53,6 +54,16 @@ void main() {
       return (200, look());
     };
     server.on('POST /api/visits/${deps.visits.visitId}/events', {});
+    // PAR-05: the grown-up's read-aloud switch, when a test sets it
+    if (readAloud != null) {
+      server.on('GET /api/children/child-1/settings', {
+        'childId': 'child-1',
+        'dailyLimitMinutes': null,
+        'dailyLimitIsDefault': true,
+        'readAloud': readAloud,
+        'readAloudIsDefault': false,
+      });
+    }
     await tester.pumpWidget(AuraApp(deps: deps, initialLocation: at));
     await settle(tester);
     return (deps, server);
@@ -118,7 +129,11 @@ void main() {
     expect(find.byKey(const Key('tutor')), findsOneWidget);
     expect(find.text('Your case is waiting.'), findsOneWidget);
     final voice = deps.voice as FakeVoice;
-    expect(voice.said, contains('Your case is waiting.'));
+    // read-aloud is off by default (20 Nov): said only on a tap
+    expect(voice.said, isEmpty);
+    await tester.tap(find.byKey(const Key('tutor')));
+    await settle(tester);
+    expect(voice.said, ['Your case is waiting.']);
     expect(voice.said.where((s) => s.contains('Aarav')), isEmpty);
     expect(find.text('Keep going'), findsOneWidget);
     await tester.tap(find.byKey(const Key('pickAvatar')));
@@ -128,6 +143,20 @@ void main() {
     expect(find.byKey(const Key('myVoice')), findsOneWidget);
     expect(find.byKey(const Key('myWorld')), findsNothing);
     expect(find.textContaining('passcode'), findsNothing);
+  });
+
+  testWidgets('TTR-03, PAR-05: with read-aloud turned on by the grown-up, '
+      'Home greets aloud as it opens; turned off, it does not', (tester) async {
+    final (on, _) = await boot(tester, Paths.home, readAloud: true);
+    expect((on.voice as FakeVoice).said, ['Your case is waiting.']);
+  });
+
+  testWidgets('TTR-03, PAR-05: read-aloud turned off, Home stays quiet', (
+    tester,
+  ) async {
+    final (off, _) = await boot(tester, Paths.home, readAloud: false);
+    expect(find.text('Your case is waiting.'), findsOneWidget);
+    expect((off.voice as FakeVoice).said, isEmpty);
   });
 
   testWidgets('TTR-06: switching the voice: each heard first, then saved', (

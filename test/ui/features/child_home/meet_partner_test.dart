@@ -15,15 +15,20 @@ import 'helpers.dart';
 /// first meeting, with the grown-up there.
 void main() {
   final said = <String>[];
+  final taps = <bool>[];
   var started = 0;
   MeetPartnerScreen screen({List<String> served = const []}) =>
       MeetPartnerScreen(
         served: served,
-        onSay: said.add,
+        onSay: (text, {required tapped}) {
+          said.add(text);
+          taps.add(tapped);
+        },
         onStart: () => started++,
       );
   setUp(() {
     said.clear();
+    taps.clear();
     started = 0;
   });
 
@@ -50,6 +55,8 @@ void main() {
     expect(said.single, contains('an AI'));
     await tapAndSettle(tester, find.text('Hear it again'));
     expect(said, hasLength(2));
+    // the route reads the first only if read-aloud is on (20 Nov)
+    expect(taps, [false, true]);
     final start = find.ancestor(
       of: find.text("Let's start"),
       matching: find.byType(AuraButton),

@@ -170,11 +170,12 @@ class _LessonRouteState extends State<_LessonRoute> {
     }
     _vm
       // the server's read-aloud has the flag and the age default in it;
-      // without it, the age default as before (TTR-03)
+      // without it, the age default (TTR-03): off for every age since
+      // 20 Nov, and off when the age isn't known
       ..readAloud =
           flags.on('read_aloud') &&
           (settings?.readAloud ??
-              (age == null || flags.readAloudAges.contains(age)))
+              (age != null && flags.readAloudAges.contains(age)))
       ..readQuestionAloud = flags.on('read_question_aloud')
       ..readAloudFlag = flags.on('read_aloud')
       ..barSenseLessons = flags.on('bar_sense_side_lessons')
@@ -241,7 +242,7 @@ class _LessonRouteState extends State<_LessonRoute> {
   }
 
   /// The child's age, which sets read-aloud's default; null when it can't
-  /// be read (then read-aloud stays on, as before ages were known).
+  /// be read (then read-aloud is off, its default since 20 Nov).
   Future<int?> _childAge() async {
     try {
       final kids = await widget.deps.family.children();
