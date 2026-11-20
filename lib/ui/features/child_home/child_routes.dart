@@ -375,10 +375,17 @@ List<RouteBase> childRoutes(Deps deps) {
                 tutorId: tutorNow().id,
                 tutorKind: tutorNow().kind,
                 greeting: tutorLine(context, 'line.home.greeting'),
-                // spoken once as this Home opens, again on a tap
-                onGreet: ({required tapped}) {
-                  if (!tapped && !greeted.add(s.pageKey)) return;
-                  speak(
+                // spoken once as this Home opens, again on a tap; a Home
+                // opened while read-aloud was off greets the next time it
+                // opens with it on
+                onGreet: ({required tapped}) async {
+                  if (!tapped) {
+                    if (greeted.contains(s.pageKey)) return;
+                    if (!await readAloudOn()) return;
+                    if (!greeted.add(s.pageKey)) return;
+                  }
+                  if (!context.mounted) return;
+                  await speak(
                     tutorLine(context, 'line.home.greeting'),
                     'line.home.greeting',
                     tapped: tapped,
