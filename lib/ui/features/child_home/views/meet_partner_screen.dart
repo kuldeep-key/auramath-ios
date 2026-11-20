@@ -27,8 +27,9 @@ class MeetPartnerScreen extends StatefulWidget {
   /// The lines the content serves; empty: the bundled drafts.
   final List<String> served;
 
-  /// Reads a line aloud in the case partner's voice.
-  final ValueChanged<String> onSay;
+  /// Reads a line aloud in the case partner's voice: [tapped] when the
+  /// child asked ("Hear it again"), else as the screen opens.
+  final void Function(String text, {required bool tapped}) onSay;
 
   /// "Let's start": the scene is done for this child.
   final VoidCallback onStart;
@@ -55,7 +56,7 @@ class _MeetPartnerScreenState extends State<MeetPartnerScreen> {
         : [l.kidMeetLine1, l.kidMeetLine2, l.kidMeetLine3, l.kidMeetLine4];
     if (widget.readAloud && !_said) {
       _said = true;
-      widget.onSay(_lines.join(' '));
+      widget.onSay(_lines.join(' '), tapped: false);
     }
   }
 
@@ -130,7 +131,7 @@ class _MeetPartnerScreenState extends State<MeetPartnerScreen> {
               color: AuraColors.navy,
             ),
             color: AuraButtonColor.white,
-            onPressed: () => widget.onSay(_lines.join(' ')),
+            onPressed: () => widget.onSay(_lines.join(' '), tapped: true),
           ),
           AuraButton(label: l.kidMeetStart, onPressed: widget.onStart),
         ],

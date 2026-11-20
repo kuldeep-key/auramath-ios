@@ -72,7 +72,7 @@ flags:                          # PLAT-06. Remote flags; defaults shown
   total_and_difference: false   # CON-07, D-20 (target M3)
   read_aloud: true              # NFR-06, D-13 revised (v4): every child screen from R1
   read_question_aloud: true     # NFR-08, D-13: tap-to-hear the question from R1
-  read_aloud_default_on_ages: [6, 7, 8, 9, 10]   # NFR-06, TTR-03 (v0.5.4, D-59): the tutor speaks each line for every age; was [6, 7]; a grown-up can turn it off (PAR-05)
+  read_aloud_default_on_ages: []   # NFR-06, TTR-03: off by default for every age (20 Nov); a grown-up turns it on in the Family area (PAR-05). Was [6, 7, 8, 9, 10] (v0.5.4, D-59)
   model_rewording: false        # TUT-11, TUT-14 (v4): live phrasing within approved patterns; off until Julia validates the patterns
   ai_evaluator: false           # AI-01, D-34 (v4): on only after the golden set passes (AI-05); rules' defaults while off
   ai_decisions: false           # AI-04, TUT-01 (M3): the app acts on the server's decision instead of only logging it; the rules' default stays its fallback at 4 s

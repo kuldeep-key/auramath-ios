@@ -1240,10 +1240,10 @@ abstract class AppLocalizations {
   /// **'Read aloud'**
   String get guSetReadAloud;
 
-  /// No description provided for @guSetReadAloudDetail.
+  /// DRAFT (PAR-05, TTR-03) for Julia: read-aloud is off by default since 20 Nov; was 'The teacher's voice. On for every age'.
   ///
   /// In en, this message translates to:
-  /// **'The teacher\'s voice. On for every age'**
+  /// **'The teacher\'s voice. Off until you turn it on'**
   String get guSetReadAloudDetail;
 
   /// No description provided for @guSetTimeSheetBody.

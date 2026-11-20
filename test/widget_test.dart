@@ -15,7 +15,9 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final (deps, _) =
-        await tester.runAsync(() => testDeps(stored: pairedChildPhone)) ??
+        await tester.runAsync(
+          () => testDeps(stored: {...pairedChildPhone, ...readAloudOnFor1}),
+        ) ??
         (throw StateError('no deps'));
     final voice = deps.voice as FakeVoice;
 
@@ -91,7 +93,9 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final (deps, _) =
-        await tester.runAsync(() => testDeps(stored: pairedChildPhone)) ??
+        await tester.runAsync(
+          () => testDeps(stored: {...pairedChildPhone, ...readAloudOnFor1}),
+        ) ??
         (throw StateError('no deps'));
     await tester.pumpWidget(AuraApp(deps: deps));
     await tester.pumpAndSettle();

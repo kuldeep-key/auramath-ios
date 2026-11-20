@@ -146,7 +146,7 @@ JourneyConfig bundledJourney() {
 const allScreensOn = <String, Object?>{
   'read_aloud': true,
   'read_question_aloud': true,
-  'read_aloud_default_on_ages': [6, 7, 8, 9, 10],
+  'read_aloud_default_on_ages': <int>[],
   'trail': true,
   'mastery_badges': true,
   'three_in_a_row': true,
@@ -158,6 +158,15 @@ const pairedChildPhone = {
   'deviceToken': 'device-token',
   'deviceId': '11111111-2222-3333-4444-555555555555',
   'childId': 'child-1',
+};
+
+/// Stored values for child-1 with read-aloud turned on by a grown-up
+/// (PAR-05): it is off by default since 20 Nov.
+const readAloudOnFor1 = {
+  'childSettings.child-1':
+      '{"childId":"child-1","dailyLimitMinutes":null,'
+      '"dailyLimitIsDefault":true,"readAloud":true,'
+      '"readAloudIsDefault":false}',
 };
 
 /// Stored values for a grown-up's phone, signed in.

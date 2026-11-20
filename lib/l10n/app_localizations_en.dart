@@ -678,7 +678,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guSetReadAloud => 'Read aloud';
 
   @override
-  String get guSetReadAloudDetail => 'The teacher\'s voice. On for every age';
+  String get guSetReadAloudDetail =>
+      'The teacher\'s voice. Off until you turn it on';
 
   @override
   String get guSetTimeSheetBody =>

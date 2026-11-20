@@ -145,21 +145,35 @@ List<RouteBase> childRoutes(Deps deps) {
     return line.isEmpty ? null : line;
   }
 
+  /// Read-aloud is on for the child now (PAR-05): the flag, and the
+  /// grown-up's switch as this phone last read it, else as the server
+  /// says. Off when neither answers: off is its default since 20 Nov.
+  Future<bool> readAloudOn() async {
+    final id = deps.account.childId;
+    if (id == null || !deps.flags.on('read_aloud')) return false;
+    final repo = ChildSettingsRepository(deps.client, deps.store);
+    final kept = await repo.cached(id);
+    if (kept != null) return kept.readAloud;
+    try {
+      final s = await repo.load(id).timeout(_readAloudWait);
+      return s.readAloud;
+    } on Object {
+      return false;
+    }
+  }
+
   /// The tutor speaks [text] outside a lesson (TTR-03): as it appears if
-  /// read-aloud is on, or when the child asks; in [voiceId] this once (a
-  /// hello sample), else the child's own voice. Logged as
+  /// read-aloud is on for the child, or when the child asks; in [voiceId]
+  /// this once (a hello sample), else the child's own voice. Logged as
   /// `read_aloud_played` under the visit (D-60), the line's id only.
-  void speak(
+  Future<void> speak(
     String? text,
     String lineId, {
     required bool tapped,
     String? voiceId,
-  }) {
-    if (text == null ||
-        text.isEmpty ||
-        (!tapped && !deps.flags.on('read_aloud'))) {
-      return;
-    }
+  }) async {
+    if (text == null || text.isEmpty) return;
+    if (!tapped && !await readAloudOn()) return;
     if (voiceId == null) {
       deps.voice.say(text);
     } else {
@@ -846,10 +860,10 @@ List<RouteBase> childRoutes(Deps deps) {
             size: 190,
             state: TutorState.talking,
           ),
-          onSay: (text) => speak(
+          onSay: (text, {required tapped}) => speak(
             text,
             intro == null ? 'line.intro.hello' : 'line.tutor.intro',
-            tapped: true,
+            tapped: tapped,
           ),
           onStart: () async {
             await PartnerIntroRepository(
@@ -941,3 +955,7 @@ class _GoHomeState extends State<_GoHome> {
 
 /// How long Choose today waits to hear whether any of the day is left.
 const _todayWait = Duration(seconds: 3);
+
+/// How long a line said as a screen opens waits to hear whether
+/// read-aloud is on, when this phone has never read the child's settings.
+const _readAloudWait = Duration(seconds: 2);
