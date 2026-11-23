@@ -43,6 +43,9 @@ class CaseBoard extends StatelessWidget {
   static const _barH = 52.0;
   static const _totalW = 64.0;
 
+  /// The narrowest the gap is drawn, as a share of the longer bar.
+  static const _minGap = 0.2;
+
   int? _value(String object) =>
       drawing.pieces.where((p) => p.object == object).firstOrNull?.value;
 
@@ -112,6 +115,12 @@ class CaseBoard extends StatelessWidget {
     }
 
     Widget row(double length, Color color, String piece, CaseBar? bar) {
+      // 23 Nov: a small difference (82 cm and 77 cm) drew the gap too
+      // narrow for its amount ("5 c"); the gap gets at least a fifth of
+      // the row, the shorter bar giving it up (still the shorter bar)
+      if (gap && length < long && (long - length) / long < _minGap) {
+        length = long * (1 - _minGap);
+      }
       final rest = long - length;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,

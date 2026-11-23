@@ -240,6 +240,43 @@ void main() {
     expect(find.byKey(const Key('caseTotal')), findsNothing);
   });
 
+  testWidgets('23 Nov: a small difference still has room for its amount '
+      '(82 cm and 77 cm read "5 c")', (tester) async {
+    final close = CasebookRepository.caseFrom({
+      ...sampleLabelledCase,
+      'drawing': {
+        'barA': 8.2,
+        'barB': 7.7,
+        'pieces': [
+          {'object': 'difference', 'target': 'gap', 'value': 5},
+        ],
+      },
+      'bars': {
+        'relation': 'more',
+        'unit': 'cm',
+        'barA': {'label': 'orange tree', 'value': 82, 'given': true},
+        'barB': {'label': 'gum tree', 'value': 77, 'given': false},
+        'gap': {'value': 5, 'given': true},
+        'acrossBoth': null,
+      },
+    })!;
+    await show(tester, CaseScreen(view: close));
+    final gap = find.byKey(const Key('caseGap'));
+    final label = find.descendant(of: gap, matching: find.text('5 cm'));
+    expect(label, findsOneWidget);
+    final bars = tester.widgetList<Bar>(find.byType(Bar)).toList();
+    final wA = tester.getSize(find.byWidget(bars[0])).width;
+    expect(tester.getSize(gap).width, greaterThanOrEqualTo(wA * 0.19));
+    // the amount is drawn at its own size, not squeezed
+    final textBox = tester.getSize(label);
+    expect(tester.getSize(gap).width, greaterThan(textBox.width));
+    expect(
+      tester.getSize(find.byWidget(bars[1])).width,
+      lessThan(wA),
+      reason: 'B is still the shorter bar',
+    );
+  });
+
   testWidgets('REW-15: a generated story (no story): numbers without names', (
     tester,
   ) async {
