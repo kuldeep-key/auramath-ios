@@ -1055,7 +1055,8 @@ List<ChoiceOption> choiceOptions(
       .replaceAll('{b}', p.b.name.toLowerCase())
       .replaceAllMapped(RegExp(r'\bA\b'), (_) => '${p.aValue}')
       .replaceAllMapped(RegExp(r'\bD\b'), (_) => '${p.diff}')
-      .replaceAll('box', '?')
+      // the answer's place: _ (23 Nov; was ?)
+      .replaceAll('box', '_')
       .replaceAll(' - ', ' − ');
   return [
     for (final o in withAddingUp)

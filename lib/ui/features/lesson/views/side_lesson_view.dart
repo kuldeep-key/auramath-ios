@@ -186,7 +186,7 @@ class _SideLessonViewState extends State<SideLessonView> {
           if (_sum.step == PlaceStep.done &&
               widget.vm.sideStage != SideStage.back) ...[
             Text(
-              _typed.isEmpty ? '?' : _typed,
+              _typed.isEmpty ? '_' : _typed,
               textAlign: TextAlign.center,
               style: AuraText.title.copyWith(fontSize: 30),
             ),
