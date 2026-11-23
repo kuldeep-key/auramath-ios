@@ -51,8 +51,10 @@ class AuraPage extends StatelessWidget {
   Widget? _top() {
     final text = say;
     if (text == null) return top;
+    // the same top padding as the screens' own top rows, so the speaker
+    // lines up with the buttons beside it
     final speak = Padding(
-      padding: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: 4),
       child: SpeakButton(text: text),
     );
     return top == null

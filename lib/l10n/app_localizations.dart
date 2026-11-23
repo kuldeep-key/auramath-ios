@@ -4870,10 +4870,10 @@ abstract class AppLocalizations {
   /// **'Thank you'**
   String get reportThanksTitle;
 
-  /// DRAFT (PAR-13, Figma 1046:7814): says Key will look at it. Figma's 'will write back' is left out: the backend doesn't promise a reply.
+  /// DRAFT (PAR-13, Figma 1046:7814): says the AuraMath team will look at it (23 Nov: was 'A person at Key'). Figma's 'will write back' is left out: the backend doesn't promise a reply.
   ///
   /// In en, this message translates to:
-  /// **'We have your report. A person at Key will look at it.'**
+  /// **'We have your report. The AuraMath team will look at it.'**
   String get reportThanksBody;
 
   /// DRAFT (PAR-13, Figma 1046:7814 ReportSent): the card's title.

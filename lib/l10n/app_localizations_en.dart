@@ -2777,7 +2777,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportThanksBody =>
-      'We have your report. A person at Key will look at it.';
+      'We have your report. The AuraMath team will look at it.';
 
   @override
   String get reportSentTitle => 'Sent';

@@ -84,7 +84,7 @@ void main() {
     expect(find.text("Aarav's trail"), findsOneWidget);
     expect(find.bySemanticsLabel('The peak, Explored'), findsOneWidget);
     expect(find.bySemanticsLabel('Sapling Row, You are here'), findsOneWidget);
-    expect(find.bySemanticsLabel('Next stop'), findsOneWidget);
+    expect(find.bySemanticsLabel('Sapling Row, Next stop'), findsOneWidget);
     expect(find.bySemanticsLabel('The peak'), findsOneWidget);
     expect(find.bySemanticsLabel('Still in the mist'), findsOneWidget);
     // five stops in the land and the last land's peak; the stops ahead
@@ -339,7 +339,7 @@ void main() {
         find.bySemanticsLabel('Sapling Row, You are here'),
         findsOneWidget,
       );
-      expect(find.bySemanticsLabel('Next stop'), findsOneWidget);
+      expect(find.bySemanticsLabel('Sapling Row, Next stop'), findsOneWidget);
       expect(find.bySemanticsLabel('The peak'), findsOneWidget);
       // the last land's peak, the walked stops unnamed, the child, next, peak
       for (final j in [0, 3, 4, 5]) {

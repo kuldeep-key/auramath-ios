@@ -529,7 +529,10 @@ class _Stretch {
       _ when peak => OrchardStop(l.kidThePeak, 'peak', sub: ''),
       _ when k < walked => const OrchardStop('', 'walked'),
       _ when k == walked => OrchardStop(name, 'here'),
-      _ when k == walked + 1 => OrchardStop(l.kidNextStop, 'next', sub: ''),
+      // 23 Nov: the next stop is named by its land, "Next stop" under it
+      // (a stop has no name of its own, and the child sees no number,
+      // journey.yaml numbers_shown: none)
+      _ when k == walked + 1 => OrchardStop(name, 'next'),
       _ => const OrchardStop('', 'ahead'),
     };
   }
