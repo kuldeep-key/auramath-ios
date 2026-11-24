@@ -63,6 +63,7 @@ class RewardMoments {
     Widget? tutor,
     Widget? walker,
     String? layout,
+    String? holdFor,
   }) async {
     final id = childId;
     return CelebrationSpec(
@@ -80,6 +81,7 @@ class RewardMoments {
       tutor: tutor,
       walker: walker,
       layout: layout,
+      holdFor: holdFor,
       maxDuration: config.maxFor(moment),
       skippable: id != null && await celebrations.seen(id, moment),
       badgeId: badgeId,
@@ -167,6 +169,10 @@ class RewardMoments {
       problemId: a.problemId,
       heading: layout == 'stop_badge'
           ? (peak?.last ?? false ? l?.kidReachedTop : l?.kidReachedPeak)
+          : null,
+      // progress on the trail stays until the child goes on (24 Nov)
+      holdFor: layout == 'stop_badge' || layout == 'land_badge'
+          ? l?.keepGoing
           : null,
       ribbon: switch (layout) {
         'stop_badge' => null,

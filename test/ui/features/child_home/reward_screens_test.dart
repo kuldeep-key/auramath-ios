@@ -178,6 +178,8 @@ void main() {
       expect(s.ribbon, isNull);
       expect(s.art, isA<PeakArt>());
       expect(s.walker, isNotNull);
+      // 24 Nov: progress waits for the child
+      expect(s.holdFor, 'Keep going');
       for (final t in [s.heading, s.title, s.line]) {
         expect(t, isNot(matches(RegExp(r'\d|[Ll]evel'))));
       }
@@ -223,6 +225,57 @@ void main() {
     expect(find.byType(TutorFigure), findsOneWidget);
     expect(find.byType(GoldDisc), findsOneWidget);
     expect(find.textContaining(RegExp(r'\d')), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('24 Nov: a moment of progress stays past its time until the '
+      'child taps Keep going; a tap elsewhere does not end it', (tester) async {
+    var done = 0;
+    await show(
+      tester,
+      CelebrationView(
+        spec: const CelebrationSpec(
+          moment: 'stop_badge',
+          variant: 1,
+          title: 'Sapling Row',
+          art: SizedBox.square(dimension: 96),
+          maxDuration: Duration(milliseconds: 100),
+          skippable: true,
+          holdFor: 'Keep going',
+        ),
+        onDone: (_) => done++,
+      ),
+    );
+    await tester.pump(const Duration(seconds: 10));
+    await tester.tap(find.text('Sapling Row'));
+    await tester.pump();
+    expect(done, 0);
+    await tester.tap(find.byKey(const Key('celebrationGo')));
+    await tester.pump();
+    expect(done, 1);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('a moment that does not wait ends by itself, no button', (
+    tester,
+  ) async {
+    var done = 0;
+    await show(
+      tester,
+      CelebrationView(
+        spec: const CelebrationSpec(
+          moment: 'streak_moment',
+          variant: 1,
+          title: 'You came back!',
+          art: SizedBox.square(dimension: 96),
+          maxDuration: Duration(milliseconds: 100),
+        ),
+        onDone: (_) => done++,
+      ),
+    );
+    expect(find.byKey(const Key('celebrationGo')), findsNothing);
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(done, 1);
     await tester.pumpWidget(const SizedBox());
   });
 

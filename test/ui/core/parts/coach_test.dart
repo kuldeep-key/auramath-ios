@@ -73,8 +73,12 @@ void main() {
     await t.pumpAndSettle();
     expect(find.byKey(const Key('tutorSpeak')), findsOneWidget);
     expect(find.text('See'), findsOneWidget);
-    // the tutor button is the prototype's 60 pt; home is 56
-    expect(t.getSize(find.byKey(const Key('tutorSpeak'))), const Size(60, 60));
+    // the tutor button is the prototype's 60 pt wide, as tall as the line
+    // (24 Nov)
+    expect(
+      t.getSize(find.byKey(const Key('tutorSpeak'))),
+      Size(60, t.getSize(find.byType(SpeechBubble)).height),
+    );
     final boundary = t.renderObject<RenderRepaintBoundary>(
       find.byKey(const ValueKey('shot')),
     );
@@ -102,14 +106,53 @@ void main() {
     expect(state(), TutorState.idle);
   });
 
-  testWidgets('the sound off: a speaker-off badge on the tutor', (t) async {
+  testWidgets('24 Nov: a speaker badge on the tutor while the sound is on, '
+      'crossed out while off, 30 across', (t) async {
     addTearDown(() => AuraSound.soundOn.value = true);
     await t.pumpWidget(app(header()));
     expect(find.byKey(const Key('tutorMute')), findsNothing);
+    expect(find.byKey(const Key('tutorSound')), findsOneWidget);
+    expect(t.getSize(find.byKey(const Key('tutorSound'))), const Size(30, 30));
     AuraSound.soundOn.value = false;
     await t.pump();
     expect(find.byKey(const Key('tutorMute')), findsOneWidget);
+    expect(find.byKey(const Key('tutorSound')), findsNothing);
   });
+
+  for (final (what, line) in [
+    ('one line', 'Drag the gap.'),
+    ('two lines', 'Drag the gap onto the board, then tell me how much.'),
+  ]) {
+    testWidgets('24 Nov: $what: the tutor and the buttons are one size, as '
+        'tall as the line', (t) async {
+      await t.pumpWidget(
+        app(
+          TutorScope(
+            tutorId: 'teacher_1',
+            child: LessonHeader(
+              line: line,
+              onSpeak: () {},
+              muted: false,
+              onSound: (_) {},
+              onHome: () {},
+              onSeeQuestion: () {},
+            ),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      final bubble = t.getRect(find.byType(SpeechBubble));
+      final tutor = t.getRect(find.byKey(const Key('tutorSpeak')));
+      final see = t.getRect(find.byKey(const Key('seeQuestion')));
+      final home = t.getRect(find.bySemanticsLabel('Home'));
+      for (final r in [tutor, see, home]) {
+        expect(r.width, 60);
+        expect(r.top, closeTo(bubble.top, 0.5));
+        expect(r.height, closeTo(bubble.height, 0.5));
+      }
+      expect(bubble.height, greaterThanOrEqualTo(60));
+    });
+  }
 
   testWidgets("the lesson's tutor is the child's", (t) async {
     await t.pumpWidget(app(header(tutor: 'teacher_2')));

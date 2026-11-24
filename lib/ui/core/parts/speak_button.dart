@@ -184,24 +184,32 @@ class TutorSpeakButton extends StatelessWidget {
     this.speaking,
     this.label = 'Say it again',
     this.muted,
+    this.fill = false,
   });
 
   final VoidCallback onTap;
   final ValueListenable<bool>? speaking;
+
+  /// Fills the box it is given (the lesson header: as tall as the line
+  /// beside it) rather than [size] square.
+  final bool fill;
   final String label;
 
-  /// The lesson's own mute: the badge shows while it is on, as it does
-  /// while the app's sound is off ([AuraSound.soundOn]).
+  /// The lesson's own mute: the badge shows it crossed out while it is on,
+  /// as it does while the app's sound is off ([AuraSound.soundOn]).
   final bool? muted;
 
   static const size = 60.0;
+
+  /// The sound badge on its corner.
+  static const badge = 30.0;
 
   @override
   Widget build(BuildContext context) {
     final tutor = TutorScope.of(context);
     Widget face(bool talking) => Container(
       width: size,
-      height: size,
+      height: fill ? null : size,
       // border 3, then the prototype's padding 3 2 1
       padding: const EdgeInsets.fromLTRB(2, 3, 2, 1),
       decoration: BoxDecoration(
@@ -223,25 +231,29 @@ class TutorSpeakButton extends StatelessWidget {
         ),
       ),
     );
+    // the sound's state on the tutor's corner, either way (24 Nov): a
+    // speaker while the tutor talks, crossed out while muted; a tap on the
+    // tutor switches it
     final mute = VoiceWatch(
       voice: AuraSound.soundOn,
-      builder: (context, on) => on && muted != true
-          ? const SizedBox.shrink()
-          : Container(
-              key: const Key('tutorMute'),
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: AuraColors.navy,
-                shape: BoxShape.circle,
-                border: Border.all(color: AuraColors.white, width: 2),
-              ),
-              child: const Icon(
-                Icons.volume_off_rounded,
-                size: 15,
-                color: AuraColors.white,
-              ),
-            ),
+      builder: (context, on) {
+        final off = !on || muted == true;
+        return Container(
+          key: Key(off ? 'tutorMute' : 'tutorSound'),
+          width: badge,
+          height: badge,
+          decoration: BoxDecoration(
+            color: off ? AuraColors.navy : AuraColors.blue,
+            shape: BoxShape.circle,
+            border: Border.all(color: AuraColors.white, width: 2),
+          ),
+          child: Icon(
+            off ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+            size: 19,
+            color: AuraColors.white,
+          ),
+        );
+      },
     );
     final talking = speaking ?? const _Quiet();
     return Semantics(
@@ -256,13 +268,14 @@ class TutorSpeakButton extends StatelessWidget {
         child: PressScale(
           child: Stack(
             clipBehavior: Clip.none,
+            fit: fill ? StackFit.passthrough : StackFit.loose,
             children: [
               ValueListenableBuilder(
                 valueListenable: talking,
                 builder: (context, on, _) =>
                     PulseRing.speak(radius: 18, on: on, child: face(on)),
               ),
-              Positioned(right: -6, bottom: -6, child: mute),
+              Positioned(right: -8, bottom: -8, child: mute),
             ],
           ),
         ),
