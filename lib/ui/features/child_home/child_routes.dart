@@ -565,11 +565,22 @@ List<RouteBase> childRoutes(Deps deps) {
           final id = deps.account.childId;
           unawaited(deps.visits.record(id, const [trailOpened]));
           final read = id == null ? null : await rewards.read(id);
+          // the stop this phone last showed the child at (23 Nov): the
+          // walk goes on from there, and from below the first time
+          final land = read?.lands
+              ?.where((x) => x.current && !x.teaser)
+              .firstOrNull;
+          final seen = id == null || land == null
+              ? null
+              : int.tryParse(
+                  await deps.store.read(_trailSeen(id, land.landId)) ?? '',
+                );
           return (
             local: await progress.trail(),
             served: id == null ? null : await rewards.trail(id),
             lands: read?.lands,
             world: read?.world ?? deps.journey.defaultWorld,
+            seenAt: seen,
           );
         },
         builder: (t) => switch (t.lands) {
@@ -578,6 +589,12 @@ List<RouteBase> childRoutes(Deps deps) {
               lands: lands,
               world: t.world,
               childName: name,
+              seenAt: t.seenAt,
+              onSeen: (landId, stop) {
+                final id = deps.account.childId;
+                if (id == null) return;
+                unawaited(deps.store.write(_trailSeen(id, landId), '$stop'));
+              },
               lookId:
                   deps.looks.cached(deps.account.childId)?.avatarId ??
                   lookIdFor(progress.cachedAvatar),
@@ -964,6 +981,10 @@ class _GoHomeState extends State<_GoHome> {
   Widget build(BuildContext context) =>
       const Material(color: AuraColors.blue, child: SizedBox.expand());
 }
+
+/// Where the stop a child was last shown at on a trail is kept.
+String _trailSeen(String childId, String landId) =>
+    'trailSeen.$childId.$landId';
 
 /// How long Choose today waits to hear whether any of the day is left.
 const _todayWait = Duration(seconds: 3);
