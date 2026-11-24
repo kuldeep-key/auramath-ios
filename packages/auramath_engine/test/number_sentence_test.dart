@@ -73,7 +73,7 @@ void main() {
     final up = pack.copyWith(template: template, addingUp: true);
     final options = choiceOptions(up, lemon, 'choose_operation');
     final addUp = options.singleWhere((o) => o.id == 'd_plus_box');
-    expect(addUp.label, '107 + ? = 186');
+    expect(addUp.label, '107 + _ = 186');
     expect(addUp.right, isTrue);
     final s = replay(up, lemon, toTotal.take(6));
     expect(

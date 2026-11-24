@@ -194,7 +194,7 @@ void main() {
     expect(find.text('Thank you'), findsOneWidget);
     expect(find.text('Sent'), findsOneWidget);
     expect(
-      find.text('We have your report. A person at Key will look at it.'),
+      find.text('We have your report. The AuraMath team will look at it.'),
       findsOneWidget,
     );
     await tapText(tester, 'Back to the Family area');

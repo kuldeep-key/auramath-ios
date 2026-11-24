@@ -80,7 +80,8 @@ class _StartingCheckViewState extends State<StartingCheckView> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                _sum,
+                // 23 Nov: the answer's place shows as _ , not ?
+                _sum.replaceAll('?', '_'),
                 style: AuraText.title.copyWith(
                   color: AuraColors.white,
                   fontSize: 32,
@@ -90,7 +91,7 @@ class _StartingCheckViewState extends State<StartingCheckView> {
           ),
           const SizedBox(height: 18),
           Text(
-            _typed.isEmpty ? '?' : _typed,
+            _typed.isEmpty ? '_' : _typed,
             textAlign: TextAlign.center,
             style: AuraText.title.copyWith(fontSize: 30),
           ),

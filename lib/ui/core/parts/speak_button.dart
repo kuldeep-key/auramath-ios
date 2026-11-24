@@ -38,11 +38,13 @@ const speakGradient = LinearGradient(
   colors: [Color(0xFF5B8CFF), AuraColors.blue],
 );
 
-/// The speaker on a child's screen (NFR-06): reads [text] aloud, 56 pt
-/// (NFR-02). As the prototype's `.speak`: a blue square lightening to the
-/// top, navy edge and lip, and while a line plays a blue ring pulses
-/// round it once a second (`speakPulse`). Shows nothing when there's no
-/// [ReadAloud] or nothing to say.
+/// The speaker on a child's screen (NFR-06): reads [text] aloud. Drawn
+/// 48 pt like the white buttons beside it ([PlayIconButton]), so the top
+/// row lines up (23 Nov: at 56 pt it stood out and sat low); the tap area
+/// stays 56 pt, the child minimum (NFR-02). As the prototype's `.speak`: a
+/// blue square lightening to the top, navy edge and lip, and while a line
+/// plays a blue ring pulses round it once a second (`speakPulse`). Shows
+/// nothing when there's no [ReadAloud] or nothing to say.
 class SpeakButton extends StatelessWidget {
   const SpeakButton({super.key, required this.text});
 
@@ -53,8 +55,8 @@ class SpeakButton extends StatelessWidget {
     final voice = ReadAloud.maybeOf(context);
     if (voice == null || text.trim().isEmpty) return const SizedBox.shrink();
     final button = Container(
-      width: 56,
-      height: 56,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
         gradient: speakGradient,
         borderRadius: BorderRadius.circular(16),
@@ -74,11 +76,17 @@ class SpeakButton extends StatelessWidget {
           AuraHaptics.tap();
           voice.say(text);
         },
-        child: PressScale(
-          child: SpeakingPulse(
-            speaking: voice.speaking,
-            radius: 16,
-            child: button,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox.square(
+          dimension: 56,
+          child: Center(
+            child: PressScale(
+              child: SpeakingPulse(
+                speaking: voice.speaking,
+                radius: 16,
+                child: button,
+              ),
+            ),
           ),
         ),
       ),

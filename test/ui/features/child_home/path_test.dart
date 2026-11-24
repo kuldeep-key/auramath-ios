@@ -84,7 +84,7 @@ void main() {
     expect(find.text("Aarav's trail"), findsOneWidget);
     expect(find.bySemanticsLabel('The peak, Explored'), findsOneWidget);
     expect(find.bySemanticsLabel('Sapling Row, You are here'), findsOneWidget);
-    expect(find.bySemanticsLabel('Next stop'), findsOneWidget);
+    expect(find.bySemanticsLabel('Little Fence, Next stop'), findsOneWidget);
     expect(find.bySemanticsLabel('The peak'), findsOneWidget);
     expect(find.bySemanticsLabel('Still in the mist'), findsOneWidget);
     // five stops in the land and the last land's peak; the stops ahead
@@ -336,10 +336,10 @@ void main() {
       );
       expect(find.text('Sapling Row'), findsOneWidget); // the title
       expect(
-        find.bySemanticsLabel('Sapling Row, You are here'),
+        find.bySemanticsLabel('Tall Sprouts, You are here'),
         findsOneWidget,
       );
-      expect(find.bySemanticsLabel('Next stop'), findsOneWidget);
+      expect(find.bySemanticsLabel('Bird Bath, Next stop'), findsOneWidget);
       expect(find.bySemanticsLabel('The peak'), findsOneWidget);
       // the last land's peak, the walked stops unnamed, the child, next, peak
       for (final j in [0, 3, 4, 5]) {
@@ -372,10 +372,7 @@ void main() {
         tester,
         PathScreen(lands: orchard(atL2, stopInLevel: 3), lookId: 'look_01'),
       );
-      expect(
-        find.bySemanticsLabel('Sapling Row, You are here'),
-        findsOneWidget,
-      );
+      expect(find.bySemanticsLabel('Bird Bath, You are here'), findsOneWidget);
       expect(find.bySemanticsLabel('Next stop'), findsNothing);
       expect(find.bySemanticsLabel('The peak'), findsOneWidget);
       final here = tester.getCenter(find.byKey(const Key('stop4')));

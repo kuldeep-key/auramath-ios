@@ -397,7 +397,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('38 + 45 = ?'), findsOneWidget);
+    expect(find.text('38 + 45 = _'), findsOneWidget);
     expect(
       find.text("Let's warm up with a few sums. No rush!"),
       findsOneWidget,
@@ -416,7 +416,7 @@ void main() {
     }
 
     await type('83');
-    expect(find.text('72 - 35 = ?'), findsOneWidget);
+    expect(find.text('72 - 35 = _'), findsOneWidget);
     expect(find.text("Here's another sum."), findsOneWidget);
     await type('1');
     await type('413');

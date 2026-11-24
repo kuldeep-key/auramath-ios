@@ -1,5 +1,4 @@
 import 'package:auramath/app.dart';
-import 'package:auramath/data/models/child_settings.dart';
 import 'package:auramath/data/repositories/child_settings_repository.dart';
 import 'package:auramath/deps.dart';
 import 'package:auramath/routing/paths.dart';

@@ -35,7 +35,8 @@ class _SentenceBuilderState extends State<SentenceBuilder> {
   String _show(String symbol) => switch (symbol) {
     'A' => '${widget.problem.aValue}',
     'D' => '${widget.problem.diff}',
-    _ => '?',
+    // 23 Nov: the answer's place shows as _ , not ?
+    _ => '_',
   };
 
   void _put(String symbol) {

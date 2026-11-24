@@ -16,6 +16,7 @@ import '../../../core/parts/speak_button.dart';
 import '../../../core/theme/tokens.dart';
 import 'orchard/mini_svg.dart';
 import 'orchard/orchard_kit.dart';
+import 'orchard/stop_names.dart';
 import 'play_icon_button.dart';
 
 /// The trail drawn as a path (JRN-03, REW-04), as Figma section 15
@@ -523,13 +524,19 @@ class _Stretch {
           : const OrchardStop('', 'walked');
     }
     if (top) return OrchardStop(l.kidTheTop, 'here', sub: '');
-    // the child's land: the stops walked (footprints; the land's name
-    // goes with the child), their stop, the next, the stops ahead, the peak
+    // the child's land: the stops walked (footprints), their stop, the
+    // next, the stops ahead, the peak. Each stop by its own name (23 Nov,
+    // DRAFT names until the content has them, stop_names.dart), so the
+    // child's stop and the next differ; a land with none yet keeps its
+    // name on the child's stop and "Next stop" alone on the next
     return switch (k) {
       _ when peak => OrchardStop(l.kidThePeak, 'peak', sub: ''),
       _ when k < walked => const OrchardStop('', 'walked'),
-      _ when k == walked => OrchardStop(name, 'here'),
-      _ when k == walked + 1 => OrchardStop(l.kidNextStop, 'next', sub: ''),
+      _ when k == walked => OrchardStop(stopNameIn(name, k) ?? name, 'here'),
+      _ when k == walked + 1 => switch (stopNameIn(name, k)) {
+        final own? => OrchardStop(own, 'next'),
+        null => OrchardStop(l.kidNextStop, 'next', sub: ''),
+      },
       _ => const OrchardStop('', 'ahead'),
     };
   }
