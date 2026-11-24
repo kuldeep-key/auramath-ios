@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../data/services/sound_effects.dart';
 
+import '../parts/aura_button.dart';
 import '../parts/ribbon.dart';
 import '../theme/tokens.dart';
 import 'celebration_fx.dart';
@@ -33,6 +34,7 @@ class CelebrationSpec {
     this.tutor,
     this.walker,
     this.layout,
+    this.holdFor,
   });
 
   final String moment;
@@ -73,6 +75,12 @@ class CelebrationSpec {
   /// after_first_view`).
   final bool skippable;
 
+  /// A moment of progress (a stop, a peak, a land, 24 Nov): it stays, not
+  /// ending at [maxDuration], until the child taps the button with this
+  /// label, as "Ready for a new case?" waits, so they see how far they
+  /// came. Null: it ends by itself.
+  final String? holdFor;
+
   /// The badge it shows, logged as `badge_shown` (REW-11).
   final String? badgeId;
   final bool queued;
@@ -111,6 +119,7 @@ class _CelebrationViewState extends State<CelebrationView> {
     super.didChangeDependencies();
     _still = calmMotion(context);
     if (_end == null) _sound();
+    if (widget.spec.holdFor != null) return;
     _end ??= Timer(widget.spec.maxDuration, () => _finish(skipped: false));
   }
 
@@ -336,8 +345,21 @@ class _CelebrationViewState extends State<CelebrationView> {
                           ),
                         ),
                         // where the prototype's button sits: the art stays
-                        // where it stands there
-                        const SizedBox(height: 76),
+                        // where it stands there; a moment that waits for
+                        // the child has it
+                        if (s.holdFor case final label?)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 12),
+                            child: FadeIn(
+                              child: AuraButton(
+                                key: const Key('celebrationGo'),
+                                label: label,
+                                onPressed: () => _finish(skipped: false),
+                              ),
+                            ),
+                          )
+                        else
+                          const SizedBox(height: 76),
                       ],
                     ),
                   ),
@@ -354,12 +376,15 @@ class _CelebrationViewState extends State<CelebrationView> {
     return Semantics(
       liveRegion: true,
       label: [?s.heading, s.title, ?s.subtitle, ?s.line].join('. '),
-      button: s.skippable,
-      excludeSemantics: true,
+      button: s.skippable && s.holdFor == null,
+      // a moment that waits keeps its button for screen readers
+      excludeSemantics: s.holdFor == null,
       child: GestureDetector(
         key: const Key('celebration'),
         behavior: HitTestBehavior.opaque,
-        onTap: s.skippable ? () => _finish(skipped: true) : null,
+        onTap: s.skippable && s.holdFor == null
+            ? () => _finish(skipped: true)
+            : null,
         child: Material(color: AuraColors.blue, child: body),
       ),
     );

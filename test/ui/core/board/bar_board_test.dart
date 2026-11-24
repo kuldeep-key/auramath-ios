@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:auramath/l10n/app_localizations.dart';
 import 'package:auramath/ui/core/board/bar_board.dart';
 import 'package:auramath_engine/auramath_engine.dart';
@@ -192,6 +194,64 @@ void main() {
       await tester.pumpAndSettle();
       final drop = inputs.single as PieceDropped;
       expect(drop.target, Target.gapSlot);
+    });
+
+    testWidgets('24 Nov: dragged on and let go off every target, it stays '
+        'where it was let go, not back on the bar', (tester) async {
+      await pumpBoard(tester, gapOnFig);
+      final from = tester.getCenter(find.byKey(const Key('misplaced')));
+      // left of bar A, off every target
+      final a = tester.getRect(find.byKey(const Key('barA')));
+      final to = Offset(a.left - 30, a.center.dy);
+      await tester.dragFrom(from, to - from);
+      await tester.pumpAndSettle();
+      expect(inputs, isEmpty);
+      final now = tester.getCenter(find.byKey(const Key('misplaced')));
+      // kept on the board: a 160-wide box from its left edge at the least
+      expect(now.dx, closeTo(math.max(to.dx, 80), 2));
+      expect(now.dy, closeTo(to.dy, 2));
+    });
+  });
+
+  group('24 Nov: a drop near enough its slot lands in it', () {
+    testWidgets('the Bar let go just past slot A\'s border draws bar A', (
+      tester,
+    ) async {
+      await pumpBoard(tester, drawA);
+      final from = tester.getCenter(find.byKey(const Key('piece')));
+      final slot = tester.getRect(find.byKey(const Key('slotA')));
+      final to = slot.centerLeft - const Offset(12, 0);
+      await tester.dragFrom(from, to - from);
+      await tester.pumpAndSettle();
+      expect(inputs.single, isA<BarADrawn>());
+    });
+
+    testWidgets('the gap let go on the bar just under its slot lands in '
+        'the gap, not on the bar', (tester) async {
+      await pumpBoard(tester, placeGap);
+      final from = tester.getCenter(find.byKey(const Key('piece')));
+      final slot = tester.getRect(find.byKey(const Key('gapSlot')));
+      final to = slot.bottomCenter + const Offset(0, 12);
+      expect(
+        tester.getRect(find.byKey(const Key('barB'))).contains(to),
+        isTrue,
+      );
+      await tester.dragFrom(from, to - from);
+      await tester.pumpAndSettle();
+      final drop = inputs.single as PieceDropped;
+      expect(drop.target, Target.gapSlot);
+    });
+
+    testWidgets('the gap let go well onto the other bar stays there, '
+        'where it was let go', (tester) async {
+      await pumpBoard(tester, placeGap);
+      final from = tester.getCenter(find.byKey(const Key('piece')));
+      final bar = tester.getRect(find.byKey(const Key('barA')));
+      final to = bar.center + const Offset(0, 40);
+      await tester.dragFrom(from, to - from);
+      await tester.pumpAndSettle();
+      final drop = inputs.single as PieceDropped;
+      expect(drop.target, Target.barA);
     });
   });
 }

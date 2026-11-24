@@ -68,6 +68,18 @@ class _BarBoardState extends State<BarBoard> {
   Timer? _hintTimer;
   bool _hinting = false; // the hand shows the move, 5 s after a piece
 
+  // a drop near enough its slot lands in it (24 Nov): each slot's box,
+  // the board's, and the size of the piece being dragged
+  final _slotKeys = <_Zone, GlobalKey>{};
+  final _boardKey = GlobalKey();
+  final _trayKey = GlobalKey();
+  final _missKey = GlobalKey();
+  Size? _dragSize;
+
+  /// Where a wrong drop left the piece (the board's own coordinates, its
+  /// centre): it stays there, not at the bar's middle (24 Nov).
+  Offset? _missAt;
+
   @override
   void initState() {
     super.initState();
@@ -82,6 +94,7 @@ class _BarBoardState extends State<BarBoard> {
       _armed = null;
       _hintSoon();
     }
+    if (now.misplaced == null || was.step != now.step) _missAt = null;
     final landed = !was.barA && now.barA
         ? _Landed.barA
         : !was.barB && now.barB
@@ -163,7 +176,56 @@ class _BarBoardState extends State<BarBoard> {
   /// The piece in the tray: none while it sits on the board, misplaced.
   BoardPiece? get _piece => widget.state.misplaced == null ? _stepPiece : null;
 
-  void _drop(BoardPiece piece, _Zone zone) {
+  /// The slot this step's piece goes in.
+  _Zone? get _stepSlot => switch (_step) {
+    LessonStep.drawA => _Zone.slotA,
+    LessonStep.placeB => _Zone.slotB,
+    LessonStep.placeGap => _Zone.gapSlot,
+    LessonStep.placeTotal => _Zone.totalSlot,
+    _ => null,
+  };
+
+  static Rect? _boxOf(GlobalKey key) {
+    final box = key.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
+  }
+
+  void _measure(GlobalKey key) =>
+      _dragSize = (key.currentContext?.findRenderObject() as RenderBox?)?.size;
+
+  /// Whether a piece dropped with its top left at [at] (on the screen) is
+  /// near enough its slot to land in it: its middle on the slot or just
+  /// off its border, or at least 30% of it (or of the slot, when the slot
+  /// is the smaller) over the slot. A child's drop on the border counts.
+  bool _nearSlot(Offset at) {
+    final zone = _stepSlot, size = _dragSize;
+    if (zone == null || size == null) return false;
+    final slot = _slotKeys[zone] == null ? null : _boxOf(_slotKeys[zone]!);
+    if (slot == null) return false;
+    final piece = at & size;
+    if (slot.inflate(16).contains(piece.center)) return true;
+    final over = slot.intersect(piece);
+    if (over.width <= 0 || over.height <= 0) return false;
+    final least = math.min(
+      piece.width * piece.height,
+      slot.width * slot.height,
+    );
+    return over.width * over.height >= 0.3 * least;
+  }
+
+  /// The board's own point for a piece dropped with its top left at [at].
+  Offset? _boardPoint(Offset at) {
+    final box = _boardKey.currentContext?.findRenderObject() as RenderBox?;
+    final size = _dragSize;
+    if (box == null || size == null) return null;
+    return box.globalToLocal(at + size.center(Offset.zero));
+  }
+
+  /// A piece dropped on [zone], its top left at [at] when dragged: near
+  /// enough its own slot, it lands there instead.
+  void _drop(BoardPiece piece, _Zone zone, {Offset? at}) {
+    if (at != null && zone != _stepSlot && _nearSlot(at)) zone = _stepSlot!;
     final LessonInput? input = switch ((piece, zone, _step)) {
       (BoardPiece.bar, _Zone.slotA, LessonStep.drawA) => const BarADrawn(),
       (BoardPiece.bar, _Zone.slotB, LessonStep.placeB) => const BarBPlaced(),
@@ -180,6 +242,11 @@ class _BarBoardState extends State<BarBoard> {
     setState(() {
       _armed = null;
       if (input == null) _homeBack++;
+      // a wrong drop on a bar stays where it was let go
+      if (input is PieceDropped &&
+          (input.target == Target.barA || input.target == Target.barB)) {
+        _missAt = at == null ? null : _boardPoint(at);
+      }
     });
     if (input == null) AuraSound.wrong();
     if (input != null) widget.onInput(input);
@@ -208,7 +275,7 @@ class _BarBoardState extends State<BarBoard> {
     final taps =
         !bar || _stepPiece == BoardPiece.gap || _stepPiece == BoardPiece.total;
     return DragTarget<BoardPiece>(
-      onAcceptWithDetails: (d) => _drop(d.data, zone),
+      onAcceptWithDetails: (d) => _drop(d.data, zone, at: d.offset),
       builder: (context, candidates, _) => Semantics(
         label: taps ? label : null,
         child: GestureDetector(
@@ -225,6 +292,7 @@ class _BarBoardState extends State<BarBoard> {
   Widget _slot(_Zone zone, String label) => _zone(
     zone,
     (hot) => DashedSlot(
+      key: _slotKeys.putIfAbsent(zone, GlobalKey.new),
       label: label,
       waiting: _armed != null || _dragging || _hinting,
       hot: hot,
@@ -308,6 +376,7 @@ class _BarBoardState extends State<BarBoard> {
         );
 
         return Stack(
+          key: _boardKey,
           clipBehavior: Clip.none,
           children: [
             // baseline
@@ -508,13 +577,16 @@ class _BarBoardState extends State<BarBoard> {
             // a wrong drop stays where it landed, wobbling (LES-07, Figma W1,
             // W2): tap it to take it back (free, LES-15), or drag it on
             if ((_stepPiece, s.misplaced) case (final p?, final on?))
-              Positioned(
-                left: (on == Target.barA ? xA : xB) + bw / 2 - 80,
-                width: 160,
-                bottom: base + (on == Target.barA ? hA : hB) / 2 - 28,
-                height: 56,
-                child: Center(child: _misplaced(p, l)),
-              ),
+              if (_missAt case final m?)
+                _missed(m, w, h - trayH, _misplaced(p, l))
+              else
+                Positioned(
+                  left: (on == Target.barA ? xA : xB) + bw / 2 - 80,
+                  width: 160,
+                  bottom: base + (on == Target.barA ? hA : hB) / 2 - 28,
+                  height: 56,
+                  child: Center(child: _misplaced(p, l)),
+                ),
             // the tray
             if (showTray) _tray(l, s, piece, trayH),
             // star bursts where a piece landed, and on the bars when right
@@ -630,10 +702,19 @@ class _BarBoardState extends State<BarBoard> {
       childWhenDragging: Opacity(opacity: 0, child: visual),
       onDragStarted: () {
         _touched();
+        _measure(_trayKey);
         setState(() => _dragging = true);
       },
-      onDragEnd: (d) => dropped(accepted: d.wasAccepted),
+      onDragEnd: (d) {
+        // let go off every target but near enough its slot: it lands there
+        if (!d.wasAccepted && _nearSlot(d.offset)) {
+          setState(() => _dragging = false);
+          return _drop(piece, _stepSlot!, at: d.offset);
+        }
+        dropped(accepted: d.wasAccepted);
+      },
       child: GestureDetector(
+        key: _trayKey,
         onTap: () {
           _touched();
           setState(() => _armed = _armed == piece ? null : piece);
@@ -727,6 +808,7 @@ class _BarBoardState extends State<BarBoard> {
           );
 
       return Stack(
+        key: _boardKey,
         clipBehavior: Clip.none,
         children: [
           // the shared left edge
@@ -874,13 +956,16 @@ class _BarBoardState extends State<BarBoard> {
               ),
             ),
           if ((_stepPiece, s.misplaced) case (final pc?, final on?))
-            Positioned(
-              left: capW + (on == Target.barA ? lA : lB) / 2 - 80,
-              width: 160,
-              top: (on == Target.barA ? yA : yB) + bw / 2 - 28,
-              height: 56,
-              child: Center(child: _misplaced(pc, l)),
-            ),
+            if (_missAt case final m?)
+              _missed(m, w, h - trayH, _misplaced(pc, l))
+            else
+              Positioned(
+                left: capW + (on == Target.barA ? lA : lB) / 2 - 80,
+                width: 160,
+                top: (on == Target.barA ? yA : yB) + bw / 2 - 28,
+                height: 56,
+                child: Center(child: _misplaced(pc, l)),
+              ),
           if (showTray) _tray(l, s, piece, trayH),
           if (_steps > 0)
             Positioned.fill(
@@ -973,6 +1058,16 @@ class _BarBoardState extends State<BarBoard> {
     ),
   );
 
+  /// The misplaced piece where it was let go, [m] its centre, kept on the
+  /// board ([w] wide, [h] high above the tray).
+  Widget _missed(Offset m, double w, double h, Widget piece) => Positioned(
+    left: (m.dx - 80).clamp(0.0, math.max(0.0, w - 160)),
+    top: (m.dy - 28).clamp(0.0, math.max(0.0, h - 56)),
+    width: 160,
+    height: 56,
+    child: Center(child: piece),
+  );
+
   /// The piece where it was wrongly dropped: it wobbles with each wrong
   /// move; a tap takes it back to the tray, a drag moves it on.
   Widget _misplaced(BoardPiece piece, AppLocalizations l) {
@@ -988,8 +1083,19 @@ class _BarBoardState extends State<BarBoard> {
       data: piece,
       feedback: Material(color: Colors.transparent, child: visual),
       childWhenDragging: Opacity(opacity: 0.3, child: visual),
-      onDragStarted: _touched,
+      onDragStarted: () {
+        _touched();
+        _measure(_missKey);
+      },
+      // let go off every target: near enough its slot it lands there, else
+      // it stays where it was let go (24 Nov), not back on the bar
+      onDragEnd: (d) {
+        if (d.wasAccepted) return;
+        if (_nearSlot(d.offset)) return _drop(piece, _stepSlot!, at: d.offset);
+        setState(() => _missAt = _boardPoint(d.offset) ?? _missAt);
+      },
       child: Semantics(
+        key: _missKey,
         button: true,
         label: l.lessonTakeBack,
         child: GestureDetector(

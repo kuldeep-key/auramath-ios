@@ -65,54 +65,81 @@ class LessonHeader extends StatelessWidget {
     ),
   };
 
-  Widget _row(BuildContext context) => Row(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      // the child's tutor: it talks while the line plays (TTR-03, TTR-05),
-      // and is the lesson's mute (a tap mutes; muted, a tap reads again)
-      TutorSpeakButton(
-        speaking: speaking,
-        muted: muted,
-        label: muted ? 'Sound on' : 'Mute',
-        onTap: muted
-            ? () {
-                onSound(true);
-                onSpeak();
-              }
-            : () => onSound(false),
-      ),
-      const SizedBox(width: 8),
-      // a long line in large text (NFR-04) scrolls in the bubble rather
-      // than pushing the board off the screen
-      Expanded(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: big ? 200 : 128),
-          child: SingleChildScrollView(
-            child: SpeechBubble(text: line, big: big),
+  /// The tutor, the line and the buttons (24 Nov): every button as wide
+  /// as the tutor and as tall as the line beside it, so the row reads as
+  /// one: the line sets the height, never less than a button's.
+  Widget _row(BuildContext context) {
+    const side = TutorSpeakButton.size, gap = 8.0;
+    final see = onSeeQuestion;
+    final right = see == null ? side : 2 * side + gap;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // a long line in large text (NFR-04) scrolls in the bubble rather
+        // than pushing the board off the screen
+        Padding(
+          padding: EdgeInsets.only(left: side + gap, right: right + gap),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: big ? 200 : 128),
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: side),
+                child: SpeechBubble(text: line, big: big),
+              ),
+            ),
           ),
         ),
-      ),
-      if (onSeeQuestion case final see?) ...[
-        const SizedBox(width: 8),
-        _SquareButton(
-          key: const Key('seeQuestion'),
-          icon: Icons.visibility_rounded,
-          fill: AuraColors.blue,
-          fg: AuraColors.white,
-          label: seeQuestionLabel,
-          onTap: see,
+        // the child's tutor: it talks while the line plays (TTR-03, TTR-05),
+        // and is the lesson's mute (a tap mutes; muted, a tap reads again)
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: side,
+          child: TutorSpeakButton(
+            speaking: speaking,
+            muted: muted,
+            fill: true,
+            label: muted ? 'Sound on' : 'Mute',
+            onTap: muted
+                ? () {
+                    onSound(true);
+                    onSpeak();
+                  }
+                : () => onSound(false),
+          ),
+        ),
+        if (see != null)
+          Positioned(
+            right: side + gap,
+            top: 0,
+            bottom: 0,
+            width: side,
+            child: _SquareButton(
+              key: const Key('seeQuestion'),
+              icon: Icons.visibility_rounded,
+              fill: AuraColors.blue,
+              fg: AuraColors.white,
+              label: seeQuestionLabel,
+              onTap: see,
+            ),
+          ),
+        Positioned(
+          right: 0,
+          top: 0,
+          bottom: 0,
+          width: side,
+          child: _SquareButton(
+            icon: Icons.home_rounded,
+            fill: AuraColors.white,
+            fg: AuraColors.navy,
+            label: 'Home',
+            onTap: onHome,
+          ),
         ),
       ],
-      const SizedBox(width: 8),
-      _SquareButton(
-        icon: Icons.home_rounded,
-        fill: AuraColors.white,
-        fg: AuraColors.navy,
-        label: 'Home',
-        onTap: onHome,
-      ),
-    ],
-  );
+    );
+  }
 }
 
 /// JRN-04 (journey.yaml `side_path`): a small out-and-back path in the
@@ -206,9 +233,9 @@ class _SquareButton extends StatelessWidget {
         onTap();
       },
       child: PressScale(
+        // as big as the header makes it: the tutor's width, the line's
+        // height
         child: Container(
-          width: 56,
-          height: 56,
           decoration: BoxDecoration(
             color: fill,
             borderRadius: BorderRadius.circular(16),
