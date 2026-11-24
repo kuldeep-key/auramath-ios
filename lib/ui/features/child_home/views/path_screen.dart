@@ -35,11 +35,13 @@ import 'play_icon_button.dart';
 /// (REW-03; Figma's `level_numbers` switch stays off). It scrolls, so
 /// nothing clips (NFR-04).
 ///
-/// The walk, as a game moves a piece (23 Nov): the first time, the
-/// child's look comes up the path from below the screen to their stop;
-/// after that, from the stop where they last saw it ([seenAt], kept on
-/// the phone) to their stop now, stopping at each stop on the way, the
-/// map following it. The gold line follows; then it bobs where it stands.
+/// The walk, as a game moves a piece (24 Nov): only when the child has
+/// moved on since this phone last showed them ([seenAt]), one step, from
+/// the stop before theirs (from the last stop below the peak when they
+/// have just passed a level), the map following it; their first step of
+/// all (the first stop to the second) walks even if never seen. Otherwise,
+/// whatever came before (a new sign-in, the app opened again), they stand
+/// at their stop. The gold line follows; then it bobs where it stands.
 /// Tap a stop to hear its name. Reduced motion: the still map.
 class PathScreen extends StatefulWidget {
   const PathScreen({
@@ -60,7 +62,7 @@ class PathScreen extends StatefulWidget {
   final String? childName;
 
   /// The stop of the track ([PathLand.landId]'s) this phone last showed
-  /// the child at; null: never, so the walk comes from below the screen.
+  /// the child at; null: never, so no walk (but the first step of all).
   final int? seenAt;
 
   /// The stop the child is shown at now, to keep for next time.
@@ -611,18 +613,20 @@ class _Stretch {
   /// Whether there is a walk.
   bool get walks => _way.length > 1;
 
-  /// Plans the walk from stop [from] (null: never seen, so from below the
-  /// screen, the path's start) to the child's stop. None when the child is
-  /// where they were, or behind it.
+  /// Plans the walk from stop [from] (null: never seen) to the child's
+  /// stop: one step, from the stop before theirs, and only when they have
+  /// moved on since [from]; their first step of all (0 to 1) walks even
+  /// unseen. A stop after a peak walks from the stop below the peak, over
+  /// it. None otherwise: they stand at their stop.
   void plan(int? from) {
     if (metric == null || at.isEmpty) return;
-    final to = at[j];
-    if (from == null) {
-      _way = [0, for (var i = 0; i <= j; i++) at[i]];
-    } else if (from - lo < j && from >= lo) {
-      _way = [for (var i = from - lo; i <= j; i++) at[i]];
+    final seen = from ?? (here == 1 ? 0 : here);
+    var start = here - 1;
+    if (start % stopsPerLand == stopsPerLand - 1) start--; // over the peak
+    if (seen < here && start >= lo) {
+      _way = [for (var i = start - lo; i <= j; i++) at[i]];
     } else {
-      _way = [to];
+      _way = [at[j]];
     }
     final steps = _way.length - 1;
     _stepS = steps == 0

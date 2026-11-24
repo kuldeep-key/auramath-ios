@@ -182,9 +182,8 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('23 Nov: the first time, the look comes up from below the '
-        'screen, stop by stop, to the child\'s stop, snapping at each, the '
-        'map following; then it bobs', (tester) async {
+    testWidgets('24 Nov: never seen on this phone (a new sign-in, the app '
+        'opened afresh): it stands at its stop, no walk', (tester) async {
       final seen = <(String, int)>[];
       await open(
         tester,
@@ -195,21 +194,10 @@ void main() {
         ),
       );
       expect(seen, [('orchard', 5)]);
-      // it starts below the first stop, at the path's start
-      expect(centre(tester).dy, greaterThan(stop(tester, 0).dy - 52 + 20));
-      // on the way: past the first stop, not yet at its own
-      await tester.pump(const Duration(seconds: 3));
-      expect(sfx.played, isNotEmpty);
-      expect(centre(tester).dy, lessThan(stop(tester, 0).dy - 52));
-      expect(centre(tester).dy, greaterThan(stop(tester, 5).dy - 52 + 10));
-      // the map follows: the walker stays on the screen
-      final view = tester.view.physicalSize / 3;
-      expect(centre(tester).dy, inInclusiveRange(0, view.height));
-      // at its stop: one snap for each of the six stops reached
-      await tester.pump(const Duration(seconds: 8));
       expect(centre(tester).dx, closeTo(stop(tester, 5).dx, 2));
-      expect(centre(tester).dy, closeTo(stop(tester, 5).dy - 52, 2));
-      expect(sfx.played, List.filled(6, Sfx.snap));
+      await tester.pump(const Duration(seconds: 8));
+      expect(centre(tester).dy, closeTo(stop(tester, 5).dy - 52, 6));
+      expect(sfx.played, isEmpty);
       await tester.pumpWidget(const SizedBox());
     });
 
@@ -406,8 +394,7 @@ void main() {
       handle.dispose();
     });
 
-    testWidgets('23 Nov: two stops further in since the last visit: the '
-        'child walks from where they were seen, stop by stop', (tester) async {
+    Future<RecordingSfxPlayer> walkIn(WidgetTester tester, Widget w) async {
       AuraMotion.still = false;
       final sfx = RecordingSfxPlayer();
       AuraSound.player = sfx;
@@ -418,33 +405,91 @@ void main() {
       tester.view.physicalSize = shotSizes['iphone15']! * 3;
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
+      await tester.pumpWidget(shotApp(w));
+      await tester.pump();
+      return sfx;
+    }
+
+    /// Where the walker stands at stop [j] once the walk is done.
+    Future<void> endsAt(WidgetTester tester, int j) async {
+      await tester.pump(const Duration(seconds: 8));
+      final now = tester.getCenter(find.byKey(Key('stop$j')));
+      expect(walker(tester).dx, closeTo(now.dx, 2));
+      expect(walker(tester).dy, closeTo(now.dy - 52, 2));
+    }
+
+    testWidgets('24 Nov: two stops further in since the last visit: one '
+        'step, from the stop before theirs', (tester) async {
       // last seen at Sapling Row's way in (stop 5); now two stops on (7)
-      await tester.pumpWidget(
-        shotApp(
+      final sfx = await walkIn(
+        tester,
+        PathScreen(
+          lands: orchard(atL2, stopInLevel: 2),
+          lookId: 'look_01',
+          seenAt: 5,
+        ),
+      );
+      final there = tester.getCenter(find.byKey(const Key('stop7')));
+      expect(walker(tester).dy, greaterThan(there.dy - 52 + 20));
+      await endsAt(tester, 7);
+      expect(sfx.played, [Sfx.snap]);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('24 Nov: the first step of all, never seen: the first stop '
+        'to the second', (tester) async {
+      final sfx = await walkIn(
+        tester,
+        PathScreen(
+          lands: orchard([
+            'current',
+            'next',
+            'mist',
+            'mist',
+            'mist',
+          ], stopInLevel: 1),
+          lookId: 'look_01',
+        ),
+      );
+      final there = tester.getCenter(find.byKey(const Key('stop1')));
+      expect(walker(tester).dy, greaterThan(there.dy - 52 + 20));
+      await endsAt(tester, 1);
+      expect(sfx.played, [Sfx.snap]);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('24 Nov: a level passed: from the stop below the peak, over '
+        'it, to the next land\'s way in', (tester) async {
+      final sfx = await walkIn(
+        tester,
+        PathScreen(
+          lands: orchard(atL2, stopInLevel: 0),
+          lookId: 'look_01',
+          seenAt: 3,
+        ),
+      );
+      await endsAt(tester, 5);
+      expect(sfx.played, [Sfx.snap, Sfx.snap]);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('24 Nov: seen at their stop, or somewhere else after a new '
+        'sign-in: no walk', (tester) async {
+      for (final seenAt in [7, 9]) {
+        final sfx = await walkIn(
+          tester,
           PathScreen(
             lands: orchard(atL2, stopInLevel: 2),
             lookId: 'look_01',
-            seenAt: 5,
+            seenAt: seenAt,
           ),
-        ),
-      );
-      await tester.pump();
-      final there = tester.getCenter(find.byKey(const Key('stop7')));
-      expect(
-        walker(tester).dy,
-        greaterThan(there.dy - 52 + 20),
-        reason: 'below',
-      );
-      // after the first step: one snap, not there yet
-      await tester.pump(const Duration(milliseconds: 500 + 1500 + 100));
-      expect(sfx.played, [Sfx.snap]);
-      expect(walker(tester).dy, greaterThan(there.dy - 52 + 10));
-      await tester.pump(const Duration(seconds: 3));
-      final now = tester.getCenter(find.byKey(const Key('stop7')));
-      expect(walker(tester).dx, closeTo(now.dx, 2));
-      expect(walker(tester).dy, closeTo(now.dy - 52, 2));
-      expect(sfx.played, [Sfx.snap, Sfx.snap]);
-      await tester.pumpWidget(const SizedBox());
+        );
+        final now = tester.getCenter(find.byKey(const Key('stop7')));
+        expect(walker(tester).dx, closeTo(now.dx, 2));
+        await tester.pump(const Duration(seconds: 8));
+        expect(sfx.played, isEmpty);
+        await tester.pumpWidget(const SizedBox());
+      }
     });
   });
 }

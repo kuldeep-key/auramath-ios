@@ -565,8 +565,8 @@ List<RouteBase> childRoutes(Deps deps) {
           final id = deps.account.childId;
           unawaited(deps.visits.record(id, const [trailOpened]));
           final read = id == null ? null : await rewards.read(id);
-          // the stop this phone last showed the child at (23 Nov): the
-          // walk goes on from there, and from below the first time
+          // the stop this phone last showed the child at (24 Nov): one
+          // step's walk when they have moved on since; none if never
           final land = read?.lands
               ?.where((x) => x.current && !x.teaser)
               .firstOrNull;
