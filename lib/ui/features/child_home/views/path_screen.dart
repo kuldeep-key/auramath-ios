@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show PathMetric;
 
@@ -22,22 +23,26 @@ import 'play_icon_button.dart';
 /// The trail drawn as a path (JRN-03, REW-04), as Figma section 15
 /// (17 Nov, "Levels are finite"): one level is one land of five stops,
 /// the fifth its peak. From the server's `trail.lands` (a stop per level)
-/// the screen draws the child's level as its land (orchard_kit): the last
-/// land's peak below (its medal, or a flag when the child was placed
-/// past it), the way in, the stops the child has walked (the server's
-/// `stopInLevel`, 0 to 3), the child's look at their stop, the next stop,
-/// the stops ahead and the peak with its summit flag; then fog
-/// with one glimpse of the next land. After the last level's peak the
-/// path ends at the top under open sky and nothing more is promised.
-/// Never a level number or count on the child's side (REW-03; Figma's
-/// `level_numbers` switch stays off). It scrolls, so nothing clips
-/// (NFR-04).
+/// the screen draws the whole track so far (23 Nov), from the first
+/// level's land up to the child's (orchard_kit): each land behind named
+/// at its way in with its peak's medal (or a flag when the child was
+/// placed past it), the stops the child has walked in their own land (the
+/// server's `stopInLevel`, 0 to 3), the child's look at their stop, the
+/// next two stops by name, the stops ahead and the peak with its summit
+/// flag; then fog with one glimpse of the next land. After the last
+/// level's peak the path ends at the top under open sky and nothing more
+/// is promised. Never a level number or count on the child's side
+/// (REW-03; Figma's `level_numbers` switch stays off). It scrolls, so
+/// nothing clips (NFR-04).
 ///
-/// When the child has moved on since they last looked (a new level, or a
-/// stop further into this one), their look walks up the path from the
-/// stop before (500 ms wait, 2.2 s, hopping) and the
-/// gold line follows; then it bobs where it stands. Tap a stop to hear
-/// its name. Reduced motion: the still map.
+/// The walk, as a game moves a piece (24 Nov): only when the child has
+/// moved on since this phone last showed them ([seenAt]), one step, from
+/// the stop before theirs (from the last stop below the peak when they
+/// have just passed a level), the map following it; their first step of
+/// all (the first stop to the second) walks even if never seen. Otherwise,
+/// whatever came before (a new sign-in, the app opened again), they stand
+/// at their stop. The gold line follows; then it bobs where it stands.
+/// Tap a stop to hear its name. Reduced motion: the still map.
 class PathScreen extends StatefulWidget {
   const PathScreen({
     super.key,
@@ -45,6 +50,8 @@ class PathScreen extends StatefulWidget {
     required this.lookId,
     this.world = 'detective',
     this.childName,
+    this.seenAt,
+    this.onSeen,
   });
 
   final List<PathLand> lands;
@@ -54,9 +61,12 @@ class PathScreen extends StatefulWidget {
   /// For the title's second line ("Aarav's trail"); null says "My trail".
   final String? childName;
 
-  /// The stop each land last showed the child at, so the walk plays once
-  /// per move (the prototype's `S.oseen`).
-  static final seen = <String, String>{};
+  /// The stop of the track ([PathLand.landId]'s) this phone last showed
+  /// the child at; null: never, so no walk (but the first step of all).
+  final int? seenAt;
+
+  /// The stop the child is shown at now, to keep for next time.
+  final void Function(String landId, int stop)? onSeen;
 
   /// How many cases bloom the child's land before the stretch is done. The
   /// server doesn't say yet, so the prototype's resting value.
@@ -66,40 +76,46 @@ class PathScreen extends StatefulWidget {
   State<PathScreen> createState() => _PathScreenState();
 }
 
-/// The walk's timing (the prototype's K2 `after`).
+/// The walk's timing: a wait before it starts, each stop-to-stop step
+/// (shorter when there are many, so a long way stays short), and a pause
+/// at each stop on the way.
 const walkDelay = Duration(milliseconds: 500);
-const walkDuration = Duration(milliseconds: 2200);
+const stepLongest = Duration(milliseconds: 1500);
+const stepShortest = Duration(milliseconds: 650);
+const walkLongest = Duration(milliseconds: 7000);
+const stopPause = Duration(milliseconds: 250);
 
 class _PathScreenState extends State<PathScreen>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker(_tick);
   final _t = ValueNotifier<double>(0);
   final _scroll = ScrollController();
-  int _back = 0;
-  bool _lookBack = false;
-  bool _snapped = false;
 
-  // the drawn stretch, rebuilt when the child looks back
-  late _Stretch _s;
-  late bool _fresh;
+  /// Stops the walk has reached, for each one's snap.
+  int _arrived = 0;
+
+  /// The map has moved to rest after the walk.
+  bool _settled = false;
+
+  // the drawn track
+  late final _Stretch _s = _Stretch.of(widget.lands);
+  bool _fresh = false;
 
   @override
   void initState() {
     super.initState();
-    _s = _Stretch.of(widget.lands, 0);
-    final land = _s.landId;
-    final hereId = _s.hereStopId;
-    _fresh = PathScreen.seen[land] != hereId && _s.j > 0;
-    if (hereId != null) PathScreen.seen[land] = hereId;
+    final here = _s.here;
+    if (_s.landId.isNotEmpty) widget.onSeen?.call(_s.landId, here);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _s.build(AppLocalizations.of(context)!);
     final still = calmMotion(context);
+    _s.build(AppLocalizations.of(context)!);
+    _s.plan(still ? _s.here : widget.seenAt);
+    _fresh = !still && _s.walks;
     if (still) {
-      _fresh = false;
       if (_ticker.isActive) _ticker.stop();
     } else if (!_ticker.isActive) {
       _ticker.start();
@@ -109,9 +125,27 @@ class _PathScreenState extends State<PathScreen>
 
   void _tick(Duration d) {
     _t.value = d.inMicroseconds / 1e6;
-    if (_fresh && !_snapped && d >= walkDelay + walkDuration) {
-      _snapped = true;
+    if (!_fresh) return;
+    final reached = _s.reachedBy(_t.value);
+    while (_arrived < reached) {
+      _arrived++;
       AuraSound.snap();
+    }
+    if (_s.walkingAt(_t.value)) {
+      _follow();
+    } else if (!_settled) {
+      // at the stop: the map eases to rest, the next stops' signs clear of
+      // the title
+      _settled = true;
+      if (mounted && _scroll.hasClients) {
+        unawaited(
+          _scroll.animateTo(
+            _restY(),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeInOut,
+          ),
+        );
+      }
     }
   }
 
@@ -123,49 +157,56 @@ class _PathScreenState extends State<PathScreen>
     super.dispose();
   }
 
-  /// The child's stop a little above the middle, with the next stop and
-  /// its sign clear of the title (they sat under it on most phones); the
-  /// child's stop always stays above Keep going. After Look back, the
-  /// older lands.
-  void _jump() {
-    if (!mounted || !_scroll.hasClients) return;
-    final pos = _scroll.position;
-    final k = pos.viewportDimension > 0 ? context.size!.width / opW : 1.0;
-    final view = pos.viewportDimension;
-    final st = _s;
-    double here() {
-      final p = st.scene!.geom.P;
-      final hereY = p[st.j][1] * k;
-      var y = hereY - view * .56;
-      // the title's veil, then the next stop's sign above its stop
-      final titleBottom = MediaQuery.paddingOf(context).top + 104;
-      if (st.j + 1 < p.length) {
-        final signTop = (p[st.j + 1][1] - 100) * k;
-        if (signTop - y < titleBottom) y = signTop - titleBottom;
-      }
-      // Keep going and the stop chip along the bottom
-      final aboveBar = view - 110;
-      if (hereY + 70 * k - y > aboveBar) y = hereY + 70 * k - aboveBar;
-      return y;
-    }
+  double get _k => context.size!.width / opW;
 
-    // after Look back: the older land's peak and the way in above it
-    final y = _lookBack
-        ? pos.maxScrollExtent - (stopsPerLand - 2) * opSTEP * k
-        : here();
-    _lookBack = false;
-    _scroll.jumpTo(y.clamp(0, pos.maxScrollExtent));
+  /// Where the map scrolls to show the walker at path length [l] a little
+  /// below the middle.
+  double _yFor(double l) {
+    final pos = _scroll.position;
+    final p = _s.metric!.getTangentForOffset(l)!.position;
+    return (p.dy * _k - pos.viewportDimension * .6).clamp(
+      0.0,
+      pos.maxScrollExtent,
+    );
   }
 
-  void _onLookBack() {
-    setState(() {
-      _back += 1;
-      _lookBack = true;
-      _fresh = false;
-      _s = _Stretch.of(widget.lands, _back)
-        ..build(AppLocalizations.of(context)!);
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) => _jump());
+  /// The map follows the walker.
+  void _follow() {
+    if (!mounted || !_scroll.hasClients || _s.metric == null) return;
+    _scroll.jumpTo(_yFor(_s.walkAt(_t.value).l));
+  }
+
+  /// Before a walk: where it starts. Else where the map rests.
+  void _jump() {
+    if (!mounted || !_scroll.hasClients) return;
+    if (_fresh && _s.metric != null) {
+      _scroll.jumpTo(_yFor(_s.walkAt(0).l));
+      return;
+    }
+    _scroll.jumpTo(_restY());
+  }
+
+  /// The child's stop a little above the middle, with the next stops'
+  /// signs clear of the title (they sat under it on most phones); the
+  /// child's stop always stays above Keep going.
+  double _restY() {
+    final pos = _scroll.position;
+    final k = pos.viewportDimension > 0 ? _k : 1.0;
+    final view = pos.viewportDimension;
+    final st = _s;
+    final p = st.scene!.geom.P;
+    final hereY = p[st.j][1] * k;
+    var y = hereY - view * .56;
+    // the title's veil, then the next stop's sign above its stop
+    final titleBottom = MediaQuery.paddingOf(context).top + 104;
+    if (st.j + 1 < p.length) {
+      final signTop = (p[st.j + 1][1] - 100) * k;
+      if (signTop - y < titleBottom) y = signTop - titleBottom;
+    }
+    // Keep going and the stop chip along the bottom
+    final aboveBar = view - 110;
+    if (hereY + 70 * k - y > aboveBar) y = hereY + 70 * k - aboveBar;
+    return y.clamp(0, pos.maxScrollExtent);
   }
 
   @override
@@ -198,13 +239,7 @@ class _PathScreenState extends State<PathScreen>
                             child: ExcludeSemantics(
                               child: CustomPaint(
                                 key: const Key('orchard'),
-                                painter: _OrchardPainter(
-                                  s.svg!,
-                                  _t,
-                                  still,
-                                  s,
-                                  _fresh,
-                                ),
+                                painter: _OrchardPainter(s.svg!, _t, still, s),
                               ),
                             ),
                           ),
@@ -245,23 +280,6 @@ class _PathScreenState extends State<PathScreen>
                               child: Semantics(
                                 label: l.kidTrailMist,
                                 child: const SizedBox.expand(),
-                              ),
-                            ),
-                          if (s.lo > 0)
-                            Positioned(
-                              left: (_lookBackX(scene) - 78) * k,
-                              top: (scene.height - 112) * k,
-                              width: 156 * k,
-                              height: 44 * k,
-                              child: Semantics(
-                                button: true,
-                                label: l.kidTrailLookBack,
-                                excludeSemantics: true,
-                                child: GestureDetector(
-                                  key: const Key('lookBack'),
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: _onLookBack,
-                                ),
                               ),
                             ),
                           _Walker(
@@ -387,9 +405,6 @@ class _PathScreenState extends State<PathScreen>
     );
   }
 
-  static double _lookBackX(OrchardScene s) =>
-      math.max(84.0, math.min(opW - 84, s.geom.P[0][0]));
-
   static const _shadow = [
     Shadow(color: Color(0x8C0F2A73), offset: Offset(0, 2)),
   ];
@@ -409,10 +424,10 @@ class _PathScreenState extends State<PathScreen>
   );
 }
 
-/// The stretch of the trail on the map (Figma section 15): the child's
-/// level as one land of [stopsPerLand] stops, with the last land's peak
-/// below it (and one more land for each Look back). Stop `g` of the
-/// whole path is stop `g % stopsPerLand` of level `g ~/ stopsPerLand`.
+/// The track on the map (Figma section 15, 23 Nov): every level so far,
+/// each one land of [stopsPerLand] stops, from the first up to the
+/// child's. Stop `g` of the whole path is stop `g % stopsPerLand` of
+/// level `g ~/ stopsPerLand`.
 class _Stretch {
   _Stretch._(
     this.landId,
@@ -426,7 +441,7 @@ class _Stretch {
     this.walked,
   );
 
-  factory _Stretch.of(List<PathLand> lands, int back) {
+  factory _Stretch.of(List<PathLand> lands) {
     final land =
         lands.where((x) => x.current).firstOrNull ??
         lands.where((x) => !x.teaser).firstOrNull;
@@ -453,7 +468,8 @@ class _Stretch {
       levels,
       level,
       top,
-      math.max(0, first - 1 - back * stopsPerLand),
+      // the whole track, from the first level's first stop
+      0,
       // on the top once every land is done
       top ? first + stopsPerLand - 1 : first + walked,
       levels.isEmpty ? -1 : first + stopsPerLand - 1,
@@ -537,6 +553,8 @@ class _Stretch {
         final own? => OrchardStop(own, 'next'),
         null => OrchardStop(l.kidNextStop, 'next', sub: ''),
       },
+      // the stop after the next by name too (23 Nov); the rest unnamed
+      _ when k == walked + 2 => OrchardStop(stopNameIn(name, k) ?? '', 'ahead'),
       _ => const OrchardStop('', 'ahead'),
     };
   }
@@ -578,50 +596,106 @@ class _Stretch {
       }
 
       metric = m;
-      l1 = near(scene!.geom.P[j]);
-      l0 = near(scene!.geom.P[math.max(0, j - 1)]);
+      at = [for (final q in scene!.geom.P) near(q)];
     }
   }
 
   PathMetric? metric;
-  double l0 = 0;
-  double l1 = 0;
+
+  /// Each stop's length along the path.
+  List<double> at = const [];
+
+  /// The walk: the path lengths it passes, from where it starts through
+  /// each stop on the way to the child's; one length: no walk.
+  List<double> _way = const [];
+  double _stepS = 0;
+
+  /// Whether there is a walk.
+  bool get walks => _way.length > 1;
+
+  /// Plans the walk from stop [from] (null: never seen) to the child's
+  /// stop: one step, from the stop before theirs, and only when they have
+  /// moved on since [from]; their first step of all (0 to 1) walks even
+  /// unseen. A stop after a peak walks from the stop below the peak, over
+  /// it. None otherwise: they stand at their stop.
+  void plan(int? from) {
+    if (metric == null || at.isEmpty) return;
+    final seen = from ?? (here == 1 ? 0 : here);
+    var start = here - 1;
+    if (start % stopsPerLand == stopsPerLand - 1) start--; // over the peak
+    if (seen < here && start >= lo) {
+      _way = [for (var i = start - lo; i <= j; i++) at[i]];
+    } else {
+      _way = [at[j]];
+    }
+    final steps = _way.length - 1;
+    _stepS = steps == 0
+        ? 0
+        : (walkLongest.inMilliseconds / steps).clamp(
+                stepShortest.inMilliseconds.toDouble(),
+                stepLongest.inMilliseconds.toDouble(),
+              ) /
+              1000;
+  }
+
+  static final double _delayS = walkDelay.inMilliseconds / 1000;
+  static final double _pauseS = stopPause.inMilliseconds / 1000;
+
+  /// When the walk ends, in seconds from the screen opening.
+  double get walkEnd =>
+      _delayS + (_way.length - 1) * (_stepS + _pauseS) - _pauseS;
+
+  bool walkingAt(double t) => walks && t < walkEnd;
+
+  /// How many stops the walk has reached by [t].
+  int reachedBy(double t) {
+    if (!walks || t < _delayS) return 0;
+    return (((t - _delayS) + _pauseS) / (_stepS + _pauseS)).floor().clamp(
+      0,
+      _way.length - 1,
+    );
+  }
 
   /// Where the walker is at [t] seconds: its length along the path and
-  /// its hop; with [fresh] it walks from the stop before.
-  ({double l, double hop}) walkAt(double t, {required bool fresh}) {
-    if (!fresh) return (l: l1, hop: 0);
-    final q =
-        ((t * 1000 - walkDelay.inMilliseconds) / walkDuration.inMilliseconds)
-            .clamp(0.0, 1.0);
+  /// its hop. Stop to stop, a short pause at each, hopping as it goes.
+  ({double l, double hop}) walkAt(double t) {
+    if (!walks) return (l: at.isEmpty ? 0 : at[j], hop: 0);
+    final s = t - _delayS;
+    if (s <= 0) return (l: _way.first, hop: 0);
+    final i = (s / (_stepS + _pauseS)).floor();
+    if (i >= _way.length - 1) return (l: _way.last, hop: 0);
+    final into = s - i * (_stepS + _pauseS);
+    if (into >= _stepS) return (l: _way[i + 1], hop: 0);
+    final q = into / _stepS;
     final e = easeInOutQuad(q);
-    return (l: l0 + (l1 - l0) * e, hop: (math.sin(q * math.pi * 7)).abs() * 7);
+    return (
+      l: _way[i] + (_way[i + 1] - _way[i]) * e,
+      hop: (math.sin(q * math.pi * 4)).abs() * 7,
+    );
   }
 }
 
 class _OrchardPainter extends CustomPainter {
-  _OrchardPainter(this.svg, this.t, this.still, this.s, this.fresh)
-    : super(repaint: t);
+  _OrchardPainter(this.svg, this.t, this.still, this.s) : super(repaint: t);
 
   final MiniSvg svg;
   final ValueNotifier<double> t;
   final bool still;
   final _Stretch s;
-  final bool fresh;
 
   @override
   void paint(Canvas canvas, Size size) {
     final k = size.width / svg.width;
     canvas.save();
     canvas.scale(k);
-    final w = s.walkAt(still ? 1e9 : t.value, fresh: fresh && !still);
+    final w = s.walkAt(still ? 1e9 : t.value);
     svg.paint(canvas, t: t.value, still: still, walked: w.l);
     canvas.restore();
   }
 
   @override
   bool shouldRepaint(_OrchardPainter old) =>
-      old.svg != svg || old.still != still || old.fresh != fresh;
+      old.svg != svg || old.still != still;
 }
 
 /// The child's look on the path (the prototype's `#owalker`): a shadow,
@@ -678,16 +752,11 @@ class _Walker extends StatelessWidget {
       valueListenable: t,
       child: pin,
       builder: (context, time, pin) {
-        final w = stretch.walkAt(still ? 1e9 : time, fresh: fresh && !still);
+        final w = stretch.walkAt(still ? 1e9 : time);
         final p = m.getTangentForOffset(w.l)!.position;
-        final walking =
-            fresh &&
-            !still &&
-            time * 1000 < (walkDelay + walkDuration).inMilliseconds;
+        final walking = fresh && !still && stretch.walkingAt(time);
         // idle: the pin bobs 5 px every 2.2 s, from the end of the walk
-        final idleT = fresh
-            ? time - (walkDelay + walkDuration).inMicroseconds / 1e6
-            : time;
+        final idleT = fresh ? time - stretch.walkEnd : time;
         final bob = still || walking ? 0.0 : 5 * halfway((idleT % 2.2) / 2.2);
         // the pin's centre stands 52 above the path, plus its hop
         final cx = p.dx, cy = p.dy - 52 - w.hop;

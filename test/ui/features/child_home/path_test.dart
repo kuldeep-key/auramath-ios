@@ -65,39 +65,45 @@ void main() {
     },
   }).lands!;
 
-  Widget screen({String? name}) =>
-      PathScreen(lands: lands, lookId: 'look_05', childName: name);
-
-  setUp(PathScreen.seen.clear);
+  Widget screen({String? name, int? seenAt = 5}) => PathScreen(
+    lands: lands,
+    lookId: 'look_05',
+    childName: name,
+    seenAt: seenAt,
+  );
 
   testWidgets('the path fits every size, at 1.3x text too', (tester) async {
     await shots(tester, 'child_home_path', screen(name: 'Aarav'));
   });
 
-  testWidgets('section 15: his level is one land, Sapling Row, his look at '
-      'its way in, the last land\'s peak below with a flag, the next stop, '
-      'its peak, then mist; no number', (tester) async {
+  testWidgets('23 Nov: the whole track so far, the lands behind named at '
+      'their way in with their peak; his stop, the next two by name, the '
+      'peak, then mist; no number', (tester) async {
     final handle = tester.ensureSemantics();
     await show(tester, screen(name: 'Aarav'));
     // the header: his land and his trail (the level number switch is off)
     expect(find.text('Sapling Row'), findsOneWidget);
     expect(find.text("Aarav's trail"), findsOneWidget);
+    // the land behind, from its way in: named, its peak with a flag
+    expect(find.bySemanticsLabel('Seedling Path, Explored'), findsOneWidget);
     expect(find.bySemanticsLabel('The peak, Explored'), findsOneWidget);
+    // his land: his stop, the next two by name, its peak
     expect(find.bySemanticsLabel('Sapling Row, You are here'), findsOneWidget);
     expect(find.bySemanticsLabel('Little Fence, Next stop'), findsOneWidget);
+    expect(find.bySemanticsLabel('Tall Sprouts'), findsOneWidget);
     expect(find.bySemanticsLabel('The peak'), findsOneWidget);
     expect(find.bySemanticsLabel('Still in the mist'), findsOneWidget);
-    // five stops in the land and the last land's peak; the stops ahead
-    // have no sign and nothing to tap
-    for (final j in [0, 1, 2, 5]) {
+    // every stop of both lands is drawn; the walked ones and the one
+    // ahead of the next two have no sign and nothing to tap
+    for (final j in [0, 4, 5, 6, 7, 9]) {
       expect(find.byKey(Key('stop$j')), findsOneWidget, reason: 'stop$j');
     }
-    for (final j in [3, 4, 6]) {
+    for (final j in [1, 2, 3, 8, 10]) {
       expect(find.byKey(Key('stop$j')), findsNothing, reason: 'stop$j');
     }
     // nothing named in the mist, and the next land unnamed
     for (final hidden in [
-      'Seedling Path',
+      'Bird Bath',
       'Orchard Gate',
       'Old Oak Bridge',
       'Twisty Tree',
@@ -111,8 +117,8 @@ void main() {
     // REW-03: no counts, levels or percentages, on screen or read out
     expect(find.textContaining(RegExp(r'\d')), findsNothing);
     expect(find.bySemanticsLabel(RegExp(r'\d')), findsNothing);
-    // Look back opens the first land below
-    expect(find.byKey(const Key('lookBack')), findsOneWidget);
+    // the whole track is there: no Look back
+    expect(find.byKey(const Key('lookBack')), findsNothing);
     handle.dispose();
   });
 
@@ -122,13 +128,12 @@ void main() {
     for (final size in const [Size(390, 844), Size(375, 667), Size(430, 932)]) {
       tester.view.physicalSize = size * 3;
       tester.view.devicePixelRatio = 3;
-      PathScreen.seen.clear();
       await tester.pumpWidget(const SizedBox());
       await tester.pumpWidget(shotApp(screen(name: 'Aarav')));
       await tester.pumpAndSettle();
       final title = tester.getRect(find.text("Aarav's trail"));
-      final next = tester.getRect(find.byKey(const Key('stop2')));
-      final here = tester.getRect(find.byKey(const Key('stop1')));
+      final next = tester.getRect(find.byKey(const Key('stop6')));
+      final here = tester.getRect(find.byKey(const Key('stop5')));
       final go = tester.getRect(find.text('Keep going'));
       expect(next.top, greaterThan(title.bottom), reason: '$size: next stop');
       expect(here.bottom, lessThan(go.top), reason: '$size: the child');
@@ -138,7 +143,7 @@ void main() {
   testWidgets('tapping a stop reads its name', (tester) async {
     final said = <String>[];
     await show(tester, ReadAloud(say: said.add, child: screen()));
-    await tester.tap(find.byKey(const Key('stop1')));
+    await tester.tap(find.byKey(const Key('stop5')));
     expect(said, ['Sapling Row.']);
   });
 
@@ -165,39 +170,45 @@ void main() {
     Offset stop(WidgetTester tester, int j) =>
         tester.getCenter(find.byKey(Key('stop$j')));
 
-    testWidgets('waits 500 ms, walks up from the stop before for 2.2 s, '
-        'snaps, then bobs; the next open stands still', (tester) async {
+    /// The walker's pin centre (64 wide, 52 above the path).
+    Offset centre(WidgetTester tester) => walker(tester) + const Offset(32, 32);
+
+    Future<void> open(WidgetTester tester, Widget w) async {
       tester.view.physicalSize = shotSizes['iphone15']! * 3;
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(shotApp(screen()));
-      await tester.pump();
-      final from = stop(tester, 0), to = stop(tester, 1);
-      // the walker's pin (64 wide, its centre 52 above the path)
-      Offset centre() => walker(tester) + const Offset(32, 32);
-      expect(centre().dx, closeTo(from.dx, 2));
-      await tester.pump(const Duration(milliseconds: 450));
-      expect(centre().dx, closeTo(from.dx, 2), reason: 'still waiting');
-      await tester.pump(const Duration(milliseconds: 1150));
-      final mid = centre();
-      expect(mid.dy, lessThan(from.dy - 52));
-      expect(mid.dy, greaterThan(to.dy - 52 - 8));
-      expect(sfx.played, isEmpty);
-      await tester.pump(const Duration(milliseconds: 1150));
-      expect(centre().dx, closeTo(to.dx, 2));
-      expect(centre().dy, closeTo(to.dy - 52, 2));
-      expect(sfx.played, [Sfx.snap]);
-      // idle: it bobs up to 5 pt, every 2.2 s
-      await tester.pump(const Duration(milliseconds: 1100));
-      expect(centre().dy, closeTo(to.dy - 52, 2), reason: 'shadow stays');
-
-      // the next time the trail opens, the child is already there
       await tester.pumpWidget(const SizedBox());
-      await tester.pumpWidget(shotApp(screen()));
+      await tester.pumpWidget(shotApp(w));
       await tester.pump();
-      expect(centre().dx, closeTo(stop(tester, 1).dx, 2));
+    }
+
+    testWidgets('24 Nov: never seen on this phone (a new sign-in, the app '
+        'opened afresh): it stands at its stop, no walk', (tester) async {
+      final seen = <(String, int)>[];
+      await open(
+        tester,
+        PathScreen(
+          lands: lands,
+          lookId: 'look_05',
+          onSeen: (land, stop) => seen.add((land, stop)),
+        ),
+      );
+      expect(seen, [('orchard', 5)]);
+      expect(centre(tester).dx, closeTo(stop(tester, 5).dx, 2));
+      await tester.pump(const Duration(seconds: 8));
+      expect(centre(tester).dy, closeTo(stop(tester, 5).dy - 52, 6));
+      expect(sfx.played, isEmpty);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('seen there before: it stands at its stop, no walk', (
+      tester,
+    ) async {
+      await open(tester, screen());
+      expect(centre(tester).dx, closeTo(stop(tester, 5).dx, 2));
       await tester.pump(const Duration(seconds: 3));
-      expect(sfx.played, [Sfx.snap]);
+      expect(centre(tester).dy, closeTo(stop(tester, 5).dy - 52, 6));
+      expect(sfx.played, isEmpty);
       await tester.pumpWidget(const SizedBox());
     });
 
@@ -210,12 +221,12 @@ void main() {
       await tester.pumpWidget(
         MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
-          child: shotApp(screen()),
+          child: shotApp(screen(seenAt: null)),
         ),
       );
       await tester.pump();
       final at = walker(tester) + const Offset(32, 32);
-      expect(at.dx, closeTo(stop(tester, 1).dx, 2));
+      expect(at.dx, closeTo(stop(tester, 5).dx, 2));
       await tester.pump(const Duration(seconds: 3));
       expect(walker(tester) + const Offset(32, 32), at);
       expect(sfx.played, isEmpty);
@@ -250,29 +261,24 @@ void main() {
         },
       }).lands!;
 
-  testWidgets('far along: Look back shows the land before, walked, with its '
-      'medal on its peak', (tester) async {
+  testWidgets('far along: the lands before on the track, each named at its '
+      'way in, a medal on each peak', (tester) async {
     final handle = tester.ensureSemantics();
     await show(
       tester,
       PathScreen(
         lands: orchard(['earned', 'earned', 'current', 'mist', 'mist']),
         lookId: 'look_01',
+        seenAt: 10,
       ),
     );
     expect(find.text('Orchard Gate'), findsOneWidget);
     expect(find.bySemanticsLabel('Orchard Gate, You are here'), findsOneWidget);
-    expect(find.bySemanticsLabel('The peak, Earned'), findsOneWidget);
-    expect(find.bySemanticsLabel(RegExp('Sapling Row')), findsNothing);
-    await tester.ensureVisible(find.byKey(const Key('lookBack')));
-    await tapAndSettle(tester, find.byKey(const Key('lookBack')));
-    // Sapling Row's land: its way in named, its peak with its medal
+    expect(find.bySemanticsLabel('Apple Cart, Next stop'), findsOneWidget);
+    expect(find.bySemanticsLabel('Pear Arch'), findsOneWidget);
+    expect(find.bySemanticsLabel('Seedling Path'), findsOneWidget);
     expect(find.bySemanticsLabel('Sapling Row'), findsOneWidget);
     expect(find.bySemanticsLabel('The peak, Earned'), findsNWidgets(2));
-    expect(find.byKey(const Key('lookBack')), findsOneWidget);
-    await tester.ensureVisible(find.byKey(const Key('lookBack')));
-    await tapAndSettle(tester, find.byKey(const Key('lookBack')));
-    expect(find.bySemanticsLabel('Seedling Path'), findsOneWidget);
     expect(find.byKey(const Key('lookBack')), findsNothing);
     handle.dispose();
   });
@@ -287,7 +293,8 @@ void main() {
         lookId: 'look_01',
       ),
     );
-    expect(find.bySemanticsLabel('The peak, Explored'), findsOneWidget);
+    // the three lands behind on the track, each peak with a flag
+    expect(find.bySemanticsLabel('The peak, Explored'), findsNWidgets(3));
     expect(find.bySemanticsLabel(RegExp('Earned')), findsNothing);
     handle.dispose();
   });
@@ -332,7 +339,11 @@ void main() {
       final handle = tester.ensureSemantics();
       await show(
         tester,
-        PathScreen(lands: orchard(atL2, stopInLevel: 2), lookId: 'look_01'),
+        PathScreen(
+          lands: orchard(atL2, stopInLevel: 2),
+          lookId: 'look_01',
+          seenAt: 7,
+        ),
       );
       expect(find.text('Sapling Row'), findsOneWidget); // the title
       expect(
@@ -341,14 +352,14 @@ void main() {
       );
       expect(find.bySemanticsLabel('Bird Bath, Next stop'), findsOneWidget);
       expect(find.bySemanticsLabel('The peak'), findsOneWidget);
-      // the last land's peak, the walked stops unnamed, the child, next, peak
-      for (final j in [0, 3, 4, 5]) {
+      // the land behind, the walked stops unnamed, the child, next, peak
+      for (final j in [0, 4, 7, 8, 9]) {
         expect(find.byKey(Key('stop$j')), findsOneWidget, reason: 'stop$j');
       }
-      for (final j in [1, 2, 6]) {
+      for (final j in [5, 6, 10]) {
         expect(find.byKey(Key('stop$j')), findsNothing, reason: 'stop$j');
       }
-      final here = tester.getCenter(find.byKey(const Key('stop3')));
+      final here = tester.getCenter(find.byKey(const Key('stop7')));
       expect(walker(tester).dx, closeTo(here.dx, 2));
       expect(find.textContaining(RegExp(r'\d')), findsNothing);
       expect(find.bySemanticsLabel(RegExp(r'\d')), findsNothing);
@@ -367,50 +378,118 @@ void main() {
           childName: 'Aarav',
         ),
       );
-      PathScreen.seen.clear();
       await show(
         tester,
-        PathScreen(lands: orchard(atL2, stopInLevel: 3), lookId: 'look_01'),
+        PathScreen(
+          lands: orchard(atL2, stopInLevel: 3),
+          lookId: 'look_01',
+          seenAt: 8,
+        ),
       );
       expect(find.bySemanticsLabel('Bird Bath, You are here'), findsOneWidget);
       expect(find.bySemanticsLabel('Next stop'), findsNothing);
       expect(find.bySemanticsLabel('The peak'), findsOneWidget);
-      final here = tester.getCenter(find.byKey(const Key('stop4')));
+      final here = tester.getCenter(find.byKey(const Key('stop8')));
       expect(walker(tester).dx, closeTo(here.dx, 2));
       handle.dispose();
     });
 
-    testWidgets('a stop further in since the last visit: the child walks '
-        'up from the stop before, once', (tester) async {
+    Future<RecordingSfxPlayer> walkIn(WidgetTester tester, Widget w) async {
       AuraMotion.still = false;
-      addTearDown(() => AuraMotion.still = true);
+      final sfx = RecordingSfxPlayer();
+      AuraSound.player = sfx;
+      addTearDown(() {
+        AuraMotion.still = true;
+        AuraSound.player = const SilentSfxPlayer();
+      });
       tester.view.physicalSize = shotSizes['iphone15']! * 3;
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
-      Widget at(int k) => shotApp(
+      await tester.pumpWidget(shotApp(w));
+      await tester.pump();
+      return sfx;
+    }
+
+    /// Where the walker stands at stop [j] once the walk is done.
+    Future<void> endsAt(WidgetTester tester, int j) async {
+      await tester.pump(const Duration(seconds: 8));
+      final now = tester.getCenter(find.byKey(Key('stop$j')));
+      expect(walker(tester).dx, closeTo(now.dx, 2));
+      expect(walker(tester).dy, closeTo(now.dy - 52, 2));
+    }
+
+    testWidgets('24 Nov: two stops further in since the last visit: one '
+        'step, from the stop before theirs', (tester) async {
+      // last seen at Sapling Row's way in (stop 5); now two stops on (7)
+      final sfx = await walkIn(
+        tester,
         PathScreen(
-          lands: orchard(atL2, stopInLevel: k),
+          lands: orchard(atL2, stopInLevel: 2),
+          lookId: 'look_01',
+          seenAt: 5,
+        ),
+      );
+      final there = tester.getCenter(find.byKey(const Key('stop7')));
+      expect(walker(tester).dy, greaterThan(there.dy - 52 + 20));
+      await endsAt(tester, 7);
+      expect(sfx.played, [Sfx.snap]);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('24 Nov: the first step of all, never seen: the first stop '
+        'to the second', (tester) async {
+      final sfx = await walkIn(
+        tester,
+        PathScreen(
+          lands: orchard([
+            'current',
+            'next',
+            'mist',
+            'mist',
+            'mist',
+          ], stopInLevel: 1),
           lookId: 'look_01',
         ),
       );
-      await tester.pumpWidget(at(0));
-      await tester.pump(const Duration(seconds: 4));
+      final there = tester.getCenter(find.byKey(const Key('stop1')));
+      expect(walker(tester).dy, greaterThan(there.dy - 52 + 20));
+      await endsAt(tester, 1);
+      expect(sfx.played, [Sfx.snap]);
       await tester.pumpWidget(const SizedBox());
-      // the next visit: the engine has moved the child one stop on
-      await tester.pumpWidget(at(1));
-      await tester.pump();
-      final there = tester.getCenter(find.byKey(const Key('stop2')));
-      final from = walker(tester);
-      expect(from.dy, greaterThan(there.dy - 52 + 20), reason: 'below');
-      await tester.pump(walkDelay + walkDuration);
-      expect(walker(tester).dx, closeTo(there.dx, 2));
-      expect(walker(tester).dy, closeTo(there.dy - 52, 2));
-      // and the time after, they are already there
+    });
+
+    testWidgets('24 Nov: a level passed: from the stop below the peak, over '
+        'it, to the next land\'s way in', (tester) async {
+      final sfx = await walkIn(
+        tester,
+        PathScreen(
+          lands: orchard(atL2, stopInLevel: 0),
+          lookId: 'look_01',
+          seenAt: 3,
+        ),
+      );
+      await endsAt(tester, 5);
+      expect(sfx.played, [Sfx.snap, Sfx.snap]);
       await tester.pumpWidget(const SizedBox());
-      await tester.pumpWidget(at(1));
-      await tester.pump();
-      expect(walker(tester).dx, closeTo(there.dx, 2));
-      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('24 Nov: seen at their stop, or somewhere else after a new '
+        'sign-in: no walk', (tester) async {
+      for (final seenAt in [7, 9]) {
+        final sfx = await walkIn(
+          tester,
+          PathScreen(
+            lands: orchard(atL2, stopInLevel: 2),
+            lookId: 'look_01',
+            seenAt: seenAt,
+          ),
+        );
+        final now = tester.getCenter(find.byKey(const Key('stop7')));
+        expect(walker(tester).dx, closeTo(now.dx, 2));
+        await tester.pump(const Duration(seconds: 8));
+        expect(sfx.played, isEmpty);
+        await tester.pumpWidget(const SizedBox());
+      }
     });
   });
 }

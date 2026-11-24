@@ -1,6 +1,7 @@
 import 'package:auramath/app.dart';
 import 'package:auramath/deps.dart';
 import 'package:auramath/routing/paths.dart';
+import 'package:auramath/ui/features/child_home/views/path_screen.dart';
 import 'package:auramath_engine/auramath_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -221,6 +222,49 @@ void main() {
     await boot(tester, Paths.afterCaseNext('mango'));
     expect(find.text('Tree Word Problem'), findsOneWidget);
     expect(find.text('My sash'), findsNothing);
+  });
+
+  testWidgets('23 Nov: the trail keeps the stop it showed the child at, '
+      'and the next visit walks on from there', (tester) async {
+    void trail(FakeServer server) =>
+        server.on('GET /api/children/child-1/rewards', {
+          'world': 'detective',
+          'trail': {
+            'lands': [
+              {
+                'landId': 'orchard',
+                'name': 'The Orchard',
+                'current': true,
+                'stopInLevel': 1,
+                'stops': [
+                  {
+                    'stopId': 'stop.orchard.l1',
+                    'name': 'Seedling Path',
+                    'state': 'explored',
+                  },
+                  {
+                    'stopId': 'stop.orchard.l2',
+                    'name': 'Sapling Row',
+                    'state': 'current',
+                  },
+                ],
+              },
+            ],
+          },
+        });
+    final first = await boot(tester, Paths.trail, serve: trail);
+    expect(tester.widget<PathScreen>(find.byType(PathScreen)).seenAt, isNull);
+    final kept = await tester.runAsync(
+      () => first.store.read('trailSeen.child-1.orchard'),
+    );
+    expect(kept, '6');
+    await boot(
+      tester,
+      Paths.trail,
+      stored: {...pairedChildPhone, 'trailSeen.child-1.orchard': '6'},
+      serve: trail,
+    );
+    expect(tester.widget<PathScreen>(find.byType(PathScreen)).seenAt, 6);
   });
 
   testWidgets('the trail starts at the first case stop', (tester) async {
